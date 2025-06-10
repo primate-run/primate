@@ -23,7 +23,7 @@
     "directory": "packages/grain"
   },
   "scripts": {
-    "build": "npm run clean && tsc && cp -a src/private/*.grain lib/private && cp src/private/grain.* lib/private",
+    "build": "npm run clean && tsc && cp -a src/private/*.gr lib/private",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build"

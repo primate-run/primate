@@ -1,7 +1,0 @@
-module Test
-from "runtime/gc" include GC as Runtime
-
-provide let get = () => Some(1)
-
-provide let _decRef = Runtime.decRef
-provide let _incRef = Runtime.incRef
