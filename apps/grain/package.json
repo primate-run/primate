@@ -1,0 +1,12 @@
+{
+  "name": "@primate/app/grain",
+  "scripts": {
+    "test": "npx primate test"
+  },
+  "dependencies": {
+    "@primate/html": "workspace:^",
+    "@primate/grain": "workspace:^",
+    "primate": "workspace:^"
+  },
+  "type": "module"
+}
