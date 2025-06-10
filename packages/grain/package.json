@@ -1,0 +1,44 @@
+{
+  "name": "@primate/grain",
+  "version": "0.0.1",
+  "description": "Grain backend for Primate",
+  "homepage": "https://primate.run/docs/backend/grain",
+  "bugs": "https://github.com/primate-run/primate/issues",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@primate/core": "workspace:^",
+    "@rcompat/invariant": "^0.8.5",
+    "@rcompat/fs": "^0.12.18",
+    "@rcompat/stdio": "^0.9.1"
+  },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.gr",
+    "!/**/*.spec.*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primate-run/primate",
+    "directory": "packages/grain"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc && cp -a src/private/*.grain lib/private && cp src/private/grain.* lib/private",
+    "clean": "rm -rf ./lib",
+    "lint": "eslint .",
+    "prepublishOnly": "npm run build"
+  },
+  "imports": {
+    "#*": {
+      "apekit": "./src/private/*.ts",
+      "default": "./lib/private/*.js"
+    }
+  },
+  "exports": {
+    ".": {
+      "runtime": "./lib/runtime.js",
+      "default": "./lib/default.js"
+    },
+    "./*": "./lib/*.js"
+  }
+}
