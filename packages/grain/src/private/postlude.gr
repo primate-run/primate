@@ -1,2 +1,6 @@
-from "primate/exports" include PrimateWasmExports
+from "primate/exports" include Exports
 
+provide let _makeRequest = Exports._makeRequest
+provide let _decRef = Exports._decRef
+provide let _incRef = Exports._incRef
+provide let _serializeResponse = Exports._serializeResponse

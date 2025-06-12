@@ -1,7 +1,8 @@
 module Exports
 
+from "list" include List
 from "bytes" include Bytes
-from "int32" include Int32
+from "uint32" include Uint32
 from "runtime/gc" include GC as Runtime
 from "runtime/unsafe/wasmi32" include WasmI32
 from "runtime/dataStructures" include DataStructures
@@ -89,8 +90,9 @@ use DataStructures.{ allocateString }
 use Offsets.{ _STR_DATA_OFFSET, _STR_LEN_OFFSET, _BYTES_DATA_OFFSET }
 use Uri.{ type Uri }
 use Request.{ type Request, type Body, type BodyMapElement }
-use Response.{ type Response }
+use Response.{ type Response, type ViewOptions, type HTTPStatus, type ErrorOptions }
 use WasmI32.{ (+) as (+.) }
+use Json.{ type Json }
 
 provide foreign wasm receive:
   (WasmI32, WasmI32) => Void from "primate"
@@ -101,29 +103,29 @@ provide foreign wasm getLength:
 provide foreign wasm sendPayload:
   (ptr: WasmI32, length: WasmI32) => Void from "primate" 
 
-let _getSectionMap = (id: Int32, offset: Number, payload: Bytes) => {
-  use Int32.{ (+) as (+.), (<), toNumber }
+let _getSectionMap = (id: Uint32, offset: Number, payload: Bytes) => {
+  use Uint32.{ (+) as (+.), (<), toNumber }
 
-  let header = Bytes.getInt32(offset, payload)
+  let header = Bytes.getUint32(offset, payload)
   assert(header == id)
-  let count = Bytes.getInt32(offset + 4, payload)
+  let count = Bytes.getUint32(offset + 4, payload)
   let mut offset = offset + 8
 
   let map = Map.make()
 
-  let mut i = 0l
+  let mut i = 0ul
   while (i < count) {
-    let keySize = Bytes.getInt32(offset, payload)
+    let keySize = Bytes.getUint32(offset, payload)
     let key = Bytes.slice(offset + 4, toNumber(keySize), payload)
     let keyString = toString(key)
     offset += 4 + toNumber(keySize)
 
-    let valueSize = Bytes.getInt32(offset, payload)
+    let valueSize = Bytes.getUint32(offset, payload)
     let value = Bytes.slice(offset + 4, toNumber(valueSize), payload)
     offset += 4 + toNumber(valueSize)
     let valueString = toString(value)
     Map.set(keyString, valueString, map)
-    i = i +. 1l
+    i = i +. 1ul
   }
 
   (offset, map)
@@ -149,61 +151,74 @@ let _receiveBytes = () => {
   buffer
 }
 
+let _URI_SECTION = 0ul
+let _BODY_SECTION = 1ul
+let _PATH_SECTION = 2ul
+let _QUERY_SECTION = 3ul
+let _HEADERS_SECTION = 4ul
+let _COOKIES_SECTION = 5ul
+
+let _BODY_NULL = 0ul
+
+let _BODY_MAP_ELEMENT_KIND_STRING = 0ul
+let _BODY_MAP_ELEMENT_KIND_BYTES = 1ul
+
 @unsafe
 provide let _makeRequest = () => {
-  use Bytes.{ getInt32, slice, toString }
-  use Int32.{ toNumber, (<), (+) as (+.) }
+  use Bytes.{ getUint32, slice, toString }
+  use Uint32.{ toNumber, (<), (+) as (+.) }
   let payload = _receiveBytes()
   
   // Section 1
   let mut offset = 0
-  let header0 = Bytes.getInt32(offset, payload)
-  assert(header0 == 0l)
-  let uriSize = Bytes.getInt32(offset + 4, payload)
+
+  let header0 = Bytes.getUint32(offset, payload)
+  assert(header0 == _URI_SECTION)
+  let uriSize = Bytes.getUint32(offset + 4, payload)
   let uriString = Bytes.slice(offset + 8, toNumber(uriSize), payload)
   let url = Result.expect("Invalid URL", Uri.parse(toString(uriString)))
 
   // Section 2
   offset += 8 + toNumber(uriSize)
-
-  let header1 = Bytes.getInt32(offset, payload)
-  assert(header1 == 1l)
-  let bodyKind = Bytes.getInt32(offset + 4, payload)
+  let header1 = Bytes.getUint32(offset, payload)
+  assert(header1 == _BODY_SECTION)
+  let bodyKind = Bytes.getUint32(offset + 4, payload)
   offset += 8
 
   let body = match (bodyKind) {
-    0l => BodyNull,
-    1l => {
-      let stringSize = Bytes.getInt32(offset, payload)
+    0ul => BodyNull,
+    1ul => {
+      let stringSize = Bytes.getUint32(offset, payload)
       let string = Bytes.slice(offset + 4, toNumber(stringSize), payload)
       offset += 4 + toNumber(stringSize)
       BodyString(toString(string))
     },
-    2l => {
-      let count = Bytes.getInt32(offset, payload)
+    2ul => {
+      let count = Bytes.getUint32(offset, payload)
       offset += 4
       let map = Map.make()
       
-      let mut i = 0l
+      let mut i = 0ul
 
       while (i < count) {
         // get the key
-        let keySize = Bytes.getInt32(offset, payload)
+        let keySize = Bytes.getUint32(offset, payload)
         let key = Bytes.slice(offset + 4, toNumber(keySize), payload)
         offset += 4 + toNumber(keySize)
         let keyString = toString(key)
 
-        let valueKind = Bytes.getInt32(offset, payload)
-        let valueSize = Bytes.getInt32(offset + 4, payload)
+        let valueKind = Bytes.getUint32(offset, payload)
+        let valueSize = Bytes.getUint32(offset + 4, payload)
         let value = Bytes.slice(offset + 8, toNumber(valueSize), payload)
         offset += 8 + toNumber(valueSize)
         let value = match (valueKind) {
-          0l => BodyMapElementString(toString(value)),
-          1l => BodyMapElementBytes(value),
+          // 
+          0ul => BodyMapElementString(toString(value)),
+          1ul => BodyMapElementBytes(value),
           _ => throw InvalidRequestEncoding,
         }
         Map.set(keyString, value, map)
-        i = i +. 1l
+        i = i +. 1ul
       }
       
       BodyMap(map)
@@ -211,10 +226,10 @@ provide let _makeRequest = () => {
     _ => throw InvalidRequestEncoding,
   }
 
-  let (offset, path) = _getSectionMap(2l, offset, payload)
-  let (offset, query) = _getSectionMap(3l, offset, payload)
-  let (offset, headers) = _getSectionMap(4l, offset, payload)
-  let (offset, cookies) = _getSectionMap(5l, offset, payload)
+  let (offset, path) = _getSectionMap(_PATH_SECTION, offset, payload)
+  let (offset, query) = _getSectionMap(_QUERY_SECTION, offset, payload)
+  let (offset, headers) = _getSectionMap(_HEADERS_SECTION, offset, payload)
+  let (offset, cookies) = _getSectionMap(_COOKIES_SECTION, offset, payload)
 
   {
     url,
@@ -229,10 +244,21 @@ provide let _makeRequest = () => {
 provide let _decRef = Runtime.decRef
 provide let _incRef = Runtime.incRef
 
+let _RESPONSE_STRING = 0ul
+let _RESPONSE_JSON = 1ul
+let _RESPONSE_BLOB = 2ul
+let _RESPONSE_VIEW = 3ul
+let _RESPONSE_ERROR = 4ul
+let _RESPONSE_REDIRECT = 5ul
+let _RESPONSE_URI = 6ul
+
+let _NONE = 0ul
+let _SOME = 1ul
+
 @unsafe
 provide let _serializeResponse = (response: Response) => {
   let output = Buffer.make(1024)
-  match (response) {
+  let buffer = match (response) {
     ResponseString(str) => {
       // Header: 0
       // Length: 4 + length
@@ -240,14 +266,10 @@ provide let _serializeResponse = (response: Response) => {
       let strLength = String.byteLength(str)
       let byteLength = 8 + strLength
       let buffer = Buffer.make(byteLength)
-      Buffer.addInt32(0l, buffer)
-      Buffer.addInt32(Int32.fromNumber(strLength), buffer)
+      Buffer.addUint32(_RESPONSE_STRING, buffer)
+      Buffer.addUint32(Uint32.fromNumber(strLength), buffer)
       Buffer.addString(str, buffer)
-      let bytes = Buffer.toBytes(buffer)
-      let ptr = WasmI32.fromGrain(bytes) +. _BYTES_DATA_OFFSET
-      sendPayload(ptr, WasmI32.fromGrain(byteLength))
-      ignore(bytes)
-      void
+      buffer
     },
     ResponseJson(json) => {
       // Header: 1
@@ -257,59 +279,211 @@ provide let _serializeResponse = (response: Response) => {
       let strLength = String.byteLength(str)
       let byteLength = 8 + strLength
       let buffer = Buffer.make(byteLength)
-      Buffer.addInt32(1l, buffer)
-      Buffer.addInt32(Int32.fromNumber(strLength), buffer)
+      Buffer.addUint32(_RESPONSE_JSON, buffer)
+      Buffer.addUint32(Uint32.fromNumber(strLength), buffer)
       Buffer.addString(str, buffer)
-      let bytes = Buffer.toBytes(buffer)
-      let ptr = WasmI32.fromGrain(bytes) +. _BYTES_DATA_OFFSET
-      sendPayload(ptr, WasmI32.fromGrain(byteLength))
-      ignore(bytes)
-      void
+      buffer
     },
     ResponseBlob(bytes, contentType) => {
       // Header: 2
       // Length: 4 + 4 + bytes length + content type length
       // Payload: bytes length bytes + content type length bytes
       let bytesLength = Bytes.length(bytes)
-      let size = match (contentType) {
-        Some(str) => 12 + bytesLength + String.byteLength(str),
-        None => 8 + bytesLength,
-      }
+      let size = 4 // header
+        + 4 // bytes length
+        + bytesLength // bytes payload
+        + match (contentType) {
+          Some(str) => 4 // Some
+            + 4 // string length
+            + String.byteLength(str),
+          None => 4 // None
+        }
+      
       let buffer = Buffer.make(size)
-      Buffer.addInt32(2l, buffer)
-      Buffer.addInt32(Int32.fromNumber(bytesLength), buffer)
+      Buffer.addUint32(_RESPONSE_BLOB, buffer)
+      Buffer.addUint32(Uint32.fromNumber(bytesLength), buffer)
       Buffer.addBytes(bytes, buffer)
       match (contentType) {
         Some(str) => {
           let strLength = String.byteLength(str)
           let offset = 8 + bytesLength
-          Buffer.addInt32(1l, buffer)
-          Buffer.addInt32(Int32.fromNumber(strLength), buffer)
+          Buffer.addUint32(_SOME, buffer)
+          Buffer.addUint32(Uint32.fromNumber(strLength), buffer)
           Buffer.addString(str, buffer)
           void
         },
         None => {
-          Buffer.addInt32(0l, buffer)
+          Buffer.addUint32(_NONE, buffer)
           void
         },
       }
-      let bytes = Buffer.toBytes(buffer)
-      let ptr = WasmI32.fromGrain(bytes) +. _BYTES_DATA_OFFSET
-      sendPayload(ptr, WasmI32.fromGrain(size))
-      ignore(bytes)
-      void
+      buffer
     },
     ResponseView(viewName, props, viewOptions) => {
-      void
+      let viewOptions = match (viewOptions) {
+        Some(options) => {
+          let {
+            head,
+            partial,
+            placeholders,
+            page,
+            csp,
+          } = options
+          JsonObject([
+            ("head", match (head) {
+              Some(str) => JsonString(str),
+              None => JsonNull
+            }),
+            ("partial", JsonBoolean(partial)),
+            ("placeholders", JsonObject(
+              Map.reduce(
+                (acc, key, value) => [(key, JsonString(value)), ...acc],
+                [],
+                placeholders,
+              ),
+            )),
+            ("page", match (page) {
+              Some(str) => JsonString(str),
+              None => JsonNull
+            }),
+            ("csp", JsonObject(
+              Map.reduce(
+                (acc, key, value) => [(key, JsonString(value)), ...acc],
+                [],
+                csp,
+              ),
+            )),
+          ])
+        },
+        None => JsonNull
+      }
+
+      let viewNameLength = String.byteLength(viewName)
+
+      let propsStr = Result.expect("Invalid Json", Json.toString(props))
+      let propsLength = String.byteLength(propsStr)
+
+      let viewOptionsStr = Result.expect("Invalid Json", Json.toString(viewOptions))
+      let viewOptionsLength = String.byteLength(viewOptionsStr)
+
+      let size = 4 // kind
+        + 4 // view length
+        + viewNameLength // view payload
+        + 4 // props length
+        + propsLength // props payload
+        + 4 // viewOptions length
+        + viewOptionsLength // viewOptionsPayload
+      let buffer = Buffer.make(size)
+      
+      Buffer.addUint32(_RESPONSE_VIEW, buffer)
+      
+      // view
+      Buffer.addUint32(Uint32.fromNumber(viewNameLength), buffer)
+      Buffer.addString(viewName, buffer)
+
+      // props
+      Buffer.addUint32(Uint32.fromNumber(propsLength), buffer)
+      Buffer.addString(propsStr, buffer)
+
+      // view options
+      Buffer.addUint32(Uint32.fromNumber(viewOptionsLength), buffer)
+      Buffer.addString(viewOptionsStr, buffer)
+
+      buffer
     },
     ResponseError(errorOptions) => {
-      void
+      let { body, status, page } = errorOptions
+      
+      let size = 4 // kind
+        + match (body) {
+          Some(str) => 4 // body type
+            + 4 // body length
+            + String.byteLength(str), // body payload length
+          None => 4 // body type
+        }
+        + 4 // HTTPStatus
+        + match (page) {
+          Some(str) => 4 // page type
+            + 4 // page length
+            + String.byteLength(str), // page payload length
+          None => 4
+        }
+      let buffer = Buffer.make(size)
+
+      Buffer.addUint32(_RESPONSE_ERROR, buffer)
+
+      // body
+      match (body) {
+        Some(str) => {
+          Buffer.addUint32(_SOME, buffer)
+          Buffer.addUint32(Uint32.fromNumber(String.byteLength(str)), buffer)
+          Buffer.addString(str, buffer)
+        },
+        None => {
+          Buffer.addUint32(_NONE, buffer)
+        }
+      }
+
+      // status
+      Buffer.addUint32(Uint32.fromNumber(Response.getStatusCode(status)), buffer)
+
+      // page
+      match (page) {
+        Some(str) => {
+          Buffer.addUint32(_SOME, buffer)
+          Buffer.addUint32(Uint32.fromNumber(String.byteLength(str)), buffer)
+          Buffer.addString(str, buffer)
+        },
+        None => {
+          Buffer.addUint32(_NONE, buffer)
+        }
+      }
+
+      buffer
     },
     ResponseRedirect(to, httpStatus) => {
-      void
+      let toSize = String.byteLength(to)
+      let size = 4 // kind
+        + 4 // kindSize
+        + toSize // kindPayload
+        + match (httpStatus) {
+          Some(_) => 4 + 4, // Some + code
+          None => 4 // None
+        }
+      let buffer = Buffer.make(size)
+      Buffer.addUint32(_RESPONSE_REDIRECT, buffer)
+      Buffer.addUint32(Uint32.fromNumber(toSize), buffer)
+      Buffer.addString(to, buffer)
+      match (httpStatus) {
+        Some(httpStatus) => {
+          Buffer.addUint32(_SOME, buffer)
+          Buffer.addUint32(Uint32.fromNumber(Response.getStatusCode(httpStatus)), buffer)
+        },
+        None => Buffer.addUint32(_NONE, buffer)
+      }
+
+      buffer
     },
     ResponseUri(uri) => {
-      void
+      let uriStr = Uri.toString(uri)
+      let uriStrSize = String.byteLength(uriStr)
+      let size = 4 // kind
+        + 4 // uri size
+        + uriStrSize
+
+      let buffer = Buffer.make(size)
+
+      Buffer.addUint32(_RESPONSE_URI, buffer)
+      Buffer.addUint32(Uint32.fromNumber(uriStrSize), buffer)
+      Buffer.addString(uriStr, buffer)
+      buffer
     },
   }
+
+  let bytes = Buffer.toBytes(buffer)
+  let size = Bytes.length(bytes)
+  let ptr = WasmI32.fromGrain(bytes) +. _BYTES_DATA_OFFSET
+  sendPayload(ptr, WasmI32.fromGrain(size))
+  ignore(bytes)
+  void
 }

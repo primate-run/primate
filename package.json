@@ -16,6 +16,7 @@
     "@rcompat/test": "^0.2.0",
     "@rcompat/type": "^0.2.0",
     "@types/bun": "^1.2.15",
+    "@types/deno": "^2.3.0",
     "apekit": "^0.0.16",
     "esbuild": "^0.25.5",
     "eslint": "^9.29.0",
