@@ -1,0 +1,98 @@
+module Response
+
+from "uri" include Uri
+from "map" include Map
+from "json" include Json
+from "bytes" include Bytes
+
+use Map.{ type Map }
+use Json.{ type Json }
+use Uri.{ type Uri }
+
+provide enum HTTPStatus {
+  Ok,
+  NotFound,
+  InternalServerError,
+}
+
+provide record ErrorOptions {
+  body: Option<String>,
+  status: HTTPStatus,
+  page: Option<String>,
+}
+
+provide record ViewOptions {
+  head: Option<String>,
+  partial: Bool,
+  placeholders: Map<String, String>,
+  page: Option<String>,
+  csp: Map<String, String>,
+}
+
+provide enum Response {
+  ResponseString(String),
+  ResponseJson(Json),
+  ResponseBlob(Bytes, Option<String>),
+  ResponseView(String, Json, Option<ViewOptions>),
+  ResponseError(ErrorOptions),
+  ResponseRedirect(String, Option<HTTPStatus>),
+  ResponseUri(Uri),
+}
+
+provide let makeViewOptions = (
+  head: Option<String> = None,
+  partial: Bool = false,
+  placeholders: Map<String, String> = Map.make(),
+  page: Option<String> = None,
+  csp: Map<String, String> = Map.make(),
+) => {
+  let options: ViewOptions = {
+    head,
+    partial,
+    placeholders,
+    page,
+    csp,
+  }
+  options
+}
+
+provide let makeErrorOptions = (
+  body: Option<String> = None,
+  status: HTTPStatus = NotFound,
+  page: Option<String> = None,
+) => {
+  let options: ErrorOptions = {
+    body,
+    status,
+    page,
+  }
+  options
+}
+
+provide let string = (value: String) => {
+  ResponseString(value)
+}
+
+provide let json = (value: Json) => {
+  ResponseJson(value)
+}
+
+provide let blob = (bytes: Bytes, contentType: Option<String> = Some("application/octet-stream")) => {
+  ResponseBlob(bytes, contentType)
+}
+
+provide let view = (name: String, props: Json = Json.JsonNull, options: Option<ViewOptions> = None) => {
+  ResponseView(name, props, options)
+}
+
+provide let error = (options: ErrorOptions = makeErrorOptions()) => {
+  ResponseError(options)
+}
+
+provide let redirect = (route: String, status: Option<HTTPStatus> = None) => {
+  ResponseRedirect(route, status)
+}
+
+provide let uri = (uri: Uri) => {
+  ResponseUri(uri)
+}

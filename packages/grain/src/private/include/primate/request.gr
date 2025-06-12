@@ -1,0 +1,29 @@
+module Request
+
+from "uri" include Uri
+from "map" include Map
+
+use Uri.{ type Uri }
+use Map.{ type Map }
+
+provide type Dictionary = Map<String, String>
+
+provide enum BodyMapElement {
+  BodyMapElementString(String),
+  BodyMapElementBytes(Bytes),
+}
+
+provide enum Body {
+  BodyNull,
+  BodyString(String), // 0
+  BodyMap(Map<String, BodyMapElement>)
+}
+
+provide record Request {
+  url: Uri,
+  body: Body,
+  path: Dictionary,
+  query: Dictionary,
+  headers: Dictionary,
+  cookies: Dictionary,
+}
