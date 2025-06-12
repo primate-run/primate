@@ -1,12 +1,14 @@
 module Index
 
-from "primate" include Primate
+from "primate/response" include Response
+from "primate/request" include Request
 from "json" include Json
-use Primate.{ type Request, type Response, module Response }
+
+use Response.{ type Response, json }
+use Request.{ type Request }
 
 provide let get = (request: Request) => {
-  Response.string("Hello world")
-  Response.json(Json.JsonNull)
+  json(JsonNull)
 }
 
 
