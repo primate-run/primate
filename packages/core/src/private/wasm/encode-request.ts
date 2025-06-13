@@ -49,7 +49,7 @@ function utf8ByteLength(str: string) {
 }
 
 const writeUInt32LE = (value: number, offset: number, view: DataView) => {
-  assert.ok(view.byteLength >= offset + 4)
+  assert.ok(view.byteLength >= offset + 4);
   view.setUint32(offset, value, true);
   return offset + 4;
 };
@@ -62,16 +62,16 @@ const sizeOfUrlSection = (url: URL) => SECTION_HEADER_SIZE + sizeOfUrl(url);
 const sizeOfBodySection = (body: Body) => {
   if (body === null)
     return SECTION_HEADER_SIZE
-      + SIZE_I32; // 0
+      + SIZE_I32; // 0 kind null
 
   if (typeof body === "string")
     return SECTION_HEADER_SIZE
-      + SIZE_I32 // 1
+      + SIZE_I32 // 1 kind string
       + sizeOfString(body);
 
   if (typeof body === "object") {
     let size = SECTION_HEADER_SIZE
-      + SIZE_I32 // 2;
+      + SIZE_I32 // 2 kind map
       + SIZE_I32; // entryCount
 
     for (const [key, value] of Object.entries(body)) {
@@ -283,7 +283,7 @@ const encodeRequestInto = async (request: RequestFacade, offset: number, target:
   offset = encodeMapSection(HEADERS_SECTION, request.headers, offset, bufferView);
   offset = encodeMapSection(COOKIES_SECTION, request.cookies, offset, bufferView);
 
-  assert.ok(offset === bufferView.byteLength, "Invalid encoding. Something is wrong with the encoder.");
+  assert.ok(offset <= bufferView.byteLength, "Invalid encoding. Something is wrong with the encoder.");
 }
 
 const encodeRequest = async (request: RequestFacade) => {

@@ -85,6 +85,10 @@
     "#db/*": {
       "apekit": "./src/private/db/*.ts",
       "default": "./lib/private/db/*.js"
+    },
+    "#wasm/*": {
+      "apekit": "./src/private/wasm/*.ts",
+      "default": "./lib/private/wasm/*.js"
     }
   },
   "exports": {
