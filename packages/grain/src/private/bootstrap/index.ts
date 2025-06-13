@@ -51,6 +51,16 @@ type PrimateWasmExports = {
   _incRef(ref: number): void;
 } & Partial<Record<HTTPMethod, (request: GrainRequest) => GrainResponse>>;
 
+let payload: Uint8Array;
+let payloadView: DataView;
+
+const setPayloadBuffer = (buffer: Uint8Array) => {
+  payload = buffer;
+  payloadView = new DataView(payloadView.buffer, payloadView.byteOffset, payloadView.byteLength);
+}
+
+let received = new Uint8Array(0);
+
 const primateImports = {
   payloadReceive(ptr: number, length: number) {
     assert.ok(payload, "Invalid payload index");
@@ -109,9 +119,6 @@ const defaultInstantiate = async () => {
   return wasm;
 }
 
-let payload = new Uint8Array(0);
-let received = new Uint8Array(0);
-
 const wasm = typeof Deno !== "undefined"
   ? await instantiateDeno()
   : await defaultInstantiate();
@@ -119,8 +126,6 @@ const wasm = typeof Deno !== "undefined"
 // obtain a reference to the wasm memory
 const exports = wasm.instance.exports as unknown as PrimateWasmExports;
 const memory = exports.memory;
-
-const api = {} as API;
 
 const SIZE_I32 = Int32Array.BYTES_PER_ELEMENT;
 const SECTION_1 = 0;
@@ -298,9 +303,9 @@ function utf8ByteLength(str: string) {
       length += 4;
     }
 
-    // Strings in js have 16 bits long characters, and when
+    // Strings in js have 16 bits long character sequences, and when
     // the codepoint is above 0x10000, it requires 2 values
-    // in the string, and i should be advanced again to skip
+    // in the string, and "i" should be advanced again to skip
     // over the second codepoint in the sequence
     if (code >= 0x10000) i++;
   }
@@ -477,7 +482,6 @@ const dictionarySection = (id: number, dictionary: PartialDictionary<string>) =>
   return output;
 }
 
-
 const encodeRequest = async (request: RequestFacade) => {
   const url = section1(request.url);
   const body = await section2(request.body);
@@ -504,17 +508,18 @@ const encodeRequest = async (request: RequestFacade) => {
   offset = writeUint8Array(cookies, offset, payload);
   return payload;
 }
-  
+
+const api = {} as API;
 
 for (const method of methods) {
   if (method in exports && typeof exports[method] === "function") {
     const methodFunc = (request: GrainRequest) => exports[method]!(request);
-
     
     api[method] = async (request: RequestFacade): Promise<ResponseLike> => {
       payload = await encodeRequest(request);
       // payload is now set
 
+      setPayloadBuffer(payload);
       const grainRequest = exports._makeRequest();
       const grainResponse = methodFunc(grainRequest);
       const response = decodeResponse(grainResponse);
