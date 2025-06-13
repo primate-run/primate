@@ -70,7 +70,7 @@ const primateImports = {
   },
 }
 
-const wasmPath = "";
+const wasmPath = "./__FILE_NAME__.wasm";
 
 const instantiateDeno = async () => {
   // @ts-expect-error: for deno, need to implement the std lib implementation

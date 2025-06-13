@@ -7,6 +7,8 @@ import which from "@rcompat/stdio/which";
 let command: string | null = null;
 let grainIncludeDir: FileRef | null = null;
 let postludeRef: FileRef | null = null;
+let grainExports: FileRef | null = null;
+let grainBootstrap: FileRef | null = null;
 
 const compileGrainFile = (wasm: FileRef, grain: FileRef) =>
   `${command} compile -o ${wasm.name} ${grain.name} -I ${grainIncludeDir}`;
@@ -14,26 +16,25 @@ const compileGrainFile = (wasm: FileRef, grain: FileRef) =>
 export default (extension: string): BuildAppHook => (app, next) => {
   
   app.bind(extension, async (grain, context) => {
-    const importGrainRegex = /(\n|\r\n|^)from "primate" include Primate(\n|\r\n|$)/;
     command ||= await which("grain");
-    grainIncludeDir ||= await FileRef.join(import.meta.url, "include");
-    postludeRef ||= await FileRef.join(import.meta.url, "postlude.gr");
+    postludeRef ||= FileRef.join(import.meta.dirname, "postlude.gr");
+    grainIncludeDir ||= FileRef.join(import.meta.dirname, "include");
+    grainExports ||= FileRef.join(import.meta.dirname, "exports.gr");
+    grainBootstrap ||= FileRef.join(import.meta.dirname, "bootstrap", "index.ts");
 
     assert(context === "routes", "grain: only route files are supported");
-    
-    // TODO: 1. Get module text
-    //       2. Assert `(\n|\r\n|^)from "primate" include Primate(\n|\r\n|$)` exists
     
     const code = await grain.text();
     const postlude = await postludeRef.text();
     
-    const outputGrain = importGrainRegex.test(code)
-      ? `${code}\n${postlude}`
-      : `${code}\nfrom "primate" include Primate\n${postlude}`;
-    await grain.write(outputGrain);
+    await grain.write(`${code}\n${postlude}`);
+
     const wasm = grain.bare(".wasm");
     await execute(compileGrainFile(wasm, grain), { cwd: `${grain.directory}` });
 
+    const bootstrapFile = grain.bare(".ts");
+    const bootstrapCode = (await grainBootstrap.text()).replace("__FILE_NAME__", bootstrapFile.name);
+    await bootstrapFile.write(bootstrapCode);
   });
 
   return next(app);
