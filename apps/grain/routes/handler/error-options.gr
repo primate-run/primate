@@ -1,0 +1,11 @@
+module ErrorOptions
+
+from "primate/request" include Request
+from "primate/response" include Response
+use Response.{ type Response, error, makeErrorOptions }
+use Request.{ type Request }
+
+provide let get = (request: Request) => {
+  let errorOptions = makeErrorOptions(body = Some("Grain error")) 
+  error(options = errorOptions)
+}

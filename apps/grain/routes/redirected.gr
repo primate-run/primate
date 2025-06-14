@@ -1,0 +1,10 @@
+module Redirected
+
+from "primate/request" include Request
+from "primate/response" include Response
+use Response.{ type Response, string }
+use Request.{ type Request }
+
+provide let get = (request: Request) => {
+  string("Redirected!")
+}
