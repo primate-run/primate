@@ -87,7 +87,7 @@ provide exception InvalidRequestEncoding
  */
 
 use DataStructures.{ allocateString }
-use Offsets.{ _STR_DATA_OFFSET, _STR_LEN_OFFSET, _BYTES_DATA_OFFSET }
+use Offsets.{ _STR_LEN_OFFSET, _BYTES_DATA_OFFSET }
 use Uri.{ type Uri }
 use Request.{ type Request, type Body, type BodyMapElement }
 use Response.{ type Response, type ViewOptions, type HTTPStatus, type ErrorOptions }
@@ -102,6 +102,9 @@ provide foreign wasm getLength:
 
 provide foreign wasm sendPayload:
   (ptr: WasmI32, length: WasmI32) => Void from "primate" 
+
+provide foreign wasm createSession:
+  () => Void from "primate"
 
 let _getSectionMap = (id: Uint32, offset: Number, payload: Bytes) => {
   use Uint32.{ (+) as (+.), (<), toNumber }
@@ -141,7 +144,7 @@ let _receiveString = () => {
 }
 
 @unsafe
-let _receiveBytes = () => {
+provide let _receiveBytes = () => {
   use WasmI32.{ (+), fromGrain }
   let length = getLength()
   let buffer = Bytes.make(WasmI32.toGrain(length): Number)
@@ -486,4 +489,10 @@ provide let _serializeResponse = (response: Response) => {
   sendPayload(ptr, WasmI32.fromGrain(size))
   ignore(bytes)
   void
+}
+
+provide let _toJsonPayload = () => {
+  let jsonString = _receiveString()
+  let json = Result.expect("Invalid JSON", Json.parse(jsonString))
+  json
 }

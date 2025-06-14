@@ -1,0 +1,54 @@
+module Session
+
+from "./exports.gr" include Exports
+from "json" include Json
+from "result" include Result
+from "runtime/unsafe/offsets" include Offsets
+from "runtime/unsafe/wasmi32" include WasmI32
+from "string" include String
+from "bytes" include Bytes
+from "uint32" include Uint32
+
+use Json.{ type Json }
+use Offsets.{ _STR_DATA_OFFSET }
+use WasmI32.{ (+) as (+.) }
+
+provide record Session {
+  data: Json,
+  new: Bool,
+  id: String,
+}
+
+@unsafe
+provide let create = (data: Json) => {
+  let str = Result.expect("Invalid JSON", Json.toString(data))
+  let ptr = WasmI32.fromGrain(str) +. _STR_DATA_OFFSET
+  let byteLength = WasmI32.fromGrain(String.byteLength(str))
+  Exports.sendPayload(ptr, byteLength)
+  ignore(str)
+  
+  Exports.createSession()
+
+  let payload = Exports._receiveBytes()
+  let offset = 0
+  let strLength = Uint32.toNumber(Bytes.getUint32(0, payload))
+  let str = Bytes.slice(4, strLength, payload)
+  let data = Result.expect("Invalid JSON data", Json.parse(toString(str)))
+  
+  let offset = offset + 4 + strLength
+  let new = Bytes.getUint32(offset, payload) == 1ul
+  let offset = offset + 4
+  
+  let idLength = Uint32.toNumber(Bytes.getUint32(offset, payload))
+  let idBytes = Bytes.slice(offset + 4, idLength, payload)
+  let id = toString(idBytes)
+
+  let offset = offset + 4 + idLength
+  assert(offset == Bytes.length(payload))
+
+  {
+    data,
+    new,
+    id,
+  }: Session
+}

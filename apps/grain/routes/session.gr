@@ -4,7 +4,8 @@ from "json" include Json
 from "primate/request" include Request
 from "primate/response" include Response
 from "primate/session" include Session
-use Session.{ type Session, create, data }
+
+use Session.{ type Session, create }
 use Request.{ type Request }
 use Response.{ type Response }
 
