@@ -1,6 +1,6 @@
 module Session
 
-from "./exports.gr" include Exports
+from "./external.gr" include External
 from "json" include Json
 from "result" include Result
 from "runtime/unsafe/offsets" include Offsets
@@ -13,23 +13,18 @@ use Json.{ type Json }
 use Offsets.{ _STR_DATA_OFFSET }
 use WasmI32.{ (+) as (+.) }
 
+provide exception InvalidSessionPayload
+
 provide record Session {
   data: Json,
   new: Bool,
   id: String,
 }
 
-@unsafe
-provide let create = (data: Json) => {
-  let str = Result.expect("Invalid JSON", Json.toString(data))
-  let ptr = WasmI32.fromGrain(str) +. _STR_DATA_OFFSET
-  let byteLength = WasmI32.fromGrain(String.byteLength(str))
-  Exports.sendPayload(ptr, byteLength)
-  ignore(str)
+let parseSessionPayload = (payload: Bytes) => {
+  use Bytes.{ getUint32, slice, toString }
+  use Uint32.{ toNumber, (<), (+) as (+.) }
   
-  Exports.createSession()
-
-  let payload = Exports._receiveBytes()
   let offset = 0
   let strLength = Uint32.toNumber(Bytes.getUint32(0, payload))
   let str = Bytes.slice(4, strLength, payload)
@@ -44,11 +39,31 @@ provide let create = (data: Json) => {
   let id = toString(idBytes)
 
   let offset = offset + 4 + idLength
-  assert(offset == Bytes.length(payload))
+  if (offset != Bytes.length(payload)) throw InvalidSessionPayload
 
   {
     data,
     new,
     id,
   }: Session
+}
+
+@unsafe
+provide let make = (data: Json) => {
+  let str = Result.expect("Invalid JSON", Json.toString(data))
+  let ptr = WasmI32.fromGrain(str) +. _STR_DATA_OFFSET
+  let byteLength = WasmI32.fromGrain(String.byteLength(str))
+  External.sendPayload(ptr, byteLength)
+  ignore(str)
+  
+  External.newSessionPayload()
+  let payload = External.receiveBytes()
+  parseSessionPayload(payload)
+}
+
+@unsafe
+provide let get = () => {
+  External.getSessionPayload()
+  let payload = External.receiveBytes()
+  parseSessionPayload(payload)
 }

@@ -5,12 +5,12 @@ from "primate/request" include Request
 from "primate/response" include Response
 from "primate/session" include Session
 
-use Session.{ type Session, create }
+use Session.{ type Session }
 use Request.{ type Request }
 use Response.{ type Response }
 
 provide let get = (request: Request) => {
-  create([("foo", JsonString("bar"))]);
-
-  Response.json(session().data)
+  Session.make(Json.JsonObject([("foo", Json.JsonString("bar"))]))
+  let session = Session.get()
+  Response.json(session.data)
 }

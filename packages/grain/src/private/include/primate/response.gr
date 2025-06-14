@@ -4,10 +4,22 @@ from "uri" include Uri
 from "map" include Map
 from "json" include Json
 from "bytes" include Bytes
+from "uint64" include Uint64
+from "uint32" include Uint32
+from "option" include Option
+from "string" include String
+from "buffer" include Buffer
+from "result" include Result
+from "runtime/unsafe/wasmi32" include WasmI32
+from "runtime/unsafe/offsets" include Offsets
+from "./external.gr" include External
 
+
+use Uint64.{ (+) as (+..) }
 use Map.{ type Map }
 use Json.{ type Json }
 use Uri.{ type Uri }
+use Offsets.{ _BYTES_DATA_OFFSET }
 
 provide enum HTTPStatus {
  	Continue,
@@ -157,15 +169,21 @@ provide record ViewOptions {
   csp: Map<String, String>,
 }
 
-provide enum Response {
-  ResponseString(String),
-  ResponseJson(Json),
-  ResponseBlob(Bytes, Option<String>),
-  ResponseView(String, Json, Option<ViewOptions>),
-  ResponseError(ErrorOptions),
-  ResponseRedirect(String, Option<HTTPStatus>),
-  ResponseUri(Uri),
+enum ResponseKind {
+  ResponseKindString(String),
+  ResponseKindJson(Json),
+  ResponseKindBlob(Bytes, Option<String>),
+  ResponseKindView(String, Json, Option<ViewOptions>),
+  ResponseKindError(ErrorOptions),
+  ResponseKindRedirect(String, Option<HTTPStatus>),
+  ResponseKindUri(Uri),
 }
+
+let mut responseID = 0uL
+
+provide type Response = Uint64
+
+let responseMap = Map.make(): Map<Response, ResponseKind>
 
 provide let makeViewOptions = (
   head: Option<String> = None,
@@ -198,29 +216,304 @@ provide let makeErrorOptions = (
 }
 
 provide let string = (value: String) => {
-  ResponseString(value)
+  let kind = ResponseKindString(value)
+  let id = responseID
+  responseID = responseID +.. 1uL
+  Map.set(id, kind, responseMap)
+  id
 }
 
 provide let json = (value: Json) => {
-  ResponseJson(value)
+  let kind = ResponseKindJson(value)
+  let id = responseID
+  responseID = responseID +.. 1uL
+  Map.set(id, kind, responseMap)
+  id
 }
 
 provide let blob = (bytes: Bytes, contentType: Option<String> = Some("application/octet-stream")) => {
-  ResponseBlob(bytes, contentType)
+  let kind = ResponseKindBlob(bytes, contentType)
+  let id = responseID
+  responseID = responseID +.. 1uL
+  Map.set(id, kind, responseMap)
+  id
 }
 
 provide let view = (name: String, props: Json = Json.JsonNull, options: Option<ViewOptions> = None) => {
-  ResponseView(name, props, options)
+  let kind = ResponseKindView(name, props, options)
+  let id = responseID
+  responseID = responseID +.. 1uL
+  Map.set(id, kind, responseMap)
+  id
 }
 
 provide let error = (options: ErrorOptions = makeErrorOptions()) => {
-  ResponseError(options)
+  let kind = ResponseKindError(options)
+  let id = responseID
+  responseID = responseID +.. 1uL
+  Map.set(id, kind, responseMap)
+  id
 }
 
 provide let redirect = (route: String, status: Option<HTTPStatus> = None) => {
-  ResponseRedirect(route, status)
+  let kind = ResponseKindRedirect(route, status)
+  let id = responseID
+  responseID = responseID +.. 1uL
+  Map.set(id, kind, responseMap)
+  id
 }
 
 provide let uri = (uri: Uri) => {
-  ResponseUri(uri)
+  let kind = ResponseKindUri(uri)
+  let id = responseID
+  responseID = responseID +.. 1uL
+  Map.set(id, kind, responseMap)
+  id
+}
+
+
+let _RESPONSE_STRING = 0ul
+let _RESPONSE_JSON = 1ul
+let _RESPONSE_BLOB = 2ul
+let _RESPONSE_VIEW = 3ul
+let _RESPONSE_ERROR = 4ul
+let _RESPONSE_REDIRECT = 5ul
+let _RESPONSE_URI = 6ul
+
+let _NONE = 0ul
+let _SOME = 1ul
+
+@unsafe
+provide let send = (response: Response) => {
+  use WasmI32.{ (+) as (+.) }
+  let kind = Option.expect("Invalid repsonse", Map.get(response, responseMap))
+  let buffer = match (kind) {
+    ResponseKindString(str) => {
+      // Header: 0
+      // Length: 4 + length
+      // Payload: length bytes
+      let strLength = String.byteLength(str)
+      let byteLength = 8 + strLength
+      let buffer = Buffer.make(byteLength)
+      Buffer.addUint32(_RESPONSE_STRING, buffer)
+      Buffer.addUint32(Uint32.fromNumber(strLength), buffer)
+      Buffer.addString(str, buffer)
+      buffer
+    },
+    ResponseKindJson(json) => {
+      // Header: 1
+      // Length: 4 + length
+      // Payload: length bytes
+      let str = Result.expect("Invalid JSON", Json.toString(json))
+      let strLength = String.byteLength(str)
+      let byteLength = 8 + strLength
+      let buffer = Buffer.make(byteLength)
+      Buffer.addUint32(_RESPONSE_JSON, buffer)
+      Buffer.addUint32(Uint32.fromNumber(strLength), buffer)
+      Buffer.addString(str, buffer)
+      buffer
+    },
+    ResponseKindBlob(bytes, contentType) => {
+      // Header: 2
+      // Length: 4 + 4 + bytes length + content type length
+      // Payload: bytes length bytes + content type length bytes
+      let bytesLength = Bytes.length(bytes)
+      let size = 4 // header
+        + 4 // bytes length
+        + bytesLength // bytes payload
+        + match (contentType) {
+          Some(str) => 4 // Some
+            + 4 // string length
+            + String.byteLength(str),
+          None => 4 // None
+        }
+      
+      let buffer = Buffer.make(size)
+      Buffer.addUint32(_RESPONSE_BLOB, buffer)
+      Buffer.addUint32(Uint32.fromNumber(bytesLength), buffer)
+      Buffer.addBytes(bytes, buffer)
+      match (contentType) {
+        Some(str) => {
+          let strLength = String.byteLength(str)
+          let offset = 8 + bytesLength
+          Buffer.addUint32(_SOME, buffer)
+          Buffer.addUint32(Uint32.fromNumber(strLength), buffer)
+          Buffer.addString(str, buffer)
+          void
+        },
+        None => {
+          Buffer.addUint32(_NONE, buffer)
+          void
+        },
+      }
+      buffer
+    },
+    ResponseKindView(viewName, props, viewOptions) => {
+      let viewOptions = match (viewOptions) {
+        Some(options) => {
+          let {
+            head,
+            partial,
+            placeholders,
+            page,
+            csp,
+          } = options
+          JsonObject([
+            ("head", match (head) {
+              Some(str) => JsonString(str),
+              None => JsonNull
+            }),
+            ("partial", JsonBoolean(partial)),
+            ("placeholders", JsonObject(
+              Map.reduce(
+                (acc, key, value) => [(key, JsonString(value)), ...acc],
+                [],
+                placeholders,
+              ),
+            )),
+            ("page", match (page) {
+              Some(str) => JsonString(str),
+              None => JsonNull
+            }),
+            ("csp", JsonObject(
+              Map.reduce(
+                (acc, key, value) => [(key, JsonString(value)), ...acc],
+                [],
+                csp,
+              ),
+            )),
+          ])
+        },
+        None => JsonNull
+      }
+
+      let viewNameLength = String.byteLength(viewName)
+
+      let propsStr = Result.expect("Invalid Json", Json.toString(props))
+      let propsLength = String.byteLength(propsStr)
+
+      let viewOptionsStr = Result.expect("Invalid Json", Json.toString(viewOptions))
+      let viewOptionsLength = String.byteLength(viewOptionsStr)
+
+      let size = 4 // kind
+        + 4 // view length
+        + viewNameLength // view payload
+        + 4 // props length
+        + propsLength // props payload
+        + 4 // viewOptions length
+        + viewOptionsLength // viewOptionsPayload
+      let buffer = Buffer.make(size)
+      
+      Buffer.addUint32(_RESPONSE_VIEW, buffer)
+      
+      // view
+      Buffer.addUint32(Uint32.fromNumber(viewNameLength), buffer)
+      Buffer.addString(viewName, buffer)
+
+      // props
+      Buffer.addUint32(Uint32.fromNumber(propsLength), buffer)
+      Buffer.addString(propsStr, buffer)
+
+      // view options
+      Buffer.addUint32(Uint32.fromNumber(viewOptionsLength), buffer)
+      Buffer.addString(viewOptionsStr, buffer)
+
+      buffer
+    },
+    ResponseKindError(errorOptions) => {
+      let { body, status, page } = errorOptions
+      
+      let size = 4 // kind
+        + match (body) {
+          Some(str) => 4 // body type
+            + 4 // body length
+            + String.byteLength(str), // body payload length
+          None => 4 // body type
+        }
+        + 4 // HTTPStatus
+        + match (page) {
+          Some(str) => 4 // page type
+            + 4 // page length
+            + String.byteLength(str), // page payload length
+          None => 4
+        }
+      let buffer = Buffer.make(size)
+
+      Buffer.addUint32(_RESPONSE_ERROR, buffer)
+
+      // body
+      match (body) {
+        Some(str) => {
+          Buffer.addUint32(_SOME, buffer)
+          Buffer.addUint32(Uint32.fromNumber(String.byteLength(str)), buffer)
+          Buffer.addString(str, buffer)
+        },
+        None => {
+          Buffer.addUint32(_NONE, buffer)
+        }
+      }
+
+      // status
+      Buffer.addUint32(Uint32.fromNumber(getStatusCode(status)), buffer)
+
+      // page
+      match (page) {
+        Some(str) => {
+          Buffer.addUint32(_SOME, buffer)
+          Buffer.addUint32(Uint32.fromNumber(String.byteLength(str)), buffer)
+          Buffer.addString(str, buffer)
+        },
+        None => {
+          Buffer.addUint32(_NONE, buffer)
+        }
+      }
+
+      buffer
+    },
+    ResponseKindRedirect(to, httpStatus) => {
+      let toSize = String.byteLength(to)
+      let size = 4 // kind
+        + 4 // kindSize
+        + toSize // kindPayload
+        + match (httpStatus) {
+          Some(_) => 4 + 4, // Some + code
+          None => 4 // None
+        }
+      let buffer = Buffer.make(size)
+      Buffer.addUint32(_RESPONSE_REDIRECT, buffer)
+      Buffer.addUint32(Uint32.fromNumber(toSize), buffer)
+      Buffer.addString(to, buffer)
+      match (httpStatus) {
+        Some(httpStatus) => {
+          Buffer.addUint32(_SOME, buffer)
+          Buffer.addUint32(Uint32.fromNumber(getStatusCode(httpStatus)), buffer)
+        },
+        None => Buffer.addUint32(_NONE, buffer)
+      }
+
+      buffer
+    },
+    ResponseKindUri(uri) => {
+      let uriStr = Uri.toString(uri)
+      let uriStrSize = String.byteLength(uriStr)
+      let size = 4 // kind
+        + 4 // uri size
+        + uriStrSize
+
+      let buffer = Buffer.make(size)
+
+      Buffer.addUint32(_RESPONSE_URI, buffer)
+      Buffer.addUint32(Uint32.fromNumber(uriStrSize), buffer)
+      Buffer.addString(uriStr, buffer)
+      buffer
+    },
+  }
+
+  let bytes = Buffer.toBytes(buffer)
+  let size = Bytes.length(bytes)
+  let ptr = WasmI32.fromGrain(bytes) +. _BYTES_DATA_OFFSET
+  External.sendPayload(ptr, WasmI32.fromGrain(size))
+  ignore(bytes)
+
+  Map.remove(response, responseMap)
 }

@@ -1,12 +1,14 @@
 {
   "name": "@primate/app/grain",
+  "type": "module",
   "scripts": {
     "test": "npx primate test"
   },
   "dependencies": {
+    "@primate/core": "workspace:^",
     "@primate/html": "workspace:^",
     "@primate/grain": "workspace:^",
+    "@rcompat/fs": "^0.12.18",
     "primate": "workspace:^"
-  },
-  "type": "module"
+  }
 }
