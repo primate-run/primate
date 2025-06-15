@@ -56,7 +56,7 @@ let payloadView: DataView;
 
 const setPayloadBuffer = (buffer: Uint8Array) => {
   payload = buffer;
-  payloadView = new DataView(payloadView.buffer, payloadView.byteOffset, payloadView.byteLength);
+  payloadView = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
 }
 
 let received = new Uint8Array(0);
