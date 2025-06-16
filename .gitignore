@@ -6,3 +6,8 @@ bun.lock
 .vscode
 target
 **/*.gro
+
+# Added for jtenner:
+# Mise is a developer tool package manager, and produces a single mise.toml
+# to keep track of tool versions.
+mise.toml

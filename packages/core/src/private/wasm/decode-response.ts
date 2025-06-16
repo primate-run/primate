@@ -4,15 +4,16 @@ import { Known } from "@rcompat/http/Status";
 import toBufferView from "./to-buffer-view.js";
 import * as assert from "node:assert/strict";
 import redirect from "#handler/redirect";
+import decodeUint32LE from "./decode-uint32le.js";
+import decodeString from "./decode-string.js";
+import decodeJson from "./decode-json.js";
+import decodeBytes from "./decode-bytes.js";
+import decodeOption from "./decode-option.js";
 
-type Offset = { ptr: number };
-
-type BufferView = ReturnType<typeof toBufferView>;
 type BufferViewSource = Parameters<typeof toBufferView>[0];
 
 type MaybeRedirectionStatus = Parameters<typeof redirect>[1];
 
-const SIZE_I32 = 4;
 const RESPONSE_STRING = 0 as const;
 const RESPONSE_JSON = 1 as const;
 const RESPONSE_BLOB = 2 as const;
@@ -20,57 +21,6 @@ const RESPONSE_VIEW = 3 as const;
 const RESPONSE_ERROR = 4 as const;
 const RESPONSE_REDIRECT = 5 as const;
 const RESPONSE_URI = 6 as const;
-
-const NONE = 0;
-const SOME = 1;
-
-type Decoder<T> = (offset: Offset, source: BufferView) => T;
-
-const decoder = new TextDecoder();
-
-const decodeUint32LE = (offset: Offset, source: BufferView): number => {
-  const ptr = offset.ptr;
-  const next = ptr + SIZE_I32;
-  assert.ok(next <= source.byteLength, "Index out of bounds.");
-  offset.ptr = next;
-  return source.view.getUint32(ptr, true);
-};
-
-const decodeBytes = (offset: Offset, source: BufferView): Uint8Array => {
-  const bytesSize = decodeUint32LE(offset, source);
-
-  // pointer math and checks
-  const ptr = offset.ptr;
-  const next = ptr + bytesSize;
-  assert.ok(next <= source.byteLength, "Index out of bounds.");
-  offset.ptr = next;
-
-  return source.buffer.slice(ptr, next);
-}
-
-const decodeString = (offset: Offset, source: BufferView): string => {
-  const stringSize = decodeUint32LE(offset, source);
-
-  // pointer math and checks
-  const ptr = offset.ptr;
-  const next = ptr + stringSize;
-  assert.ok(next <= source.byteLength, "Index out of bounds.");
-  offset.ptr = next;
-  
-  // get the string using a decoder
-  return decoder.decode(source.buffer.subarray(ptr, next));
-};
-
-const decodeJson = (offset: Offset, source: BufferView) =>
-    JSON.parse(decodeString(offset, source));
-
-const decodeOption = <T>(kind: Decoder<T>, offset: Offset, source: BufferView): T | undefined => {
-  const option = decodeUint32LE(offset, source);
-  assert.ok(option === NONE || option === SOME, "Error decoding option, invalid option value.");
-  return option === SOME
-    ? kind(offset, source)
-    : void 0;
-};
 
 const decodeResponse = (source: BufferViewSource) => {
   const bufferView = toBufferView(source);

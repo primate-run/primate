@@ -22,6 +22,8 @@ provide enum BodyMapElement {
   BodyMapElementBytes(Bytes),
 }
 
+provide type BodyMapDictionary = Map<String, BodyMapElement>
+
 provide enum Body {
   BodyNull,
   BodyString(String), // 0
@@ -99,26 +101,53 @@ let readBodyMapElement = (offset: Number, payload: Bytes) => {
 }
 
 
-let getSectionMap = (id: Uint32, offset: Number, payload: Bytes) => {
+let rec getSectionMap = (id: Uint32, offset: Number, payload: Bytes) => {
   use Uint32.{ (+) as (+.), (<), toNumber }
 
   let (offset, header) = readUint32(offset, payload)
   if (header != id) throw InvalidRequestHeader
 
-  let mut (offset, count) = readUint32(offset, payload)
+  let (offset, count) = readUint32(offset, payload)
   
-  let map = Map.make()
-  let mut i = 0ul
-  while (i < count) {
-    let (nextOffset, key) = readString(offset, payload)
-    let (nextOffset, value) = readString(nextOffset, payload)
-    
-    Map.set(key, value, map)
-    offset = nextOffset
-    i = i +. 1ul
+  getKeyValues(Uint32.toNumber(count), offset, payload, Map.make())
+} and getKeyValues = (count: Number, offset: Number, payload: Bytes, map: Dictionary) => {
+  match (count) {
+    0 => (offset, map),
+    _ => {
+      let (offset, key) = readString(offset, payload)
+      let (offset, value) = readString(offset, payload)
+      Map.set(key, value, map)
+      getKeyValues(count - 1, offset, payload, map)
+    }
   }
+}
 
-  (offset, map)
+let rec getBody = (offset: Number, payload: Bytes) => {
+  let (offset, bodyKind) = readUint32(offset, payload)
+
+  match (bodyKind) {
+    0ul => (offset, BodyNull),
+    1ul => {
+      let (offset, string) = readString(offset, payload)
+      (offset, BodyString(string))
+    },
+    2ul => {
+      let (offset, count) = readUint32(offset, payload)
+      let (offset, map) = getBodyMapElements(Uint32.toNumber(count), offset, payload, Map.make())
+      (offset, BodyMap(map))
+    },
+    _ => throw InvalidRequestEncoding,
+  }
+} and getBodyMapElements = (count: Number, offset: Number, payload: Bytes, map: BodyMapDictionary) => {
+  match (count) {
+    0 => (offset, map),
+    _ => {
+      let (offset, key) = readString(offset, payload)
+      let (offset, value) = readBodyMapElement(offset, payload)
+      Map.set(key, value, map)
+      getBodyMapElements(count - 1, offset, payload, map)
+    }
+  }
 }
 
 @unsafe
@@ -141,35 +170,7 @@ provide let make = () => {
   let (offset, header1) = readUint32(offset, payload)
   if (header1 != _BODY_SECTION) throw InvalidRequestEncoding
 
-  let (offset, bodyKind) = readUint32(offset, payload)
-
-  let (offset, body) = match (bodyKind) {
-    0ul => (offset, BodyNull),
-    1ul => {
-      let (offset, string) = readString(offset, payload)
-      (offset, BodyString(string))
-    },
-    2ul => {
-      let mut (offset, count) = readUint32(offset, payload)
-
-      let map = Map.make()
-      let mut i = 0ul
-
-      while (i < count) {
-        // get the key
-        let (nextOffset, key) = readString(offset, payload)
-        let (nextOffset, value) = readBodyMapElement(nextOffset, payload)
-        
-        Map.set(key, value, map)
-        i = i +. 1ul
-
-        offset = nextOffset
-      }
-      
-      (offset, BodyMap(map))
-    },
-    _ => throw InvalidRequestEncoding,
-  }
+  let (offset, body) = getBody(offset, payload)
 
   let (offset, path) = getSectionMap(_PATH_SECTION, offset, payload)
   let (offset, query) = getSectionMap(_QUERY_SECTION, offset, payload)

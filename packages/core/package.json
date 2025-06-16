@@ -103,6 +103,10 @@
       "apekit": "./src/public/serve/*.ts",
       "default": "./lib/public/serve/*.js"
     },
+    "./config/*": {
+      "apekit": "./src/public/config/*.ts",
+      "default": "./lib/public/config/*.js"
+    },
     "./build": "./lib/build/index.js",
     "./build/app": {
       "apekit": "./src/build/app.ts"

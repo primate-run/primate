@@ -7,10 +7,11 @@ from "runtime/unsafe/offsets" include Offsets
 from "runtime/unsafe/wasmi32" include WasmI32
 from "string" include String
 from "bytes" include Bytes
+from "buffer" include Buffer
 from "uint32" include Uint32
 
 use Json.{ type Json }
-use Offsets.{ _STR_DATA_OFFSET }
+use Offsets.{ _BYTES_DATA_OFFSET }
 use WasmI32.{ (+) as (+.) }
 
 provide exception InvalidSessionPayload
@@ -51,10 +52,17 @@ let parseSessionPayload = (payload: Bytes) => {
 @unsafe
 provide let make = (data: Json) => {
   let str = Result.expect("Invalid JSON", Json.toString(data))
-  let ptr = WasmI32.fromGrain(str) +. _STR_DATA_OFFSET
-  let byteLength = WasmI32.fromGrain(String.byteLength(str))
+  let strLength = String.byteLength(str)
+
+  let buffer = Buffer.make(strLength + 4)
+  Buffer.addUint32(Uint32.fromNumber(strLength), buffer)
+  Buffer.addString(str, buffer)
+  
+  let bytes = Buffer.toBytes(buffer)
+  let byteLength = WasmI32.fromGrain(Bytes.length(bytes))
+  let ptr = WasmI32.fromGrain(bytes) +. _BYTES_DATA_OFFSET
   External.send(ptr, byteLength)
-  ignore(str)
+  ignore(bytes)
   
   External.newSession()
   let payload = External.receiveBytes()

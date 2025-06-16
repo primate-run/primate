@@ -5,8 +5,6 @@ import which from "@rcompat/stdio/which";
 import FileRef from "@rcompat/fs/FileRef";
 import type GrainConfiguration from "./GrainConfig.ts";
 
-
-
 export default async (props: Partial<GrainConfiguration> = {} as Partial<GrainConfiguration>) => {
   const includeDirs = new Set(props.grainIncludeDirs ?? []);
   includeDirs.add(FileRef.join(import.meta.dirname, "private", "include").path);

@@ -4,19 +4,18 @@ import FileRef from "@rcompat/fs/FileRef";
 import type { BuildAppHook } from "@primate/core/hook";
 import type GrainConfiguration from "../GrainConfig.ts";
 
-let postludeRef: FileRef | null = null;
-let grainExports: FileRef | null = null;
-let grainBootstrap: FileRef | null = null;
-
+const _dirname = import.meta.dirname;
+const postludeRef = FileRef.join(_dirname, "bootstrap", "postlude.gr");
+const grainExports = FileRef.join(_dirname, "exports.gr");
+const grainBootstrap = FileRef.join(_dirname, "bootstrap", "index.js");
 export default (config: GrainConfiguration): BuildAppHook => (app, next) => {
-  const compileGrainFile = (wasm: FileRef, grain: FileRef) => {
+  const compileGrainFileCommand = (wasm: FileRef, grain: FileRef) => {
     const commandSections = [
       config.command,
       "compile",
       "-o", wasm.name,
       grain.name,
       "-I", config.grainIncludeDirs.join(","),
-      "--dir", ".",
     ] as string[];
 
     if (config.grainStdLib) {
@@ -39,16 +38,10 @@ export default (config: GrainConfiguration): BuildAppHook => (app, next) => {
       commandSections.push("--strict-sequence");
     }
 
-
-
     return commandSections.join(" ");
   }
   
   app.bind(config.extension, async (grain, context) => {
-    postludeRef ||= FileRef.join(import.meta.dirname, "bootstrap", "postlude.gr");
-    grainExports ||= FileRef.join(import.meta.dirname, "exports.gr");
-    grainBootstrap ||= FileRef.join(import.meta.dirname, "bootstrap", "index.js");
-
     assert(context === "routes", "grain: only route files are supported");
     
     const code = await grain.text();
@@ -56,8 +49,7 @@ export default (config: GrainConfiguration): BuildAppHook => (app, next) => {
     
     await grain.write(`${code}\n${postlude}`);
     const wasm = grain.bare(".wasm");
-    const commandText = compileGrainFile(wasm, grain);
-
+    const commandText = compileGrainFileCommand(wasm, grain);
     await execute(commandText, { cwd: `${grain.directory}` });
 
     const bootstrapFile = grain.bare(".gr.js");

@@ -7,6 +7,7 @@ import session from "#session/config";
 import encodeSession from "#wasm/encode-session";
 import encodeRequest from "#wasm/encode-request";
 import decodeResponse from "#wasm/decode-response";
+import decodeJson from "#wasm/decode-json";
 
 /** A helper function to encourage type safety when working with wasm pointers, tagging them as a specific type. */
 type Tagged<Name, T> = { _tag: Name; } & T;
@@ -72,9 +73,8 @@ const instantiate = async <TRequest = I32, TResponse = I32>(ref: FileRef, import
      * `payloadByteLength` and `receive` should be called to send the payload to the WASM module.
      */
     newSession() {
-      const data = decoder.decode(received);
-      const json = JSON.parse(data);
-      session().create(json);
+      const data = decodeJson.from(received);
+      session().create(data);
       const newSession = session();
       payload = encodeSession(newSession);
     },
