@@ -2,23 +2,50 @@ import assert from "@rcompat/invariant/assert";
 import execute from "@rcompat/stdio/execute";
 import FileRef from "@rcompat/fs/FileRef";
 import type { BuildAppHook } from "@primate/core/hook";
-import which from "@rcompat/stdio/which";
+import type GrainConfiguration from "../GrainConfig.ts";
 
-let command: string | null = null;
-let grainIncludeDir: FileRef | null = null;
 let postludeRef: FileRef | null = null;
 let grainExports: FileRef | null = null;
 let grainBootstrap: FileRef | null = null;
 
-const compileGrainFile = (wasm: FileRef, grain: FileRef) =>
-  `${command} compile -o ${wasm.name} ${grain.name} -I ${grainIncludeDir}`;
+export default (config: GrainConfiguration): BuildAppHook => (app, next) => {
+  const compileGrainFile = (wasm: FileRef, grain: FileRef) => {
+    const commandSections = [
+      config.command,
+      "compile",
+      "-o", wasm.name,
+      grain.name,
+      "-I", config.grainIncludeDirs.join(","),
+      "--dir", ".",
+    ] as string[];
 
-export default (extension: string): BuildAppHook => (app, next) => {
+    if (config.grainStdLib) {
+      commandSections.push("-S", config.grainStdLib);
+    }
+
+    if (app.mode === "development") {
+      commandSections.push("--debug", "--source-map", "--wat");
+    }
+
+    if (app.mode === "production") {
+      commandSections.push("--release");
+    }
+
+    if (config.noPervasives) {
+      commandSections.push("--no-pervasives");
+    }
+
+    if (config.strictSequence) {
+      commandSections.push("--strict-sequence");
+    }
+
+
+
+    return commandSections.join(" ");
+  }
   
-  app.bind(extension, async (grain, context) => {
-    command ||= await which("grain");
+  app.bind(config.extension, async (grain, context) => {
     postludeRef ||= FileRef.join(import.meta.dirname, "bootstrap", "postlude.gr");
-    grainIncludeDir ||= FileRef.join(import.meta.dirname, "include");
     grainExports ||= FileRef.join(import.meta.dirname, "exports.gr");
     grainBootstrap ||= FileRef.join(import.meta.dirname, "bootstrap", "index.js");
 
