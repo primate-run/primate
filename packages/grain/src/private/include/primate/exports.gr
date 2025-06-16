@@ -1,8 +1,12 @@
 module Exports
 
+from "runtime/gc" include GC
 from "./request.gr" include Request
 from "./response.gr" include Response
 
-provide let makeRequest = Request.make
+provide let newRequest = Request.make
 provide let sendResponse = Response.send
-provide let finishRequest = Request.finish
+provide let finalizeRequest = GC.decRef
+
+@unsafe
+provide let finalizeResponse = (ref: WasmI32) => void

@@ -6,7 +6,7 @@ type BufferView = ReturnType<typeof toBufferView>;
 
 const encodeStringMap = (map: PartialDictionary<string>, offset: number, bufferView: BufferView) => {
   // only "set" entries are allowed
-  const entries = Object.entries(map).filter(([, value]) => Boolean(value));
+  const entries = Object.entries(map).filter(([, value]) => value && value.length > 0);
   const count = entries.length;
 
   offset = encodeUint32LE(count, offset, bufferView);

@@ -53,17 +53,17 @@ provide let make = (data: Json) => {
   let str = Result.expect("Invalid JSON", Json.toString(data))
   let ptr = WasmI32.fromGrain(str) +. _STR_DATA_OFFSET
   let byteLength = WasmI32.fromGrain(String.byteLength(str))
-  External.sendPayload(ptr, byteLength)
+  External.send(ptr, byteLength)
   ignore(str)
   
-  External.newSessionPayload()
+  External.newSession()
   let payload = External.receiveBytes()
   parseSessionPayload(payload)
 }
 
 @unsafe
 provide let get = () => {
-  External.getSessionPayload()
+  External.getSession()
   let payload = External.receiveBytes()
   parseSessionPayload(payload)
 }

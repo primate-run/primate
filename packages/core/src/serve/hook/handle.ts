@@ -69,8 +69,6 @@ const as_route = async (app: ServeApp, request: RequestFacade) => {
     const route_hooks = app.modules.route === undefined ? [] : app.modules.route;
     const hooks = [...route_hooks, guard(app, guards), last(handler)];
 
-    console.log(hooks);
-
     // handle request
     const routed = await (cascade(hooks as RequestHook<false>[]))({ ...request, body, path });
 

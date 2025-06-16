@@ -30,11 +30,11 @@ export default (extension: string): BuildAppHook => (app, next) => {
     await grain.write(`${code}\n${postlude}`);
     const wasm = grain.bare(".wasm");
     const commandText = compileGrainFile(wasm, grain);
-    console.log(commandText);
+
     await execute(commandText, { cwd: `${grain.directory}` });
 
     const bootstrapFile = grain.bare(".gr.js");
-    const bootstrapCode = (await grainBootstrap.text()).replace("__FILE_NAME__", wasm.name);
+    const bootstrapCode = (await grainBootstrap.text()).replace("__FILE_NAME__", wasm.path);
     await bootstrapFile.write(bootstrapCode);
   });
 

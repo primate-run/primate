@@ -8,7 +8,7 @@ use Response.{ type Response, json }
 use Request.{ type Request }
 
 provide let get = (request: Request) => {
-  json(JsonNull)
+  json(JsonObject([("message", JsonString("Hello, world!"))]))
 }
 
 

@@ -1,5 +1,7 @@
 from "primate/exports" include Exports
 
-provide let _sendResponse = Exports.sendResponse
-provide let _makeRequest = Exports.makeRequest
-provide let _finishRequest = Exports.finishRequest
+provide let newRequest = Exports.newRequest
+provide let sendResponse = Exports.sendResponse
+provide let finalizeRequest = Exports.finalizeRequest
+provide let finalizeResponse = Exports.finalizeResponse
+

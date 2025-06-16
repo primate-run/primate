@@ -105,8 +105,8 @@ const decodeResponse = (source: BufferViewSource) => {
 
     case RESPONSE_VIEW: {
       const viewName = decodeString(offset, bufferView);
-      const viewProps = decodeJson(offset, bufferView);
-      const viewOptions = decodeJson(offset, bufferView);
+      const viewProps = decodeJson(offset, bufferView) || void 0;
+      const viewOptions = decodeJson(offset, bufferView) || void 0;
       return view(viewName, viewProps, viewOptions);
     }
 

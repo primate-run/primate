@@ -2,7 +2,6 @@ module External
 
 from "string" include String
 from "runtime/unsafe/wasmi32" include WasmI32
-from "runtime/unsafe/wasmi64" include WasmI64
 from "runtime/unsafe/offsets" include Offsets
 from "bytes" include Bytes
 from "runtime/dataStructures" include DataStructures
@@ -10,50 +9,41 @@ from "json" include Json
 from "result" include Result
 
 use WasmI32.{ (+), fromGrain }
-use Offsets.{ _BYTES_DATA_OFFSET, _STR_DATA_OFFSET, _UINT64_VALUE_OFFSET }
+use Offsets.{ _BYTES_DATA_OFFSET, _STR_DATA_OFFSET }
 use Bytes.{ make }
-use DataStructures.{ allocateString }
+use DataStructures.{ allocateString, allocateBytes }
 use Json.{ type Json }
 
-provide foreign wasm payloadReceive:
+provide foreign wasm receive:
   (WasmI32, WasmI32) => Void from "primate"
 
-provide foreign wasm payloadGetLength:
+provide foreign wasm payloadByteLength:
   () => WasmI32 from "primate"
 
-provide foreign wasm sendPayload:
+provide foreign wasm send:
   (ptr: WasmI32, length: WasmI32) => Void from "primate"
 
-provide foreign wasm newSessionPayload:
+provide foreign wasm newSession:
   () => Void from "primate"
 
-provide foreign wasm getSessionPayload:
+provide foreign wasm getSession:
   () => Void from "primate"
-
-@unsafe
-provide let toWasmI64 = (value: Uint64) => {
-  let result = WasmI64.load(WasmI32.fromGrain(value), _UINT64_VALUE_OFFSET)
-  ignore(value)
-  result
-}
 
 @unsafe
 provide let receiveString = () => {
   use WasmI32.{ (+), fromGrain }
-  let length = payloadGetLength()
+  let length = payloadByteLength()
   let stringPtr = allocateString(length)
-  payloadReceive(stringPtr, length)
+  receive(stringPtr + _STR_DATA_OFFSET, length)
   WasmI32.toGrain(stringPtr): String
 }
 
 @unsafe
 provide let receiveBytes = () => {
-  let length = payloadGetLength()
-  let buffer = Bytes.make(WasmI32.toGrain(length): Number)
-  let ptr = fromGrain(buffer)
-  payloadReceive(ptr + _BYTES_DATA_OFFSET, length)
-  ignore(buffer)
-  buffer
+  let length = payloadByteLength()
+  let ptr = allocateBytes(length)
+  receive(ptr + _BYTES_DATA_OFFSET, length)
+  WasmI32.toGrain(ptr): Bytes  
 }
 
 @unsafe
@@ -67,7 +57,7 @@ provide let receiveJson = () => {
 provide let sendString = (str: String) => {
   let ptr = WasmI32.fromGrain(str) + _STR_DATA_OFFSET
   let byteLength = WasmI32.fromGrain(String.byteLength(str))
-  sendPayload(ptr, byteLength)
+  send(ptr, byteLength)
   ignore(str)
   void
 }
@@ -76,7 +66,7 @@ provide let sendString = (str: String) => {
 provide let sendBytes = (bytes: Bytes) => {
   let ptr = WasmI32.fromGrain(bytes) + _BYTES_DATA_OFFSET
   let byteLength = WasmI32.fromGrain(Bytes.length(bytes))
-  sendPayload(ptr, byteLength)
+  send(ptr, byteLength)
   ignore(bytes)
   void
 }
