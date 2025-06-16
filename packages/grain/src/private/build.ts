@@ -6,7 +6,6 @@ import type GrainConfiguration from "../GrainConfig.ts";
 
 const _dirname = import.meta.dirname;
 const postludeRef = FileRef.join(_dirname, "bootstrap", "postlude.gr");
-const grainExports = FileRef.join(_dirname, "exports.gr");
 const grainBootstrap = FileRef.join(_dirname, "bootstrap", "index.js");
 export default (config: GrainConfiguration): BuildAppHook => (app, next) => {
   const compileGrainFileCommand = (wasm: FileRef, grain: FileRef) => {
