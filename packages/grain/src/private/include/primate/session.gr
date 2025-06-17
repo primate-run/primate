@@ -50,7 +50,7 @@ let parseSessionPayload = (payload: Bytes) => {
 }
 
 @unsafe
-provide let make = (data: Json) => {
+provide let create = (data: Json) => {
   let str = Result.expect("Invalid JSON", Json.toString(data))
   let strLength = String.byteLength(str)
 

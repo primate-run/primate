@@ -155,12 +155,6 @@ provide let getStatusCode = (status: HTTPStatus) => {
   }
 }
 
-provide record ErrorOptions {
-  body: Option<String>,
-  status: HTTPStatus,
-  page: Option<String>,
-}
-
 provide record ViewOptions {
   head: Option<String>,
   partial: Bool,
@@ -184,19 +178,6 @@ provide let makeViewOptions = (
     placeholders,
     page,
     csp,
-  }
-  options
-}
-
-provide let makeErrorOptions = (
-  body: Option<String> = None,
-  status: HTTPStatus = NotFound,
-  page: Option<String> = None,
-) => {
-  let options: ErrorOptions = {
-    body,
-    status,
-    page,
   }
   options
 }
@@ -260,44 +241,40 @@ provide let blob = (bytes: Bytes, contentType: Option<String> = Some("applicatio
   Buffer.toBytes(buffer)
 }
 
-provide let view = (name: String, props: Json = Json.JsonNull, options: Option<ViewOptions> = None) => {
-  let viewOptions = match (options) {
-    Some(options) => {
-      let {
-        head,
-        partial,
+provide let view = (
+  name: String,
+  props: Json = Json.JsonNull,
+  head: Option<String> = None,
+  partial: Bool = false,
+  placeholders: Map<String, String> = Map.make(),
+  page: Option<String> = None,
+  csp: Map<String, String> = Map.make(),
+) => {
+  let viewOptions = JsonObject([
+    ("head", match (head) {
+      Some(str) => JsonString(str),
+      None => JsonNull
+    }),
+    ("partial", JsonBoolean(partial)),
+    ("placeholders", JsonObject(
+      Map.reduce(
+        (acc, key, value) => [(key, JsonString(value)), ...acc],
+        [],
         placeholders,
-        page,
+      ),
+    )),
+    ("page", match (page) {
+      Some(str) => JsonString(str),
+      None => JsonNull
+    }),
+    ("csp", JsonObject(
+      Map.reduce(
+        (acc, key, value) => [(key, JsonString(value)), ...acc],
+        [],
         csp,
-      } = options
-      JsonObject([
-        ("head", match (head) {
-          Some(str) => JsonString(str),
-          None => JsonNull
-        }),
-        ("partial", JsonBoolean(partial)),
-        ("placeholders", JsonObject(
-          Map.reduce(
-            (acc, key, value) => [(key, JsonString(value)), ...acc],
-            [],
-            placeholders,
-          ),
-        )),
-        ("page", match (page) {
-          Some(str) => JsonString(str),
-          None => JsonNull
-        }),
-        ("csp", JsonObject(
-          Map.reduce(
-            (acc, key, value) => [(key, JsonString(value)), ...acc],
-            [],
-            csp,
-          ),
-        )),
-      ])
-    },
-    None => JsonNull
-  }
+      ),
+    )),
+  ])
   let viewNameLength = String.byteLength(name)
 
   let propsStr = Result.expect("Invalid Json", Json.toString(props))
@@ -326,9 +303,11 @@ provide let view = (name: String, props: Json = Json.JsonNull, options: Option<V
   Buffer.toBytes(buffer)
 }
 
-provide let error = (options: ErrorOptions = makeErrorOptions()) => {
-  let { body, status, page } = options
-  
+provide let error = (
+  body: Option<String> = None,
+  status: HTTPStatus = NotFound,
+  page: Option<String> = None,
+) => {
   let buffer = Buffer.make(
     4 // header
     + 4 + match (body) { // Option + Body

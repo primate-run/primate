@@ -10,7 +10,7 @@ use Response.{ json }
 use Json.{ type Json }
 
 provide let get = (request: Request) => {
-  let session = Session.make(JsonObject([
+  let session = Session.create(JsonObject([
     ("id", JsonNumber(0)),
     ("message", JsonString("Hello world!")),
   ]))
