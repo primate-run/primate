@@ -14,12 +14,16 @@ from "runtime/gc" include GC
 from "runtime/unsafe/wasmi32" include WasmI32
 from "runtime/unsafe/offsets" include Offsets
 from "./external.gr" include External
+from "runtime/unsafe/tags" include Tags
 
+use WasmI32.{ (-) as (-.), (==) as (==.) }
 use Uint64.{ (+) as (+..) }
 use Map.{ type Map }
 use Json.{ type Json }
 use Uri.{ type Uri }
 use Offsets.{ _BYTES_DATA_OFFSET, _BYTES_LEN_OFFSET }
+
+provide exception InvalidPayloadException
 
 provide enum HTTPStatus {
  	Continue,
@@ -155,9 +159,58 @@ provide let getStatusCode = (status: HTTPStatus) => {
   }
 }
 
+provide enum SocketCloseStatus {
+  NormalClosure,
+  GoingAway,
+  ProtocolError,
+  UnsupportedData,
+  Reserved,
+  NoStatusRcvd,
+  AbnormalClosure,
+  InvalidFramePayloadData,
+  PolicyViolation,
+  MessageTooBig,
+  MandatoryExt,
+  InternalError,
+  ServiceRestart,
+  TryAgainLater,
+  GatewayProxyError,
+  TLSHandshake,
+  Unauthorized,
+  Forbidden,
+  Timeout,
+  Custom(Uint32),
+}
+
+provide let getSocketCloseStatus = (status: SocketCloseStatus) => {
+  match (status) {
+    NormalClosure => 1000ul,
+    GoingAway => 1001ul,
+    ProtocolError => 1002ul,
+    UnsupportedData => 1003ul,
+    Reserved => 1004ul,
+    NoStatusRcvd => 1005ul,
+    AbnormalClosure => 1006ul,
+    InvalidFramePayloadData => 1007ul,
+    PolicyViolation => 1008ul,
+    MessageTooBig => 1009ul,
+    MandatoryExt => 1010ul,
+    InternalError => 1011ul,
+    ServiceRestart => 1012ul,
+    TryAgainLater => 1013ul,
+    GatewayProxyError => 1014ul,
+    TLSHandshake => 1015ul,
+    Unauthorized => 3000ul,
+    Forbidden => 3003ul,
+    Timeout => 3008ul,
+    Custom(code) => code,
+  }
+}
+
+
 provide type Response = Bytes
 
-let _RESPONSE_STRING = 0ul
+let _RESPONSE_TEXT = 0ul
 let _RESPONSE_JSON = 1ul
 let _RESPONSE_BLOB = 2ul
 let _RESPONSE_VIEW = 3ul
@@ -168,12 +221,47 @@ let _RESPONSE_URI = 6ul
 let _NONE = 0ul
 let _SOME = 1ul
 
-provide let string = (str: String) => {
-  let strLength = String.byteLength(str)
-  let buffer = Buffer.make(8 + strLength)
-  Buffer.addUint32(_RESPONSE_STRING, buffer)
-  Buffer.addUint32(Uint32.fromNumber(strLength), buffer)
-  Buffer.addString(str, buffer)
+provide let text = (
+  text: String,
+  status: HTTPStatus = OK,
+  headers: Map<String, String> = Map.make(),
+) => {
+  let textLength = String.byteLength(text)
+
+  let headers = JsonObject(
+    Map.reduce(
+      (acc, key, value) => [(key, JsonString(value)), ...acc],
+      [],
+      headers,
+    )
+  )
+  let headers = Result.expect("Invalid json.", Json.toString(headers))
+  let headersLength = String.byteLength(headers)
+
+  let buffer = Buffer.make(
+    4 // header
+    + 4 // text length
+    + textLength // text payload
+
+    + 4 // status
+
+    + 4 // Headers string length
+    + headersLength // The headers payload
+  )
+
+  // The actual text
+  Buffer.addUint32(_RESPONSE_TEXT, buffer)
+  Buffer.addUint32(Uint32.fromNumber(textLength), buffer)
+  Buffer.addString(text, buffer)
+
+  // status code
+  let statusCode = Uint32.fromNumber(getStatusCode(status))
+  Buffer.addUint32(statusCode, buffer)
+
+  // json stringified headers
+  Buffer.addUint32(Uint32.fromNumber(headersLength), buffer)
+  Buffer.addString(headers, buffer)
+
   Buffer.toBytes(buffer)
 }
 
@@ -361,11 +449,113 @@ provide let uri = (uri: Uri) => {
 }
 
 @unsafe
+let getTagOf = (t: WasmI32) => WasmI32.load(t -. 8n, 0n)
+
+@unsafe
+let getValueTypeTag = (t: WasmI32) => WasmI32.load(t, 0n)
+
+@unsafe
+let getModuleTag = (t: WasmI32) => WasmI32.load(t, 4n)
+
+@unsafe
+let getTypeTag = (t: WasmI32) => WasmI32.load(t, 8n)
+
+@unsafe
+let getVariantTag = (t: WasmI32) => WasmI32.load(t, 12n)
+
+@unsafe
 provide let send = (kind: WasmI32) => {
   use WasmI32.{ (+) as (+.) }
+  use Tags.{ _GRAIN_STRING_HEAP_TAG, _GRAIN_BYTES_HEAP_TAG, _GRAIN_ADT_HEAP_TAG }
+  let tag = getTagOf(kind)
   
-  let ptr = kind +. _BYTES_DATA_OFFSET
-  let size = WasmI32.load(kind, _BYTES_LEN_OFFSET)
-  External.send(ptr, size)
+  // Check for a JSON object
+  if (tag ==. _GRAIN_ADT_HEAP_TAG) {
+    let _NULL = JsonNull
+    let _NULL_PTR = WasmI32.fromGrain(_NULL)
+    let _JSON_VALUE_TYPE = getValueTypeTag(_NULL_PTR)
+    let _JSON_MODULE = getModuleTag(_NULL_PTR)
+    let _JSON_TYPE = getTypeTag(_NULL_PTR)
+    ignore(_NULL)
+
+    let valueTypeTag = getValueTypeTag(kind)
+    let moduleTag = getModuleTag(kind)
+    let typeTag = getTypeTag(kind)
+
+    if (
+      // [u32: Value Type] [u32: Module Identifier] [u32: Type Identifier]
+      _JSON_VALUE_TYPE ==. valueTypeTag
+      && _JSON_MODULE ==. moduleTag
+      && _JSON_TYPE ==. typeTag
+    ) {
+      GC.incRef(kind)
+      let jsonValue = WasmI32.toGrain(kind): Json
+      let payload = json(jsonValue)
+      let ptr = WasmI32.fromGrain(payload) +. _BYTES_DATA_OFFSET
+      let size = WasmI32.load(kind, _BYTES_LEN_OFFSET)
+      External.send(ptr, size)
+      ignore(payload) // <- prevent GC from freeing payload
+      return
+    }
+
+    throw InvalidPayloadException
+  }
+
+  // Grain String -> Response.text
+  if (tag ==. _GRAIN_STRING_HEAP_TAG) {
+    GC.incRef(kind)
+    let str = WasmI32.toGrain(kind): String
+    let payload = text(str)
+    let ptr = WasmI32.fromGrain(payload) +. _BYTES_DATA_OFFSET
+    let size = WasmI32.load(kind, _BYTES_LEN_OFFSET)
+    External.send(ptr, size)
+    ignore(payload) // <- prevent GC from freeing payload
+  }
+
+  // Grain Bytes -> Send Raw Payload
+  if (tag ==. _GRAIN_BYTES_HEAP_TAG) {
+    GC.incRef(kind)
+    let ptr = kind +. _BYTES_DATA_OFFSET
+    let size = WasmI32.load(kind, _BYTES_LEN_OFFSET)
+    External.send(ptr, size)
+  }
+
+  return void
+}
+
+provide enum SocketMessageKind {
+  StringMessage(String),
+  BytesMessage(Bytes),
+}
+
+provide type UpgradeOpenCallback = (socket: Uint64) => Void;
+provide type UpgradeCloseCallback = (socket: Uint64) => Void;
+provide type UpgradeMessageCallback = (socket: Uint64, socketMessage: SocketMessageKind) => Void;
+
+record SocketUpgradeDefinition {
+  open: Option<UpgradeOpenCallback>,
+  close: Option<UpgradeCloseCallback>,
+  message: Option<UpgradeMessageCallback>,
+}
+
+let mut id = 0uL
+let socketMap = Map.make(): Map<Uint64, SocketUpgradeDefinition>
+
+provide let file = (
+  path: String,
+) => {
+  // TODO: Return a file descriptor
+  void
+}
+
+provide let upgrade = (
+  open: Option<UpgradeOpenCallback> = None,
+  close: Option<UpgradeCloseCallback> = None,
+  message: Option<UpgradeMessageCallback> = None,
+) => {
+  use Uint64.{ (+) as (+..) }
+  let wsId = id
+  id = id +.. 1uL
+  Map.set(wsId, { open, close, message }, socketMap)
   void
 }

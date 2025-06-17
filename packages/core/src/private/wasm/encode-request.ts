@@ -1,5 +1,5 @@
 import RequestFacade from "#RequestFacade";
-import * as assert from "node:assert/strict";
+import assert from "@rcompat/invariant/assert";
 import toBufferView from "./to-buffer-view.js";
 import PartialDictionary from "@rcompat/type/PartialDictionary";
 import sizeOfUrl from "./size-of-url.js";
@@ -100,7 +100,7 @@ const encodeFile = async (file: File, offset: number, bufferView: BufferView) =>
   offset = encodeUint32LE(byteLength, offset, bufferView);
 
   const next = offset + byteLength;
-  assert.ok(next <= bufferView.byteLength, "Buffer overflow.");
+  assert(next <= bufferView.byteLength, "Buffer overflow.");
   bufferView.buffer.set(await file.bytes(), offset);
   return next;
 }
@@ -187,7 +187,7 @@ const sizeOfRequest = (request: RequestFacade) => sizeOfUrlSection(request.url)
 type BufferViewSource = Parameters<typeof toBufferView>[0];
 
 const encodeRequestInto = async (request: RequestFacade, offset: number, target: BufferViewSource) => {
-  assert.ok(offset + sizeOfRequest(request) <= target.byteLength, "Buffer overflow.");
+  assert(offset + sizeOfRequest(request) <= target.byteLength, "Buffer overflow.");
 
   const bufferView = toBufferView(target);
 
@@ -198,7 +198,7 @@ const encodeRequestInto = async (request: RequestFacade, offset: number, target:
   offset = encodeMapSection(HEADERS_SECTION, request.headers, offset, bufferView);
   offset = encodeMapSection(COOKIES_SECTION, request.cookies, offset, bufferView);
 
-  assert.ok(offset <= bufferView.byteLength, "Invalid encoding. Something is wrong with the encoder.");
+  assert(offset <= bufferView.byteLength, "Invalid encoding. Something is wrong with the encoder.");
 }
 
 const encodeRequest = async (request: RequestFacade) => {

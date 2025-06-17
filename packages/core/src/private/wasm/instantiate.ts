@@ -8,6 +8,9 @@ import encodeSession from "#wasm/encode-session";
 import encodeRequest from "#wasm/encode-request";
 import decodeResponse from "#wasm/decode-response";
 import decodeJson from "#wasm/decode-json";
+import decodeWebsocketSendMessage from "./decode-websocket-send.js";
+import decodeWebsocketClose from "./decode-websocket-close.js";
+import text from "#handler/text";
 
 /** A helper function to encourage type safety when working with wasm pointers, tagging them as a specific type. */
 type Tagged<Name, T> = { _tag: Name; } & T;
@@ -18,6 +21,11 @@ type HTTPMethod = typeof methods[number];
 
 /** A request handler function type. */
 type RequestHandler = (request: RequestFacade) => MaybePromise<ResponseLike>;
+
+type ServerWebSocket = {
+  send(value: string | ArrayBufferLike | Blob | ArrayBufferView): void;
+  close(code?: number, reason?: string): void;
+}
 
 /** The default request and response types, which are likely pointers into a WASM linear memory space. */
 type I32 = number;
@@ -31,7 +39,7 @@ export type API = {
 export type ExportedMethods<TRequest = I32, TResponse = I32> = {
   [Method in HTTPMethod]?: (request: Tagged<"Request", TRequest>) => Tagged<"Response", TResponse>;
 };
-
+WebSocket
 /** These functions should be exported by a WASM module to be compatible with Primate. This follows the Primate WASM ABI convention. */
 export type PrimateWasmExports<TRequest = I32, TResponse = I32> = {
   memory: WebAssembly.Memory;
@@ -39,15 +47,18 @@ export type PrimateWasmExports<TRequest = I32, TResponse = I32> = {
   sendResponse(response: Tagged<"Response", TResponse>): void;
   finalizeRequest(value: Tagged<"Request", TRequest>): void;
   finalizeResponse(value: Tagged<"Response", TResponse>): void;
+  websocketOpen(): void;
+  websocketClose(): void;
+  websocketMessage(): void;
 } & ExportedMethods<TRequest, TResponse>;
 
 export type Instantiation<TRequest = I32, TResponse = I32> = {
   api: API;
+  sockets: Map<bigint, any>,
   memory: WebAssembly.Memory;
   exports: PrimateWasmExports<TRequest, TResponse>;
+  setPayload(value: Uint8Array): void;
 };
-
-const decoder = new TextDecoder();
 
 /**
  * Instantiate a WASM module from a file reference and the given web assembly imports..
@@ -58,8 +69,13 @@ const decoder = new TextDecoder();
  */
 const instantiate = async <TRequest = I32, TResponse = I32>(ref: FileRef, imports: WebAssembly.Imports = {}) => {
   // default payload is set to an empty buffer via setPayloadBuffer
-  let payload: Uint8Array = new Uint8Array(0);
-  let received = new Uint8Array(0);
+  let payload = new Uint8Array(0) as Uint8Array;
+  let received = new Uint8Array(0) as Uint8Array;
+  const setPayload = (value: Uint8Array) => {
+    payload = value;
+  };
+
+  const sockets = new Map<bigint, ServerWebSocket>();
 
   /**
    * The imports that Primate provides to the WASM module. This follows the Primate WASM ABI convention.
@@ -122,6 +138,25 @@ const instantiate = async <TRequest = I32, TResponse = I32>(ref: FileRef, import
       output.set(wasmBuffer);
       received = output;
     },
+
+    /**
+     * Send a WebSocket message to a given socket by it's id.
+     */
+    websocketSend() {
+      const { id, message } = decodeWebsocketSendMessage(payload);
+      assert(sockets.has(id), "Invalid socket id. Was the socket already closed?");
+      const socket = sockets.get(id)!;
+      socket.send(message);
+    },
+
+    /**
+     * Close a WebSocket.
+     */
+    websocketClose() {
+      const { id } = decodeWebsocketClose(payload);
+      
+
+    }
   };
 
   const bytes = await ref.arrayBuffer();
@@ -171,7 +206,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(ref: FileRef, import
   const memory = exports.memory;
 
   const api = {} as API;
-
+  const instance = { setPayload, api, memory, exports, sockets } as Instantiation<TRequest, TResponse>;
   for (const method of methods) {
     if (method in exports && typeof exports[method] === "function") {
       const methodFunc = (request: Tagged<"Request", TRequest>) => exports[method]!(request) as Tagged<"Response", TResponse>;
@@ -191,12 +226,23 @@ const instantiate = async <TRequest = I32, TResponse = I32>(ref: FileRef, import
         const response = decodeResponse(received);
         exports.finalizeResponse(wasmResponse);
 
-        return response;
+        if (response.type === "web_socket_upgrade") {
+          return response.callback(instance);
+        }
+
+        if (response.type === "text") {
+          return text(response.text, {
+            status: response.status,
+            headers: response.headers,
+          });
+        }
+
+        return response.value;
       }
     }
   }
 
-  return { api, memory, exports } as Instantiation<TRequest, TResponse>;
+  return instance;
 }
 
 export default instantiate;

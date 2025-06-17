@@ -1,4 +1,4 @@
-import * as assert from "node:assert/strict";
+import assert from "@rcompat/invariant/assert";
 import utf8ByteLength from "./utf8-byte-length.js";
 import encodeUint32LE from "./encode-uint32le.js";
 import type toBufferView from "./to-buffer-view.js";
@@ -19,7 +19,7 @@ const encodeString = (str: string, offset: number, bufferView: BufferView) => {
   const byteLength = utf8ByteLength(str);
   offset = encodeUint32LE(byteLength, offset, bufferView);
   const next = offset + byteLength;
-  assert.ok(next <= bufferView.byteLength, "Buffer overflow.");
+  assert(next <= bufferView.byteLength, "Buffer overflow.");
   encoder.encodeInto(str, bufferView.buffer.subarray(offset, offset + byteLength));
   return next;
 }

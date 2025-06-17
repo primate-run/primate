@@ -22,7 +22,8 @@ export default (config: GrainConfiguration): BuildAppHook => (app, next) => {
     }
 
     if (app.mode === "development") {
-      commandSections.push("--debug", "--source-map", "--wat");
+      // TODO: Some day, sourcemaps might work in wasm, add --source-map
+      commandSections.push("--debug", "--wat");
     }
 
     if (app.mode === "production") {
@@ -49,6 +50,7 @@ export default (config: GrainConfiguration): BuildAppHook => (app, next) => {
     await grain.write(`${code}\n${postlude}`);
     const wasm = grain.bare(".wasm");
     const commandText = compileGrainFileCommand(wasm, grain);
+    console.log(commandText);
     await execute(commandText, { cwd: `${grain.directory}` });
 
     const bootstrapFile = grain.bare(".gr.js");

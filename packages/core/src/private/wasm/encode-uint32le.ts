@@ -1,4 +1,4 @@
-import * as assert from "node:assert/strict";
+import assert from "@rcompat/invariant/assert";
 
 import type toBufferView from "./to-buffer-view.js";
 const SIZE_I32 = Int32Array.BYTES_PER_ELEMENT;
@@ -14,7 +14,7 @@ type BufferView = ReturnType<typeof toBufferView>;
  */
 const encodeUint32LE = (value: number, offset: number, bufferView: BufferView) => {
   const next = offset + SIZE_I32;
-  assert.ok(next <= bufferView.byteLength, "Buffer overflow.");
+  assert(next <= bufferView.byteLength, "Buffer overflow.");
   bufferView.view.setUint32(offset, value, true);
   return next;
 }

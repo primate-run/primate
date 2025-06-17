@@ -5,6 +5,4 @@ from "primate/response" include Response
 use Response.{ type Response, error }
 use Request.{ type Request }
 
-provide let get = (request: Request) => {
-  error()
-}
+provide let get = (request: Request) => error()

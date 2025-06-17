@@ -1,7 +1,7 @@
 interface BufferViewSource {
   byteLength: number;
   byteOffset: number;
-  buffer: ArrayBuffer;
+  buffer: ArrayBuffer | SharedArrayBuffer;
 }
 
 type BufferView = {
