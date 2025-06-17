@@ -155,32 +155,7 @@ provide let getStatusCode = (status: HTTPStatus) => {
   }
 }
 
-provide record ViewOptions {
-  head: Option<String>,
-  partial: Bool,
-  placeholders: Map<String, String>,
-  page: Option<String>,
-  csp: Map<String, String>,
-}
-
 provide type Response = Bytes
-
-provide let makeViewOptions = (
-  head: Option<String> = None,
-  partial: Bool = false,
-  placeholders: Map<String, String> = Map.make(),
-  page: Option<String> = None,
-  csp: Map<String, String> = Map.make(),
-) => {
-  let options: ViewOptions = {
-    head,
-    partial,
-    placeholders,
-    page,
-    csp,
-  }
-  options
-}
 
 let _RESPONSE_STRING = 0ul
 let _RESPONSE_JSON = 1ul
