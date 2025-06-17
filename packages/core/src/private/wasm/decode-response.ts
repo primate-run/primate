@@ -70,7 +70,7 @@ const decodeResponse = (source: BufferViewSource): DecodedResponse => {
   switch (responseKind) {
     case RESPONSE_TEXT: {
       const text = decodeString(offset, bufferView);
-      const status = decodeOption(decodeUint32LE, offset, bufferView);
+      const status = decodeUint32LE(offset, bufferView);
       const headers = decodeJson(offset, bufferView) as Dictionary<string>;
       return { type: "text", text, status, headers };
     }
