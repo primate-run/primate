@@ -470,13 +470,8 @@ provide let send = (kind: WasmI32) => {
   // Check for a JSON object
   if (tag ==. _GRAIN_ADT_HEAP_TAG) {
     GC.incRef(kind)
-    print("Found ADT. Checking if it's a JSON object.")
 
-    let typeTag = getTypeHash(kind)
-    print(typeTag ==. _JSON_TYPE)
-
-    if (_JSON_TYPE ==. typeTag) {
-      print("Found actual Json value. Wow.")
+    if (_JSON_TYPE ==. getTypeHash(kind)) {
       let jsonValue = WasmI32.toGrain(kind): Json
       let payload = json(jsonValue)
       let ptr = WasmI32.fromGrain(payload)
@@ -493,7 +488,6 @@ provide let send = (kind: WasmI32) => {
   // Grain String -> Response.text
   if (tag ==. _GRAIN_STRING_HEAP_TAG) {
     GC.incRef(kind)
-    print("Found string. Sending as text.")
     let str = WasmI32.toGrain(kind): String
     let payload = text(str)
     let ptr = WasmI32.fromGrain(payload)
@@ -507,16 +501,13 @@ provide let send = (kind: WasmI32) => {
   // Grain Bytes -> Send Raw Payload
   if (tag ==. _GRAIN_BYTES_HEAP_TAG) {
     GC.incRef(kind)
-    print("Found bytes. Sending raw.")
     let ptr = kind +. _BYTES_DATA_OFFSET
     let size = WasmI32.load(kind, _BYTES_LEN_OFFSET)
     External.send(ptr, size)
     return void
   }
 
-  print("It's something else. What is it?")
-
-  return void
+ throw InvalidPayloadException
 }
 
 provide enum SocketMessageKind {

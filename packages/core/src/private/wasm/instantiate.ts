@@ -220,13 +220,9 @@ const instantiate = async <TRequest = I32, TResponse = I32>(ref: FileRef, import
         // call the http method and obtain the response, finalizing the request
         const wasmResponse = methodFunc(wasmRequest);
         exports.finalizeRequest(wasmRequest);
-
-        // @ts-ignore
-        const view = new Uint32Array(memory.buffer, wasmResponse - 8, 10);
         
         // send the response to the wasm module and decode the response, finalizing the response
         exports.sendResponse(wasmResponse);
-        console.log(Array.from(view).map(e => e.toString(16)).join(" "));
         const response = decodeResponse(received);
         exports.finalizeResponse(wasmResponse);
 
