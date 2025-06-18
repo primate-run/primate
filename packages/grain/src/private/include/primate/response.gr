@@ -16,7 +16,7 @@ from "runtime/unsafe/offsets" include Offsets
 from "./external.gr" include External
 from "runtime/unsafe/tags" include Tags
 
-use WasmI32.{ (-) as (-.), (==) as (==.) }
+use WasmI32.{ (-) as (-.), (==) as (==.), (>>) as (>>.) }
 use Uint64.{ (+) as (+..) }
 use Map.{ type Map }
 use Json.{ type Json }
@@ -449,53 +449,42 @@ provide let uri = (uri: Uri) => {
 }
 
 @unsafe
-let getTagOf = (t: WasmI32) => WasmI32.load(t -. 8n, 0n)
-
-@unsafe
 let getValueTypeTag = (t: WasmI32) => WasmI32.load(t, 0n)
 
 @unsafe
-let getModuleTag = (t: WasmI32) => WasmI32.load(t, 4n)
+let getTypeHash = (t: WasmI32) => WasmI32.load(t, 4n) >>. 1n
 
+let _NULL = JsonNull
 @unsafe
-let getTypeTag = (t: WasmI32) => WasmI32.load(t, 8n)
-
+let _NULL_PTR = WasmI32.fromGrain(_NULL)
 @unsafe
-let getVariantTag = (t: WasmI32) => WasmI32.load(t, 12n)
+let _JSON_TYPE = getTypeHash(_NULL_PTR)
+ignore(_NULL)
 
 @unsafe
 provide let send = (kind: WasmI32) => {
   use WasmI32.{ (+) as (+.) }
   use Tags.{ _GRAIN_STRING_HEAP_TAG, _GRAIN_BYTES_HEAP_TAG, _GRAIN_ADT_HEAP_TAG }
-  let tag = getTagOf(kind)
+  let tag = getValueTypeTag(kind)
   
   // Check for a JSON object
   if (tag ==. _GRAIN_ADT_HEAP_TAG) {
-    let _NULL = JsonNull
-    let _NULL_PTR = WasmI32.fromGrain(_NULL)
-    let _JSON_VALUE_TYPE = getValueTypeTag(_NULL_PTR)
-    let _JSON_MODULE = getModuleTag(_NULL_PTR)
-    let _JSON_TYPE = getTypeTag(_NULL_PTR)
-    ignore(_NULL)
+    GC.incRef(kind)
+    print("Found ADT. Checking if it's a JSON object.")
 
-    let valueTypeTag = getValueTypeTag(kind)
-    let moduleTag = getModuleTag(kind)
-    let typeTag = getTypeTag(kind)
+    let typeTag = getTypeHash(kind)
+    print(typeTag ==. _JSON_TYPE)
 
-    if (
-      // [u32: Value Type] [u32: Module Identifier] [u32: Type Identifier]
-      _JSON_VALUE_TYPE ==. valueTypeTag
-      && _JSON_MODULE ==. moduleTag
-      && _JSON_TYPE ==. typeTag
-    ) {
-      GC.incRef(kind)
+    if (_JSON_TYPE ==. typeTag) {
+      print("Found actual Json value. Wow.")
       let jsonValue = WasmI32.toGrain(kind): Json
       let payload = json(jsonValue)
-      let ptr = WasmI32.fromGrain(payload) +. _BYTES_DATA_OFFSET
-      let size = WasmI32.load(kind, _BYTES_LEN_OFFSET)
-      External.send(ptr, size)
+      let ptr = WasmI32.fromGrain(payload)
+      let dataPtr = ptr +. _BYTES_DATA_OFFSET
+      let size = WasmI32.load(ptr, _BYTES_LEN_OFFSET)
+      External.send(dataPtr, size)
       ignore(payload) // <- prevent GC from freeing payload
-      return
+      return void
     }
 
     throw InvalidPayloadException
@@ -504,21 +493,28 @@ provide let send = (kind: WasmI32) => {
   // Grain String -> Response.text
   if (tag ==. _GRAIN_STRING_HEAP_TAG) {
     GC.incRef(kind)
+    print("Found string. Sending as text.")
     let str = WasmI32.toGrain(kind): String
     let payload = text(str)
-    let ptr = WasmI32.fromGrain(payload) +. _BYTES_DATA_OFFSET
-    let size = WasmI32.load(kind, _BYTES_LEN_OFFSET)
-    External.send(ptr, size)
+    let ptr = WasmI32.fromGrain(payload)
+    let dataPtr = ptr +. _BYTES_DATA_OFFSET
+    let size = WasmI32.load(ptr, _BYTES_LEN_OFFSET)
+    External.send(dataPtr, size)
     ignore(payload) // <- prevent GC from freeing payload
+    return void
   }
 
   // Grain Bytes -> Send Raw Payload
   if (tag ==. _GRAIN_BYTES_HEAP_TAG) {
     GC.incRef(kind)
+    print("Found bytes. Sending raw.")
     let ptr = kind +. _BYTES_DATA_OFFSET
     let size = WasmI32.load(kind, _BYTES_LEN_OFFSET)
     External.send(ptr, size)
+    return void
   }
+
+  print("It's something else. What is it?")
 
   return void
 }

@@ -7,6 +7,4 @@ from "./response.gr" include Response
 provide let newRequest = Request.make
 provide let sendResponse = Response.send
 provide let finalizeRequest = GC.decRef
-
-@unsafe
-provide let finalizeResponse = (ref: WasmI32) => void
+provide let finalizeResponse = GC.decRef
