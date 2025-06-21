@@ -1,0 +1,215 @@
+module Request
+
+from "uri" include Uri
+from "map" include Map
+from "bytes" include Bytes
+from "uint32" include Uint32
+from "uint64" include Uint64
+from "result" include Result
+from "option" include Option
+from "./external.gr" include External
+from "runtime/unsafe/wasmi32" include WasmI32
+from "runtime/dataStructures" include DataStructures
+from "runtime/gc" include GC
+
+use Uri.{ type Uri }
+use Map.{ type Map }
+
+provide type Dictionary = Map<String, String>
+
+provide enum BodyMapElement {
+  BodyMapElementString(String),
+  BodyMapElementBytes(Bytes),
+}
+
+provide type BodyMapDictionary = Map<String, BodyMapElement>
+
+provide enum Body {
+  BodyNull,
+  BodyString(String), // 0
+  BodyMap(Map<String, BodyMapElement>)
+}
+
+provide record RequestRecord {
+  url: Uri,
+  body: Body,
+  path: Dictionary,
+  query: Dictionary,
+  headers: Dictionary,
+  cookies: Dictionary,
+}
+
+provide type Request = RequestRecord
+
+provide exception InvalidRequestEncoding
+provide exception InvalidRequestHeader
+
+let _URI_SECTION = 0ul
+let _BODY_SECTION = 1ul
+let _PATH_SECTION = 2ul
+let _QUERY_SECTION = 3ul
+let _HEADERS_SECTION = 4ul
+let _COOKIES_SECTION = 5ul
+
+let _BODY_NULL = 0ul
+
+let _BODY_MAP_ELEMENT_KIND_STRING = 0ul
+let _BODY_MAP_ELEMENT_KIND_BYTES = 1ul
+
+
+let readUint32 = (offset: Number, payload: Bytes) => {
+  let value = Bytes.getUint32(offset, payload)
+  (offset + 4, value)
+}
+
+let readString = (offset: Number, payload: Bytes) => {
+  use Uint32.{ toNumber }
+  use Bytes.{ slice, toString, getUint32 }
+  let (offset, size) = readUint32(offset, payload)
+  let size = toNumber(size)
+  let string = slice(offset, size, payload)
+  let string = toString(string)
+  let offset = offset + size
+  (offset, string)
+}
+
+let readBytes = (offset: Number, payload: Bytes) => {
+  use Uint32.{ toNumber }
+  use Bytes.{ slice, toString, getUint32 }
+  let (offset, size) = readUint32(offset, payload)
+  let size = toNumber(size)
+  let bytes = slice(offset, size, payload)
+  let offset = offset + size
+  (offset, bytes)
+}
+
+let readBodyMapElement = (offset: Number, payload: Bytes) => {
+  use Uint32.{ toNumber }
+  use Bytes.{ slice, toString, getUint32 }
+  let kind = Bytes.getUint32(offset, payload)
+  match (kind) {
+    0ul => {
+      let (offset, value) = readString(offset + 4, payload)
+      (offset, BodyMapElementString(value))
+    },
+    1ul => {
+      let (offset, value) = readBytes(offset + 4, payload)
+      (offset, BodyMapElementBytes(value))
+    },
+    _ => throw InvalidRequestEncoding,
+  }
+}
+
+
+let rec getSectionMap = (id: Uint32, offset: Number, payload: Bytes) => {
+  use Uint32.{ (+) as (+.), (<), toNumber }
+
+  let (offset, header) = readUint32(offset, payload)
+  if (header != id) throw InvalidRequestHeader
+
+  let (offset, count) = readUint32(offset, payload)
+  
+  getKeyValues(Uint32.toNumber(count), offset, payload, Map.make())
+} and getKeyValues = (count: Number, offset: Number, payload: Bytes, map: Dictionary) => {
+  match (count) {
+    0 => (offset, map),
+    _ => {
+      let (offset, key) = readString(offset, payload)
+      let (offset, value) = readString(offset, payload)
+      Map.set(key, value, map)
+      getKeyValues(count - 1, offset, payload, map)
+    }
+  }
+}
+
+let rec getBody = (offset: Number, payload: Bytes) => {
+  let (offset, bodyKind) = readUint32(offset, payload)
+
+  match (bodyKind) {
+    0ul => (offset, BodyNull),
+    1ul => {
+      let (offset, string) = readString(offset, payload)
+      (offset, BodyString(string))
+    },
+    2ul => {
+      let (offset, count) = readUint32(offset, payload)
+      let (offset, map) = getBodyMapElements(Uint32.toNumber(count), offset, payload, Map.make())
+      (offset, BodyMap(map))
+    },
+    _ => throw InvalidRequestEncoding,
+  }
+} and getBodyMapElements = (count: Number, offset: Number, payload: Bytes, map: BodyMapDictionary) => {
+  match (count) {
+    0 => (offset, map),
+    _ => {
+      let (offset, key) = readString(offset, payload)
+      let (offset, value) = readBodyMapElement(offset, payload)
+      Map.set(key, value, map)
+      getBodyMapElements(count - 1, offset, payload, map)
+    }
+  }
+}
+
+@unsafe
+provide let make = () => {
+  use Bytes.{ getUint32, slice, toString }
+  use Uint32.{ toNumber, (<), (+) as (+.) }
+  use Uint64.{ (+) as (+..) }
+  let payload = External.receiveBytes()
+  
+  // Section 1
+  let mut offset = 0
+
+  let (offset, header0) = readUint32(offset, payload)
+  if (header0 != _URI_SECTION) throw InvalidRequestEncoding
+
+  let (offset, uriString) = readString(offset, payload)
+  let url = Result.expect("Invalid URL", Uri.parse(uriString))
+
+  // Section 2
+  let (offset, header1) = readUint32(offset, payload)
+  if (header1 != _BODY_SECTION) throw InvalidRequestEncoding
+
+  let (offset, body) = getBody(offset, payload)
+
+  let (offset, path) = getSectionMap(_PATH_SECTION, offset, payload)
+  let (offset, query) = getSectionMap(_QUERY_SECTION, offset, payload)
+  let (offset, headers) = getSectionMap(_HEADERS_SECTION, offset, payload)
+  let (offset, cookies) = getSectionMap(_COOKIES_SECTION, offset, payload)
+
+  let request = {
+    url,
+    body,
+    path,
+    query,
+    headers,
+    cookies,
+  }
+  GC.incRef(WasmI32.fromGrain(request))
+  request
+}
+
+@unsafe
+provide let getBody = (request: Request) => {
+  request.body
+}
+
+@unsafe
+provide let getPath = (request: Request) => {
+  request.path
+}
+
+@unsafe
+provide let getQuery = (request: Request) => {
+  request.query
+}
+
+@unsafe
+provide let getHeaders = (request: Request) => {
+  request.headers
+}
+
+@unsafe
+provide let getCookies = (request: Request) => {
+  request.cookies
+}

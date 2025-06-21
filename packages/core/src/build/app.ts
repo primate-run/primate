@@ -160,10 +160,11 @@ const build: Default = async (root, config, mode = "developement" as Mode) => {
       await build_directory.create();
       for (const file of await directory.collect(({ path }) => /^.*$/.test(path))) {
         const debased = file.debase(directory);
+
         const target = base.join(debased);
-        if (!await directory.exists()) {
-          await target.directory.create({ recursive: true });
-        }
+        await target.directory.create({
+          recursive: true,
+        });
 
         // copy to build/stage/${directory}
         await file.copy(target);

@@ -29,7 +29,7 @@ const first_error = (left: string, right: string) => {
 export default async () => {
   await build("testing", "web");
   const app = (await serve()).default;
-
+  
   const files = await (await root()).join(directory)
     .list(({ path }) => path.endsWith(".ts") || path.endsWith(".js"));
 

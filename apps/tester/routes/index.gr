@@ -1,0 +1,17 @@
+module Index
+
+from "primate/response" include Response
+from "primate/request" include Request
+from "json" include Json
+
+use Json.{ type Json }
+use Request.{ type Request }
+
+provide let get = (request: Request) => {
+  JsonArray([
+    JsonObject([("name", JsonString("Donald"))]),
+    JsonObject([("name", JsonString("Ryan"))]),
+  ])
+}
+
+

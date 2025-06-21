@@ -1,0 +1,77 @@
+module Session
+
+from "./external.gr" include External
+from "json" include Json
+from "result" include Result
+from "runtime/unsafe/offsets" include Offsets
+from "runtime/unsafe/wasmi32" include WasmI32
+from "string" include String
+from "bytes" include Bytes
+from "buffer" include Buffer
+from "uint32" include Uint32
+
+use Json.{ type Json }
+use Offsets.{ _BYTES_DATA_OFFSET }
+use WasmI32.{ (+) as (+.) }
+
+provide exception InvalidSessionPayload
+
+provide record Session {
+  data: Json,
+  new: Bool,
+  id: String,
+}
+
+let parseSessionPayload = (payload: Bytes) => {
+  use Bytes.{ getUint32, slice, toString }
+  use Uint32.{ toNumber, (<), (+) as (+.) }
+  
+  let offset = 0
+  let strLength = Uint32.toNumber(Bytes.getUint32(0, payload))
+  let str = Bytes.slice(4, strLength, payload)
+  let data = Result.expect("Invalid JSON data", Json.parse(toString(str)))
+  
+  let offset = offset + 4 + strLength
+  let new = Bytes.getUint32(offset, payload) == 1ul
+  let offset = offset + 4
+  
+  let idLength = Uint32.toNumber(Bytes.getUint32(offset, payload))
+  let idBytes = Bytes.slice(offset + 4, idLength, payload)
+  let id = toString(idBytes)
+
+  let offset = offset + 4 + idLength
+  if (offset != Bytes.length(payload)) throw InvalidSessionPayload
+
+  {
+    data,
+    new,
+    id,
+  }: Session
+}
+
+@unsafe
+provide let create = (data: Json) => {
+  let str = Result.expect("Invalid JSON", Json.toString(data))
+  let strLength = String.byteLength(str)
+
+  let buffer = Buffer.make(strLength + 4)
+  Buffer.addUint32(Uint32.fromNumber(strLength), buffer)
+  Buffer.addString(str, buffer)
+  
+  let bytes = Buffer.toBytes(buffer)
+  let byteLength = WasmI32.fromGrain(Bytes.length(bytes))
+  let ptr = WasmI32.fromGrain(bytes) +. _BYTES_DATA_OFFSET
+  External.send(ptr, byteLength)
+  ignore(bytes)
+  
+  External.newSession()
+  let payload = External.receiveBytes()
+  parseSessionPayload(payload)
+}
+
+@unsafe
+provide let get = () => {
+  External.getSession()
+  let payload = External.receiveBytes()
+  parseSessionPayload(payload)
+}
