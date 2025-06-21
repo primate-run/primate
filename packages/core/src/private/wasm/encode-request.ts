@@ -1,17 +1,16 @@
 import RequestFacade from "#RequestFacade";
-import assert from "@rcompat/invariant/assert";
-import toBufferView from "./to-buffer-view.js";
+import assert from "@rcompat/assert";
 import PartialDictionary from "@rcompat/type/PartialDictionary";
 import sizeOfUrl from "./size-of-url.js";
 import sizeOfString from "./size-of-string.js";
 import sizeOfFile from "./size-of-file.js";
-import encodeUint32LE from "./encode-uint32le.js";
 import encodeString from "./encode-string.js";
 import encodeURL from "./encode-url.js";
 import encodeStringMap from "./encode-string-map.js";
+import BufferView from "@rcompat/bufferview";
 
 type Body = RequestFacade["body"];
-type BufferView = ReturnType<typeof toBufferView>;
+
 
 const SIZE_I32 = Int32Array.BYTES_PER_ELEMENT;
 const SECTION_HEADER_SIZE = SIZE_I32;
@@ -30,7 +29,6 @@ const BODY_KIND_MAP = 2;
 const BODY_KIND_MAP_VALUE_STRING = 0;
 const BODY_KIND_MAP_VALUE_BYTES = 1;
 
-const encoder = new TextEncoder();
 
 const sizeOfUrlSection = (url: URL) => SECTION_HEADER_SIZE + sizeOfUrl(url);
 const sizeOfBodySection = (body: Body) => {
@@ -90,19 +88,17 @@ const sizeOfMapSection = (map: PartialDictionary<string>) => {
  * @param offset - The offset to encode the map at.
  * @param bufferView - The buffer view to encode the map into.
  */
-const encodeMapSection = (header: number, map: PartialDictionary<string>, offset: number, bufferView: BufferView) => {
-  offset = encodeUint32LE(header, offset, bufferView);
-  return encodeStringMap(map, offset, bufferView);
+const encodeMapSection = (header: number, map: PartialDictionary<string>, bufferView: BufferView) => {
+  bufferView.writeU32(header);
+  return encodeStringMap(map, bufferView);
 };
 
-const encodeFile = async (file: File, offset: number, bufferView: BufferView) => {
+const encodeFile = async (file: File, bufferView: BufferView) => {
   const byteLength = file.size;
-  offset = encodeUint32LE(byteLength, offset, bufferView);
+  bufferView.writeU32(byteLength);
 
-  const next = offset + byteLength;
-  assert(next <= bufferView.byteLength, "Buffer overflow.");
-  bufferView.buffer.set(await file.bytes(), offset);
-  return next;
+  const bytes = await file.bytes();
+  bufferView.writeBytes(bytes);
 }
 
 /**
@@ -111,9 +107,9 @@ const encodeFile = async (file: File, offset: number, bufferView: BufferView) =>
  *   - [I32: length] 4 bytes
  *   - [...payload] length bytes
  */
-const encodeSectionUrl = (url: URL, offset: number, bufferView: BufferView) => {
-  offset = encodeUint32LE(URL_SECTION, offset, bufferView);
-  return encodeURL(url, offset, bufferView);
+const encodeSectionUrl = (url: URL, bufferView: BufferView) => {
+  bufferView.writeU32(URL_SECTION);
+  encodeURL(url, bufferView);
 };
 
 /**
@@ -141,38 +137,39 @@ const encodeSectionUrl = (url: URL, offset: number, bufferView: BufferView) => {
  *             - [I32: value kind = 1] 4 bytes
  *             - [I32: file_descriptor] 4 bytes
  */
-const encodeSectionBody = async (body: Body, offset: number, bufferView: BufferView) => {
-  offset = encodeUint32LE(BODY_SECTION, offset, bufferView);
+const encodeSectionBody = async (body: Body, bufferView: BufferView) => {
+  bufferView.writeU32(BODY_SECTION);
 
   if (typeof body === "string") {
-    offset = encodeUint32LE(BODY_KIND_STRING, offset, bufferView);
-    return encodeString(body, offset, bufferView);
+    bufferView.writeU32(BODY_KIND_STRING);
+    encodeString(body, bufferView);
+    return;
   }
 
   if (typeof body === "object" && body !== null) {
     const entries = Object.entries(body);
     const entryCount = entries.length;
 
-    offset = encodeUint32LE(BODY_KIND_MAP, offset, bufferView);
-    offset = encodeUint32LE(entryCount, offset, bufferView);
+    bufferView.writeU32(BODY_KIND_MAP);
+    bufferView.writeU32(entryCount);
 
     for (const [key, value] of Object.entries(body)) {
-      offset = encodeString(key, offset, bufferView);
+      encodeString(key, bufferView);
 
       if (typeof value === "string") {
-        offset = encodeUint32LE(BODY_KIND_MAP_VALUE_STRING, offset, bufferView);
-        offset = encodeString(value, offset, bufferView);
+        bufferView.writeU32(BODY_KIND_MAP_VALUE_STRING);
+        encodeString(value, bufferView);
       } else {
-        offset = encodeUint32LE(BODY_KIND_MAP_VALUE_BYTES, offset, bufferView);
-        offset = await encodeFile(value, offset, bufferView);
+        bufferView.writeU32(BODY_KIND_MAP_VALUE_BYTES);
+        await encodeFile(value, bufferView);
       }
     }
-
-    return offset;
   }
   
-  if (body === null || body === void 0)
-    return encodeUint32LE(BODY_KIND_NULL, offset, bufferView);
+  if (body === null || body === void 0) {
+    bufferView.writeU32(BODY_KIND_NULL);
+    return;
+  }
 
   throw new Error(`Unsupported body type: ${typeof body}`);
 }
@@ -184,27 +181,20 @@ const sizeOfRequest = (request: RequestFacade) => sizeOfUrlSection(request.url)
   + sizeOfMapSection(request.headers)
   + sizeOfMapSection(request.cookies);
 
-type BufferViewSource = Parameters<typeof toBufferView>[0];
-
-const encodeRequestInto = async (request: RequestFacade, offset: number, target: BufferViewSource) => {
-  assert(offset + sizeOfRequest(request) <= target.byteLength, "Buffer overflow.");
-
-  const bufferView = toBufferView(target);
-
-  offset = encodeSectionUrl(request.url, offset, bufferView);
-  offset = await encodeSectionBody(request.body, offset, bufferView);
-  offset = encodeMapSection(PATH_SECTION, request.path, offset, bufferView);
-  offset = encodeMapSection(QUERY_SECTION, request.query, offset, bufferView);
-  offset = encodeMapSection(HEADERS_SECTION, request.headers, offset, bufferView);
-  offset = encodeMapSection(COOKIES_SECTION, request.cookies, offset, bufferView);
-
-  assert(offset <= bufferView.byteLength, "Invalid encoding. Something is wrong with the encoder.");
+const encodeRequestInto = async (request: RequestFacade, bufferView: BufferView) => {
+  encodeSectionUrl(request.url, bufferView);
+  await encodeSectionBody(request.body, bufferView);
+  encodeMapSection(PATH_SECTION, request.path, bufferView);
+  encodeMapSection(QUERY_SECTION, request.query, bufferView);
+  encodeMapSection(HEADERS_SECTION, request.headers, bufferView);
+  encodeMapSection(COOKIES_SECTION, request.cookies, bufferView);
 }
 
 const encodeRequest = async (request: RequestFacade) => {
   const size = sizeOfRequest(request);
   const output = new Uint8Array(size);
-  await encodeRequestInto(request, 0, output);
+  const bufferView = new BufferView(output);
+  await encodeRequestInto(request, bufferView);
   return output;
 }
 

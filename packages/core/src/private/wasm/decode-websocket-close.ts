@@ -1,13 +1,11 @@
-import decodeBigUint64LE from "./decode-biguint64le.js";
-import toBufferView from "./to-buffer-view.js";
+import BufferView from "@rcompat/bufferview";
 
-type BufferViewSource = Parameters<typeof toBufferView>[0];
+type BufferViewSource = ConstructorParameters<typeof BufferView>;
 
-
-const decodeWebsocketClose = (bufferSource: BufferViewSource) => {
-  const bufferView = toBufferView(bufferSource);
+const decodeWebsocketClose = (...bufferSource: BufferViewSource) => {
+  const bufferView = new BufferView(...bufferSource);
   const offset = { ptr: 0 };
-  const id = decodeBigUint64LE(offset, bufferView);
+  const id = bufferView.readU64();
   return { id };
 };
 

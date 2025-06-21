@@ -1,4 +1,4 @@
-import assert from "@rcompat/invariant/assert";
+import assert from "@rcompat/assert";
 import execute from "@rcompat/stdio/execute";
 import FileRef from "@rcompat/fs/FileRef";
 import type { BuildAppHook } from "@primate/core/hook";

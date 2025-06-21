@@ -1,8 +1,7 @@
-
-import toBufferView from "./to-buffer-view.js";
 import encodeString from "./encode-string.js";
-import encodeUint32LE from "./encode-uint32le.js";
 import sizeOfString from "./size-of-string.js";
+import BufferView from "@rcompat/bufferview";
+
 const SIZE_I32 = Int32Array.BYTES_PER_ELEMENT;
 
 type SessionShape = {
@@ -21,12 +20,11 @@ const encodeSession = (session: SessionShape) => {
     + idSize; // id payload
 
   const output = new Uint8Array(size);
-  const bufferView = toBufferView(output);
+  const bufferView = new BufferView(output);
 
-  let offset = 0;
-  offset = encodeString(data, offset, bufferView);
-  offset = encodeUint32LE(session.new ? 1 : 0, offset, bufferView);
-  offset = encodeString(session.id, offset, bufferView);
+  encodeString(data, bufferView);
+  bufferView.writeU32(session.new ? 1 : 0);
+  encodeString(session.id, bufferView);
 
   return output;
 }

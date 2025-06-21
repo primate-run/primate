@@ -1,6 +1,7 @@
+import BufferView from "@rcompat/bufferview";
 import FileRef from "@rcompat/fs/FileRef";
 import MaybePromise from "@rcompat/type/MaybePromise";
-import assert from "@rcompat/invariant/assert";
+import assert from "@rcompat/assert";
 import RequestFacade from "#RequestFacade";
 import ResponseLike from "#ResponseLike";
 import session from "#session/config";
@@ -223,7 +224,8 @@ const instantiate = async <TRequest = I32, TResponse = I32>(ref: FileRef, import
         
         // send the response to the wasm module and decode the response, finalizing the response
         exports.sendResponse(wasmResponse);
-        const response = decodeResponse(received);
+        const bufferView = new BufferView(received);
+        const response = decodeResponse(bufferView);
         exports.finalizeResponse(wasmResponse);
 
         if (response.type === "web_socket_upgrade") {

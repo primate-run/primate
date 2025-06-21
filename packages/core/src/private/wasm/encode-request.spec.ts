@@ -77,8 +77,6 @@ const firstExpected = [
 
 const firstEncoded = await encodeRequest(simpleRequest);
 
-console.log("ready to test");
-
 test.case("simple encode with string body", assert => {
   assert(Array.from(firstEncoded)).equals(firstExpected);
 });

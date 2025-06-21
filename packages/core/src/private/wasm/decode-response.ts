@@ -1,19 +1,15 @@
 import error from "#handler/error";
 import view from "#handler/view";
 import { Known } from "@rcompat/http/Status";
-import toBufferView from "./to-buffer-view.js";
 import * as assert from "node:assert/strict";
 import redirect from "#handler/redirect";
-import decodeUint32LE from "./decode-uint32le.js";
 import decodeString from "./decode-string.js";
 import decodeJson from "./decode-json.js";
 import decodeBytes from "./decode-bytes.js";
 import decodeOption from "./decode-option.js";
-import decodeBigUint64LE from "./decode-biguint64le.js";
 import openWebsocket from "./open-websocket.js";
 import Dictionary from "#frontend/Props";
-
-type BufferViewSource = Parameters<typeof toBufferView>[0];
+import type BufferView from "@rcompat/bufferview";
 
 type MaybeRedirectionStatus = Parameters<typeof redirect>[1];
 
@@ -50,10 +46,8 @@ type DecodedResponse =
     callback: (api: Instantiation) => void;
   }
 
-const decodeResponse = (source: BufferViewSource): DecodedResponse => {
-  const bufferView = toBufferView(source);
-  const offset = { ptr: 0 };
-  const responseKind = decodeUint32LE(offset, bufferView);
+const decodeResponse = (source: BufferView): DecodedResponse => {
+  const responseKind = source.readU32();
 
   assert.ok(
     responseKind === RESPONSE_BLOB
@@ -69,18 +63,18 @@ const decodeResponse = (source: BufferViewSource): DecodedResponse => {
 
   switch (responseKind) {
     case RESPONSE_TEXT: {
-      const text = decodeString(offset, bufferView);
-      const status = decodeUint32LE(offset, bufferView);
-      const headers = decodeJson(offset, bufferView) as Dictionary<string>;
+      const text = decodeString(source);
+      const status = source.readU32();
+      const headers = decodeJson(source) as Dictionary<string>;
       return { type: "text", text, status, headers };
     }
 
     case RESPONSE_JSON:
-      return { type: "json", value: decodeJson(offset, bufferView) };
+      return { type: "json", value: decodeJson(source) };
 
     case RESPONSE_BLOB: {
-      const buffer = decodeBytes(offset, bufferView);
-      const contentType = decodeOption(decodeString, offset, bufferView);
+      const buffer = decodeBytes(source);
+      const contentType = decodeOption(decodeString, source);
       return {
         type: "blob",
         value: contentType
@@ -90,9 +84,9 @@ const decodeResponse = (source: BufferViewSource): DecodedResponse => {
     }
 
     case RESPONSE_VIEW: {
-      const viewName = decodeString(offset, bufferView);
-      const viewProps = decodeJson(offset, bufferView) || void 0;
-      const viewOptions = decodeJson(offset, bufferView) || void 0;
+      const viewName = decodeString(source);
+      const viewProps = decodeJson(source) || void 0;
+      const viewOptions = decodeJson(source) || void 0;
       return {
         type: "view",
         value: view(viewName, viewProps, viewOptions),
@@ -100,9 +94,9 @@ const decodeResponse = (source: BufferViewSource): DecodedResponse => {
     }
 
     case RESPONSE_ERROR: {
-      const body = decodeOption(decodeString, offset, bufferView);
-      const status = decodeUint32LE(offset, bufferView) as Known;
-      const page = decodeOption(decodeString, offset, bufferView);
+      const body = decodeOption(decodeString, source);
+      const status = source.readU32() as Known;
+      const page = decodeOption(decodeString, source);
       return {
         type: "error",
         value: error({ body, status, page }),
@@ -110,8 +104,8 @@ const decodeResponse = (source: BufferViewSource): DecodedResponse => {
     }
 
     case RESPONSE_REDIRECT: {
-      const to = decodeString(offset, bufferView);
-      const status = decodeOption(decodeUint32LE, offset, bufferView) as MaybeRedirectionStatus;
+      const to = decodeString(source);
+      const status = decodeOption(source => source.readU32(), source) as MaybeRedirectionStatus;
       return {
         type: "redirect",
         value: redirect(to, status),
@@ -119,7 +113,7 @@ const decodeResponse = (source: BufferViewSource): DecodedResponse => {
     }
 
     case RESPONSE_URI: {
-      const str = decodeString(offset, bufferView);
+      const str = decodeString(source);
       return {
         type: "uri",
         value: new URL(str),
@@ -127,7 +121,7 @@ const decodeResponse = (source: BufferViewSource): DecodedResponse => {
     }
 
     case RESPONSE_WEB_SOCKET_UPGRADE: {
-      const id = decodeBigUint64LE(offset, bufferView);
+      const id = source.readU64();
       return {
         type: "web_socket_upgrade",
         callback: openWebsocket(id),

@@ -1,9 +1,5 @@
-import assert from "@rcompat/invariant/assert";
-import utf8ByteLength from "./utf8-byte-length.js";
-import encodeUint32LE from "./encode-uint32le.js";
-import type toBufferView from "./to-buffer-view.js";
-const encoder = new TextEncoder();
-type BufferView = ReturnType<typeof toBufferView>;
+import sizeUtf8 from "@rcompat/string/utf8size";
+import type BufferView from "@rcompat/bufferview";
 
 /**
  * Encoding a string has the following format:
@@ -15,13 +11,10 @@ type BufferView = ReturnType<typeof toBufferView>;
  * @param bufferView - The buffer view to encode the string into.
  * @returns The next offset.
  */
-const encodeString = (str: string, offset: number, bufferView: BufferView) => {
-  const byteLength = utf8ByteLength(str);
-  offset = encodeUint32LE(byteLength, offset, bufferView);
-  const next = offset + byteLength;
-  assert(next <= bufferView.byteLength, "Buffer overflow.");
-  encoder.encodeInto(str, bufferView.buffer.subarray(offset, offset + byteLength));
-  return next;
+const encodeString = (str: string, bufferView: BufferView) => {
+  const byteLength = sizeUtf8(str);
+  bufferView.writeU32(byteLength);
+  bufferView.write(str);
 }
 
 export default encodeString;
