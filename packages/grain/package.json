@@ -8,9 +8,9 @@
   "type": "module",
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/invariant": "^0.8.5",
-    "@rcompat/fs": "^0.12.18",
-    "@rcompat/stdio": "^0.9.1"
+    "@rcompat/assert": "^0.1.0",
+    "@rcompat/fs": "^0.13.0",
+    "@rcompat/stdio": "^0.10.0"
   },
   "files": [
     "/lib/**/*.js",
