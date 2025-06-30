@@ -1,0 +1,31 @@
+<script>
+  window.addEventListener("load", () => {
+    const ws = new WebSocket("ws://localhost:6161/handler/ws?limit=20");
+    ws.addEventListener("open", () => {
+      document.querySelector("#chat").addEventListener("keypress", event => {
+        if (event.key === "Enter") {
+          ws.send(event.target.value);
+          event.target.value = "";
+        }
+      })
+    });
+    ws.addEventListener("message", message => {
+      const chatbox = document.querySelector("#box");
+      const div = document.createElement("div");
+      div.innerText = message.data
+      chatbox.appendChild(div);
+    })
+  });
+</script>
+<style>
+.chatbox {
+  background-color: lightgrey;
+  width: 300px;
+  height: 300px;
+  overflow: auto;
+}
+</style>
+<div class="chatbox" id="box">
+
+</div>
+<input id="chat" placeholder="Type to chat" />

@@ -31,6 +31,7 @@ runtime, in one stack.
 [![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff&style=for-the-badge)](https://primatejs.com/modules/python)
 [![Ruby](https://img.shields.io/badge/Ruby-CC342D?logo=ruby&style=for-the-badge)](https://primatejs.com/modules/ruby)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff&style=for-the-badge)](https://primatejs.com/modules/typescript)
+[![Grain](https://img.shields.io/badge/Grain-FF850E?logo=data:image/svg%2bxml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjIwNiIgdmlld0JveD0iMCAwIDE5MiAyMDYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+DQo8cGF0aCBkPSJNOTYuNTMwOCAwTDYyLjA1NTcgNzEuNzkyNEw5Ni43OTYgMTAyLjYzN0wxMzEuMDA2IDcxLjc5MjRMOTYuNTMwOCAwWiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0yLjY1MTkzIDM1LjYzMDNMMCAxMjIuMDQ3TDk2Ljc5NTYgMjA1LjUzOUwxNDUuNTkxIDE2Mi43MjlMMi42NTE5MyAzNS42MzAzWiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0xOTIgMTIyLjA0N1YzNC41NjY3TDEwNS4wMTcgMTExLjk0M0wxNTQuODczIDE1NC40ODdMMTkyIDEyMi4wNDdaIiBmaWxsPSJ3aGl0ZSIvPg0KPC9zdmc+&style=for-the-badge)](https://primatejs.com/modules/grain)
 
 ### Runtimes
 [![NodeJS](https://img.shields.io/badge/Node-6DA55F?logo=node.js&logoColor=fff&style=for-the-badge)](https://primatejs.com/modules/runtime-support)

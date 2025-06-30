@@ -39,6 +39,7 @@ export default async (app: ServeApp, facade: RequestFacade) => {
   const route = app.router.match(request) ??
     no_route_to_path(request.method.toLowerCase(), pathname, index(pathname));
   const matched = route as Exclude<ReturnType<typeof app.router.match>, undefined>;
+  console.log(route);
   const { params: path } = matched;
 
   const local_parse_body = matched.file.body?.parse ?? $request_body_parse;

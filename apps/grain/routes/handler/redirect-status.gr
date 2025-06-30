@@ -1,0 +1,10 @@
+module RedirectStatus
+
+from "primate/request" include Request
+from "primate/response" include Response
+use Response.{ type Response, redirect, type HTTPStatus }
+use Request.{ type Request }
+
+provide let get = (request: Request) => {
+  redirect("/redirected", status = Some(MovedPermanently))
+}

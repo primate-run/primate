@@ -72,9 +72,11 @@ const as_route = async (app: ServeApp, request: RequestFacade) => {
     // handle request
     const routed = await (cascade(hooks as RequestHook<false>[]))({ ...request, body, path });
 
+
     const $layouts = { layouts: await get_layouts(layouts, routed.request) };
     return respond(routed.response)(app, $layouts, routed.request);
-  } catch {
+  } catch(ex) {
+    console.error(ex);
     // the +error.js page itself could fail
     try {
       return respond(await error_handler!(request))(app, {}, request);

@@ -1,0 +1,9 @@
+from "primate/exports" include Exports
+
+provide let newRequest = Exports.newRequest
+provide let sendResponse = Exports.sendResponse
+provide let finalizeRequest = Exports.finalizeRequest
+provide let finalizeResponse = Exports.finalizeResponse
+provide let websocketOpen = Exports.websocketOpen
+provide let websocketClose = Exports.websocketClose
+provide let websocketMessage = Exports.websocketMessage

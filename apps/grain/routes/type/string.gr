@@ -1,0 +1,11 @@
+module String
+
+from "primate/request" include Request
+from "primate/response" include Response
+from "json" include Json
+use Response.{ type Response }
+use Request.{ type Request }
+
+provide let get = (request: Request) => {
+  Response.text("Hello, world!")
+}

@@ -1,0 +1,85 @@
+module External
+
+from "string" include String
+from "runtime/unsafe/wasmi32" include WasmI32
+from "runtime/unsafe/offsets" include Offsets
+from "bytes" include Bytes
+from "runtime/dataStructures" include DataStructures
+from "json" include Json
+from "result" include Result
+
+use WasmI32.{ (+), fromGrain }
+use Offsets.{ _BYTES_DATA_OFFSET, _STR_DATA_OFFSET }
+use Bytes.{ make }
+use DataStructures.{ allocateString, allocateBytes }
+use Json.{ type Json }
+
+provide foreign wasm receive:
+  (WasmI32, WasmI32) => Void from "primate"
+
+provide foreign wasm payloadByteLength:
+  () => WasmI32 from "primate"
+
+provide foreign wasm send:
+  (ptr: WasmI32, length: WasmI32) => Void from "primate"
+
+provide foreign wasm newSession:
+  () => Void from "primate"
+
+provide foreign wasm getSession:
+  () => Void from "primate"
+
+provide foreign wasm websocketSend:
+  () => Void from "primate"
+
+provide foreign wasm websocketClose:
+  () => Void from "primate"
+
+@unsafe
+provide let receiveString = () => {
+  use WasmI32.{ (+), fromGrain }
+  let length = payloadByteLength()
+  let stringPtr = allocateString(length)
+  receive(stringPtr + _STR_DATA_OFFSET, length)
+  WasmI32.toGrain(stringPtr): String
+}
+
+@unsafe
+provide let receiveBytes = () => {
+  let length = payloadByteLength()
+  let ptr = allocateBytes(length)
+  receive(ptr + _BYTES_DATA_OFFSET, length)
+  WasmI32.toGrain(ptr): Bytes  
+}
+
+@unsafe
+provide let receiveJson = () => {
+  let str = receiveString()
+  let json = Result.expect("Invalid JSON", Json.parse(str))
+  json
+}
+
+@unsafe
+provide let sendString = (str: String) => {
+  let ptr = WasmI32.fromGrain(str) + _STR_DATA_OFFSET
+  let byteLength = WasmI32.fromGrain(String.byteLength(str))
+  send(ptr, byteLength)
+  ignore(str)
+  void
+}
+
+@unsafe
+provide let sendBytes = (bytes: Bytes) => {
+  let ptr = WasmI32.fromGrain(bytes) + _BYTES_DATA_OFFSET
+  let byteLength = WasmI32.fromGrain(Bytes.length(bytes))
+  send(ptr, byteLength)
+  ignore(bytes)
+  void
+}
+
+@unsafe
+provide let sendJson = (json: Json) => {
+  let str = Result.expect("Invalid JSON", Json.toString(json))
+  sendString(str)
+  void
+}

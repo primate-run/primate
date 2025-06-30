@@ -1,0 +1,16 @@
+module Session
+
+from "json" include Json
+from "primate/request" include Request
+from "primate/response" include Response
+from "primate/session" include Session
+
+use Session.{ type Session }
+use Request.{ type Request }
+use Response.{ type Response }
+
+provide let get = (request: Request) => {
+  Session.create(Json.JsonObject([("foo", Json.JsonString("bar"))]))
+  let session = Session.get()
+  Response.json(session.data)
+}

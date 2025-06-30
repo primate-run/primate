@@ -1,0 +1,15 @@
+module ViewOptions
+
+from "primate/request" include Request
+from "primate/response" include Response
+from "json" include Json
+use Response.{ type Response, view }
+use Request.{ type Request }
+
+provide let get = (request: Request) => {
+  view(
+    "index.html",
+    props = JsonObject([("hello", JsonString("world"))]),
+    partial = true,
+  )
+}

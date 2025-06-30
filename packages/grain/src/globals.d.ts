@@ -1,0 +1,4 @@
+
+interface ImportMeta {
+  dirname: string;
+}

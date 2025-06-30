@@ -1,7 +1,9 @@
 package main
 
-import "syscall/js"
-import "encoding/json"
+import (
+	"encoding/json"
+	"syscall/js"
+)
 
 type t_request func(Request) any
 type t_response func(js.Value, []js.Value) any

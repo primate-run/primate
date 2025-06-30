@@ -1,0 +1,11 @@
+module WsExample
+
+from "primate/request" include Request
+from "primate/response" include Response
+
+use Request.{ type Request }
+use Response.{ view }
+
+provide let get = (req: Request) => {
+  view("ws-example.html")
+}

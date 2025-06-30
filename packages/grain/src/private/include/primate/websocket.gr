@@ -1,0 +1,122 @@
+module WebSocket
+
+from "buffer" include Buffer
+from "bytes" include Bytes
+from "map" include Map
+from "string" include String
+from "uint32" include Uint32
+from "uint64" include Uint64
+from "./external.gr" include External
+use Map.{ type Map }
+use Uint64.{ (+) as (+.) }
+
+provide enum SocketMessage {
+  StringMessage(String),
+  BytesMessage(Bytes),
+}
+
+provide type WebSocket = Uint64;
+
+provide type UpgradeOpenCallback = (socket: Uint64) => Void;
+provide type UpgradeCloseCallback = (socket: Uint64) => Void;
+provide type UpgradeMessageCallback = (socket: WebSocket, socketMessage: SocketMessage) => Void;
+
+provide record SocketUpgradeDefinition {
+  open: Option<UpgradeOpenCallback>,
+  close: Option<UpgradeCloseCallback>,
+  message: Option<UpgradeMessageCallback>,
+}
+
+let mut id = 0uL
+let socketMap = Map.make(): Map<Uint64, SocketUpgradeDefinition>
+
+let cleanup = (socket: WebSocket) => {
+  Map.remove(socket, socketMap)
+  void
+}
+
+provide let make = (definition: SocketUpgradeDefinition) => {
+  let newId = id
+  id = id +. 1uL
+
+  Map.set(newId, definition, socketMap)
+  newId
+}
+
+provide let websocketOpen = () => {
+  let bytes = External.receiveBytes()
+  let wsId = Bytes.getUint64(0, bytes)
+
+  match (Map.get(wsId, socketMap)) {
+    Some({ open: Some(callback), _ }) => callback(wsId),
+    _ => void
+  }
+}
+
+provide let websocketClose = () => {
+  let bytes = External.receiveBytes()
+  let wsId = Bytes.getUint64(0, bytes)
+
+  match (Map.get(wsId, socketMap)) {
+    Some({ close: Some(callback), _ }) => callback(wsId),
+    _ => void
+  }
+  cleanup(wsId)
+}
+
+provide let websocketMessage = () => {
+  let bytes = External.receiveBytes()
+  let wsId = Bytes.getUint64(0, bytes)
+  let kind = Bytes.getUint32(8, bytes)
+  let size = Bytes.getUint32(12, bytes)
+  let buffer = Bytes.slice(16, Uint32.toNumber(size), bytes)
+  let payload = match (kind) {
+    0ul => StringMessage(Bytes.toString(buffer)),
+    1ul => BytesMessage(buffer),
+    _ => fail "Invalid message kind",
+  }
+  match (Map.get(wsId, socketMap)) {
+    Some({ message: Some(callback), _ }) => callback(wsId, payload),
+    _ => void
+  }
+}
+let _SIZE_U64 = 8
+let _SIZE_U32 = 4
+let _WEBSOCKET_MESSAGE_KIND_STRING = 0ul
+let _WEBSOCKET_MESSAGE_KIND_BYTES = 1ul
+
+provide let send = (socket: WebSocket, message: SocketMessage) => {
+  let byteCount = _SIZE_U64 + _SIZE_U32 + _SIZE_U32 + match (message) {
+    StringMessage(str) => String.byteLength(str),
+    BytesMessage(bytes) => Bytes.length(bytes),
+  }
+  let buffer = Buffer.make(byteCount)
+  Buffer.addUint64(socket, buffer)
+  let bytes = match (message) {
+    StringMessage(str) => {
+      Buffer.addUint32(_WEBSOCKET_MESSAGE_KIND_STRING, buffer)
+      Buffer.addUint32(Uint32.fromNumber(String.byteLength(str)), buffer)
+      Buffer.addString(str, buffer)
+      Buffer.toBytes(buffer)
+    },
+    BytesMessage(bytes) => {
+      Buffer.addUint32(_WEBSOCKET_MESSAGE_KIND_BYTES, buffer)
+      Buffer.addUint32(Uint32.fromNumber(Bytes.length(bytes)), buffer)
+      Buffer.addBytes(bytes, buffer)
+      Buffer.toBytes(buffer)
+    },
+  }
+  External.sendBytes(bytes)
+  External.websocketSend()
+  void
+}
+
+provide let close = (socket: WebSocket) => {
+  let buffer = Buffer.make(_SIZE_U64)
+  Buffer.addUint64(socket, buffer)
+  let bytes = Buffer.toBytes(buffer)
+  External.sendBytes(bytes)
+  External.websocketClose()
+  cleanup(socket)
+  void
+}
