@@ -2,10 +2,10 @@ export default (length: number) => {
   const n = length - 1;
   const body = Array.from({ length: n }, (_, i) => i - 1)
     .reduceRight((child, _, i) => `components[${i + 1}] !== undefined
-        ? createComponent(components[${i}], {request, ...data[${i}], 
+        ? createComponent(components[${i}], {request, ...props[${i}], 
             children: ${child}})
-        : createComponent(components[${i}], {request, ...data[${i}]})
-    `, `createComponent(components[${n}], {request, ...data[${n}]})`);
+        : createComponent(components[${i}], {request, ...props[${i}]})
+    `, `createComponent(components[${n}], {request, ...props[${n}]})`);
 
   return `
     import { createSignal } from "solid-js";
@@ -15,7 +15,7 @@ export default (length: number) => {
 
     export default ({
       components,
-      data,
+      props,
       request,
       push_heads: value,
     }) => {

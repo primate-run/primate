@@ -1,0 +1,14 @@
+{
+  "name": "@primate/app/solid",
+  "dependencies": {
+    "@primate/i18n": "workspace:^",
+    "@primate/solid": "workspace:^",
+    "@rcompat/assert": "^0.1.0",
+    "@rcompat/fs": "^0.13.2",
+    "babel-preset-solid": "^1.9.5",
+    "pema": "workspace:^",
+    "primate": "workspace:^",
+    "solid-js": "^1.9.5"
+  },
+  "type": "module"
+}

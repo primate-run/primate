@@ -63,6 +63,7 @@ export default abstract class FrontendModule<
   });
 
   static options = FrontendModule.schema.infer;
+  static input = FrontendModule.schema.input;
 
   constructor(options?: typeof FrontendModule.schema.input) {
     super();

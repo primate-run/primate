@@ -1,3 +1,3 @@
 import Default from "#Default";
 
-export default (options?: typeof Default.options) => new Default(options);
+export default (options?: typeof Default.input) => new Default(options);

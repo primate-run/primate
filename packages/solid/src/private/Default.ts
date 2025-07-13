@@ -1,13 +1,11 @@
-import create_root from "#client/create-root";
-import BuildModule from "@primate/core/frontend/BuildModule";
+import create_root from "#create-root";
+import Runtime from "#Runtime";
 import { transformSync } from "@babel/core";
 // @ts-expect-error no declaration file
 import solid from "babel-preset-solid";
 
-export default class SolidReact extends BuildModule {
-  name = "solid";
+export default class Solid extends Runtime {
   root = {
-    filter: /^root:solid/,
     create: create_root,
   };
   compile = {
@@ -17,7 +15,7 @@ export default class SolidReact extends BuildModule {
     },
     client: (text: string) => {
       const presets = [[solid, { generate: "dom", hydratable: true }]];
-      return { js: transformSync(text, { presets })?.code ?? "" };
+      return { js: transformSync(text, { presets })?.code ?? "", css: null };
     },
   };
 }

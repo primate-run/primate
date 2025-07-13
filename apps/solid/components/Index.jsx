@@ -1,18 +1,22 @@
-import Head from "@primate/react/Head";
-import t from "@primate/react/i18n";
-import locale from "@primate/react/locale";
-import { useState } from "react";
+import Head from "@primate/solid/Head";
+import t from "@primate/solid/i18n";
+import locale from "@primate/solid/locale";
+import { createSignal } from "solid-js";
+import { For } from "solid-js/web";
 import Link from "./Link.jsx";
 
 export default ({ posts, title, request }) => {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = createSignal(0);
+
   return <>
     <Head>
-      <title>Primate React app</title>
+      <title>Primate Solid app</title>
       <meta name="keywords" content={title} />
     </Head>
     <h1 onClick={() => { console.log("clicked!"); }}>{t("All posts")}</h1>
-    {posts.map((post, i) => <Link key={i} post={post} />)}
+    <For each={posts}>
+      {(post) => <Link post={post} />}
+    </For>
     <h3>{t("Counter")}</h3>
     <div>
       <button onClick={(() => setCount(count => count - 1))}>-</button>

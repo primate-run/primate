@@ -1,6 +1,6 @@
 import HeadContext from "#context/head";
 import type Props from "@primate/core/frontend/Props";
-import { useContext, type Context } from "solid-js";
+import { useContext } from "solid-js";
 
 type Child = {
   t: string;

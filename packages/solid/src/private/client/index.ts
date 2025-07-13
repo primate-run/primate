@@ -1,26 +1,43 @@
-import spa from "#client/spa";
-import type ClientOptions from "@primate/core/frontend/ClientOptions";
-import type ClientRoot from "@primate/core/frontend/ClientRoot";
-import { generateHydrationScript } from "solid-js/web";
+import type ClientData from "@primate/core/frontend/ClientData";
+import type Props from "@primate/core/frontend/Props";
+import spa from "@primate/core/frontend/spa";
+import SolidHead from "@primate/solid/Head";
+import { hydrate, render } from "solid-js/web";
+// @ts-expect-error esbuild vfs
+import * as components from "solid:components";
+// @ts-expect-error esbuild vfs
+import root_component from "solid:root";
 
-const hydration_script = generateHydrationScript()
-  .match(/^<script>(?<code>.*?)<\/script>/u)?.groups?.code ?? "";
+// @ts-expect-error solid hydration
+globalThis._$HY = { events: [], completed: new WeakSet(), r: {} };
 
-export default (root: ClientRoot, options: ClientOptions) => `
-  import * as components from "app";
-  import { hydrate_solid, render_solid, SolidHead } from "app";
+const { body } = globalThis.window.document;
+SolidHead.clear();
 
-  window._$HY = { events: [], completed: new WeakSet(), r: {} };
+type Data = ClientData<{
+  components: string[];
+  props: Props[];
+}>;
 
-  ${hydration_script}
+const make_props = (data: ClientData<Data>) => ({
+  components: data.components.map(name  => components[name]),
+  props: data.props,
+  request: {
+    ...data.request,
+    url: new URL(location.href),
+  },
+});
 
-  SolidHead.clear();
-  let dispose = hydrate_solid(() => components.root_solid({
-      components: [${root.names.map(name => `components.${name}`).join(", ")}],
-      data: ${JSON.stringify(root.data)},
-      request: {
-        ...${JSON.stringify(root.request)},
-        url: new URL(location.href),
-      },
-    }), globalThis.window.document.body);
-  ${options.spa ? spa : ""}`;
+export default class Solid {
+  static mount(component: string, data: ClientData<Data>) {
+    let dispose = hydrate(() => root_component(make_props(data)), body);
+
+
+    if (data.spa) {
+      window.addEventListener("DOMContentLoaded", _ => spa<Data>(_data => {
+        dispose();
+        dispose = render(() => root_component(make_props(_data)), body);
+      }));
+    }
+  }
+}
