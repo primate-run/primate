@@ -1,4 +1,4 @@
-import root_selector from "#client/root-selector";
+import root_selector from "#root-selector";
 
 export default () => `
   import { Component, reflectComponentType } from "@angular/core";

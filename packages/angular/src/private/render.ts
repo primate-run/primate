@@ -1,4 +1,4 @@
-import root_selector from "#client/root-selector";
+import root_selector from "#root-selector";
 import render_root from "#render-root";
 import "@angular/compiler";
 import type { ComponentDecorator } from "@angular/core";

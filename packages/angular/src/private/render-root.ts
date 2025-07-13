@@ -1,4 +1,4 @@
-import root_selector from "#client/root-selector";
+import root_selector from "#root-selector";
 import {
   Component, reflectComponentType, type ComponentDecorator,
 } from "@angular/core";

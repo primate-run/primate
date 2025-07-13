@@ -1,4 +1,4 @@
-import create_root from "#client/create-root";
+import create_root from "#create-root";
 import Runtime from "#Runtime";
 import angular from "@rcompat/build/preset/angular";
 import transform from "@rcompat/build/sync/transform";
