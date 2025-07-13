@@ -2,7 +2,8 @@ import invalid_type from "#db/error/invalid-type";
 import no_primary_key from "#db/error/no-primary-key";
 import no_store_directory from "#db/error/no-store-directory";
 import primary from "#db/primary";
-import type { BuildAppHook } from "#module-loader";
+import location from "#location";
+import type BuildHook from "#module/BuildHook";
 import FileRef from "@rcompat/fs/FileRef";
 import empty from "@rcompat/record/empty";
 import entries from "@rcompat/record/entries";
@@ -23,8 +24,7 @@ const valid = (type: Dictionary, name: string, store: string) => {
   invalid_type(name, store);
 };
 
-export default (directory: string): BuildAppHook => async (app, next) => {
-  const location = app.config("location");
+export default (directory: string): BuildHook => async (app, next) => {
   const root = app.root.join(directory);
   if (!await root.exists()) {
     no_store_directory(root);

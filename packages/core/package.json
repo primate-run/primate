@@ -1,14 +1,14 @@
 {
   "name": "@primate/core",
   "version": "0.1.10",
-  "description": "The universal web framework core",
+  "description": "The universal web framework",
   "homepage": "https://primate.run",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
   "files": [
     "/lib/**/*.js",
     "/lib/**/*.d.ts",
-    "/lib/build/defaults/*.html",
+    "/lib/private/defaults/*.html",
     "!/**/*.spec.*"
   ],
   "repository": {
@@ -17,7 +17,7 @@
     "directory": "packages/core"
   },
   "scripts": {
-    "build": "npm run clean && tsc && cp -a src/build/defaults lib/build",
+    "build": "npm run clean && tsc && cp -a src/private/defaults lib/private",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
@@ -27,12 +27,12 @@
     "@rcompat/array": "^0.7.0",
     "@rcompat/assert": "^0.1.0",
     "@rcompat/async": "^0.8.0",
-    "@rcompat/build": "^0.12.0",
+    "@rcompat/build": "^0.12.2",
     "@rcompat/cli": "^0.9.0",
     "@rcompat/crypto": "^0.9.0",
     "@rcompat/fs": "^0.13.2",
     "@rcompat/function": "^0.8.0",
-    "@rcompat/http": "^0.12.3",
+    "@rcompat/http": "^0.12.6",
     "@rcompat/kv": "^0.2.0",
     "@rcompat/package": "^0.12.0",
     "@rcompat/record": "^0.8.0",
@@ -46,84 +46,17 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#build/*": {
-      "apekit": "./src/build/*.ts",
-      "default": "./lib/build/*.js"
-    },
-    "#serve/*": {
-      "apekit": "./src/serve/*.ts",
-      "default": "./lib/serve/*.js"
-    },
-    "#serve/hook/*": {
-      "apekit": "./src/serve/hook/*.ts",
-      "default": "./lib/serve/hook/*.js"
-    },
-    "#error/*": {
-      "apekit": "./src/private/error/*.ts",
-      "default": "./lib/private/error/*.js"
-    },
-    "#frontend": {
-      "apekit": "./src/private/Frontend.ts"
-    },
-    "#frontend/*": {
-      "apekit": "./src/private/frontend/*.ts",
-      "default": "./lib/private/frontend/*.js"
-    },
-    "#handler/*": {
-      "apekit": "./src/private/handler/*.ts",
-      "default": "./lib/private/handler/*.js"
-    },
-    "#session/*": {
-      "apekit": "./src/private/session/*.ts",
-      "default": "./lib/private/session/*.js"
-    },
-    "#log/*": {
-      "apekit": "./src/private/log/*.ts",
-      "default": "./lib/private/log/*.js"
-    },
-    "#db/*": {
-      "apekit": "./src/private/db/*.ts",
-      "default": "./lib/private/db/*.js"
     }
   },
   "exports": {
-    "./hook": {
-      "apekit": "./src/private/module-loader.ts"
-    },
     "./serve": {
       "apekit": "./src/public/serve/index.ts",
       "default": "./lib/public/serve/index.js"
     },
-    "./serve/*": {
-      "apekit": "./src/public/serve/*.ts",
-      "default": "./lib/public/serve/*.js"
-    },
-    "./build": "./lib/build/index.js",
-    "./build/app": {
-      "apekit": "./src/build/app.ts"
-    },
     "./error": "./lib/error/index.js",
-    "./log": {
-      "apekit": "./src/log/index.ts",
-      "default": "./lib/log/index.js"
-    },
-    "./log/*": {
-      "apekit": "./src/public/log/*.ts",
-      "default": "./lib/public/log/*.js"
-    },
     "./dispatch": "./lib/dispatch/index.js",
-    "./handler/*": "./lib/public/handler/*.js",
     "./frontend": {
       "apekit": "./src/public/Frontend.ts"
-    },
-    "./frontend/*": {
-      "apekit": "./src/public/frontend/*.ts",
-      "default": "./lib/public/frontend/*.js"
-    },
-    "./db/store": {
-      "apekit": "./src/public/db/store.ts",
-      "default": "./lib/public/db/store.js"
     },
     "./*": {
       "apekit": "./src/public/*.ts",

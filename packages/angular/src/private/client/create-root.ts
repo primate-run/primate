@@ -1,28 +1,25 @@
 import root_selector from "#client/root-selector";
-import { Component, reflectComponentType } from "@angular/core";
-import type Props from "@primate/core/frontend/Props";
-import stringify from "@rcompat/record/stringify";
-import type Dictionary from "@rcompat/type/Dictionary";
 
-type ComponentType = typeof Component;
+export default () => `
+  import { Component, reflectComponentType } from "@angular/core";
+  import stringify from "@primate/angular/stringify";
 
-const root_component = ({ template, imports }: Parameters<ComponentType>[0]) => Component({
-  selector: root_selector,
-  imports,
-  template,
-  standalone: true,
-})(class {});
+  const root_component = ({ template, imports }) => Component({
+    selector: "${root_selector}",
+    imports,
+    template,
+    standalone: true,
+  })(class {});
+  const singlify = string => string.replaceAll('"', "'");
 
-const double_to_single = (string: string) => string.replaceAll("\"", "'");
-
-export default (component: ComponentType, props: Props) => {
-  const { selector } = reflectComponentType(component)!;
+export default (component, props) => {
+  const { selector } = reflectComponentType(component);
   const attributes = Object.entries(props)
-    .map(([key, value]) => `[${key}]="${double_to_single(stringify(value as Dictionary))}"`)
+    .map(([key, value]) => \`[\${key}]="\${singlify(stringify(value))}"\`)
     .join(" ");
 
   return root_component({
     imports: [component],
-    template: `<${selector} ${attributes}></${selector}>`,
+    template: \`<\${selector} \${attributes}></\${selector}>\`,
   });
-};
+};`;

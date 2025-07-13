@@ -1,4 +1,4 @@
-import type { BuildAppHook } from "@primate/core/hook";
+import type BuildHook from "@primate/core/BuildHook";
 import verbs from "@primate/core/verbs";
 import assert from "@rcompat/assert";
 import type FileRef from "@rcompat/fs/FileRef";
@@ -35,7 +35,7 @@ const js_wrapper = (path: FileRef, routes: string[], packages: string[]) => `
   };
 `;
 
-export default (extension: string, packages: string[]): BuildAppHook =>
+export default (extension: string, packages: string[]): BuildHook =>
   (app, next) => {
     app.bind(extension, async (file, context) => {
       assert(context === "routes", "python: only route files are supported");
@@ -47,4 +47,4 @@ export default (extension: string, packages: string[]): BuildAppHook =>
     });
 
     return next(app);
-};
+    };

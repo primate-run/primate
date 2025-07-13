@@ -1,8 +1,8 @@
 import context_name from "#context-name";
+import type ContextData from "@primate/i18n/ContextData";
 import save from "@primate/i18n/save";
 import { getContext } from "poly";
 import { writable } from "poly/store";
-import type ContextData from "@primate/i18n/ContextData";
 
 type Context = {
   i18n: ContextData;

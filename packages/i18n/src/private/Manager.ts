@@ -1,8 +1,8 @@
 import type Locales from "#Locales";
 import module from "#name";
 import log from "@primate/core/log";
-import dim from "@rcompat/cli/color/dim";
 import assert from "@rcompat/assert";
+import dim from "@rcompat/cli/color/dim";
 
 export default class Manager {
   #locale;

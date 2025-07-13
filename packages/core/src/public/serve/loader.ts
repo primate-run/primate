@@ -1,1 +1,1 @@
-export { default } from "#serve/loader";
+export { default } from "#loader";

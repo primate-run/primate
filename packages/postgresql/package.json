@@ -1,7 +1,7 @@
 {
   "name": "@primate/postgresql",
   "version": "0.1.7",
-  "description": "PostgreSQL driver for Primate",
+  "description": "Primate PostgreSQL database",
   "homepage": "https://primate.run/docs/db/postgresql",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",

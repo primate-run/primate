@@ -1,7 +1,7 @@
 {
   "name": "@primate/i18n",
   "version": "0.8.3",
-  "description": "I18N for Primate",
+  "description": "Primate I18N",
   "homepage": "https://primate.run/docs/i18n",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -26,21 +26,16 @@
     "@rcompat/assert": "^0.1.0",
     "@rcompat/cli": "^0.9.0",
     "@rcompat/fs": "^0.13.2",
-    "@rcompat/http": "^0.12.3"
+    "@rcompat/http": "^0.12.6"
+  },
+  "peerDependencies": {
+    "primate": "workspace:^"
   },
   "type": "module",
   "imports": {
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#hook/*": {
-      "apekit": "./src/private/hook/*.ts",
-      "default": "./lib/private/hook/*.js"
-    },
-    "#error/*": {
-      "apekit": "./src/private/error/*.ts",
-      "default": "./lib/private/error/*.js"
     }
   },
   "exports": {

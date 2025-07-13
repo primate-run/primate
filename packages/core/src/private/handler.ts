@@ -1,9 +1,6 @@
-import type BodyInit from "#BodyInit";
-import type { ServeApp } from "#serve/app";
+import type ServeApp from "#ServeApp";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 
-type Options = ResponseInit;
-
-export default <T>(mime: string, mapper: (input: T) => BodyInit[0]) =>
-  (body: T, options?: Options): (app: ServeApp) => MaybePromise<Response> =>
-    (app => app.respond(mapper(body), app.media(mime, options)));
+export default <T>(mime: string, mapper: (input: T) => BodyInit) =>
+  (body: T, init?: ResponseInit): (app: ServeApp) => MaybePromise<Response> =>
+    (app => app.respond(mapper(body), app.media(mime, init)));

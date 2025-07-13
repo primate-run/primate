@@ -1,7 +1,7 @@
 {
   "name": "@primate/poly",
   "version": "0.1.1",
-  "description": "Poly frontend for Primate",
+  "description": "Primate Poly frontend",
   "homepage": "https://primate.run/docs/frontend/poly",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.13.2"
+    "@rcompat/fs": "^0.13.2",
+    "pema": "workspace:^"
   },
   "peerDependencies": {
     "@primate/i18n": "workspace:^",
@@ -40,33 +41,17 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#build": {
-      "apekit": "./src/private/build/index.ts",
-      "default": "./lib/private/build/index.js"
-    },
-    "#serve": {
-      "apekit": "./src/private/serve/index.ts",
-      "default": "./lib/private/serve/index.js"
-    },
-    "#client": {
-      "apekit": "./src/private/client/index.ts",
-      "default": "./lib/private/client/index.js"
-    },
-    "#client/*": {
-      "apekit": "./src/private/client/*.ts",
-      "default": "./lib/private/client/*.js"
-    },
-    "#i18n/*": {
-      "apekit": "./src/private/i18n/*.ts",
-      "default": "./lib/private/i18n/*.js"
     }
   },
   "exports": {
     ".": {
+      "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     },
-    "./*": "./lib/public/*.js"
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
+    }
   }
 }

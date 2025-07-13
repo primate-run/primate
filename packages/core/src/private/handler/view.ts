@@ -1,5 +1,5 @@
 import no_handler from "#error/no-handler";
-import type Frontend from "#frontend";
+import type Frontend from "#frontend/Frontend";
 import FileRef from "@rcompat/fs/FileRef";
 
 const extensions = ["extension", "fullExtension"] as const;
@@ -17,4 +17,4 @@ export default ((component, props, options) =>
     .find(extension => extension !== undefined)
     ?.(component, props, options)(app, transfer, request)
     ?? no_handler(component)
-  ) as Frontend;
+) as Frontend;

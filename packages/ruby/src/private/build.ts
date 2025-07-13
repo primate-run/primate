@@ -1,4 +1,4 @@
-import type { BuildAppHook } from "@primate/core/hook";
+import type BuildHook from "@primate/core/BuildHook";
 import verbs from "@primate/core/verbs";
 import assert from "@rcompat/assert";
 import FileRef from "@rcompat/fs/FileRef";
@@ -71,7 +71,7 @@ export default {
 `;
 };
 
-export default (extension: string): BuildAppHook => (app, next) => {
+export default (extension: string): BuildHook => (app, next) => {
   app.bind(extension, async (file, context) => {
     assert(context === "routes", "ruby: only route files are supported");
 

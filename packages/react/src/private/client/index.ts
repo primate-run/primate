@@ -1,18 +1,8 @@
-import type Dictionary from "@rcompat/type/Dictionary";
-import spa from "./spa.js";
+import spa from "#client/spa";
+import type ClientOptions from "@primate/core/frontend/ClientOptions";
+import type ClientRoot from "@primate/core/frontend/ClientRoot";
 
-type Init = {
-  names: string[];
-  data: Dictionary[];
-  request: Dictionary;
-};
-
-type Options = {
-  spa: boolean;
-  ssr: boolean;
-};
-
-export default ({ names, data, request }: Init, options: Options) => `
+export default (root: ClientRoot, options: ClientOptions) => `
   import * as components from "app";
   import { make_root, createElement, ReactHead } from "app";
 
@@ -21,10 +11,10 @@ export default ({ names, data, request }: Init, options: Options) => `
   ReactHead.clear();
   const root = make_root.${options.ssr ? "ssr" : "csr"}(body,
     createElement(components.root_react, {
-      components: [${names.map(name => `components.${name}`).join(", ")}],
-      data: ${JSON.stringify(data)},
+      components: [${root.names.map(name => `components.${name}`).join(", ")}],
+      data: ${JSON.stringify(root.data)},
       request: {
-        ...${JSON.stringify(request)},
+        ...${JSON.stringify(root.request)},
         url: new URL(location.href),
       },
     })

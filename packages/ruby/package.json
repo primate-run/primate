@@ -1,7 +1,7 @@
 {
   "name": "@primate/ruby",
   "version": "0.1.4",
-  "description": "Ruby backend for Primate",
+  "description": "Primate Ruby backend",
   "homepage": "https://primate.run/docs/backend/ruby",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",

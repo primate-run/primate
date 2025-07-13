@@ -1,0 +1,31 @@
+<h1>All posts</h1>
+<div>
+  <h2><a href="/post/view/1">First post</a><h2>
+</div>
+<form action="post" hx-post="/add" hx-wrap="outerHTML">
+  <p>
+    <div><label>Title</label></div>
+    <input name="title" />
+  </p>
+  <p>
+    <div><label>Text</label></div>
+    <textarea name="text"></textarea>
+  </p>
+  <input type="submit" value="Save post" />
+</form>
+<div hx-ext="client-side-templates">
+  <button hx-get="https://jsonplaceholder.typicode.com/users"
+          hx-swap="innerHTML"
+          hx-target="#content"
+          mustache-array-template="foo">
+    Click Me
+  </button>
+
+  <p id="content">Start</p>
+
+  <template id="foo">
+    {{#data}}
+    <p> {{name}} at {{email}} is with {{company.name}}</p>
+    {{/data}}
+  </template>
+</div>

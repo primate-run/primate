@@ -26,9 +26,6 @@
     "@rcompat/sql": "^0.8.0",
     "@rcompat/sync": "^0.6.0"
   },
-  "devDependencies": {
-    "@primate/schema": "workspace:^"
-  },
   "peerDependencies": {
     "primate": "workspace:^"
   },

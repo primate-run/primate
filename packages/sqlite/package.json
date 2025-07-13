@@ -1,7 +1,7 @@
 {
   "name": "@primate/sqlite",
   "version": "0.1.3",
-  "description": "Primate SQLite driver",
+  "description": "Primate SQLite database",
   "homepage": "https://primate.run/docs/db/sqlite",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
