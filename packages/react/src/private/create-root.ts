@@ -2,9 +2,9 @@ export default (length: number) => {
   const n = length - 1;
   const body = Array.from({ length: n }, (_, i) => i - 1)
     .reduceRight((child, _, i) => `components[${i + 1}] !== undefined
-        ? createElement(components[${i}], {request, ...data[${i}]}, ${child})
-        : createElement(components[${i}], {request, ...data[${i}]})
-    `, `createElement(components[${n}], {request, ...data[${n}]})`);
+        ? createElement(components[${i}], {request, ...props[${i}]}, ${child})
+        : createElement(components[${i}], {request, ...props[${i}]})
+    `, `createElement(components[${n}], {request, ...props[${n}]})`);
 
   return `
     import { createElement, useState } from "react";
@@ -14,7 +14,7 @@ export default (length: number) => {
 
     export default ({
       components,
-      data,
+      props,
       request,
       push_heads: value,
     }) => {

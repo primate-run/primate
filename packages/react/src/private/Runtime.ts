@@ -1,17 +1,16 @@
-import client from "#client/index";
-import type ClientRoot from "@primate/core/frontend/ClientRoot";
-import type Render from "@primate/core/frontend/Render";
-import ServeModule from "@primate/core/frontend/ServeModule";
-import { createElement, type FunctionComponent} from "react";
-import { renderToString } from "react-dom/server";
+import Module from "@primate/core/frontend/Module";
 import type Props from "@primate/core/frontend/Props";
+import type Render from "@primate/core/frontend/Render";
+import { createElement, type FunctionComponent } from "react";
+import { renderToString } from "react-dom/server";
 
 type Component = FunctionComponent<Props>;
 
-export default class ServeReact extends ServeModule<Component, ClientRoot> {
+export default class ReactRuntime extends Module<Component> {
   name = "react";
-  root = true;
-  client = client;
+  defaultExtension = ".jsx";
+  client = true;
+  layouts = true;
   render: Render<Component> = (component, props) => {
     const heads: string[] = [];
     const push_heads = (sub_heads: string[]) => {

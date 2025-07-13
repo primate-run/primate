@@ -8,6 +8,6 @@ const posts = [{
 
 export default route({
   get() {
-    return view("Index.poly", { posts });
+    return view("Index.jsx", { posts });
   },
 });

@@ -14,6 +14,6 @@ export default route({
     const post = posts.find(({ id }) => id === _id);
     assert(post !== undefined);
 
-    return view("ViewPost.poly", { post });
+    return view("ViewPost.jsx", { post });
   },
 });

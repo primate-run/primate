@@ -1,22 +1,51 @@
-import spa from "#client/spa";
-import type ClientOptions from "@primate/core/frontend/ClientOptions";
-import type ClientRoot from "@primate/core/frontend/ClientRoot";
+import type ClientData from "@primate/core/frontend/ClientData";
+import type Props from "@primate/core/frontend/Props";
+import spa from "@primate/core/frontend/spa";
+import { hydrateRoot, createRoot, type Container } from "react-dom/client";
+import { createElement, type ReactNode } from "react";
+import ReactHead from "@primate/react/Head";
 
-export default (root: ClientRoot, options: ClientOptions) => `
-  import * as components from "app";
-  import { make_root, createElement, ReactHead } from "app";
+// @ts-expect-error esbuild vfs
+import * as components from "react:components";
+// @ts-expect-error esbuild vfs
+import root_component from "react:root";
 
-  const { body } = globalThis.window.document;
+type Data = ClientData<{
+  components: string[];
+  props: Props[];
+}>;
 
-  ReactHead.clear();
-  const root = make_root.${options.ssr ? "ssr" : "csr"}(body,
-    createElement(components.root_react, {
-      components: [${root.names.map(name => `components.${name}`).join(", ")}],
-      data: ${JSON.stringify(root.data)},
-      request: {
-        ...${JSON.stringify(root.request)},
-        url: new URL(location.href),
-      },
-    })
-  );
-  ${options.spa ? spa : ""}`;
+const { body } = globalThis.window.document;
+ReactHead.clear();
+
+const make_root = {
+  ssr: (dom_node: Element, react_node: ReactNode) =>
+    hydrateRoot(dom_node, react_node),
+  csr: (dom_node: Container, react_node: ReactNode) => {
+    const root = createRoot(dom_node);
+    root.render(react_node);
+    return root;
+  },
+};
+
+const make_props = (data: ClientData<Data>) => ({
+  components: data.components.map(name  => components[name]),
+  props: data.props,
+  request: {
+    ...data.request,
+    url: new URL(location.href),
+  },
+});
+
+export default class React {
+  static mount(component: string, data: ClientData<Data>) {
+    const root = make_root[data.ssr ? "ssr" : "csr"](body,
+      createElement(root_component, make_props(data)));
+
+    if (data.spa) {
+      window.addEventListener("DOMContentLoaded", _ => spa<Data>(_data => {
+        root.render(createElement(root_component, make_props(_data)));
+      }));
+    }
+  }
+}
