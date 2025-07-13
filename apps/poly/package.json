@@ -1,9 +1,10 @@
 {
   "name": "@primate/app/poly",
   "dependencies": {
-    "@primate/core": "workspace:^",
     "@primate/i18n": "workspace:^",
     "@primate/poly": "workspace:^",
+    "@rcompat/assert": "^0.1.0",
+    "pema": "workspace:^",
     "poly": "^0.7.2",
     "primate": "workspace:^"
   },

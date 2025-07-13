@@ -1,6 +1,6 @@
 <ul>
   <li>
-    <a href="/frontend/svelte">svelte overview</a>
+    <a href="/">overview</a>
   </li>
 </ul>
 <div>

@@ -47,4 +47,3 @@ export default abstract class Component extends HTMLElement {
     return `<p-wrap-with id="${uuid}"></p-wrap-with>`;
   }
 }
-

@@ -1,7 +1,7 @@
 {
   "name": "@primate/solid",
   "version": "0.4.4",
-  "description": "Solid frontend for Primate",
+  "description": "Primate Solid frontend",
   "homepage": "https://primate.run/docs/frontend/solid",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -25,9 +25,9 @@
     "@types/babel__core": "^7.20.5"
   },
   "dependencies": {
-    "@babel/core": "^7.27.3",
+    "@babel/core": "^7.28.0",
     "@primate/core": "workspace:^",
-    "@rcompat/build": "^0.12.0",
+    "@rcompat/build": "^0.12.2",
     "@rcompat/fs": "^0.13.2",
     "@rcompat/runtime": "^0.5.0",
     "babel-preset-solid": "^1.9.6"
@@ -47,47 +47,15 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#build": {
-      "apekit": "./src/private/build/index.ts",
-      "default": "./lib/private/build/index.js"
-    },
-    "#serve": {
-      "apekit": "./src/private/serve/index.ts",
-      "default": "./lib/private/serve/index.js"
-    },
-    "#context/*": {
-      "apekit": "./src/private/context/*.ts",
-      "default": "./lib/private/context/*.js"
-    },
-    "#client": {
-      "apekit": "./src/private/client/index.ts",
-      "default": "./lib/private/client/index.js"
-    },
-    "#client/*": {
-      "apekit": "./src/private/client/*.ts",
-      "default": "./lib/private/client/*.js"
-    },
-    "#i18n/*": {
-      "apekit": "./src/private/i18n/*.ts",
-      "default": "./lib/private/i18n/*.js"
-    },
-    "#Head/browser": {
-      "apekit": "./src/private/Head/browser.ts",
-      "default": "./lib/private/Head/browser.js"
-    },
-    "#Head/default": {
-      "apekit": "./src/private/Head/default.ts",
-      "default": "./lib/private/Head/default.js"
     }
   },
   "exports": {
     ".": {
+      "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     },
     "./*": "./lib/public/*.js",
-    "./context/*": "./lib/public/context/*.js",
     "./Head": {
       "browser": "./lib/public/Head/browser.js",
       "default": "./lib/public/Head/default.js"

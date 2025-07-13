@@ -23,7 +23,7 @@ import test from "@rcompat/test";
 import type EO from "@rcompat/type/EO";
 
 const types = [
-  [bigint, 0n, 0, "bt"],
+  [bigint, 0n, 0, "bi"],
   [blob, new Blob(), 0, "bb"],
   [boolean, false, "0", "b"],
   [date, new Date(), "0", "d"],

@@ -13,6 +13,8 @@ const types: Record<keyof DataType, string> = {
   i16: "integer",
   i32: "integer",
   i64: "integer",
+  i128: "-",
+  isotime: "-",
   //json: "text",
   string: "text",
   time: "text",

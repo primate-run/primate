@@ -1,7 +1,7 @@
 {
   "name": "@primate/go",
   "version": "0.1.6",
-  "description": "Go backend for Primate",
+  "description": "Primate Go backend",
   "homepage": "https://primate.run/docs/backend/go",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -42,17 +42,16 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#error/*": {
-      "apekit": "./src/private/error/*.ts",
-      "default": "./lib/private/error/*.js"
     }
   },
   "exports": {
     ".": {
-      "runtime": "./lib/runtime.js",
-      "default": "./lib/default.js"
+      "runtime": "./lib/public/runtime.js",
+      "default": "./lib/public/default.js"
     },
-    "./*": "./lib/*.js"
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
+    }
   }
 }

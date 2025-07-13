@@ -1,3 +1,3 @@
-type BodyInit = ConstructorParameters<typeof Response>;
+type BodyInit = ConstructorParameters<typeof Response>[0];
 
-export { BodyInit as default };
+export type { BodyInit as default };

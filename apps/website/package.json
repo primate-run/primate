@@ -1,0 +1,13 @@
+{
+  "name": "@primate/app/website",
+  "dependencies": {
+    "@primate/core": "workspace:^",
+    "@primate/svelte": "workspace:^",
+    "@rcompat/fs": "^0.13.2",
+    "@rcompat/http": "^0.12.6",
+    "@rcompat/record": "^0.8.0",
+    "primate": "workspace:^",
+    "svelte": "^5.35.2"
+  },
+  "type": "module"
+}

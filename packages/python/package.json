@@ -1,7 +1,7 @@
 {
   "name": "@primate/python",
   "version": "0.1.5",
-  "description": "Python backend for Primate",
+  "description": "Primate Python backend",
   "homepage": "https://primate.run/docs/backend/python",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -25,6 +25,7 @@
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.1.0",
     "@rcompat/fs": "^0.13.2",
+    "pema": "workspace:^",
     "pyodide": "^0.27.7"
   },
   "peerDependencies": {
@@ -39,9 +40,12 @@
   },
   "exports": {
     ".": {
-      "runtime": "./lib/runtime.js",
-      "default": "./lib/default.js"
+      "runtime": "./lib/public/runtime.js",
+      "default": "./lib/public/default.js"
     },
-    "./*": "./lib/*.js"
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
+    }
   }
 }

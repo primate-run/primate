@@ -1,83 +1,83 @@
 {
-	"name": "@primate/store",
-	"version": "0.27.0",
-	"description": "Databases for Primate",
-	"homepage": "https://primate.run/docs/db",
-	"bugs": "https://github.com/primate-run/primate/issues",
-	"license": "MIT",
-	"files": [
-		"src/**/*.js",
-		"!src/**/*.spec.js"
-	],
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/primate-run/primate",
-		"directory": "packages/store"
-	},
-	"dependencies": {
-		"@primate/core": "workspace:^",
-		"@rcompat/array": "^0.7.0",
-		"@rcompat/assert": "^0.1.0",
-		"@rcompat/async": "^0.8.0",
-		"@rcompat/cli": "^0.9.0",
-		"@rcompat/fs": "^0.13.2",
-		"@rcompat/function": "^0.8.0",
-		"@rcompat/object": "^0.5.0",
-		"@rcompat/sql": "^0.8.0",
-		"@rcompat/sync": "^0.6.0"
-	},
-	"peerDependencies": {
-		"primate": "workspace:^"
-	},
-	"peerDependenciesMeta": {
-		"better-sqlite3": {
-			"optional": true
-		},
-		"mongodb": {
-			"optional": true
-		},
-		"mysql2": {
-			"optional": true
-		},
-		"surrealdb.js": {
-			"optional": true
-		}
-	},
-	"type": "module",
-	"imports": {
-		"#*": {
-			"livetypes": "./src/private/*.js",
-			"default": "./src/private/*.js"
-		},
-		"#hook/*": {
-			"livetypes": "./src/private/hook/*.js",
-			"default": "./src/private/hook/*.js"
-		},
-		"#error/*": {
-			"livetypes": "./src/private/error/*.js",
-			"default": "./src/private/error/*.js"
-		},
-		"#driver/*": {
-			"livetypes": "./src/private/driver/*/index.js",
-			"default": "./src/private/driver/*/index.js"
-		},
-		"#driver/memory/*": {
-			"livetypes": "./src/private/driver/memory/*.js",
-			"default": "./src/private/driver/memory/*.js"
-		},
-		"#driver/json/*": {
-			"livetypes": "./src/private/driver/json/*.js",
-			"default": "./src/private/driver/json/*.js"
-		}
-	},
-	"exports": {
-		"./core/*": "./src/public/core/*.js",
-		"./sql/*": "./src/public/sql/*.js",
-		"./json": "./src/public/json/index.js",
-		"./memory": "./src/public/memory/index.js",
-		".": {
-			"runtime": "./src/public/runtime.js",
-			"default": "./src/public/default.js"
-		}
-	}
+  "name": "@primate/store",
+  "version": "0.27.0",
+  "description": "Databases for Primate",
+  "homepage": "https://primate.run/docs/db",
+  "bugs": "https://github.com/primate-run/primate/issues",
+  "license": "MIT",
+  "files": [
+    "src/**/*.js",
+    "!src/**/*.spec.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primate-run/primate",
+    "directory": "packages/store"
+  },
+  "dependencies": {
+    "@primate/core": "workspace:^",
+    "@rcompat/array": "^0.7.0",
+    "@rcompat/assert": "^0.1.0",
+    "@rcompat/async": "^0.8.0",
+    "@rcompat/cli": "^0.9.0",
+    "@rcompat/fs": "^0.13.2",
+    "@rcompat/function": "^0.8.0",
+    "@rcompat/object": "^0.5.0",
+    "@rcompat/sql": "^0.8.0",
+    "@rcompat/sync": "^0.6.0"
+  },
+  "peerDependencies": {
+    "primate": "workspace:^"
+  },
+  "peerDependenciesMeta": {
+    "better-sqlite3": {
+      "optional": true
+    },
+    "mongodb": {
+      "optional": true
+    },
+    "mysql2": {
+      "optional": true
+    },
+    "surrealdb.js": {
+      "optional": true
+    }
+  },
+  "type": "module",
+  "imports": {
+    "#*": {
+      "livetypes": "./src/private/*.js",
+      "default": "./src/private/*.js"
+    },
+    "#hook/*": {
+      "livetypes": "./src/private/hook/*.js",
+      "default": "./src/private/hook/*.js"
+    },
+    "#error/*": {
+      "livetypes": "./src/private/error/*.js",
+      "default": "./src/private/error/*.js"
+    },
+    "#driver/*": {
+      "livetypes": "./src/private/driver/*/index.js",
+      "default": "./src/private/driver/*/index.js"
+    },
+    "#driver/memory/*": {
+      "livetypes": "./src/private/driver/memory/*.js",
+      "default": "./src/private/driver/memory/*.js"
+    },
+    "#driver/json/*": {
+      "livetypes": "./src/private/driver/json/*.js",
+      "default": "./src/private/driver/json/*.js"
+    }
+  },
+  "exports": {
+    "./core/*": "./src/public/core/*.js",
+    "./sql/*": "./src/public/sql/*.js",
+    "./json": "./src/public/json/index.js",
+    "./memory": "./src/public/memory/index.js",
+    ".": {
+      "runtime": "./src/public/runtime.js",
+      "default": "./src/public/default.js"
+    }
+  }
 }

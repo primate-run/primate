@@ -1,7 +1,7 @@
 {
   "name": "@primate/vue",
   "version": "0.11.0",
-  "description": "Vue frontend for Primate",
+  "description": "Primate Vue frontend",
   "homepage": "https://primate.run/docs/frontend/vue",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/build": "^0.12.0"
+    "@rcompat/build": "^0.12.2"
   },
   "peerDependencies": {
     "primate": "workspace:^",
@@ -34,14 +34,6 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#build": {
-      "apekit": "./src/private/build/index.ts",
-      "default": "./lib/private/build/index.js"
-    },
-    "#serve": {
-      "apekit": "./src/private/serve/index.ts",
-      "default": "./lib/private/serve/index.js"
     }
   },
   "exports": {

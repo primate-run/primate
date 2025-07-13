@@ -1,1 +1,3 @@
-export * from "#client/exports";
+export * from "#client/index";
+
+export { default } from "#client/index";

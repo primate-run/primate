@@ -1,4 +1,5 @@
 import assert from "@rcompat/assert";
+import int from "pema/int";
 import route from "primate/route";
 import view from "primate/view";
 
@@ -7,13 +8,12 @@ const posts = [{
   title: "First post",
 }];
 
-const get_post = (id: string) => posts.find(post => post.id === +id);
-
 export default route({
   get(request) {
-    const post = get_post(request.path.id!);
+    const _id = int.validate(+request.path.id!);
+    const post = posts.find(({ id }) => id === _id);
     assert(post !== undefined);
 
-    return view("post-view.svelte", { post });
+    return view("ViewPost.svelte", { post });
   },
 });

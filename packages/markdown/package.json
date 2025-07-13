@@ -1,7 +1,7 @@
 {
   "name": "@primate/markdown",
   "version": "0.4.3",
-  "description": "Markdown frontend for Primate",
+  "description": "Primate Markdown frontend",
   "homepage": "https://primate.run/docs/frontend/markdown",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -34,14 +34,6 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#build": {
-      "apekit": "./src/private/build/index.ts",
-      "default": "./lib/private/build/index.js"
-    },
-    "#serve": {
-      "apekit": "./src/private/serve/index.ts",
-      "default": "./lib/private/serve/index.js"
     }
   },
   "exports": {

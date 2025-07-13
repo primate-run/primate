@@ -1,3 +1,4 @@
+import type ClientData from "@primate/core/frontend/ClientData";
 import type Dictionary from "@rcompat/type/Dictionary";
 import storage from "./storage.js";
 
@@ -24,22 +25,22 @@ const scroll_hash = (hash: string) => {
   }
 };
 
-type Updater = (json: Dictionary, after?: () => void) => void;
+type Updater<T extends Dictionary> = (json: ClientData<T>, after?: () => void) => void;
 
 const handlers = {
   [TEXT_PLAIN]: async (response: Response) => {
     // exit
     document.body.innerText = await response.text();
   },
-  [APPLICATION_JSON]: async (response: Response, updater: Updater) => {
+  [APPLICATION_JSON]: async (response: Response, updater: Updater<any>) => {
     updater(await response.json());
   },
 };
 
-const handle = async (response: Response, updater: Updater) => {
-  const content_type = response.headers.get("content-type") as keyof typeof handlers;
-  const handler = Object.keys(handlers).includes(content_type)
-    ? handlers[content_type]
+const handle = async (response: Response, updater: Updater<any>) => {
+  const type = response.headers.get("content-type") as keyof typeof handlers;
+  const handler = Object.keys(handlers).includes(type)
+    ? handlers[type]
     : handlers[TEXT_PLAIN];
   await handler(response, updater);
 };
@@ -49,7 +50,7 @@ type Goto = {
   hash: string;
 };
 
-const goto = async ({ pathname, hash }: Goto, updater: Updater, state = false) => {
+const goto = async ({ pathname, hash }: Goto, updater: Updater<any>, state = false) => {
   try {
     const response = await fetch(pathname, { headers });
     // save before loading next
@@ -61,12 +62,12 @@ const goto = async ({ pathname, hash }: Goto, updater: Updater, state = false) =
       const url = response.redirected ? response.url : `${pathname}${hash}`;
       history.pushState({}, "", url);
     }
-  } catch(error) {
+  } catch (error) {
     console.warn(error);
   }
 };
 
-const submit = async (pathname: string, body: any, method: string, updater: Updater) => {
+const submit = async (pathname: string, body: any, method: string, updater: Updater<any>) => {
   try {
     const response = await fetch(pathname, { method, body, headers });
     if (response.redirected) {
@@ -79,7 +80,7 @@ const submit = async (pathname: string, body: any, method: string, updater: Upda
   }
 };
 
-const go = async (href: string, updater: Updater, event?: Event) => {
+const go = async (href: string, updater: Updater<any>, event?: Event) => {
   const url = new URL(href);
   const { pathname, hash } = url;
   const current = global.location.pathname;
@@ -108,7 +109,7 @@ const go = async (href: string, updater: Updater, event?: Event) => {
   // external redirect
 };
 
-export default (updater: Updater) => {
+export default <T extends Dictionary>(updater: Updater<T>) => {
   global.addEventListener("load", _ => {
     history.scrollRestoration = "manual";
     if (global.location.hash !== "") {

@@ -59,13 +59,13 @@ test.case("flat", assert => {
   assert(s.validate(x(as))).equals(x(as));
 
   assert(() => b.validate(abi)).throws(expect("b", 0n, "[0]"));
-  assert(() => bi.validate(ad)).throws(expect("bt", _d, "[0]"));
+  assert(() => bi.validate(ad)).throws(expect("bi", _d, "[0]"));
   assert(() => d.validate(an)).throws(expect("d", 0, "[0]"));
   assert(() => n.validate(as)).throws(expect("n", "0", "[0]"));
   assert(() => s.validate(ab)).throws(expect("s", false, "[0]"));
 
   assert(() => b.validate([...ab, ...ad])).throws(expect("b", _d, "[1]"));
-  assert(() => bi.validate([...abi, ...ad])).throws(expect("bt", _d, "[1]"));
+  assert(() => bi.validate([...abi, ...ad])).throws(expect("bi", _d, "[1]"));
   assert(() => d.validate([...ab, ...ad])).throws(expect("d", false, "[0]"));
   assert(() => n.validate([...as, ...an])).throws(expect("n", "0", "[0]"));
   assert(() => s.validate([...as, ...an])).throws(expect("s", 0, "[1]"));

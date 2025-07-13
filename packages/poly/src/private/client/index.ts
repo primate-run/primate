@@ -1,30 +1,37 @@
-import type Dictionary from "@rcompat/type/Dictionary";
-import spa from "./spa.js";
+import type ClientData from "@primate/core/frontend/ClientData";
+import type Props from "@primate/core/frontend/Props";
+import spa from "@primate/core/frontend/spa";
 
-type Init = {
-  names: string[];
-  data: Dictionary[];
-  request: Dictionary;
-};
+// @ts-expect-error esbuild vfs
+import * as components from "poly:components";
+// @ts-expect-error esbuild vfs
+import root from "poly:root";
 
-type Options = {
-  spa: boolean;
-  ssr: boolean;
-};
+type Data = ClientData<{
+  components: string[];
+  props: Props[];
+}>;
 
-export default ({ names, data, request }: Init, options: Options) => `
-  import * as components from "app";
+const make_props = (data: ClientData<Data>) => ({
+  components: data.components.map(name  => components[name]),
+  props: data.props,
+  request: {
+    ...data.request,
+    url: new URL(location.href),
+  },
+});
 
-  let root = new components.root_poly({
-    target: document.body,
-    hydrate: ${options.ssr ? "true" : "false"},
-    props: {
-      components: [${names.map(name => `components.${name}`).join(", ")}],
-      data: ${JSON.stringify(data)},
-      request: {
-        ...${JSON.stringify(request)},
-        url: new URL(location.href),
-      },
-    },
-  });
-  ${options.spa ? spa : ""}`;
+export default class PolyClient {
+  static mount(_component: string, data: ClientData<Data>) {
+    const _root = new root({
+      target: document.body,
+      hydrate: data.ssr ? "true" : "false",
+      props: make_props(data),
+    });
+    if (data.spa) {
+      window.addEventListener("DOMContentLoaded", _ => spa<Data>((_data, update) => {
+        _root.$set({ ...make_props(_data), update });
+      }));
+    }
+  }
+}

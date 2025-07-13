@@ -1,7 +1,7 @@
 {
   "name": "@primate/marko",
   "version": "0.1.4",
-  "description": "Marko frontend for Primate",
+  "description": "Primate Marko frontend",
   "homepage": "https://primate.run/docs/frontend/marko",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -27,6 +27,9 @@
     "@primate/core": "workspace:^",
     "marko": "^5.37.40"
   },
+  "devDependencies": {
+    "@types/marko": "^4.6.8"
+  },
   "peerDependencies": {
     "primate": "workspace:^"
   },
@@ -35,14 +38,6 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#build": {
-      "apekit": "./src/private/build/index.ts",
-      "default": "./lib/private/build/index.js"
-    },
-    "#serve": {
-      "apekit": "./src/private/serve/index.ts",
-      "default": "./lib/private/serve/index.js"
     }
   },
   "exports": {
@@ -50,8 +45,5 @@
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     }
-  },
-  "devDependencies": {
-    "@types/marko": "^4.6.8"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@primate/webc",
   "version": "0.1.2",
-  "description": "Web components frontend for Primate",
+  "description": "Primate web components frontend",
   "homepage": "https://primate.run/docs/frontend/web-components",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -33,29 +33,17 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#build": {
-      "apekit": "./src/private/build/index.ts",
-      "default": "./lib/private/build/index.js"
-    },
-    "#serve": {
-      "apekit": "./src/private/serve/index.ts",
-      "default": "./lib/private/serve/index.js"
-    },
-    "#client": {
-      "apekit": "./src/private/client/index.ts",
-      "default": "./lib/private/client/index.js"
-    },
-    "#client/*": {
-      "apekit": "./src/private/client/*.ts",
-      "default": "./lib/private/client/*.js"
     }
   },
   "exports": {
     ".": {
+      "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     },
-    "./Component": "./lib/public/Component.js"
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
+    }
   }
 }

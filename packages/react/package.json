@@ -1,7 +1,7 @@
 {
   "name": "@primate/react",
   "version": "0.12.5",
-  "description": "React frontend for Primate",
+  "description": "Primate React frontend",
   "homepage": "https://primate.run/docs/frontend/react",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/build": "^0.12.0",
+    "@rcompat/build": "^0.12.2",
     "@rcompat/fs": "^0.13.2",
     "@rcompat/runtime": "^0.5.0"
   },
@@ -47,47 +47,15 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#build": {
-      "apekit": "./src/private/build/index.ts",
-      "default": "./lib/private/build/index.js"
-    },
-    "#serve": {
-      "apekit": "./src/private/serve/index.ts",
-      "default": "./lib/private/serve/index.js"
-    },
-    "#context/*": {
-      "apekit": "./src/private/context/*.ts",
-      "default": "./lib/private/context/*.js"
-    },
-    "#client": {
-      "apekit": "./src/private/client/index.ts",
-      "default": "./lib/private/client/index.js"
-    },
-    "#client/*": {
-      "apekit": "./src/private/client/*.ts",
-      "default": "./lib/private/client/*.js"
-    },
-    "#i18n/*": {
-      "apekit": "./src/private/i18n/*.ts",
-      "default": "./lib/private/i18n/*.js"
-    },
-    "#Head/browser": {
-      "apekit": "./src/private/head/browser.ts",
-      "default": "./lib/private/head/browser.js"
-    },
-    "#Head/default": {
-      "apekit": "./src/private/head/default.ts",
-      "default": "./lib/private/head/default.js"
     }
   },
   "exports": {
     ".": {
+      "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     },
     "./*": "./lib/public/*.js",
-    "./context/*": "./lib/public/context/*.js",
     "./Head": {
       "browser": "./lib/public/Head/browser.js",
       "default": "./lib/public/Head/default.js"

@@ -1,1 +1,0 @@
-export default "@primate/webc";

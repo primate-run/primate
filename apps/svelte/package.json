@@ -5,8 +5,9 @@
     "@primate/i18n": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@rcompat/assert": "^0.1.0",
+    "pema": "workspace:^",
     "primate": "workspace:^",
-    "svelte": "^5.34.8"
+    "svelte": "^5.35.2"
   },
   "type": "module"
 }

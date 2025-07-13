@@ -5,7 +5,7 @@ const types = {
   n: "number",
   s: "string",
   u: "undefined",
-  bt: "bigint",
+  bi: "bigint",
   f: "file",
   bb: "blob",
   o: "object",

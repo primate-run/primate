@@ -1,8 +1,0 @@
-import html from "@primate/html";
-
-export default {
-  modules: [html()],
-  session: {
-    implicit: true,
-  },
-};

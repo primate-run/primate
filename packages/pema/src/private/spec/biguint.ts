@@ -7,12 +7,12 @@ import test from "@rcompat/test";
 export default <T extends BigUintDataType>(
   i: BigUintType<T>, min: bigint, max: bigint) => {
   test.case("fail", assert => {
-    assert(() => i.validate("1")).throws(expect("bt", "1"));
-    assert(() => i.validate(1.1)).throws(expect("bt", 1.1));
-    assert(() => i.validate(-1.1)).throws(expect("bt", -1.1));
+    assert(() => i.validate("1")).throws(expect("bi", "1"));
+    assert(() => i.validate(1.1)).throws(expect("bi", 1.1));
+    assert(() => i.validate(-1.1)).throws(expect("bi", -1.1));
     assert(() => i.validate(-1n)).throws("-1 out of range");
-    assert(() => i.validate(0)).throws(expect("bt", 0));
-    assert(() => i.validate(1)).throws(expect("bt", 1));
+    assert(() => i.validate(0)).throws(expect("bi", 0));
+    assert(() => i.validate(1)).throws(expect("bi", 1));
   });
 
   test.case("pass", assert => {
@@ -36,8 +36,8 @@ export default <T extends BigUintDataType>(
       assert(d.validate(undefined)).equals(1n).type<bigint>();
       assert(d.validate(1n)).equals(1n).type<bigint>();
       assert(d.validate(0n)).equals(0n).type<bigint>();
-      assert(() => d.validate(1.2)).throws(expect("bt", 1.2));
-      assert(() => d.validate(-1.2)).throws(expect("bt", -1.2));
+      assert(() => d.validate(1.2)).throws(expect("bi", 1.2));
+      assert(() => d.validate(-1.2)).throws(expect("bi", -1.2));
     });
   });
 };

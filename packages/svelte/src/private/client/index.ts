@@ -1,33 +1,39 @@
-import type Dictionary from "@rcompat/type/Dictionary";
-import spa from "./spa.js";
+import type ClientData from "@primate/core/frontend/ClientData";
+import type Props from "@primate/core/frontend/Props";
+import spa from "@primate/core/frontend/spa";
+import { hydrate, mount } from "svelte";
 
-type Init = {
-  names: string[];
-  data: Dictionary[];
-  request: Dictionary;
-};
+// @ts-expect-error esbuild vfs
+import * as components from "svelte:components";
+// @ts-expect-error esbuild vfs
+import root from "svelte:root";
 
-type Options = {
-  spa: boolean;
-  ssr: boolean;
-};
+type Data = ClientData<{
+  components: string[];
+  props: Props[];
+}>;
 
-export default ({ names, data, request }: Init, options: Options) => `
-  import * as components from "app";
-  import { hydrate, mount } from "app";
+const make_props = (data: ClientData<Data>) => ({
+  components: data.components.map(name  => components[name]),
+  props: data.props,
+  request: {
+    ...data.request,
+    url: new URL(location.href),
+  },
+  update: () => undefined,
+});
 
-  const root = ${options.ssr ? "hydrate" : "mount"}(components.root_svelte, {
-    target: document.body,
-    props: {
-      p: {
-        components: [${names.map(name => `components.${name}`).join(", ")}],
-        data: ${JSON.stringify(data)},
-        request: {
-          ...${JSON.stringify(request)},
-          url: new URL(location.href),
-        },
-        update: () => undefined,
+export default class SvelteClient {
+  static mount(_component: string, data: ClientData<Data>) {
+    const _root = (data.ssr ? hydrate : mount)(root, {
+      target: document.body,
+      props: {
+        p: make_props(data),
       },
-    },
-  });
-  ${options.spa ? spa : ""}`;
+    });
+    data.spa && window.addEventListener("DOMContentLoaded", () =>
+      spa<Data>((_data, update) => {
+        _root.p = { ...make_props(_data), update };
+      }));
+  }
+}

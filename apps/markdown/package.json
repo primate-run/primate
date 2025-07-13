@@ -1,0 +1,10 @@
+{
+  "name": "@primate/app/markdown",
+  "dependencies": {
+    "@primate/i18n": "workspace:^",
+    "@primate/markdown": "workspace:^",
+    "marked": "^16.0.0",
+    "primate": "workspace:^"
+  },
+  "type": "module"
+}

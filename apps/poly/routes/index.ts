@@ -1,5 +1,5 @@
-import view from "primate/view";
 import route from "primate/route";
+import view from "primate/view";
 
 const posts = [{
   id: 1,
@@ -8,6 +8,6 @@ const posts = [{
 
 export default route({
   get() {
-    return view("index.poly", { posts });
+    return view("Index.poly", { posts });
   },
 });

@@ -1,5 +1,5 @@
 {
-  "name": "@primate/app/core",
+  "name": "@primate/app/ts",
   "scripts": {
     "test": "npx primate test"
   },

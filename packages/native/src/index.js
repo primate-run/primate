@@ -22,7 +22,7 @@ export default ({
           const { flags, exe } = targets[app.build_target];
           const executable_path = dim(`${app.path.build}/${exe}`);
           await execute(`${command} ${flags} --outfile build/${exe}`);
-          log.system(`executable written to ${executable_path}`);
+          log.system("executable written to {0}", executable_path);
         });
       }
       return next(app);

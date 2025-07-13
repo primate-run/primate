@@ -1,5 +1,5 @@
-import type { RequestHook } from "#module-loader";
-import type { ServeApp } from "#serve/app";
+import type RequestHook from "#module/RequestHook";
+import type ServeApp from "#ServeApp";
 import storage from "#session/storage";
 
 type CookieOptions = {

@@ -1,8 +1,8 @@
-import empty_store_directory from "#db/error/empty-store-directory";
+//import empty_store_directory from "#db/error/empty-store-directory";
 import module from "#db/name";
 import s_db from "#db/symbol";
-import type { ServeAppHook } from "#module-loader";
-import log from "@primate/core/log";
+import type ServeHook from "#module/ServeHook";
+import log from "#log";
 import empty from "@rcompat/array/empty";
 import dim from "@rcompat/cli/color/dim";
 import exclude from "@rcompat/record/exclude";
@@ -13,7 +13,7 @@ type Driver = () => Promise<{
 
 }>;
 
-export default (driver: Driver): ServeAppHook => async (app, next) => {
+export default (driver: Driver): ServeHook => async (app, next) => {
   const root = app.runpath(directory);
 
   const defaults = {
@@ -23,7 +23,7 @@ export default (driver: Driver): ServeAppHook => async (app, next) => {
 
   const loaded: string[] = [];
 
-  const stores = app.files.stores!.map(([name, definition]) => {
+  /*const stores = app.files.stores!.map(([name, definition]) => {
     const schema = definition.default ?? {};
     const pathed = name.replaceAll("/", ".");
 
@@ -35,14 +35,14 @@ export default (driver: Driver): ServeAppHook => async (app, next) => {
       name: definition.name ?? name.replaceAll("/", "_"),
       defaults,
     }];
-  });
+  });*/
 
-  log.info(`loaded ${loaded.map(l => dim(l)).join(" ")}`, { module });
+  log.info("loaded {0}", loaded.join(" "));
 
-  if (empty(stores)) {
+  /*if (empty(stores)) {
     empty_store_directory(root);
     return next(app);
-  }
+  }*/
 
   app.set(s_db, {
     driver: await driver(),

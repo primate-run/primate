@@ -1,0 +1,11 @@
+{
+  "name": "@primate/app/js",
+  "scripts": {
+    "test": "npx primate test"
+  },
+  "dependencies": {
+    "@primate/html": "workspace:^",
+    "primate": "workspace:^"
+  },
+  "type": "module"
+}

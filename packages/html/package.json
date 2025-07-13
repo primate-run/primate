@@ -1,7 +1,7 @@
 {
   "name": "@primate/html",
   "version": "0.10.3",
-  "description": "HTML frontend for Primate",
+  "description": "Primate HTML frontend",
   "homepage": "https://primate.run/docs/frontend/html",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
+    "@rcompat/assert": "^0.1.0",
     "@rcompat/html": "^0.5.0"
   },
   "peerDependencies": {
@@ -33,14 +34,6 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#build": {
-      "apekit": "./src/private/build/index.ts",
-      "default": "./lib/private/build/index.js"
-    },
-    "#serve": {
-      "apekit": "./src/private/serve/index.ts",
-      "default": "./lib/private/serve/index.js"
     }
   },
   "exports": {
@@ -48,6 +41,9 @@
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     },
-    "./*": "./lib/public/*.js"
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
+    }
   }
 }

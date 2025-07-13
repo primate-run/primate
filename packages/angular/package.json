@@ -1,7 +1,7 @@
 {
   "name": "@primate/angular",
   "version": "0.2.0",
-  "description": "Angular frontend for Primate",
+  "description": "Primate Angular frontend",
   "homepage": "https://primate.run/docs/frontend/angular",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -21,15 +21,14 @@
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
   },
-  "devDependencies": {
-    "@primate/core": "workspace:^"
-  },
   "dependencies": {
-    "@angular/compiler": "^20.0.4",
-    "@angular/platform-browser": "^20.0.4",
-    "@angular/platform-server": "^20.0.4",
-    "@angular/ssr": "^20.0.3",
-    "@rcompat/build": "^0.12.0",
+    "@angular/compiler": "^20.0.6",
+    "@angular/platform-browser": "^20.0.6",
+    "@angular/platform-server": "^20.0.6",
+    "@angular/ssr": "^20.0.5",
+    "@primate/core": "workspace:^",
+    "@rcompat/assert": "^0.1.0",
+    "@rcompat/build": "^0.12.2",
     "@rcompat/crypto": "^0.9.0",
     "@rcompat/fs": "^0.13.2",
     "@rcompat/record": "^0.8.0",
@@ -44,22 +43,6 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#build": {
-      "apekit": "./src/private/build/index.js",
-      "default": "./lib/private/build/index.js"
-    },
-    "#serve": {
-      "apekit": "./src/private/serve/index.js",
-      "default": "./lib/private/serve/index.js"
-    },
-    "#client": {
-      "apekit": "./src/private/client/index.js",
-      "default": "./lib/private/client/index.js"
-    },
-    "#client/*": {
-      "apekit": "./src/private/client/*.js",
-      "default": "./lib/private/client/*.js"
     }
   },
   "exports": {
@@ -67,6 +50,10 @@
       "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
+    },
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
     }
   }
 }

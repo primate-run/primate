@@ -1,7 +1,7 @@
 {
   "name": "@primate/ruby",
   "version": "0.1.4",
-  "description": "Ruby backend for Primate",
+  "description": "Primate Ruby backend",
   "homepage": "https://primate.run/docs/backend/ruby",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -42,9 +42,12 @@
   },
   "exports": {
     ".": {
-      "runtime": "./lib/runtime.js",
-      "default": "./lib/default.js"
+      "runtime": "./lib/public/runtime.js",
+      "default": "./lib/public/default.js"
     },
-    "./*": "./lib/*.js"
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
+    }
   }
 }

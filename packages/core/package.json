@@ -1,14 +1,14 @@
 {
   "name": "@primate/core",
   "version": "0.1.10",
-  "description": "The universal web framework core",
+  "description": "The universal web framework",
   "homepage": "https://primate.run",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
   "files": [
     "/lib/**/*.js",
     "/lib/**/*.d.ts",
-    "/lib/build/defaults/*.html",
+    "/lib/private/defaults/*.html",
     "!/**/*.spec.*"
   ],
   "repository": {
@@ -17,7 +17,7 @@
     "directory": "packages/core"
   },
   "scripts": {
-    "build": "npm run clean && tsc && cp -a src/build/defaults lib/build",
+    "build": "npm run clean && tsc && cp -a src/private/defaults lib/private",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
@@ -48,6 +48,7 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
+<<<<<<< HEAD
     },
     "#build/*": {
       "apekit": "./src/build/*.ts",
@@ -91,16 +92,16 @@
     "#wasm/*": {
       "apekit": "./src/private/wasm/*.ts",
       "default": "./lib/private/wasm/*.js"
+=======
+>>>>>>> 6e716685 (module)
     }
   },
   "exports": {
-    "./hook": {
-      "apekit": "./src/private/module-loader.ts"
-    },
     "./serve": {
       "apekit": "./src/public/serve/index.ts",
       "default": "./lib/public/serve/index.js"
     },
+<<<<<<< HEAD
     "./serve/*": {
       "apekit": "./src/public/serve/*.ts",
       "default": "./lib/public/serve/*.js"
@@ -113,27 +114,12 @@
     "./build/app": {
       "apekit": "./src/build/app.ts"
     },
+=======
+>>>>>>> 6e716685 (module)
     "./error": "./lib/error/index.js",
-    "./log": {
-      "apekit": "./src/log/index.ts",
-      "default": "./lib/log/index.js"
-    },
-    "./log/*": {
-      "apekit": "./src/public/log/*.ts",
-      "default": "./lib/public/log/*.js"
-    },
     "./dispatch": "./lib/dispatch/index.js",
-    "./handler/*": "./lib/public/handler/*.js",
     "./frontend": {
       "apekit": "./src/public/Frontend.ts"
-    },
-    "./frontend/*": {
-      "apekit": "./src/public/frontend/*.ts",
-      "default": "./lib/public/frontend/*.js"
-    },
-    "./db/store": {
-      "apekit": "./src/public/db/store.ts",
-      "default": "./lib/public/db/store.js"
     },
     "./*": {
       "apekit": "./src/public/*.ts",

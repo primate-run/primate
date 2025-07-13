@@ -1,7 +1,7 @@
 {
   "name": "@primate/htmx",
   "version": "0.19.5",
-  "description": "HTMX frontend for Primate",
+  "description": "Primate HTMX frontend",
   "homepage": "https://primate.run/docs/frontend/htmx",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -24,6 +24,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@primate/html": "workspace:^",
+    "@rcompat/assert": "^0.1.0",
     "@rcompat/fs": "^0.13.2",
     "@rcompat/html": "^0.5.0",
     "@rcompat/record": "^0.8.0",
@@ -37,18 +38,6 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#build": {
-      "apekit": "./src/private/build/index.ts",
-      "default": "./lib/private/build/index.js"
-    },
-    "#serve": {
-      "apekit": "./src/private/serve/index.ts",
-      "default": "./lib/private/serve/index.js"
-    },
-    "#error/*": {
-      "apekit": "./src/private/error/*.ts",
-      "default": "./lib/private/error/*.js"
     }
   },
   "exports": {
@@ -56,6 +45,9 @@
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     },
-    "./*": "./lib/public/*.js"
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
+    }
   }
 }
