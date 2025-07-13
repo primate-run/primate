@@ -1,5 +1,5 @@
 import Runtime from "#Runtime";
-import create_root from "#client/create-root";
+import create_root from "#create-root";
 import { compile } from "poly/compiler";
 
 export default class Poly extends Runtime {

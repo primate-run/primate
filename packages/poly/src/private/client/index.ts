@@ -14,8 +14,7 @@ type Data = ClientData<{
 
 const make_props = (data: ClientData<Data>) => ({
   components: data.components.map(name  => components[name]),
-  data: data.props,
-  context: data.request.context,
+  props: data.props,
   request: {
     ...data.request,
     url: new URL(location.href),
@@ -23,8 +22,7 @@ const make_props = (data: ClientData<Data>) => ({
 });
 
 export default class Poly {
-  static mount(data: ClientData<Data>) {
-    console.log("data", data);
+  static mount(component: string, data: ClientData<Data>) {
     const _root = new root({
       target: document.body,
       hydrate: data.ssr ? "true" : "false",
@@ -32,7 +30,7 @@ export default class Poly {
     });
     if (data.spa) {
       window.addEventListener("DOMContentLoaded", _ => spa<Data>((_data, update) => {
-        root.$set({ ...make_props(_data), update });
+        _root.$set({ ...make_props(_data), update });
       }));
     }
   }

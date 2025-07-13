@@ -2,6 +2,7 @@ import App from "#App";
 import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
+import type Body from "#Body";
 import type CSP from "#CSP";
 import double_extension from "#error/double-extension";
 import no_component from "#error/no-component";
@@ -13,20 +14,25 @@ import handle from "#hook/handle";
 import parse from "#hook/parse";
 import location from "#location";
 import log from "#log";
+import type RequestFacade from "#RequestFacade";
 import type RouteExport from "#RouteExport";
 import type RouteSpecial from "#RouteSpecial";
+import RuntimeError from "#RuntimeError";
 import type ServeOptions from "#ServeOptions";
 import tags from "#tags";
+import type Verb from "#Verb";
 import is from "@rcompat/assert/is";
 import dim from "@rcompat/cli/color/dim";
 import FileRef from "@rcompat/fs/FileRef";
 import Router from "@rcompat/fs/router";
 import type Actions from "@rcompat/http/Actions";
+import BodyParser from "@rcompat/http/body";
 import type Conf from "@rcompat/http/Conf";
 import { html } from "@rcompat/http/mime";
 import serve from "@rcompat/http/serve";
 import type Server from "@rcompat/http/Server";
 import Status from "@rcompat/http/Status";
+import entries from "@rcompat/record/entries";
 import stringify from "@rcompat/record/stringify";
 import type Dictionary from "@rcompat/type/Dictionary";
 import type PartialDictionary from "@rcompat/type/PartialDictionary";
@@ -40,6 +46,23 @@ interface ViewOptions extends FrontendOptions {
 }
 
 type Entry<T> = [keyof T, Required<T>[keyof T]];
+
+const deroot = (pathname: string) => pathname.endsWith("/") && pathname !== "/"
+  ? pathname.slice(0, -1)
+  : pathname;
+// remove excess slashes
+const deslash = (url: string) => url.replaceAll(/\/{2,}/gu, _ => "/");
+
+const normalize = (pathname: string) => deroot(deslash(pathname));
+
+const parse_body = async (request: Request, url: URL): Promise<Body> => {
+  try {
+    return await BodyParser.parse(request) as Body;
+  } catch(error) {
+    const params = [url.pathname, (error as any).message];
+    throw new RuntimeError(`{0}: error in request body: {1}`, ...params);
+  }
+};
 
 const to_csp = (config_csp: Entry<CSP>[], assets: CSP, override: CSP) => config_csp
   // only csp entries in the config will be enriched
@@ -206,8 +229,11 @@ export default class ServeApp extends App {
     return this.respond(this.render(rest), { status, headers });
   };
 
-  media(type: string, { status = Status.OK, headers }: ResponseInit = {}): ResponseInit {
-    return { status, headers: { ...headers, "Content-Type": type } };
+  media(content_type: string, response: ResponseInit = {}): ResponseInit {
+    return {
+      status: response.status ?? Status.OK,
+      headers: { ...response.headers, "Content-Type": content_type },
+    };
   };
 
   async publish({ src, code, type = "", inline = false }: PublishOptions) {
@@ -274,6 +300,35 @@ export default class ServeApp extends App {
   }
 
   target(_: unknown) {}
+
+  async route(facade: RequestFacade) {
+    const { request, url } = facade;
+    const $request_body_parse = this.config("request.body.parse");
+
+    const pathname = normalize(url.pathname);
+    const route = this.router.match(request);
+    if (route === undefined) {
+      log.info2("no {0} route to {1}", request.method, pathname);
+      return;
+    }
+
+    const local_parse_body = route.file.body?.parse ?? $request_body_parse;
+    const body = local_parse_body ? await parse_body(request, url) : null;
+    const { guards = [], errors = [], layouts = [] } = entries(route.specials)
+      .map(([key, value]) => [`${key}s`, value]).get();
+
+    return {
+      guards: guards as RouteSpecial[],
+      errors: errors as RouteSpecial[],
+      layouts: layouts as RouteSpecial[],
+      handler: route.file.default[request.method.toLowerCase() as Verb],
+      request: {
+        ...facade,
+        body,
+        path: route.params as PartialDictionary<string>,
+      },
+    };
+  }
 
   get session() {
     return this.#build.session_config;

@@ -1,17 +1,19 @@
 import forward from "#forward";
 import client_error from "#handler/error";
+import respond from "#hook/respond";
+import type { PrimateError } from "#log";
+import log from "#log";
 import type RequestHook from "#module/RequestHook";
 import type RequestFacade from "#RequestFacade";
 import type ResponseLike from "#ResponseLike";
 import type RouteFunction from "#RouteFunction";
 import type RouteSpecial from "#RouteSpecial";
+import RuntimeError from "#RuntimeError";
 import type ServeApp from "#ServeApp";
 import session_hook from "#session/hook";
 import reload_defaults from "@rcompat/build/reload/defaults";
 import reload_path from "@rcompat/build/reload/path";
 import type MaybePromise from "@rcompat/type/MaybePromise";
-import respond from "./respond.js";
-import route from "./route.js";
 
 type HookExec<I, O> = (i: I, next: (_: I) => MaybePromise<O>) => MaybePromise<O>;
 type RouteHook = HookExec<RequestFacade, ResponseLike>;
@@ -75,7 +77,10 @@ const get_layouts = async (layouts: RouteSpecial[], request: RequestFacade) => {
 // last handler, preserve final request form
 const last = (handler: RouteFunction) => async (request: RequestFacade) => {
   const response = await handler(request);
-  return response as ResponseLike;
+  return {
+    response: response as ResponseLike,
+    request,
+  };
 };
 
 const as_route = async (app: ServeApp, partial_request: RequestFacade) => {
@@ -83,8 +88,13 @@ const as_route = async (app: ServeApp, partial_request: RequestFacade) => {
   let error_handler = app.defaultErrorRoute;
 
   try {
-    const { request, route: routed } = await route(app, partial_request);
-    const { guards, errors, layouts, handler } = routed;
+    const route = await app.route(partial_request);
+
+    if (route === undefined) {
+        return client_error()(app, {}, partial_request) as Response;
+    }
+
+    const { guards, errors, layouts, handler } = route;
 
     error_handler = errors.at(-1)?.default as RouteFunction;
 
@@ -92,18 +102,25 @@ const as_route = async (app: ServeApp, partial_request: RequestFacade) => {
     const hooks = [...route_hooks, guard(app, guards), last(handler)];
 
     // handle request
-    const response = await reducer(hooks, request);
+    const { request, response } = await reducer(hooks, route.request) as {
+      response: ResponseLike;
+      request: RequestFacade;
+    };
 
     const $layouts = { layouts: await get_layouts(layouts, request) };
     return respond(response)(app, $layouts, request) as Response;
-  } catch (error2) {
-    console.log(error2);
+  } catch (error) {
+    if (error instanceof RuntimeError) {
+      log.auto(error as PrimateError);
+    } else {
+      // unknown error
+      console.log(error);
+    }
     const request = partial_request;
     // the +error.js page itself could fail
     try {
       return respond(await error_handler!(request))(app, {}, request) as Response;
-    } catch (error) {
-      console.log(error);
+    } catch {
       return client_error()(app, {}, request) as Response;
     }
   }

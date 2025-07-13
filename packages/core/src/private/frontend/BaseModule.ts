@@ -96,7 +96,6 @@ export default abstract class FrontendModule<
   };
 
   async #render(server: ServerData<S>, client: ClientData, app: ServeApp) {
-    console.log("SERVER", server);
     const { body, head = "", headers = {} } = this.ssr
       ? await this.render(server.component, server.props)
       : { body: "", head: "" };

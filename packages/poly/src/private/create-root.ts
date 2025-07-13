@@ -16,16 +16,13 @@ export default (depth: number) => {
     <script>
       import { afterUpdate, setContext } from "poly";
       import context_name from "@primate/poly/context-name";
+      import { writable } from "poly/store";
 
       export let components;
       export let props;
       export let request;
       export let update = () => undefined;
 
-      console.log("components", components);
-      console.log("props", props);
-      console.log("request", request);
-      console.log("update", update);
       setContext(context_name, request.context);
 
       afterUpdate(update);

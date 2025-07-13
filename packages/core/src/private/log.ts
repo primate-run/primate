@@ -57,6 +57,7 @@ const log = (pre: string, color: RCompatColorFunction, error: PrimateError, over
 export interface PrimateLogger {
   system: (message: string) => void;
   info: (error: string | PrimateError, override?: PrimateErrorOverrides) => void;
+  info2: (message: string, ...params: string[]) => void;
   warn: (error: string | PrimateError, override?: PrimateErrorOverrides) => void;
   error: (error: string | PrimateError, override?: PrimateErrorOverrides, toss?: boolean) => void;
   auto: (error: PrimateError) => void;
@@ -70,6 +71,12 @@ export default {
   info(error, override) {
     // info prints only on info level
     applevel === levels.info && log("--", green, normalize("info", error), override);
+  },
+
+  info2(message: string, ...params: string[]) {
+    if (applevel === levels.info) {
+      print(green("--"), mark(message, ...params), "\n");
+    }
   },
 
   warn(error, override) {

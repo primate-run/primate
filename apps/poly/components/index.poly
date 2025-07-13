@@ -1,19 +1,19 @@
 <script>
   import t from "@primate/poly/i18n";
   import locale from "@primate/poly/locale";
-  import PostLink from "./PostLink.poly";
+  import Link from "./Link.poly";
 
   export let posts = [], title = "";
   let count = 0;
 </script>
 <svelte:head>
-  <title>Primate template app (Svelte)</title>
+  <title>Primate Poly app</title>
   <meta name="keywords" content={title} />
 </svelte:head>
 <a href="/redirect">redirect</a>
 <h1 on:click={() => { console.log("clicked!"); }}>{$t("All posts")}</h1>
 {#each posts as post}
-<PostLink {post} />
+<Link {post} />
 {/each}
 <h3>{$t("Counter")}</h3>
 <div>
