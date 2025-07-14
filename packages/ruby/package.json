@@ -42,9 +42,12 @@
   },
   "exports": {
     ".": {
-      "runtime": "./lib/runtime.js",
-      "default": "./lib/default.js"
+      "runtime": "./lib/public/runtime.js",
+      "default": "./lib/public/default.js"
     },
-    "./*": "./lib/*.js"
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
+    }
   }
 }

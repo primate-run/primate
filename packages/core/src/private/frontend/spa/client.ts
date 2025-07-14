@@ -62,7 +62,7 @@ const goto = async ({ pathname, hash }: Goto, updater: Updater<any>, state = fal
       const url = response.redirected ? response.url : `${pathname}${hash}`;
       history.pushState({}, "", url);
     }
-  } catch(error) {
+  } catch (error) {
     console.warn(error);
   }
 };

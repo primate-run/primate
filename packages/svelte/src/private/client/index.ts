@@ -1,23 +1,39 @@
-import spa from "#client/spa";
-import type ClientOptions from "@primate/core/frontend/ClientOptions";
-import type ClientRoot from "@primate/core/frontend/ClientRoot";
+import type ClientData from "@primate/core/frontend/ClientData";
+import type Props from "@primate/core/frontend/Props";
+import spa from "@primate/core/frontend/spa";
+import { hydrate, mount } from "svelte";
 
-export default (root: ClientRoot, options: ClientOptions) => `
-  import * as components from "app";
-  import { hydrate, mount } from "app";
+// @ts-expect-error esbuild vfs
+import * as components from "svelte:components";
+// @ts-expect-error esbuild vfs
+import root from "svelte:root";
 
-  const root = ${options.ssr ? "hydrate" : "mount"}(components.root_svelte, {
-    target: document.body,
-    props: {
-      p: {
-        components: [${root.names.map(name => `components.${name}`).join(", ")}],
-        data: ${JSON.stringify(root.data)},
-        request: {
-          ...${JSON.stringify(root.request)},
-          url: new URL(location.href),
-        },
-        update: () => undefined,
+type Data = ClientData<{
+  components: string[];
+  props: Props[];
+}>;
+
+const make_props = (data: ClientData<Data>) => ({
+  components: data.components.map(name  => components[name]),
+  props: data.props,
+  request: {
+    ...data.request,
+    url: new URL(location.href),
+  },
+  update: () => undefined,
+});
+
+export default class SvelteClient {
+  static mount(_component: string, data: ClientData<Data>) {
+    const _root = (data.ssr ? hydrate : mount)(root, {
+      target: document.body,
+      props: {
+        p: make_props(data),
       },
-    },
-  });
-  ${options.spa ? spa : ""}`;
+    });
+    data.spa && window.addEventListener("DOMContentLoaded", () =>
+      spa<Data>((_data, update) => {
+        _root.p = { ...make_props(_data), update };
+      }));
+  }
+}

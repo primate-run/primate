@@ -25,6 +25,7 @@
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.1.0",
     "@rcompat/fs": "^0.13.2",
+    "pema": "workspace:^",
     "pyodide": "^0.27.7"
   },
   "peerDependencies": {
@@ -39,9 +40,12 @@
   },
   "exports": {
     ".": {
-      "runtime": "./lib/runtime.js",
-      "default": "./lib/default.js"
+      "runtime": "./lib/public/runtime.js",
+      "default": "./lib/public/default.js"
     },
-    "./*": "./lib/*.js"
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
+    }
   }
 }

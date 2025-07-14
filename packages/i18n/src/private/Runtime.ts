@@ -1,4 +1,3 @@
-import default_locale from "#default-locale";
 import header from "#header";
 import Manager from "#Manager";
 import Module from "@primate/core/Module";
@@ -9,6 +8,8 @@ import type RequestFacade from "@primate/core/RequestFacade";
 import type ServeApp from "@primate/core/ServeApp";
 import is from "@rcompat/assert/is";
 import Status from "@rcompat/http/Status";
+
+const default_locale = "en-US";
 
 type CookieOptions = {
   [key in "path" | "secure" | "httpOnly" | "sameSite"]: string

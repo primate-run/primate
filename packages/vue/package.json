@@ -38,8 +38,8 @@
   },
   "exports": {
     ".": {
-      "runtime": "./lib/public/serve.js",
-      "default": "./lib/public/build.js"
+      "runtime": "./lib/public/runtime.js",
+      "default": "./lib/public/default.js"
     }
   }
 }

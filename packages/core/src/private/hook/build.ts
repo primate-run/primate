@@ -5,7 +5,6 @@ import location from "#location";
 import log from "#log";
 import type Module from "#module/Module";
 import s_layout_depth from "#symbol/layout-depth";
-import dim from "@rcompat/cli/color/dim";
 import FileRef from "@rcompat/fs/FileRef";
 import manifest from "@rcompat/package/manifest";
 import stringify from "@rcompat/record/stringify";
@@ -96,7 +95,6 @@ export default app;
 };
 
 const post = async (app: BuildApp) => {
-
   const defaults = FileRef.join(import.meta.url, "../../defaults");
 
   await app.stage2(app.path.routes, "routes", file =>
@@ -196,7 +194,7 @@ export default db.wrap("${file.base}", store);`);
   const package_json = "package.json";
   await app.path.build.join(package_json).write(stringify(manifest_data));
 
-  log.system(`build written to ${dim(app.path.build.toString())}`);
+  log.system("build written to {0}", app.path.build);
 
   app.cleanup();
 };

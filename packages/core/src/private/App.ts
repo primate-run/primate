@@ -1,16 +1,17 @@
+import AppError from "#AppError";
 import type Binder from "#Binder";
-import type Mode from "#Mode";
-import type RouteFunction from "#RouteFunction";
 import type Config from "#config/Config";
-import error_double_module from "#error/double-module";
 import location from "#location";
+import log from "#log";
+import type Mode from "#Mode";
 import type Module from "#module/Module";
+import type RouteFunction from "#RouteFunction";
+import assert from "@rcompat/assert";
+import transform from "@rcompat/build/sync/transform";
 import type FileRef from "@rcompat/fs/FileRef";
 import entries from "@rcompat/record/entries";
 import get from "@rcompat/record/get";
 import type PartialDictionary from "@rcompat/type/PartialDictionary";
-import assert from "@rcompat/assert";
-import transform from "@rcompat/build/sync/transform";
 
 const ts_options = {
   loader: "ts",
@@ -84,7 +85,7 @@ export default class App {
 
     const names = this.#modules.map(({ name }) => name);
     if (new Set(names).size !== this.#modules.length) {
-      error_double_module(doubled(names));
+      throw new AppError("module {0} loaded twice", doubled(names));
     }
 
     return await reducer(this.#modules, this);

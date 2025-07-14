@@ -21,8 +21,8 @@ const make_props = (data: ClientData<Data>) => ({
   },
 });
 
-export default class Poly {
-  static mount(component: string, data: ClientData<Data>) {
+export default class PolyClient {
+  static mount(_component: string, data: ClientData<Data>) {
     const _root = new root({
       target: document.body,
       hydrate: data.ssr ? "true" : "false",

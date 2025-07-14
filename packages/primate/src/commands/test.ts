@@ -63,7 +63,10 @@ export default async () => {
             const actual = await (typeof expected === "string"
               ? response.text()
               : response.json());
-            return [includes(actual, expected), expected, actual];
+            const $expected = typeof expected === "string"
+              ? expected.replaceAll("\n", "").replaceAll("  ", "")
+              : expected;
+            return [includes(actual, $expected), $expected, actual];
           });
         },
       },

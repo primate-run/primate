@@ -1,11 +1,10 @@
 import Runtime from "#Runtime";
+import AppError from "@primate/core/AppError";
 import type BuildApp from "@primate/core/BuildApp";
-import BuildError from "@primate/core/BuildError";
 import log from "@primate/core/log";
 import type NextBuild from "@primate/core/NextBuild";
 import verbs from "@primate/core/verbs";
 import assert from "@rcompat/assert";
-import dim from "@rcompat/cli/color/dim";
 import user from "@rcompat/env/user";
 import FileRef from "@rcompat/fs/FileRef";
 import runtime from "@rcompat/runtime";
@@ -139,7 +138,7 @@ const create_meta_files = async (directory: FileRef) => {
   }
 };
 
-export default class Go extends Runtime {
+export default class Default extends Runtime {
   build(app: BuildApp, next: NextBuild) {
     app.bind(this.extension, async (go, context) => {
       assert(context === "routes", "go: only route files are supported");
@@ -158,16 +157,12 @@ export default class Go extends Runtime {
 
       await go.append(".js").write(js_wrapper(wasm.name, routes));
       try {
-        log.info(`compiling ${dim(go.toString())} to WebAssembly`, {
-          module: this.package,
-        });
+        log.info(`compiling {0} to WebAssembly`, go);
         const cwd = `${directory}`;
         // compile .go to .wasm
         await execute(run(wasm, go), { cwd, env: { HOME: user.HOME, ...env } });
       } catch (error) {
-        console.log(error);
-
-        throw new BuildError(`Error in module '${go.toString()}':\n${error}`);
+        throw new AppError(`Error in module {0}\n{1}`, go, error);
       }
     });
 

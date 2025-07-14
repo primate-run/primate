@@ -1,4 +1,4 @@
-import empty_store_directory from "#db/error/empty-store-directory";
+//import empty_store_directory from "#db/error/empty-store-directory";
 import module from "#db/name";
 import s_db from "#db/symbol";
 import type ServeHook from "#module/ServeHook";
@@ -37,7 +37,7 @@ export default (driver: Driver): ServeHook => async (app, next) => {
     }];
   });*/
 
-  log.info(`loaded ${loaded.map(l => dim(l)).join(" ")}`, { module });
+  log.info("loaded {0}", loaded.join(" "));
 
   /*if (empty(stores)) {
     empty_store_directory(root);

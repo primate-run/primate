@@ -1,1 +1,1 @@
-export { default } from "#frontend/BaseModule";
+export { default } from "#frontend/Module";

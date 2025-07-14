@@ -7,7 +7,6 @@ import s_layout_depth from "#symbol/layout-depth";
 import web from "#targets/web";
 import Build from "@rcompat/build";
 import transform from "@rcompat/build/sync/transform";
-import dim from "@rcompat/cli/color/dim";
 import FileRef from "@rcompat/fs/FileRef";
 import type Path from "@rcompat/fs/Path";
 import identity from "@rcompat/function/identity";
@@ -46,7 +45,6 @@ export default class BuildApp extends App {
   #postbuild: (() => void)[] = [];
   #extensions: PartialDictionary<ExtensionCompile> = {};
   #roots: FileRef[] = [];
-  #assets: unknown[] = [];
   #server_build: string[] = ["route"];
   #target: string = "web";
 
@@ -106,7 +104,7 @@ export default class BuildApp extends App {
     if (this.targets[target]?.forward !== undefined) {
       this.#target = this.targets[target].forward;
     }
-    log.system(`starting ${dim(target)} build in ${dim(this.mode)} mode`);
+    log.system("starting {0} build in {1} mode", target, this.mode);
     return await build(this);
   }
 

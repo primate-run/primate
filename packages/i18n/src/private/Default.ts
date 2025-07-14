@@ -1,8 +1,7 @@
-import no_default_locale from "#error/no-default-locale";
-import no_locale_directory from "#error/no-locale-directory";
 import Runtime from "#Runtime";
 import type BuildApp from "@primate/core/BuildApp";
 import type NextBuild from "@primate/core/NextBuild";
+import AppError from "@primate/core/AppError";
 
 const repository = "locales";
 
@@ -11,8 +10,11 @@ export default class I18N extends Runtime {
     const root = app.root.join(repository);
 
     if (!await root.exists()) {
-      no_locale_directory(root);
-      return next(app);
+      throw new AppError("locales directory {0} missing", root);
+    }
+
+    if ((await root.list()).length === 0) {
+      throw new AppError("empty locales directory {0}", root);
     }
 
     const base = app.path.build.join(repository);
@@ -30,8 +32,7 @@ export default class I18N extends Runtime {
       }));
 
     if (!(has_default_locale as boolean)) {
-      no_default_locale(this.manager.locale, root);
-      return next(app);
+      throw new AppError("default locale {0} missing", this.manager.locale);;
     }
 
     app.server_build.push("locale");

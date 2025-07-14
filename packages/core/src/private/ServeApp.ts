@@ -1,11 +1,10 @@
 import App from "#App";
+import AppError from "#AppError";
 import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
 import type Body from "#Body";
 import type CSP from "#CSP";
-import double_extension from "#error/double-extension";
-import no_component from "#error/no-component";
 import type Frontend from "#frontend/Frontend";
 import type FrontendOptions from "#frontend/Options";
 import type ServerComponent from "#frontend/ServerComponent";
@@ -17,12 +16,10 @@ import log from "#log";
 import type RequestFacade from "#RequestFacade";
 import type RouteExport from "#RouteExport";
 import type RouteSpecial from "#RouteSpecial";
-import RuntimeError from "#RuntimeError";
 import type ServeOptions from "#ServeOptions";
 import tags from "#tags";
 import type Verb from "#Verb";
 import is from "@rcompat/assert/is";
-import dim from "@rcompat/cli/color/dim";
 import FileRef from "@rcompat/fs/FileRef";
 import Router from "@rcompat/fs/router";
 import type Actions from "@rcompat/http/Actions";
@@ -58,9 +55,8 @@ const normalize = (pathname: string) => deroot(deslash(pathname));
 const parse_body = async (request: Request, url: URL): Promise<Body> => {
   try {
     return await BodyParser.parse(request) as Body;
-  } catch(error) {
-    const params = [url.pathname, (error as any).message];
-    throw new RuntimeError(`{0}: error in request body: {1}`, ...params);
+  } catch (error) {
+    throw new AppError("{0}: error in request body: {1}", url.pathname, error);
   }
 };
 
@@ -178,7 +174,8 @@ export default class ServeApp extends App {
     const base = name.slice(0, name.lastIndexOf((".")));
     const component = this.#components[base];
     if (component === undefined) {
-      no_component(name, `${location.components}/${name}`);
+      const path = `${location.components}/${name}`;
+      throw new AppError(`missing component {0}`, path);
     }
     return (component!.default ?? component) as T;
   };
@@ -262,7 +259,7 @@ export default class ServeApp extends App {
 
   register(extension: string, frontend: Frontend) {
     if (this.#frontends[extension] !== undefined) {
-      double_extension(extension);
+      throw new AppError( "double file extension {0}", extension);
     }
     this.#frontends[extension] = frontend;
   };
@@ -283,16 +280,16 @@ export default class ServeApp extends App {
       try {
         return await _handle(parse(request));
       } catch (error) {
-        log.auto(error as any);
+        log.error(error);
         return new Response(null, { status: Status.INTERNAL_SERVER_ERROR });
       }
     }, this.get<Conf>(s_http));
-    log.system(`started ${dim(this.url)}`);
+    log.system("started {0}", this.url);
   };
 
   stop() {
     this.#server!.stop();
-    log.system(`stopped ${dim(this.url)}`);
+    log.system("stopped {0}", this.url);
   };
 
   upgrade(request: Request, actions: Actions) {
@@ -308,7 +305,7 @@ export default class ServeApp extends App {
     const pathname = normalize(url.pathname);
     const route = this.router.match(request);
     if (route === undefined) {
-      log.info2("no {0} route to {1}", request.method, pathname);
+      log.info("no {0} route to {1}", request.method, pathname);
       return;
     }
 

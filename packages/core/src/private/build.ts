@@ -1,15 +1,13 @@
+import AppError from "#AppError";
 import BuildApp from "#BuildApp";
 import bye from "#bye";
 import type Config from "#config/Config";
 import default_config from "#config/index";
-import empty_config_file from "#error/empty-config-file";
-import error_in_config_file from "#error/error-in-config-file";
-import type { PrimateError } from "#log";
+import log from "#log";
 import type Mode from "#Mode";
 import type FileRef from "@rcompat/fs/FileRef";
 import root from "@rcompat/package/root";
 import empty from "@rcompat/record/empty";
-import runtime from "@rcompat/runtime";
 
 const empty_config = (config?: Config) => config === undefined || empty(config);
 
@@ -31,17 +29,12 @@ const get_config = async (project_root: FileRef) => {
       const imported = await config.import("default");
 
       if (empty_config(imported)) {
-        empty_config_file(config.toString());
+        throw new AppError("empty config file at {0}", config);
       }
 
       return imported;
     } catch (error) {
-      const primate_error = error as PrimateError;
-      if (primate_error.level === "error") {
-        error_in_config_file(primate_error.message, `${runtime} ${config}`);
-      } else {
-        throw error;
-      }
+      throw new AppError("error in config file {0}", error);
     }
   }
   return default_config();
@@ -54,10 +47,7 @@ export default async (mode: Mode, target: string) => {
     await new BuildApp(package_root, app_config, mode).initBuild(target);
     return true;
   } catch (error) {
-    if ((error as PrimateError).level === "error") {
-      bye();
-      return;
-    }
-    throw error;
+    log.error(error);
+    bye();
   }
 };

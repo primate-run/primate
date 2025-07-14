@@ -9,7 +9,8 @@
     "upgrade": "pnpm -r update -i -L",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "knip": "knip"
   },
   "private": true,
   "devDependencies": {
@@ -19,6 +20,7 @@
     "apekit": "^0.0.18",
     "esbuild": "^0.25.5",
     "eslint": "^9.30.1",
+    "knip": "^5.61.3",
     "proby": "^0.2.0",
     "typescript": "^5.8.3"
   }

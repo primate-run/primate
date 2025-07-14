@@ -1,8 +1,6 @@
 import type Locales from "#Locales";
-import module from "#name";
 import log from "@primate/core/log";
 import assert from "@rcompat/assert";
-import dim from "@rcompat/cli/color/dim";
 
 export default class Manager {
   #locale;
@@ -17,9 +15,7 @@ export default class Manager {
     assert(locales[this.#locale] !== undefined,
       "default locale not in locales");
 
-    log.info(`loaded ${Object.keys(locales).map(l => dim(l)).join(" ")}`, {
-      module,
-    });
+    log.info("loaded {0}", Object.keys(locales).join(" "));
 
     this.#locales = {...locales};
   }

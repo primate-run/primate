@@ -1,14 +1,12 @@
 import forward from "#forward";
 import client_error from "#handler/error";
 import respond from "#hook/respond";
-import type { PrimateError } from "#log";
 import log from "#log";
 import type RequestHook from "#module/RequestHook";
 import type RequestFacade from "#RequestFacade";
 import type ResponseLike from "#ResponseLike";
 import type RouteFunction from "#RouteFunction";
 import type RouteSpecial from "#RouteSpecial";
-import RuntimeError from "#RuntimeError";
 import type ServeApp from "#ServeApp";
 import session_hook from "#session/hook";
 import reload_defaults from "@rcompat/build/reload/defaults";
@@ -91,7 +89,7 @@ const as_route = async (app: ServeApp, partial_request: RequestFacade) => {
     const route = await app.route(partial_request);
 
     if (route === undefined) {
-        return client_error()(app, {}, partial_request) as Response;
+      return client_error()(app, {}, partial_request) as Response;
     }
 
     const { guards, errors, layouts, handler } = route;
@@ -110,12 +108,7 @@ const as_route = async (app: ServeApp, partial_request: RequestFacade) => {
     const $layouts = { layouts: await get_layouts(layouts, request) };
     return respond(response)(app, $layouts, request) as Response;
   } catch (error) {
-    if (error instanceof RuntimeError) {
-      log.auto(error as PrimateError);
-    } else {
-      // unknown error
-      console.log(error);
-    }
+    log.error(error);
     const request = partial_request;
     // the +error.js page itself could fail
     try {
