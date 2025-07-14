@@ -35,7 +35,9 @@ type Test = {
 export const tests: Test[] = [];
 
 export default {
-  ...Object.fromEntries(verbs.map(verb => [verb, (route: Route, tester: Tester) => {
-    tests.push({ verb, route, tester });
-  }])),
+  ...Object.fromEntries(verbs.map(verb =>
+    [verb, (route: Route, tester: Tester) => {
+      tests.push({ verb, route, tester });
+    }],
+  )),
 } as { [K in Verb]: (path: Route, tester: Tester) => void };

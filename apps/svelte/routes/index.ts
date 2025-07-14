@@ -1,3 +1,4 @@
+import route from "primate/route";
 import view from "primate/view";
 
 const posts = [{
@@ -5,8 +6,8 @@ const posts = [{
   title: "First post",
 }];
 
-export default {
+export default route({
   get() {
-    return view("index.svelte", { posts });
+    return view("Index.svelte", { posts });
   },
-};
+});
