@@ -30,7 +30,7 @@ const options = {
   secure: "Secure",
 };
 
-export default class I18NRuntime extends Module {
+export default class Runtime extends Module {
   #manager: Manager;
 
   constructor(locale = default_locale) {

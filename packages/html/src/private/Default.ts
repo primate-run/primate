@@ -1,6 +1,6 @@
 import Runtime from "#Runtime";
 
-export default class HTML extends Runtime {
+export default class Default extends Runtime {
   compile = {
     server: (text: string) => `
     import escape from "@primate/html/escape";

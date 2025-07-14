@@ -1,7 +1,7 @@
 {
   "name": "@primate/grain",
-  "version": "0.0.1",
-  "description": "Grain backend for Primate",
+  "version": "0.1.0",
+  "description": "Primate Grain backend",
   "homepage": "https://primate.run/docs/backend/grain",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -10,7 +10,8 @@
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.1.0",
     "@rcompat/fs": "^0.13.0",
-    "@rcompat/stdio": "^0.10.0"
+    "@rcompat/stdio": "^0.10.0",
+    "pema": "workspace:^"
   },
   "files": [
     "/lib/**/*.js",
@@ -36,9 +37,12 @@
   },
   "exports": {
     ".": {
-      "runtime": "./lib/runtime.js",
-      "default": "./lib/default.js"
+      "runtime": "./lib/public/runtime.js",
+      "default": "./lib/public/default.js"
     },
-    "./*": "./lib/*.js"
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
+    }
   }
 }

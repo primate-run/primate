@@ -5,4 +5,7 @@ export default config({
   modules: [
     htmx(),
   ],
+  http: {
+    port: 10004,
+  },
 });

@@ -5,7 +5,7 @@ import type FileRef from "@rcompat/fs/FileRef";
 const script_re = /(?<=<script)>(?<code>.*?)(?=<\/script>)/gus;
 const webc_class_name_re = /export default class (?<name>.*?) extends/u;
 
-export default class WebComponentsDefaults extends Runtime {
+export default class Default extends Runtime {
   compile = {
     client: (text: string, component: FileRef) => {
       const [script] = [...text.matchAll(script_re)]

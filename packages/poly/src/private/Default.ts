@@ -2,7 +2,7 @@ import Runtime from "#Runtime";
 import create_root from "#create-root";
 import { compile } from "poly/compiler";
 
-export default class PolyDefault extends Runtime {
+export default class Default extends Runtime {
   root = {
     create: create_root,
   };

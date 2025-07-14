@@ -3,7 +3,7 @@ import { Eta } from "eta";
 
 const eta = new Eta();
 
-export default class EtaDefault extends Runtime {
+export default class Default extends Runtime {
   compile = {
     server: (text: string) => `
       import { Eta } from "eta";

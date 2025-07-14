@@ -14,6 +14,7 @@ import decodeWebsocketClose from "./decode-websocket-close.js";
 import text from "#handler/text";
 import Store from "#db/Store";
 import utf8size from "@rcompat/string/utf8size";
+import { WASI } from "node:wasi";
 
 /** A helper function to encourage type safety when working with wasm pointers, tagging them as a specific type. */
 type Tagged<Name, T> = { _tag: Name; } & T;
@@ -216,11 +217,10 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
   }
 
   const defaultInstantiate = async () => {
-    const wasi = await import("node:wasi");
-    const wasiSnapshotPreview1 = new wasi.WASI({
+    const wasiSnapshotPreview1 = new WASI({
       version: "preview1",
-      env: process.env,
-      args: process.argv,
+//      env: process.env,
+//      args: process.argv,
     });
     const wasm = await WebAssembly.instantiate(
       bytes,
@@ -261,13 +261,13 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
         // send the response to the wasm module and decode the response, finalizing the response
         exports.sendResponse(wasmResponse);
         const bufferView = new BufferView(received);
-        const response = decodeResponse(bufferView);
+        const response = decodeResponse(bufferView)!;
         exports.finalizeResponse(wasmResponse);
 
         if (response.type === "web_socket_upgrade") {
           // The callback encloses over the response websocket id provided by
           // the module.
-          return response.callback(instance);
+          return response.callback(instance as any);
         }
 
         if (response.type === "text") {

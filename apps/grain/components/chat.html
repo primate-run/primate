@@ -1,6 +1,6 @@
 <script>
   window.addEventListener("load", () => {
-    const ws = new WebSocket("ws://localhost:6161/handler/ws?limit=20");
+    const ws = new WebSocket("ws://localhost:10002/handler/ws?limit=20");
     ws.addEventListener("open", () => {
       document.querySelector("#chat").addEventListener("keypress", event => {
         if (event.key === "Enter") {

@@ -4,7 +4,7 @@ import { transformSync } from "@babel/core";
 // @ts-expect-error no declaration file
 import solid from "babel-preset-solid";
 
-export default class Solid extends Runtime {
+export default class Default extends Runtime {
   root = {
     create: create_root,
   };

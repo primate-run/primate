@@ -1,4 +1,0 @@
-
-interface ImportMeta {
-  dirname: string;
-}

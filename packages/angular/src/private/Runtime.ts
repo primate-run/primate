@@ -7,7 +7,7 @@ import type Next from "@primate/core/Next";
 import type NextServe from "@primate/core/NextServe";
 import type ServeApp from "@primate/core/ServeApp";
 
-export default class AngularRuntime extends FrontendModule<ComponentDecorator> {
+export default class Runtime extends FrontendModule<ComponentDecorator> {
   name = "angular";
   defaultExtension = ".component.ts";
   layouts = false;

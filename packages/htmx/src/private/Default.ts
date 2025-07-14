@@ -7,7 +7,7 @@ import empty from "@rcompat/record/empty";
 const htmx_esm = "htmx-esm";
 const _export = `export * from "${htmx_esm}`;
 
-export default class HTMX extends Runtime {
+export default class Default extends Runtime {
   #extensions: string[];
   #templates: Template[];
   compile = {

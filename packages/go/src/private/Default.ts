@@ -17,6 +17,7 @@ const env = {
   GOOS: "js",
   GOARCH: "wasm",
   GOCACHE: (await execute(`${command} env GOCACHE`, {})).replaceAll("\n", ""),
+  HOME: user.HOME,
 };
 
 const run = (wasm: FileRef, go: FileRef) =>
@@ -68,10 +69,10 @@ globalThis.PRMT_SESSION = {
 
 ${
   (runtime as "node" | "bun" | "deno") === "bun"
-? `import route_path from "${path}" with { type: "file" };
+    ? `import route_path from "${path}" with { type: "file" };
 const route = await Bun.file(route_path).arrayBuffer();`
-:
-`import FileRef from "primate/runtime/FileRef";
+    :
+    `import FileRef from "primate/runtime/FileRef";
 
 const buffer = await FileRef.arrayBuffer(import.meta.url+"/../${path}");
 const route = new Uint8Array(buffer);`
@@ -84,7 +85,7 @@ ${routes.map(route => make_route(route)).join(",\n")}
 
 const go_wrapper = (code: string, routes: string[]) =>
   `${code.replace("package main",
-`package main
+    `package main
 
 import "syscall/js"
 `)}
@@ -140,29 +141,28 @@ const create_meta_files = async (directory: FileRef) => {
 
 export default class Default extends Runtime {
   build(app: BuildApp, next: NextBuild) {
-    app.bind(this.extension, async (go, context) => {
+    app.bind(this.extension, async (route, context) => {
       assert(context === "routes", "go: only route files are supported");
 
       // build/stage/routes
-      const directory = go.directory;
+      const directory = route.directory;
       // create meta files
       await create_meta_files(directory);
 
-      const code = await go.text();
+      const code = await route.text();
       const routes = get_routes(code);
       // write .go file
-      await go.write(go_wrapper(code, routes));
+      await route.write(go_wrapper(code, routes));
 
-      const wasm = go.bare(".wasm");
+      const wasm = route.bare(".wasm");
 
-      await go.append(".js").write(js_wrapper(wasm.name, routes));
+      await route.append(".js").write(js_wrapper(wasm.name, routes));
       try {
-        log.info(`compiling {0} to WebAssembly`, go);
-        const cwd = `${directory}`;
+        log.info(`compiling {0} to WebAssembly`, route);
         // compile .go to .wasm
-        await execute(run(wasm, go), { cwd, env: { HOME: user.HOME, ...env } });
+        await execute(run(wasm, route), { cwd: `${directory}`, env });
       } catch (error) {
-        throw new AppError(`Error in module {0}\n{1}`, go, error);
+        throw new AppError(`Error in module {0}\n{1}`, route, error);
       }
     });
 

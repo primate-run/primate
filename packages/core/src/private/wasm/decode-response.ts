@@ -1,20 +1,19 @@
+import type Dictionary from "#frontend/Props";
 import error from "#handler/error";
-import view from "#handler/view";
-import { Known } from "@rcompat/http/Status";
-import * as assert from "node:assert/strict";
 import redirect from "#handler/redirect";
-import decodeString from "./decode-string.js";
-import decodeJson from "./decode-json.js";
-import decodeBytes from "./decode-bytes.js";
-import decodeOption from "./decode-option.js";
-import openWebsocket from "./open-websocket.js";
-import Dictionary from "#frontend/Props";
+import view from "#handler/view";
+import type ResponseFunction from "#ResponseFunction";
 import type BufferView from "@rcompat/bufferview";
-import ResponseFunction from "#ResponseFunction";
+import type { Known } from "@rcompat/http/Status";
+import decodeBytes from "./decode-bytes.js";
+import decodeJson from "./decode-json.js";
+import decodeOption from "./decode-option.js";
+import decodeString from "./decode-string.js";
+import type { Instantiation } from "./instantiate.js";
+import openWebsocket from "./open-websocket.js";
+import assert from "@rcompat/assert";
 
 type MaybeRedirectionStatus = Parameters<typeof redirect>[1];
-
-type Instantiation = import("./instantiate.js").Instantiation<any, any>;
 
 const RESPONSE_TEXT = 0 as const;
 const RESPONSE_JSON = 1 as const;
@@ -45,12 +44,12 @@ type DecodedResponse =
   | {
     type: "web_socket_upgrade";
     callback: (api: Instantiation) => ResponseFunction;
-  }
+  };
 
-const decodeResponse = (source: BufferView): DecodedResponse => {
+const decodeResponse = (source: BufferView): DecodedResponse | undefined => {
   const responseKind = source.readU32();
 
-  assert.ok(
+  assert(
     responseKind === RESPONSE_BLOB
     || responseKind === RESPONSE_ERROR
     || responseKind === RESPONSE_JSON
@@ -109,7 +108,7 @@ const decodeResponse = (source: BufferView): DecodedResponse => {
       return {
         type: "redirect",
         value: redirect(to, status),
-      }
+      };
     }
 
     case RESPONSE_URI: {

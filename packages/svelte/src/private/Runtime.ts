@@ -3,7 +3,7 @@ import type Render from "@primate/core/frontend/Render";
 import type { Component } from "svelte";
 import { render } from "svelte/server";
 
-export default class SvelteRuntime extends FrontendModule<Component> {
+export default class Runtime extends FrontendModule<Component> {
   name = "svelte";
   defaultExtension = ".svelte";
   layouts = true;

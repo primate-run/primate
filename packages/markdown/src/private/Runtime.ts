@@ -3,7 +3,7 @@ import Module from "@primate/core/frontend/Module";
 import maybe from "@rcompat/assert/maybe";
 import { marked } from "marked";
 
-export default class MarkdownRuntime extends Module {
+export default class Runtime extends Module {
   name = "markdown";
   defaultExtension = ".md";
   layouts = false;

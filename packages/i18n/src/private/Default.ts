@@ -5,7 +5,7 @@ import AppError from "@primate/core/AppError";
 
 const repository = "locales";
 
-export default class I18N extends Runtime {
+export default class Default extends Runtime {
   async build(app: BuildApp, next: NextBuild) {
     const root = app.root.join(repository);
 

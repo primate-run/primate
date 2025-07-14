@@ -6,7 +6,7 @@ import { renderToString } from "react-dom/server";
 
 type Component = FunctionComponent<Props>;
 
-export default class ReactRuntime extends Module<Component> {
+export default class Runtime extends Module<Component> {
   name = "react";
   defaultExtension = ".jsx";
   client = true;

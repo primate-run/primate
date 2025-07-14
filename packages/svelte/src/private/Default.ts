@@ -2,7 +2,7 @@ import create_root from "#create-root";
 import Runtime from "#Runtime";
 import { compile } from "svelte/compiler";
 
-export default class SvelteDefault extends Runtime {
+export default class Default extends Runtime {
   root = {
     create: create_root,
   };

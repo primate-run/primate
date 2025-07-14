@@ -4,13 +4,8 @@ from "primate/response" include Response
 from "primate/request" include Request
 from "json" include Json
 
-use Response.{ type Response }
 use Request.{ type Request }
 use Json.{ type Json }
 
-
-provide let get = (request: Request) => {
+provide let get = (request: Request) => 
   JsonObject([("message", JsonString("Hello, world!"))])
-}
-
-

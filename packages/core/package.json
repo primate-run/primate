@@ -48,74 +48,9 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-<<<<<<< HEAD
-    },
-    "#build/*": {
-      "apekit": "./src/build/*.ts",
-      "default": "./lib/build/*.js"
-    },
-    "#serve/*": {
-      "apekit": "./src/serve/*.ts",
-      "default": "./lib/serve/*.js"
-    },
-    "#serve/hook/*": {
-      "apekit": "./src/serve/hook/*.ts",
-      "default": "./lib/serve/hook/*.js"
-    },
-    "#error/*": {
-      "apekit": "./src/private/error/*.ts",
-      "default": "./lib/private/error/*.js"
-    },
-    "#frontend": {
-      "apekit": "./src/private/Frontend.ts"
-    },
-    "#frontend/*": {
-      "apekit": "./src/private/frontend/*.ts",
-      "default": "./lib/private/frontend/*.js"
-    },
-    "#handler/*": {
-      "apekit": "./src/private/handler/*.ts",
-      "default": "./lib/private/handler/*.js"
-    },
-    "#session/*": {
-      "apekit": "./src/private/session/*.ts",
-      "default": "./lib/private/session/*.js"
-    },
-    "#log/*": {
-      "apekit": "./src/private/log/*.ts",
-      "default": "./lib/private/log/*.js"
-    },
-    "#db/*": {
-      "apekit": "./src/private/db/*.ts",
-      "default": "./lib/private/db/*.js"
-    },
-    "#wasm/*": {
-      "apekit": "./src/private/wasm/*.ts",
-      "default": "./lib/private/wasm/*.js"
-=======
->>>>>>> 6e716685 (module)
     }
   },
   "exports": {
-    "./serve": {
-      "apekit": "./src/public/serve/index.ts",
-      "default": "./lib/public/serve/index.js"
-    },
-<<<<<<< HEAD
-    "./serve/*": {
-      "apekit": "./src/public/serve/*.ts",
-      "default": "./lib/public/serve/*.js"
-    },
-    "./config/*": {
-      "apekit": "./src/public/config/*.ts",
-      "default": "./lib/public/config/*.js"
-    },
-    "./build": "./lib/build/index.js",
-    "./build/app": {
-      "apekit": "./src/build/app.ts"
-    },
-=======
->>>>>>> 6e716685 (module)
     "./error": "./lib/error/index.js",
     "./dispatch": "./lib/dispatch/index.js",
     "./frontend": {

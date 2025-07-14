@@ -4,7 +4,7 @@ import "linkedom-global";
 // @ts-expect-error no-types
 import { createElement, renderToString } from "voby";
 
-export default class VobyRuntime extends Module {
+export default class Runtime extends Module {
   name = "voby";
   defaultExtension = ".voby";
   layouts = false;

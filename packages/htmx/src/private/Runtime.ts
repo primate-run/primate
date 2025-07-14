@@ -3,7 +3,7 @@ import FrontendModule from "@primate/core/frontend/Module";
 import inline from "@primate/core/inline";
 import handler from "@primate/html/handler";
 
-export default class HTMXRuntime extends FrontendModule {
+export default class Runtime extends FrontendModule {
   name = "htmx";
   defaultExtension = ".htmx";
   layouts = false;

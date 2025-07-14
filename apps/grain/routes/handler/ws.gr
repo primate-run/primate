@@ -3,12 +3,13 @@ module Ws
 from "primate/request" include Request
 from "primate/response" include Response
 from "primate/websocket" include WebSocket
-use Response.{ type Response, ws }
+
+use Response.{ type Response }
 use Request.{ type Request }
 use WebSocket.{ type SocketMessage, type WebSocket, send }
 
-provide let get = (res: Response) => {
-  ws(
+provide let get = (req: Request) => {
+  Response.ws(
     open = Some((_socket) => {
       print("Opened!")
     }),

@@ -1,8 +1,9 @@
-module ErrorOptions
+module Error
 
 from "primate/request" include Request
 from "primate/response" include Response
-use Response.{ type Response, error }
+
+use Response.{ type Response }
 use Request.{ type Request }
 
-provide let get = (request: Request) => error()
+provide let get = (request: Request) => Response.error()

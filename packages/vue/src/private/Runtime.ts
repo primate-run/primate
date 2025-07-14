@@ -3,7 +3,7 @@ import type Render from "@primate/core/frontend/Render";
 import { createSSRApp, type Renderer } from "vue";
 import { renderToString } from "vue/server-renderer";
 
-export default class VueRuntime extends Module<Renderer> {
+export default class Runtime extends Module<Renderer> {
   name = "vue";
   defaultExtension = ".vue";
   layouts = false;

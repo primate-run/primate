@@ -5,4 +5,7 @@ export default config({
   modules: [
     angular(),
   ],
+  http: {
+    port: 10000,
+  },
 });

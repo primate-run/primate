@@ -21,14 +21,10 @@ test.get("/handler/redirect-status", response => {
 });
 
 test.get("/handler/view", response => {
-  response.body.includes(`<h1>View</h1>
-
-Hello, world.`);
+  response.body.includes(`<h1>View</h1>Hello, world.`);
 });
 
 test.get("/handler/view-options", response => {
-  response.body.equals(`<h1>View</h1>
-
-Hello, world.
+  response.body.equals(`<h1>View</h1>Hello, world.
 `);
 });

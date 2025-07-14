@@ -6,7 +6,6 @@ from "primate/session" include Session
 from "json" include Json
 
 use Request.{ type Request }
-use Response.{ json }
 use Json.{ type Json }
 
 provide let get = (request: Request) => {
@@ -15,5 +14,5 @@ provide let get = (request: Request) => {
     ("message", JsonString("Hello world!")),
   ]))
 
-  json(session.data)
+  Response.json(session.data)
 }

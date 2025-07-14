@@ -3,7 +3,7 @@ import type Render from "@primate/core/frontend/Render";
 import type { Component } from "solid-js";
 import { renderToString } from "solid-js/web";
 
-export default class SolidRuntime extends Module<Component> {
+export default class Runtime extends Module<Component> {
   name = "solid";
   defaultExtension = ".solid";
   client = true;

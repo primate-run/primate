@@ -3,7 +3,7 @@ import Module from "@primate/core/frontend/Module";
 import type Next from "@primate/core/Next";
 import type FileRef from "@rcompat/fs/FileRef";
 
-export default class WebComponentsRuntime extends Module {
+export default class Runtime extends Module {
   #components?: FileRef;
   name = "webc";
   defaultExtension = ".webc";

@@ -3,7 +3,7 @@ import Runtime from "#Runtime";
 import react from "@rcompat/build/preset/react";
 import transform from "@rcompat/build/sync/transform";
 
-export default class React extends Runtime {
+export default class Default extends Runtime {
   root = {
     create: create_root,
   };

@@ -1,11 +1,8 @@
-module WsExample
+module Chat
 
 from "primate/request" include Request
 from "primate/response" include Response
 
 use Request.{ type Request }
-use Response.{ view }
 
-provide let get = (req: Request) => {
-  view("ws-example.html")
-}
+provide let get = (req: Request) => Response.view("chat.html")
