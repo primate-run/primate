@@ -4,9 +4,9 @@
   "scripts": {},
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@primate/html": "workspace:^",
     "@primate/grain": "workspace:^",
-    "@rcompat/fs": "^0.12.18",
+    "@primate/html": "workspace:^",
+    "@rcompat/fs": "^0.13.2",
     "primate": "workspace:^"
   }
 }

@@ -26,7 +26,7 @@
     "@rcompat/assert": "^0.1.0",
     "@rcompat/fs": "^0.13.2",
     "pema": "workspace:^",
-    "pyodide": "^0.27.7"
+    "pyodide": "^0.28.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"
