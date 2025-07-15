@@ -53,7 +53,7 @@ const write_components = async (build_directory: FileRef, app: BuildApp) => {
   const components_js = `
 const component = [];
 ${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
-   `import * as component${i} from "${FileRef.webpath(`#component/${bare}`)}";
+  `import * as component${i} from "${FileRef.webpath(`#component/${bare}`)}";
 component.push(["${FileRef.webpath(bare)}", component${i}]);`,
 ).join("\n")}
 

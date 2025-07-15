@@ -8,6 +8,7 @@ import type RequestFacade from "@primate/core/RequestFacade";
 import type ServeApp from "@primate/core/ServeApp";
 import is from "@rcompat/assert/is";
 import Status from "@rcompat/http/Status";
+import AppError from "@primate/core/AppError";
 
 const default_locale = "en-US";
 
@@ -49,11 +50,13 @@ export default class Runtime extends Module {
   }
 
   serve(app: ServeApp, next: NextServe) {
-    if (app.files.locales === undefined) {
-      return next(app);
+    const locales = app.files.locales;
+
+    if (locales === undefined) {
+      throw new AppError("no locales configured");
     }
 
-    this.manager.init(Object.fromEntries(app.files.locales.map(([name, locale]) =>
+    this.manager.init(Object.fromEntries(locales.map(([name, locale]) =>
       [name, locale.default],
     )));
 

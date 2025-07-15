@@ -3,6 +3,6 @@ import type Props from "#frontend/Props";
 import type ResponseFunction from "#ResponseFunction";
 
 type Frontend = (name: string, props?: Props, options?: Options) =>
-  ResponseFunction;
+ResponseFunction;
 
 export { Frontend as default };

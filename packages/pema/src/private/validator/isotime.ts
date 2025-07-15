@@ -12,7 +12,8 @@ const check = (_time: string) => {
   try {
     /*const { groups } = isotime.exec(time)!;
     return Object.entries(groups).reduce((valid, [name, unit]) =>
-      valid && (value => value > 0 && value <= range[name as keyof Range])(unit), true);*/
+      valid && (value => value > 0
+      && value <= range[name as keyof Range])(unit), true);*/
     return true;
   } catch {
     return false;

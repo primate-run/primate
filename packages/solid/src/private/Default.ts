@@ -15,7 +15,7 @@ export default class Default extends Runtime {
     },
     client: (text: string) => {
       const presets = [[solid, { generate: "dom", hydratable: true }]];
-      return { js: transformSync(text, { presets })?.code ?? "", css: null };
+      return { js: transformSync(text, { presets })?.code ?? "" };
     },
   };
 }

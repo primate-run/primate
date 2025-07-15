@@ -1,4 +1,4 @@
-import PartialDictionary from "@rcompat/type/PartialDictionary";
+import type PartialDictionary from "@rcompat/type/PartialDictionary";
 import encodeString from "./encode-string.js";
 import type BufferView from "@rcompat/bufferview";
 
@@ -13,6 +13,6 @@ const encodeStringMap = (map: PartialDictionary<string>, bufferView: BufferView)
     encodeString(key, bufferView);
     encodeString(value!, bufferView);
   }
-}
+};
 
 export default encodeStringMap;

@@ -1,9 +1,9 @@
 import BufferView from "@rcompat/bufferview";
 import FileRef from "@rcompat/fs/FileRef";
-import MaybePromise from "@rcompat/type/MaybePromise";
+import type MaybePromise from "@rcompat/type/MaybePromise";
 import assert from "@rcompat/assert";
-import RequestFacade from "#RequestFacade";
-import ResponseLike from "#ResponseLike";
+import type RequestFacade from "#RequestFacade";
+import type ResponseLike from "#ResponseLike";
 import session from "#session/index";
 import encodeSession from "#wasm/encode-session";
 import encodeRequest from "#wasm/encode-request";
@@ -12,12 +12,12 @@ import decodeJson from "#wasm/decode-json";
 import decodeWebsocketSendMessage from "./decode-websocket-send.js";
 import decodeWebsocketClose from "./decode-websocket-close.js";
 import text from "#handler/text";
-import Store from "#db/Store";
+import type Store from "#db/Store";
 import utf8size from "@rcompat/string/utf8size";
 import { WASI } from "node:wasi";
 
 /** A helper function to encourage type safety when working with wasm pointers, tagging them as a specific type. */
-type Tagged<Name, T> = { _tag: Name; } & T;
+type Tagged<Name, T> = { _tag: Name } & T;
 
 /** The HTTP methods supported by Primate. */
 const methods = ["get", "head", "post", "put", "delete", "connect", "options", "trace", "patch"] as const;
@@ -29,7 +29,7 @@ type RequestHandler = (request: RequestFacade) => MaybePromise<ResponseLike>;
 type ServerWebSocket = {
   send(value: string | ArrayBufferLike | Blob | ArrayBufferView): void;
   close(code?: number, reason?: string): void;
-}
+};
 
 /** The default request and response types, which are likely pointers into a WASM linear memory space. */
 type I32 = number;
@@ -59,21 +59,21 @@ export type PrimateWasmExports<TRequest = I32, TResponse = I32> = {
 
 export type Instantiation<TRequest = I32, TResponse = I32> = {
   api: API;
-  sockets: Map<bigint, any>,
+  sockets: Map<bigint, any>;
   memory: WebAssembly.Memory;
   exports: PrimateWasmExports<TRequest, TResponse>;
   setPayload(value: Uint8Array): void;
 };
 
 export type InstantiateProps = {
-  wasmFile: string,
+  wasmFile: string;
   // storesFolder: string,
-  imports?: WebAssembly.Imports,
+  imports?: WebAssembly.Imports;
 };
 
 /**
  * Instantiate a WASM module from a file reference and the given web assembly imports..
- * 
+ *
  * @param ref - The file reference to the WASM module.
  * @param imports - The imports to pass to the WASM module when instantiating it.
  * @returns - The instantiated WASM module, its exports, and the API that Primate exposes to the WASM module.
@@ -87,16 +87,16 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
   const stores = {} as Record<string, Store>;
   const idToStore = new Map<number, Store>();
   const nameToId = new Map<string, number>();
-  
+
   /**
-   * 
+   *
    *  let id = 0;
    *  if (await storesFolderRef.exists()) {
    *    for (const store of await storesFolderRef.glob("...GLOB_GOES_HERE...")) {
    *      const storeName = store.debase(storesFolderRef.path).path.slice(0, -".js".length);
    *      const storeInstance = await store.import("default");
    *      const storeId = id++;
-   *      
+   *
    *      stores[storeName] = storeInstance;
    *      idToStore.set(storeId, storeInstance);
    *      nameToId.set(storeName, storeId);
@@ -120,7 +120,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
     /**
      * Create a new session and set it as the current session. This method should only be called after
      * a JSON payload has been received via the `send` function.
-     * 
+     *
      * Once the session has been created, the `payload` should be set to the encoded session, and then
      * `payloadByteLength` and `receive` should be called to send the payload to the WASM module.
      */
@@ -143,7 +143,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
 
     /**
      * Send the current active payload to the WASM module.
-     * 
+     *
      * @param ptr The pointer to where the payload should be written into the WASM linear memory space.
      * @param length The length of the payload. This must match the actual payload length, otherwise an exception will be thrown.
      */
@@ -155,7 +155,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
 
     /**
      * Get the length of the current active payload.
-     * 
+     *
      * @returns The length of the payload.
      */
     payloadByteLength() {
@@ -164,7 +164,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
 
     /**
      * Send a payload from the WASM module to Primate.
-     * 
+     *
      * @param ptr The pointer to the payload in the WASM linear memory space.
      * @param length The length of the payload.
      */
@@ -205,7 +205,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
     const context = new Context({
       args: Deno.args,
       env: Deno.env.toObject(),
-      preopens: {"./":"./"}
+      preopens: {"./": "./"},
     });
 
     const instance = await WebAssembly.instantiate(bytes, {
@@ -214,13 +214,13 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
       "primate": primateImports,
     });
     return instance;
-  }
+  };
 
   const defaultInstantiate = async () => {
     const wasiSnapshotPreview1 = new WASI({
       version: "preview1",
-//      env: process.env,
-//      args: process.argv,
+      //      env: process.env,
+      //      args: process.argv,
     });
     const wasm = await WebAssembly.instantiate(
       bytes,
@@ -247,17 +247,17 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
   for (const method of methods) {
     if (method in exports && typeof exports[method] === "function") {
       const methodFunc = (request: Tagged<"Request", TRequest>) => exports[method]!(request) as Tagged<"Response", TResponse>;
-      
+
       api[method] = async (request: RequestFacade): Promise<ResponseLike> => {
         // payload is now set
         payload = await encodeRequest(request);
         // immediately tell the wasm module to obtain the payload and create a request
         const wasmRequest = exports.newRequest();
-        
+
         // call the http method and obtain the response, finalizing the request
         const wasmResponse = methodFunc(wasmRequest);
         exports.finalizeRequest(wasmRequest);
-        
+
         // send the response to the wasm module and decode the response, finalizing the response
         exports.sendResponse(wasmResponse);
         const bufferView = new BufferView(received);
@@ -278,11 +278,11 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
         }
 
         return response.value;
-      }
+      };
     }
   }
 
   return instance;
-}
+};
 
 export default instantiate;

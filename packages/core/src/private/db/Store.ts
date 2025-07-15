@@ -126,7 +126,7 @@ export default class Store<S extends StoreSchema = StoreSchema> {
 
     const [_id] = await this.db.create(this, []);
 
-//    validated.id = id;
+    //    validated.id = id;
 
     return validated;
   }

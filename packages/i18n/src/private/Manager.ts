@@ -12,8 +12,7 @@ export default class Manager {
 
   init(locales: Locales) {
     assert(Object.keys(locales).length > 0, "empty locales object");
-    assert(locales[this.#locale] !== undefined,
-      "default locale not in locales");
+    assert(this.#locale in locales, "default locale not in locales");
 
     log.info("loaded {0}", Object.keys(locales).join(" "));
 

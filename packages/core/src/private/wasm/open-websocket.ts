@@ -25,4 +25,4 @@ export default (websocketId: bigint) =>
         api.exports.websocketClose();
       },
     });
-  }
+  };

@@ -27,6 +27,6 @@ const encodeSession = (session: SessionShape) => {
   encodeString(session.id, bufferView);
 
   return output;
-}
+};
 
 export default encodeSession;

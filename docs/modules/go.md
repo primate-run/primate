@@ -7,7 +7,7 @@ This module adds support for writing routes in Golang.
 `npm install @primate/go`
 
 In addition, your system needs to have the `go` executable in its path, as it
-is used to compile the Go routes into Wasm.
+is used to compile Go routes into Wasm.
 
 ## Configure
 

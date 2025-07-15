@@ -18,6 +18,8 @@
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "prepublishOnly": "npm run build",
     "test": "npm run build && npx proby"
   },

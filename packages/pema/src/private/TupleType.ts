@@ -9,10 +9,10 @@ import OptionalType from "#OptionalType";
 import type Schema from "#Schema";
 
 type InferTuple<T extends Schema[]> = {
-    [K in keyof T]:
-      T[K] extends Schema
-      ? InferSchema<T[K]>
-      : "tuple-never"
+  [K in keyof T]:
+  T[K] extends Schema
+    ? InferSchema<T[K]>
+    : "tuple-never"
 };
 
 const member_error = (i: unknown, key?: string) => {

@@ -20,11 +20,11 @@ const encodeWebsocketMessage = (id: bigint, message: string | Uint8Array) => {
     );
   const output = new Uint8Array(size);
   const bufferView = new BufferView(output);
-  
+
   bufferView.writeU64(id);
-  
+
   if (typeof message === "string") {
-    bufferView.writeU32(WEBSOCKET_MESSAGE_KIND_STRING)
+    bufferView.writeU32(WEBSOCKET_MESSAGE_KIND_STRING);
     encodeString(message, bufferView);
   } else {
     bufferView.writeU32(WEBSOCKET_MESSAGE_KIND_BYTES);

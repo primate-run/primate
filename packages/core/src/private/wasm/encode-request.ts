@@ -1,6 +1,6 @@
-import RequestFacade from "#RequestFacade";
+import type RequestFacade from "#RequestFacade";
 import assert from "@rcompat/assert";
-import PartialDictionary from "@rcompat/type/PartialDictionary";
+import type PartialDictionary from "@rcompat/type/PartialDictionary";
 import sizeOfUrl from "./size-of-url.js";
 import sizeOfString from "./size-of-string.js";
 import sizeOfFile from "./size-of-file.js";
@@ -53,14 +53,14 @@ const sizeOfBodySection = (body: Body) => {
           typeof value === "string"
             ? sizeOfString(value)
             : sizeOfFile(value)
-        )
+        );
     }
 
     return size;
   }
-  
+
   throw new Error("Invalid RequestLike body");
-}
+};
 
 const sizeOfMapSection = (map: PartialDictionary<string>) => {
   let size = SECTION_HEADER_SIZE + SIZE_I32;
@@ -72,17 +72,17 @@ const sizeOfMapSection = (map: PartialDictionary<string>) => {
   }
 
   return size;
-}
+};
 
 /**
  * Encode a map of Key Value pairs into a section.
- * 
+ *
  * - [I32: header]
  * - [I32: count]
  * - Entries[count]:
  *   - [String: key]
  *   - [String: value]
- * 
+ *
  * @param header - The header for this section.
  * @param map - The map itself to be encoded.
  * @param offset - The offset to encode the map at.
@@ -99,7 +99,7 @@ const encodeFile = async (file: File, bufferView: BufferView) => {
 
   const bytes = await file.bytes();
   bufferView.writeBytes(bytes);
-}
+};
 
 /**
  * 1. Section 1: URI
@@ -165,14 +165,14 @@ const encodeSectionBody = async (body: Body, bufferView: BufferView) => {
       }
     }
   }
-  
+
   if (body === null || body === void 0) {
     bufferView.writeU32(BODY_KIND_NULL);
     return;
   }
 
   throw new Error(`Unsupported body type: ${typeof body}`);
-}
+};
 
 const sizeOfRequest = (request: RequestFacade) => sizeOfUrlSection(request.url)
   + sizeOfBodySection(request.body)
@@ -188,7 +188,7 @@ const encodeRequestInto = async (request: RequestFacade, bufferView: BufferView)
   encodeMapSection(QUERY_SECTION, request.query, bufferView);
   encodeMapSection(HEADERS_SECTION, request.headers, bufferView);
   encodeMapSection(COOKIES_SECTION, request.cookies, bufferView);
-}
+};
 
 const encodeRequest = async (request: RequestFacade) => {
   const size = sizeOfRequest(request);
@@ -196,7 +196,7 @@ const encodeRequest = async (request: RequestFacade) => {
   const bufferView = new BufferView(output);
   await encodeRequestInto(request, bufferView);
   return output;
-}
+};
 
 encodeRequest.sizeOf = sizeOfRequest;
 encodeRequest.into = encodeRequestInto;

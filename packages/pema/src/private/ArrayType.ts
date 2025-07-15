@@ -53,7 +53,7 @@ export default class ArrayType<T extends Validated<unknown>> extends
 
     // sparse array with end slots
     if (x.length > last) {
-        throw new Error(error(expected(this.#subtype.name, undefined), `[${last}]`));
+      throw new Error(error(expected(this.#subtype.name, undefined), `[${last}]`));
     }
 
     return x as never;

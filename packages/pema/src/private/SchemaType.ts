@@ -60,7 +60,7 @@ export default class SchemaType<S extends Schema>
     if (typeof s === "object" && s !== null) {
       let _x = x;
       if (typeof _x !== "object" || _x === null) {
-          // Allow undefined if all fields are optional or defaulted
+        // Allow undefined if all fields are optional or defaulted
         if (!all_optional(s)) {
           throw new Error("Expected object");
         } else {

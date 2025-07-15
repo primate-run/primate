@@ -24,7 +24,7 @@ export default class Default extends Runtime {
       const js = `${script}
         globalThis.customElements.define("${tag}", ${name});`;
 
-      return { js, css: null };
+      return { js };
     },
   };
 }

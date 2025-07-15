@@ -1,3 +1,3 @@
-import decodeResponse from "#wasm/decode-response"
+import decodeResponse from "#wasm/decode-response";
 
 export default decodeResponse;

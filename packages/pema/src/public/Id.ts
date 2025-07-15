@@ -1,1 +1,1 @@
-export { default } from "#Id"
+export { default } from "#Id";

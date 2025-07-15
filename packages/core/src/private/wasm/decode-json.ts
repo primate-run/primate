@@ -9,6 +9,6 @@ const decodeJson = (view: BufferView) => {
 decodeJson.from = (...args: ConstructorParameters<typeof BufferView>) => {
   const bufferView = new BufferView(...args);
   return decodeJson(bufferView);
-}
+};
 
 export default decodeJson;

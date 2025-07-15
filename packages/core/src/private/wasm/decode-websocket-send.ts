@@ -15,7 +15,7 @@ const decodeWebsocketSendMessage = (...bufferSource: BufferViewSource) => {
   assert(
     kind === WEBSOCKET_MESSAGE_KIND_STRING
     || kind === WEBSOCKET_MESSAGE_KIND_BYTES,
-    "Invalid websocket message kind."
+    "Invalid websocket message kind.",
   );
   const message = kind === WEBSOCKET_MESSAGE_KIND_STRING
     ? decodeString(bufferView)

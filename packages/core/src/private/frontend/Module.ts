@@ -52,7 +52,7 @@ export default abstract class FrontendModule<
   compile: {
     server?: (text: string) => MaybePromise<string>;
     client?: (text: string, file: FileRef) =>
-    MaybePromise<{ js: string; css: string | null }>;
+    MaybePromise<{ js: string; css?: string | null }>;
   } = {};
   css?: {
     filter: RegExp;
@@ -253,7 +253,10 @@ export default abstract class FrontendModule<
             const compiled = await compile.client!(await file.text(), file);
             let contents = compiled.js;
 
-            if (css && compiled.css !== null && compiled.css !== "") {
+            if (css
+                && compiled.css !== null
+                && compiled.css !== undefined
+                && compiled.css !== "") {
               const path = FileRef.webpath(`${args.path}css`);
               app.build.save(path, compiled.css);
               contents += `\nimport "${path}";`;
@@ -268,8 +271,7 @@ export default abstract class FrontendModule<
 
   init<T extends App>(app: T, next: Next<T>) {
     app.bind(this.extension, async (file, context) => {
-      assert(context === "components",
-        `${this.name}: only components supported`);
+      assert(context === "components", `${this.name}: only components supported`);
 
       if (this.compile.server) {
         // compile server component

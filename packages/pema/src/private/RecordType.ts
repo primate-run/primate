@@ -52,10 +52,10 @@ export default class RecordType<
 
       keys.forEach(k => {
         if (key_name === "string" && is_numeric(k)) {
-            throw new Error(expected("string key", +k));
+          throw new Error(expected("string key", +k));
         }
         if (key_name === "number" && !is_numeric(k)) {
-            throw new Error(expected("number key", k));
+          throw new Error(expected("number key", k));
         }
 
         this.#value.validate((x as Record<string | number, unknown>)[k],

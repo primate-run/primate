@@ -14,6 +14,6 @@ export default class NumberType
   }
 
   normalize(value: number) {
-     return value;
+    return value;
   }
 }

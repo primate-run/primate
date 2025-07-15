@@ -8,4 +8,4 @@ type NormalizeSchemas<T extends Schema[]> = {
 };
 
 export default <const T extends Schema[]>(...types: T):
-  UnionType<NormalizeSchemas<T>> => new UnionType(types) as never;
+UnionType<NormalizeSchemas<T>> => new UnionType(types) as never;

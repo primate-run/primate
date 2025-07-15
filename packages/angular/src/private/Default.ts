@@ -6,7 +6,7 @@ import transform from "@rcompat/build/sync/transform";
 export default class Default extends Runtime {
   compile = {
     server: (text: string) => transform(text, angular).code,
-    client: (text: string) => ({ js: transform(text, angular).code, css: null }),
+    client: (text: string) => ({ js: transform(text, angular).code }),
   };
   root = {
     create: create_root,

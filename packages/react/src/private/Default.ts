@@ -9,6 +9,6 @@ export default class Default extends Runtime {
   };
   compile = {
     server: (text: string) => transform(text, react).code,
-    client: (text: string) => ({ js: transform(text, react).code, css: null }),
+    client: (text: string) => ({ js: transform(text, react).code }),
   };
 }

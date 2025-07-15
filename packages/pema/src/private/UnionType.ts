@@ -12,10 +12,10 @@ import assert from "@rcompat/assert";
 import type TupleToUnion from "@rcompat/type/TupleToUnion";
 
 type InferUnion<T extends Schema[]> = TupleToUnion<{
-    [K in keyof T]:
-      T[K] extends Schema
-      ? InferSchema<T[K]>
-      : "union-never"
+  [K in keyof T]:
+  T[K] extends Schema
+    ? InferSchema<T[K]>
+    : "union-never"
 }>;
 
 const error = (message: string, key?: string) => {
@@ -44,7 +44,7 @@ const print = (type: unknown) => {
   if (type_of === "object") {
     return `{ ${Object.entries(type as object)
       .map(([name, subtype]): string => `${name}: ${print(subtype)}`)
-    .join(", ") } }`;
+      .join(", ") } }`;
   }
 
   return type;

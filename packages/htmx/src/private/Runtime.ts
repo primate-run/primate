@@ -8,8 +8,9 @@ export default class Runtime extends FrontendModule {
   defaultExtension = ".htmx";
   layouts = false;
   client = false;
-  handler: Frontend = (name, props, options = {}) => async (app, _, request) => {
-    const code = "import { htmx } from \"app\";";
+  handler: Frontend = (name, props, options = {}) => async (app, _, request) =>
+  {
+    const code = `import { htmx } from "app";`;
     const { head, integrity } = await inline(code, "module");
     const script_src = [integrity];
 

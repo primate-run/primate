@@ -21,7 +21,7 @@ const is_constructor = (value: unknown): value is AbstractConstructor => {
   }
 };
 export default function schema<const S extends Schema>(s: S):
-  SchemaType<NormalizeSchema<S>> {
+SchemaType<NormalizeSchema<S>> {
   if (s === null) {
     return new SchemaType(null_type) as never;
   }
@@ -41,5 +41,7 @@ export default function schema<const S extends Schema>(s: S):
       return new SchemaType(tuple(...s)) as never;
     }
   }
-  return new SchemaType<NormalizeSchema<typeof s>>(s as NormalizeSchema<typeof s>);
+  type Normalized = NormalizeSchema<typeof s>;
+
+  return new SchemaType<Normalized>(s as Normalized);
 }

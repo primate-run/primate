@@ -1,7 +1,7 @@
 import type Locale from "#Locale";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dictionary";
 
-export default (locale: Locale, key: string, placeholders?: Dictionary<string>) => {
+export default (locale: Locale, key: string, placeholders?: Dict<string>) => {
   const value = locale[key];
 
   if (value === undefined) {
