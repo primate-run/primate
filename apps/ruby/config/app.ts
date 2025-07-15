@@ -4,4 +4,7 @@ import html from "@primate/html";
 
 export default config({
   modules: [ruby(), html()],
+  http: {
+    port: 10009,
+  },
 });
