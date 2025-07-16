@@ -1,11 +1,11 @@
 import type Database from "#db/Database";
 import type Store from "#db/Store";
 import derive from "#db/symbol/derive";
-import type PartialDictionary from "@rcompat/type/PartialDictionary";
+import type PartialDict from "@rcompat/type/PartialDict";
 
 type Config = {
   default: Database;
-} & PartialDictionary<Database>;
+} & PartialDict<Database>;
 
 export default (config: Config) => {
   const drivers = config;

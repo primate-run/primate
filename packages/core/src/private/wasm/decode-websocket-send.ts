@@ -1,7 +1,7 @@
 import assert from "@rcompat/assert";
-import decodeString from "./decode-string.js";
-import decodeBytes from "./decode-bytes.js";
 import BufferView from "@rcompat/bufferview";
+import decodeBytes from "./decode-bytes.js";
+import decodeString from "./decode-string.js";
 
 type BufferViewSource = ConstructorParameters<typeof BufferView>;
 

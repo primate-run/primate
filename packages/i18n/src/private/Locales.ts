@@ -1,6 +1,6 @@
 import type Locale from "#Locale";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 
-type Locales = Dictionary<Locale>;
+type Locales = Dict<Locale>;
 
 export type { Locales as default };

@@ -1,11 +1,6 @@
 import HeadContext from "#context/head";
-import type Props from "@primate/core/frontend/Props";
+import type Child from "#Head/Child";
 import React from "react";
-
-type Child = {
-  type: string;
-  props: Props;
-};
 
 const to_array = (maybe: Child[]) => Array.isArray(maybe) ? maybe : [maybe];
 

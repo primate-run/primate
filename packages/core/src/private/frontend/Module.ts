@@ -4,7 +4,6 @@ import type BuildApp from "#BuildApp";
 import type ClientData from "#frontend/ClientData";
 import type Component from "#frontend/Component";
 import type Frontend from "#frontend/Frontend";
-import type Props from "#frontend/Props";
 import type Render from "#frontend/Render";
 import type ServerComponent from "#frontend/ServerComponent";
 import type ServerData from "#frontend/ServerData";
@@ -22,13 +21,13 @@ import hash from "@rcompat/crypto/hash";
 import FileRef from "@rcompat/fs/FileRef";
 import { json } from "@rcompat/http/mime";
 import Status from "@rcompat/http/Status";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import pema from "pema";
 import boolean from "pema/boolean";
 import string from "pema/string";
 
-type Layout = (app: ServeApp, transfer: Dictionary, request: RequestFacade)
+type Layout = (app: ServeApp, transfer: Dict, request: RequestFacade)
 => Component;
 
 async function normalize(path: string) {
@@ -93,7 +92,7 @@ export default abstract class FrontendModule<
     return this.#options.spa;
   }
 
-  #load(name: string, props: Props, app: ServeApp) {
+  #load(name: string, props: Dict, app: ServeApp) {
     const component = app.component(name)!;
     return { name, props, component };
   };

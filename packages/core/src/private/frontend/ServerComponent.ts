@@ -1,6 +1,6 @@
-import type Props from "#frontend/Props";
+import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 
-type ServerComponent = (props: Props) => MaybePromise<string>;
+type ServerComponent = (props: Dict) => MaybePromise<string>;
 
 export { ServerComponent as default };

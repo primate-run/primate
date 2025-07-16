@@ -1,9 +1,9 @@
-import type Props from "@primate/core/frontend/Props";
+import type Dict from "@rcompat/type/Dict";
 
 export default abstract class Component extends HTMLElement {
-  #props: Props;
+  #props: Dict;
 
-  constructor(props?: Props) {
+  constructor(props?: Dict) {
     super();
 
     this.#props = props === undefined
@@ -18,7 +18,7 @@ export default abstract class Component extends HTMLElement {
     return this.#props;
   }
 
-  set props(props: Props) {
+  set props(props: Dict) {
     this.#props = props;
   }
 
@@ -35,7 +35,7 @@ export default abstract class Component extends HTMLElement {
     this.mounted(root);
   }
 
-  abstract render(props: Props): string;
+  abstract render(props: Dict): string;
 
   mounted(_: ShadowRoot) {
     // noop

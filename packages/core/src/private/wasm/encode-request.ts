@@ -1,16 +1,14 @@
 import type RequestFacade from "#RequestFacade";
-import assert from "@rcompat/assert";
-import type PartialDictionary from "@rcompat/type/PartialDictionary";
-import sizeOfUrl from "./size-of-url.js";
-import sizeOfString from "./size-of-string.js";
-import sizeOfFile from "./size-of-file.js";
+import BufferView from "@rcompat/bufferview";
+import type PartialDict from "@rcompat/type/PartialDict";
+import encodeStringMap from "./encode-string-map.js";
 import encodeString from "./encode-string.js";
 import encodeURL from "./encode-url.js";
-import encodeStringMap from "./encode-string-map.js";
-import BufferView from "@rcompat/bufferview";
+import sizeOfFile from "./size-of-file.js";
+import sizeOfString from "./size-of-string.js";
+import sizeOfUrl from "./size-of-url.js";
 
 type Body = RequestFacade["body"];
-
 
 const SIZE_I32 = Int32Array.BYTES_PER_ELEMENT;
 const SECTION_HEADER_SIZE = SIZE_I32;
@@ -62,7 +60,7 @@ const sizeOfBodySection = (body: Body) => {
   throw new Error("Invalid RequestLike body");
 };
 
-const sizeOfMapSection = (map: PartialDictionary<string>) => {
+const sizeOfMapSection = (map: PartialDict<string>) => {
   let size = SECTION_HEADER_SIZE + SIZE_I32;
 
   for (const [key, value] of Object.entries(map)) {
@@ -88,7 +86,7 @@ const sizeOfMapSection = (map: PartialDictionary<string>) => {
  * @param offset - The offset to encode the map at.
  * @param bufferView - The buffer view to encode the map into.
  */
-const encodeMapSection = (header: number, map: PartialDictionary<string>, bufferView: BufferView) => {
+const encodeMapSection = (header: number, map: PartialDict<string>, bufferView: BufferView) => {
   bufferView.writeU32(header);
   return encodeStringMap(map, bufferView);
 };

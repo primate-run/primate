@@ -1,10 +1,10 @@
 import type ResponseFunction from "#ResponseFunction";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 
 type ResponseLike = MaybePromise<
   string |
-  Dictionary |
+  Dict |
   URL |
   ReadableStream |
   Blob |

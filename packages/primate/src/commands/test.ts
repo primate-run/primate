@@ -6,7 +6,7 @@ import root from "@rcompat/package/root";
 import entries from "@rcompat/record/entries";
 import equals from "@rcompat/test/equals";
 import includes from "@rcompat/test/includes";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import serve from "./serve.js";
 
@@ -71,7 +71,7 @@ export default async () => {
         },
       },
       headers: {
-        includes(expected: Dictionary<string>) {
+        includes(expected: Dict<string>) {
           checks.push(() => {
             const actual = Object.fromEntries(response.headers.entries());
             const lowercased = entries(expected)

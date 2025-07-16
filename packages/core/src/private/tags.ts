@@ -2,16 +2,16 @@ import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
 import empty from "@rcompat/record/empty";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 
-const attribute = (attributes: Dictionary<string>) => empty(attributes)
+const attribute = (attributes: Dict<string>) => empty(attributes)
   ? ""
   : " ".concat(Object.entries(attributes)
     .map(([key, value]) => `${key}="${value}"`).join(" "))
   ;
 const tag = (name: string, { attributes = {}, code = "", close = true }) =>
   `<${name}${attribute(attributes)}${close ? `>${code}</${name}>` : "/>"}`;
-const nctag = (name: string, properties: Dictionary) =>
+const nctag = (name: string, properties: Dict) =>
   tag(name, { ...properties, close: false });
 
 export default {

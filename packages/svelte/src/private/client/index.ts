@@ -1,6 +1,6 @@
 import type ClientData from "@primate/core/frontend/ClientData";
-import type Props from "@primate/core/frontend/Props";
 import spa from "@primate/core/frontend/spa";
+import type Dict from "@rcompat/type/Dict";
 import { hydrate, mount } from "svelte";
 
 // @ts-expect-error esbuild vfs
@@ -10,7 +10,7 @@ import root from "svelte:root";
 
 type Data = ClientData<{
   components: string[];
-  props: Props[];
+  props: Dict[];
 }>;
 
 const make_props = (data: ClientData<Data>) => ({

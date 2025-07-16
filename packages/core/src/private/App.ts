@@ -11,7 +11,7 @@ import transform from "@rcompat/build/sync/transform";
 import type FileRef from "@rcompat/fs/FileRef";
 import entries from "@rcompat/record/entries";
 import get from "@rcompat/record/get";
-import type PartialDictionary from "@rcompat/type/PartialDictionary";
+import type PartialDict from "@rcompat/type/PartialDict";
 
 const ts_options = {
   loader: "ts",
@@ -24,7 +24,7 @@ const ts_options = {
 
 const compile = (code: string) => transform(code, ts_options).code;
 
-const default_bindings: PartialDictionary<Binder> = {
+const default_bindings: PartialDict<Binder> = {
   ".js": async (file, context) => {
     const contexts = ["routes", "stores", "config"];
     const error = "js: only route, store and config files are supported";

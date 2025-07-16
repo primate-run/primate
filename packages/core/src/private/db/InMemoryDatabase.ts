@@ -1,8 +1,8 @@
 import type Database from "#db/Database";
 import type EO from "@rcompat/type/EO";
 import type Store from "#db/Store";
-import type Dictionary from "@rcompat/type/Dictionary";
-import type PartialDictionary from "@rcompat/type/PartialDictionary";
+import type Dict from "@rcompat/type/Dict";
+import type PartialDict from "@rcompat/type/PartialDict";
 
 type Projection = EO[] | null;
 type Criteria = EO;
@@ -15,7 +15,7 @@ type CreateOptions = {
 };
 
 export default class InMemoryDatabase implements Database {
-  #collections: PartialDictionary<Dictionary> = {};
+  #collections: PartialDict<Dict> = {};
 
   #new(name: string) {
     if (this.#collections[name] !== undefined) {

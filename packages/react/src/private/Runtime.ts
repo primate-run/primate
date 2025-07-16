@@ -1,10 +1,10 @@
 import Module from "@primate/core/frontend/Module";
-import type Props from "@primate/core/frontend/Props";
 import type Render from "@primate/core/frontend/Render";
+import type Dict from "@rcompat/type/Dict";
 import { createElement, type FunctionComponent } from "react";
 import { renderToString } from "react-dom/server";
 
-type Component = FunctionComponent<Props>;
+type Component = FunctionComponent<Dict>;
 
 export default class Runtime extends Module<Component> {
   name = "react";

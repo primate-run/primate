@@ -1,5 +1,5 @@
 import type { PyProxy } from "pyodide/ffi";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 
 type DictConverter = Iterable<[
   key: string,
@@ -8,12 +8,12 @@ type DictConverter = Iterable<[
 
 const dict_converter = (value: DictConverter) => Object.fromEntries(value);
 
-const normalize = (response: Map<string, unknown> | Dictionary) =>
+const normalize = (response: Map<string, unknown> | Dict) =>
   response instanceof Map ? Object.fromEntries(response.entries()) : response;
 
-const recursively_convert = (input: Dictionary) => {
+const recursively_convert = (input: Dict) => {
   return Object.fromEntries(Object.entries(input).map(([k, o]) => {
-    if ((o as Dictionary).toJs !== undefined) {
+    if ((o as Dict).toJs !== undefined) {
       return [k, (o as PyProxy).toJs({ dict_converter })];
     }
     return [k, o];

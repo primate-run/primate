@@ -31,8 +31,8 @@ import type Server from "@rcompat/http/Server";
 import Status from "@rcompat/http/Status";
 import entries from "@rcompat/record/entries";
 import stringify from "@rcompat/record/stringify";
-import type Dictionary from "@rcompat/type/Dictionary";
-import type PartialDictionary from "@rcompat/type/PartialDictionary";
+import type Dict from "@rcompat/type/Dict";
+import type PartialDict from "@rcompat/type/PartialDict";
 import pema from "pema";
 import record from "pema/record";
 import string from "pema/string";
@@ -92,18 +92,18 @@ interface PublishOptions {
   inline: boolean;
 };
 
-type Import = Dictionary & {
+type Import = Dict & {
   default: unknown;
 };
 
 export default class ServeApp extends App {
   #build: ServeOptions;
   #server?: Server;
-  #components: PartialDictionary<Import>;
+  #components: PartialDict<Import>;
   #csp: CSP = {};
   #fonts: unknown[] = [];
   #assets: ServeOptions["assets"] = [];
-  #frontends: PartialDictionary<Frontend> = {};
+  #frontends: PartialDict<Frontend> = {};
   #router: ReturnType<typeof Router.init<RouteExport, RouteSpecial>>;
 
   constructor(rootfile: string, build: ServeOptions) {
@@ -133,7 +133,7 @@ export default class ServeApp extends App {
         layout: { recursive: true },
       },
       predicate(route, request) {
-        return (route as { default: Dictionary })
+        return (route as { default: Dict })
           .default[request.method.toLowerCase()] !== undefined;
       },
     }, build.files.routes);
@@ -267,7 +267,7 @@ export default class ServeApp extends App {
   async start() {
     this.#assets = await Promise.all(this.#build.assets.map(async asset => {
       const code = asset.type === "importmap"
-        ? stringify(asset.code as Dictionary)
+        ? stringify(asset.code as Dict)
         : asset.code as string;
       return {
         ...asset,
@@ -322,7 +322,7 @@ export default class ServeApp extends App {
       request: {
         ...facade,
         body,
-        path: route.params as PartialDictionary<string>,
+        path: route.params as PartialDict<string>,
       },
     };
   }

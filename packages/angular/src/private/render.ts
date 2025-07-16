@@ -1,5 +1,5 @@
-import root_selector from "#root-selector";
 import render_root from "#render-root";
+import root_selector from "#root-selector";
 import "@angular/compiler";
 import type { ComponentDecorator } from "@angular/core";
 import {
@@ -11,11 +11,11 @@ import {
   ɵSERVER_CONTEXT,
 } from "@angular/platform-server";
 import { CommonEngine } from "@angular/ssr/node";
-import type Props from "@primate/core/frontend/Props";
+import type Dict from "@rcompat/type/Dict";
 
 const common_engine = new CommonEngine();
 
-export default async (component: ComponentDecorator, props: Props) => {
+export default async (component: ComponentDecorator, props: Dict) => {
   const root_component = render_root(component, props);
   const document = `<${root_selector}></${root_selector}>`;
   const bootstrap = () => bootstrapApplication(root_component, {

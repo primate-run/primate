@@ -5,17 +5,17 @@ import type Mode from "#Mode";
 import type RouteExport from "#RouteExport";
 import type RouteSpecial from "#RouteSpecial";
 import type SessionConfig from "#session/Config";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 import type Schema from "pema/Schema";
 
-type Import = Dictionary & {
+type Import = Dict & {
   default: unknown;
 };
 
 export type BuildFiles = {
   routes: [string, RouteExport | RouteSpecial][];
   locales?: [string, {
-    default: Dictionary<string>;
+    default: Dict<string>;
   }][];
   stores?: [string, {
     default: Schema;

@@ -13,7 +13,7 @@ import identity from "@rcompat/function/identity";
 import cache from "@rcompat/kv/cache";
 import exclude from "@rcompat/record/exclude";
 import type MaybePromise from "@rcompat/type/MaybePromise";
-import type PartialDictionary from "@rcompat/type/PartialDictionary";
+import type PartialDict from "@rcompat/type/PartialDict";
 
 const ts_options = {
   loader: "ts",
@@ -41,9 +41,9 @@ type ExtensionCompile = {
 
 export default class BuildApp extends App {
   #frontends: Set<string> = new Set();
-  #targets: PartialDictionary<Target> = { web: { target: web } };
+  #targets: PartialDict<Target> = { web: { target: web } };
   #postbuild: (() => void)[] = [];
-  #extensions: PartialDictionary<ExtensionCompile> = {};
+  #extensions: PartialDict<ExtensionCompile> = {};
   #roots: FileRef[] = [];
   #server_build: string[] = ["route"];
   #target: string = "web";

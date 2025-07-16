@@ -1,7 +1,7 @@
-import type Props from "#frontend/Props";
+import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 
-type Render<S = unknown> = (component: S, props: Props) => MaybePromise<{
+type Render<S = unknown> = (component: S, props: Dict) => MaybePromise<{
   body: string;
   head?: string;
   headers?: Record<string, string>;

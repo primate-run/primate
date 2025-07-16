@@ -1,11 +1,11 @@
 import type Component from "#frontend/Component";
 import type RequestFacade from "#RequestFacade";
 import type ServeApp from "#ServeApp";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 
 type ResponseFunction =
-  (app: ServeApp, transfer: Dictionary, request: RequestFacade)
+  (app: ServeApp, transfer: Dict, request: RequestFacade)
   => MaybePromise<Component | Response | undefined | null>;
 
 export { ResponseFunction as default };

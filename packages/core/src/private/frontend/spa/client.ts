@@ -1,5 +1,5 @@
 import type ClientData from "@primate/core/frontend/ClientData";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 import storage from "./storage.js";
 
 const TEXT_PLAIN = "text/plain";
@@ -25,7 +25,7 @@ const scroll_hash = (hash: string) => {
   }
 };
 
-type Updater<T extends Dictionary> = (json: ClientData<T>, after?: () => void) => void;
+type Updater<T extends Dict> = (json: ClientData<T>, after?: () => void) => void;
 
 const handlers = {
   [TEXT_PLAIN]: async (response: Response) => {
@@ -109,7 +109,7 @@ const go = async (href: string, updater: Updater<any>, event?: Event) => {
   // external redirect
 };
 
-export default <T extends Dictionary>(updater: Updater<T>) => {
+export default <T extends Dict>(updater: Updater<T>) => {
   global.addEventListener("load", _ => {
     history.scrollRestoration = "manual";
     if (global.location.hash !== "") {

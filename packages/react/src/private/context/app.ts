@@ -1,5 +1,5 @@
 import type ContextData from "@primate/i18n/ContextData";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 import { createContext } from "react";
 
 type Context = {
@@ -18,5 +18,5 @@ export default createContext<AppContext>({
       locale: "en-US",
     },
   },
-  setContext: (_: Dictionary) => {},
+  setContext: (_: Dict) => {},
 });

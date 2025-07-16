@@ -1,7 +1,7 @@
 import verbs from "@primate/core/verbs";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 
-export type Body = string | Dictionary<string> | Dictionary<string>[];
+export type Body = string | Dict<string> | Dict<string>[];
 
 export type MockedResponse = {
   status: {
@@ -12,7 +12,7 @@ export type MockedResponse = {
     includes(body: Body): void;
   };
   headers: {
-    includes(headers: Dictionary<string>): void;
+    includes(headers: Dict<string>): void;
     get(header: string): {
       equals(value: string): void;
       includes(value: string): void;

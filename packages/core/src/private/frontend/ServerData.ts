@@ -1,8 +1,8 @@
-import type Props from "#frontend/Props";
+import type Dict from "@rcompat/type/Dict";
 
 type ServerData<T> = {
   component: T;
-  props: Props;
+  props: Dict;
 };
 
 export type { ServerData as default };

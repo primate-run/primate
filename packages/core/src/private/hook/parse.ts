@@ -1,12 +1,12 @@
 import type RequestFacade from "#RequestFacade";
 import forward from "#forward";
-import type PartialDictionary from "@rcompat/type/PartialDictionary";
+import type PartialDict from "@rcompat/type/PartialDict";
 
 export default (request: Request): RequestFacade => {
   const url = new URL(request.url);
 
   const headers = Object.fromEntries(request.headers.entries()) as
-    PartialDictionary<string>;
+    PartialDict<string>;
 
   return {
     context: {},

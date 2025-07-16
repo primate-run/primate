@@ -1,10 +1,10 @@
 import serve_asset from "#asset/serve";
 import FileRef from "@rcompat/fs/FileRef";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 
 type Options = {
   pages_app: string;
-  pages: Dictionary<string>;
+  pages: Dict<string>;
   rootfile: string;
   static_root: string;
 };

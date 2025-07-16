@@ -1,17 +1,17 @@
-import type Dictionary from "#frontend/Props";
 import error from "#handler/error";
 import redirect from "#handler/redirect";
 import view from "#handler/view";
 import type ResponseFunction from "#ResponseFunction";
+import assert from "@rcompat/assert";
 import type BufferView from "@rcompat/bufferview";
 import type { Known } from "@rcompat/http/Status";
+import type Dict from "@rcompat/type/Dict";
 import decodeBytes from "./decode-bytes.js";
 import decodeJson from "./decode-json.js";
 import decodeOption from "./decode-option.js";
 import decodeString from "./decode-string.js";
 import type { Instantiation } from "./instantiate.js";
 import openWebsocket from "./open-websocket.js";
-import assert from "@rcompat/assert";
 
 type MaybeRedirectionStatus = Parameters<typeof redirect>[1];
 
@@ -29,7 +29,7 @@ type DecodedResponse =
     type: "text";
     text: string;
     status?: number | undefined;
-    headers: Dictionary<string>;
+    headers: Dict<string>;
   }
   | {
     type:
@@ -64,7 +64,7 @@ const decodeResponse = (source: BufferView): DecodedResponse | undefined => {
     case RESPONSE_TEXT: {
       const text = decodeString(source);
       const status = source.readU32();
-      const headers = decodeJson(source) as Dictionary<string>;
+      const headers = decodeJson(source) as Dict<string>;
       return { type: "text", text, status, headers };
     }
 
@@ -83,12 +83,12 @@ const decodeResponse = (source: BufferView): DecodedResponse | undefined => {
     }
 
     case RESPONSE_VIEW: {
-      const viewName = decodeString(source);
-      const viewProps = decodeJson(source) || void 0;
-      const viewOptions = decodeJson(source) || void 0;
+      const name = decodeString(source);
+      const props = decodeJson(source) || void 0;
+      const options = decodeJson(source) || void 0;
       return {
         type: "view",
-        value: view(viewName, viewProps, viewOptions),
+        value: view(name, props, options),
       };
     }
 

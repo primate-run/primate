@@ -8,7 +8,7 @@ import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
 import manifest from "@rcompat/package/manifest";
 import stringify from "@rcompat/record/stringify";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 
 const dirname = import.meta.dirname;
 
@@ -175,7 +175,7 @@ export default db.wrap("${file.base}", store);`);
   await write_bootstrap(build_number, app, app.mode);
 
   const manifest_data = {
-    ...await manifest() as Dictionary,
+    ...await manifest() as Dict,
     imports: {
       "#config": "./config/app.js",
       "#locale/*": "./locales/*.js",

@@ -1,11 +1,11 @@
-import type Props from "@primate/core/frontend/Props";
+import type Dict from "@rcompat/type/Dict";
 
 const to_hyphen = (x: string) => x.replaceAll("/", "-");
 
 //import * as components from "webc:components";
 
 export default class WebComponentsClient {
-  static mount(component: string, props: Props) {
+  static mount(component: string, props: Dict) {
     globalThis.customElements.define("p-wrap-with", class extends HTMLElement {
       connectedCallback() {
         this.attachShadow({ mode: "open" });

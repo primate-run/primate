@@ -1,8 +1,8 @@
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 
-type ClientData<T extends Dictionary = Dictionary> = {
+type ClientData<T extends Dict = Dict> = {
   component: string;
-  request: Dictionary;
+  request: Dict;
   ssr: boolean;
   spa: boolean;
 } & T;

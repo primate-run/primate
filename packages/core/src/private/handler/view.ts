@@ -1,11 +1,11 @@
 import AppError from "#AppError";
 import type Frontend from "#frontend/Frontend";
 import FileRef from "@rcompat/fs/FileRef";
-import type PartialDictionary from "@rcompat/type/PartialDictionary";
+import type PartialDict from "@rcompat/type/PartialDict";
 
 const extensions = ["extension", "fullExtension"] as const;
 
-const backmap: PartialDictionary<string> = {
+const backmap: PartialDict<string> = {
   "component.ts": "angular",
   eta: "eta",
   hbs: "handlebars",

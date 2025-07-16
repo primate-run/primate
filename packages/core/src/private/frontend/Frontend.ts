@@ -1,8 +1,8 @@
 import type Options from "#frontend/Options";
-import type Props from "#frontend/Props";
 import type ResponseFunction from "#ResponseFunction";
+import type Dict from "@rcompat/type/Dict";
 
-type Frontend = (name: string, props?: Props, options?: Options) =>
+type Frontend = (name: string, props?: Dict, options?: Options) =>
 ResponseFunction;
 
 export { Frontend as default };

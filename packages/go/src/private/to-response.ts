@@ -3,14 +3,14 @@ import redirect from "@primate/core/handler/redirect";
 import view from "@primate/core/handler/view";
 import type ResponseFunction from "@primate/core/ResponseFunction";
 import type ResponseLike from "@primate/core/ResponseLike";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 
 type Handler = "view" | "redirect" | "error";
 
 const parse = (input: string | null) =>
   input === null ? undefined : JSON.parse(input);
 
-const handle_handler = (handler: Handler, response: Dictionary) => {
+const handle_handler = (handler: Handler, response: Dict) => {
   if (handler === "view") {
     const { component, props, options } = response as {
       component: string;
@@ -34,7 +34,7 @@ const handle_handler = (handler: Handler, response: Dictionary) => {
   return error(parse(options));
 };
 
-type ResponseType = (() => { handler: Handler } & Dictionary) | string;
+type ResponseType = (() => { handler: Handler } & Dict) | string;
 
 export default (response: ResponseType): ResponseLike => {
   if (typeof response === "function") {

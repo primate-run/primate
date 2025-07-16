@@ -1,9 +1,9 @@
 import type ClientData from "@primate/core/frontend/ClientData";
-import type Props from "@primate/core/frontend/Props";
 import spa from "@primate/core/frontend/spa";
-import { hydrateRoot, createRoot, type Container } from "react-dom/client";
-import { createElement, type ReactNode } from "react";
 import ReactHead from "@primate/react/Head";
+import Dict from "@rcompat/type/Dict";
+import { createElement, type ReactNode } from "react";
+import { createRoot, hydrateRoot, type Container } from "react-dom/client";
 
 // @ts-expect-error esbuild vfs
 import * as components from "react:components";
@@ -12,7 +12,7 @@ import root_component from "react:root";
 
 type Data = ClientData<{
   components: string[];
-  props: Props[];
+  props: Dict[];
 }>;
 
 const { body } = globalThis.window.document;

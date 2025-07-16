@@ -1,18 +1,18 @@
 import type Body from "#Body";
-import type Dictionary from "@rcompat/type/Dictionary";
-import type PartialDictionary from "@rcompat/type/PartialDictionary";
+import type Dict from "@rcompat/type/Dict";
+import type PartialDict from "@rcompat/type/PartialDict";
 
-type PartialStringDictionary = PartialDictionary<string>;
+type PartialStringDict = PartialDict<string>;
 
-type RequestFacade = Dictionary<Dictionary | unknown> & {
-  context: Dictionary;
+type RequestFacade = Dict<Dict | unknown> & {
+  context: Dict;
   request: Request;
   url: URL;
   pass(to: string): Promise<Response>;
-  headers: PartialStringDictionary;
-  query: PartialStringDictionary;
-  cookies: PartialStringDictionary;
-  path: PartialStringDictionary;
+  headers: PartialStringDict;
+  query: PartialStringDict;
+  cookies: PartialStringDict;
+  path: PartialStringDict;
   body: Body;
 };
 

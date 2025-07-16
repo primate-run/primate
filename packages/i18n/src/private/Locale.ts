@@ -1,5 +1,5 @@
-import type PartialDictionary from "@rcompat/type/PartialDictionary";
+import type PartialDict from "@rcompat/type/PartialDict";
 
-type Locale = PartialDictionary<string>;
+type Locale = PartialDict<string>;
 
 export type { Locale as default };

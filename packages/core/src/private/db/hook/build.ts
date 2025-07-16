@@ -7,17 +7,17 @@ import type BuildHook from "#module/BuildHook";
 import FileRef from "@rcompat/fs/FileRef";
 import empty from "@rcompat/record/empty";
 import entries from "@rcompat/record/entries";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 
 type Type = {
   base: string;
   validate(): void;
 };
 
-const valid_type = (type: Dictionary): type is Type =>
+const valid_type = (type: Dict): type is Type =>
   type.base !== undefined && typeof type.validate === "function";
 
-const valid = (type: Dictionary, name: string, store: string) => {
+const valid = (type: Dict, name: string, store: string) => {
   if (valid_type(type)) {
     return true;
   }
@@ -36,7 +36,7 @@ export default (directory: string): BuildHook => async (app, next) => {
     const definition = await store.import();
 
     const schema = entries(definition.default ?? {})
-      .filter(([property, type]) => valid(type as Dictionary, property, name)!)
+      .filter(([property, type]) => valid(type as Dict, property, name)!)
       .get();
 
     let { ambiguous } = definition;

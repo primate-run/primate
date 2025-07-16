@@ -1,11 +1,11 @@
 import HeadContext from "#context/head";
-import type Props from "@primate/core/frontend/Props";
+import type Dict from "@rcompat/type/Dict";
 import { useContext } from "solid-js";
 
 type Child = {
   t: string;
   tagName: string;
-  props: Props;
+  props: Dict;
 };
 
 const data_attribute = "data-sh";

@@ -1,7 +1,7 @@
 import AppError from "#AppError";
 import type FileRef from "@rcompat/fs/FileRef";
 import Router from "@rcompat/fs/router";
-import type Dictionary from "@rcompat/type/Dictionary";
+import type Dict from "@rcompat/type/Dict";
 
 const error_entries = Object.entries({
   DoubleRoute: "double route {0}, disambiguate routes",
@@ -23,7 +23,7 @@ export default async (directory: FileRef, extensions: string[]): Return => {
         layout: { recursive: true },
       },
       predicate(route, request) {
-        return (route.default as Dictionary)[request.method.toLowerCase()] !== undefined;
+        return (route.default as Dict)[request.method.toLowerCase()] !== undefined;
       },
     });
   } catch (error) {
