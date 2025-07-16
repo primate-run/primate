@@ -2,7 +2,6 @@ import AppError from "#AppError";
 import type Binder from "#Binder";
 import type Config from "#config/Config";
 import location from "#location";
-import log from "#log";
 import type Mode from "#Mode";
 import type Module from "#module/Module";
 import type RouteFunction from "#RouteFunction";

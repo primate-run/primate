@@ -22,9 +22,9 @@ export type MockedResponse = {
 
 type Verb = typeof verbs[number];
 
-export type Tester = (response: MockedResponse) => void;
+type Tester = (response: MockedResponse) => void;
 
-export type Route = string;
+type Route = string;
 
 type Test = {
   verb: Verb;

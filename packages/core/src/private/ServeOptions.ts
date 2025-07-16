@@ -12,7 +12,7 @@ type Import = Dict & {
   default: unknown;
 };
 
-export type BuildFiles = {
+type BuildFiles = {
   routes: [string, RouteExport | RouteSpecial][];
   locales?: [string, {
     default: Dict<string>;

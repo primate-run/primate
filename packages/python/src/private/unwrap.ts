@@ -36,5 +36,5 @@ const qualify = (response: PyProxy, destroy = true) => {
 
 export const unwrap = (response: PyProxy) => normalize(qualify(response));
 
-export const unwrap_async = (response: PyProxy) =>
-  normalize(qualify(response, false));
+/*export const unwrap_async = (response: PyProxy) =>
+  normalize(qualify(response, false));*/

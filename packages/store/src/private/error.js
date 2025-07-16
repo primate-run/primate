@@ -9,8 +9,7 @@ const base = level => (url, args) => (...params) => log[level]({
   ...args,
 });
 
-const info = base("info");
 const warn = base("warn");
 const error = base("error");
 
-export { error, info, warn };
+export { error, warn };
