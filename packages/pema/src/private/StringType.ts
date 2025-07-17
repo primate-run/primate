@@ -8,21 +8,16 @@ import regex from "#validator/regex";
 import starts_with from "#validator/starts-with";
 import uuid from "#validator/uuid";
 
-type Datatype = "string" | "isotime";
-
-export default class StringType<T extends Datatype = "string">
+export default class StringType
   extends PrimitiveType<string, "StringType">
-  implements Storeable<T> {
-  #datatype: T;
+  implements Storeable<"string"> {
 
-  constructor(validators?: Validator<string>[], datatype?: T) {
+  constructor(validators?: Validator<string>[]) {
     super("string", validators);
-
-    this.#datatype = datatype ?? ("string" as T);
   }
 
   get datatype() {
-    return this.#datatype;
+    return "string" as const;
   }
 
   normalize(value: string) {
@@ -30,7 +25,7 @@ export default class StringType<T extends Datatype = "string">
   }
 
   isotime() {
-    return new StringType([...this.validators, isotime], "isotime");
+    return new StringType([...this.validators, isotime]);
   }
 
   regex(pattern: RegExp) {

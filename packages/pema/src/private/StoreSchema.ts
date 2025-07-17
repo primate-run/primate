@@ -1,7 +1,5 @@
 import type Storeable from "#Storeable";
 
-type StoreSchema =
-  /*{ id: Storeable<any> } &*/
-  { [k: string]: Storeable<any> };
+type StoreSchema = { id: Storeable } & { [k: string]: Storeable };
 
 export type { StoreSchema as default };

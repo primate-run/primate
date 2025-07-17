@@ -1,3 +1,4 @@
+import AppError from "#AppError";
 import type Changes from "#db/Changes";
 import type Database from "#db/Database";
 import type Document from "#db/Document";
@@ -9,6 +10,7 @@ import is from "@rcompat/assert/is";
 import maybe from "@rcompat/assert/maybe";
 import type Id from "pema/Id";
 import type InferStore from "pema/InferStore";
+import type StoreId from "pema/StoreId";
 import type StoreSchema from "pema/StoreSchema";
 import StoreType from "pema/StoreType";
 
@@ -21,24 +23,27 @@ type Fields<T> = {
   [K in keyof T]?: true;
 };
 
+type Insertable<T extends StoreSchema> =
+  Omit<Document<T>, "id"> & { id?: StoreId<T> };
+
 type Filter<A, B = undefined> = B extends undefined ? A : {
   [K in keyof A as K extends keyof B
     ? B[K] extends true ? K : never : never
   ]: A[K];
 };
 
-type Config = {
+type Config<S extends StoreSchema> = {
   name?: string;
-  db?: Database;
+  db?: Database<S>;
 };
 
-export default class Store<S extends StoreSchema = StoreSchema> {
+export default class Store<S extends StoreSchema> {
   #schema: S;
   #type: StoreType<S>;
-  #config: Config;
+  #config: Config<S>;
   #types: Types;
 
-  constructor(schema: S, config?: Config) {
+  constructor(schema: S, config?: Config<S>) {
     this.#schema = schema;
     this.#type = new StoreType(schema);
     this.#config = config ?? {};
@@ -46,13 +51,17 @@ export default class Store<S extends StoreSchema = StoreSchema> {
       .map(([key, value]) => [key, value.datatype]));
   }
 
-  derive(name: string, db: Database) {
+  get infer() {
+    return undefined as unknown as InferStore<S>;
+  }
+
+  derive(name: string, db: Database<S>) {
     const _name = this.#config.name;
 
     return new Store(this.#schema, { name: _name ?? name, db });
   }
 
-  [derive](name: string, db: Database) {
+  [derive](name: string, db: Database<S>) {
     const _name = this.#config.name;
 
     return new Store(this.#schema, {
@@ -71,13 +80,13 @@ export default class Store<S extends StoreSchema = StoreSchema> {
 
   get name() {
     if (this.#config.name === undefined) {
-      throw new Error(`Store missing name`);
+      throw new AppError("Store missing name");
     }
     return this.#config.name;
   }
 
-  static new <S extends StoreSchema>(schema: S, config?: Config) {
-    return new Store(schema, config);
+  static new <S extends StoreSchema>(schema: S, config?: Config<S>) {
+    return new Store<S>(schema, config);
   }
 
   /**
@@ -119,16 +128,15 @@ export default class Store<S extends StoreSchema = StoreSchema> {
    * @throws if the document id exists in the store
    * @returns the inserted document
    */
-  async insert(document: Document<S>): Promise<Document<S>> {
+  async insert(document: Insertable<S>): Promise<Document<S>> {
     is(document).object();
 
     const validated = this.#type.validate(document);
 
-    const [_id] = await this.db.create(this, []);
+    // @ts-expect-error store
+    const [returned] = await this.db.create(this, validated);
 
-    //    validated.id = id;
-
-    return validated;
+    return returned as Document<S>;
   }
 
   /**

@@ -7,6 +7,7 @@ import record from "pema/record";
 import string from "pema/string";
 import uint from "pema/uint";
 import union from "pema/union";
+import unknown from "pema/unknown";
 import constructor from "pema/constructor";
 
 export default pema({
@@ -42,5 +43,6 @@ export default pema({
     includes: array(string).optional(),
     excludes: array(string).optional(),
     define: record(string, string).optional(),
+    options: record(string, unknown).optional(),
   },
 });

@@ -5,7 +5,6 @@ import boolean from "pema/boolean";
 import constructor from "pema/constructor";
 import string from "pema/string";
 import union from "pema/union";
-import type * as _ from "pema/types";
 
 export default pema({
   manager: constructor(SessionManager)

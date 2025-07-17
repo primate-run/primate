@@ -6,6 +6,8 @@ import entries from "@rcompat/record/entries";
 import type Client from "@rcompat/sqlite";
 import type EO from "@rcompat/type/EO";
 import type DataType from "pema/DataType";
+import type StoreSchema from "pema/StoreSchema";
+import type InferStore from "pema/InferStore";
 
 type CreateOptions = {
   limit?: number;
@@ -39,7 +41,7 @@ const predicate = (criteria: EO) => {
 };
 type Description = Record<string, keyof DataType>;
 
-export default class SqliteDatabase implements Database {
+export default class Sqlite<S extends StoreSchema> implements Database<S> {
   #client: Client;
 
   constructor(client: Client) {
@@ -68,13 +70,21 @@ export default class SqliteDatabase implements Database {
     };
   }
 
-  async create(_store: Store,
-    _documents: EO[],
-    _options?: CreateOptions) {
-    return [];
+  async create(store: Store<S>, document: InferStore<S>,
+    _options?: CreateOptions): Promise<InferStore<S>> {
+    const keys = Object.keys(document);
+    const columns = keys.map(key => `"${key}"`);
+    const values = keys.map(key => `$${key}`).join(",");
+    const $predicate = columns.length > 0
+      ? `(${columns.join(",")}) values (${values})`
+      : "default values";
+    const query = `insert into ${store.name} ${$predicate} returning id`;
+    const statement = this.#client.prepare(query);
+    const changes = statement.run();
+    return { ...document, id: changes.lastInsertRowid };
   }
 
-  async read(store: Store,
+  async read(store: Store<S>,
     criteria: Criteria,
     projection: Projection = [],
     options?: ReadOptions) {
@@ -89,11 +99,11 @@ export default class SqliteDatabase implements Database {
       entries(result).filter(([, value]) => value !== null).get());
   }
 
-  async update(_store: Store, _criteria: Criteria, _set: Document) {
+  async update(_store: Store<S>, _criteria: Criteria, _set: Document) {
     return 0;
   }
 
-  async delete(_store: Store, _criteria: Criteria) {
+  async delete(_store: Store<S>, _criteria: Criteria) {
 
   }
 }

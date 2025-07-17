@@ -97,10 +97,10 @@ export default app;
 const post = async (app: BuildApp) => {
   const defaults = FileRef.join(import.meta.url, "../../defaults");
 
-  await app.stage2(app.path.routes, "routes", file =>
+  await app.stage(app.path.routes, "routes", file =>
     `export { default } from "#stage/route${file}";`);
 
-  await app.stage2(app.path.stores, "stores", file =>
+  await app.stage(app.path.stores, "stores", file =>
     `import db from "#db";
 import store from "#stage/store${file}";
 
@@ -108,28 +108,31 @@ export default db.wrap("${file.base}", store);`);
 
   const configs = FileRef.join(dirname, "../../private/config/config");
 
-  await app.stage2(configs, "config", file =>
+  await app.stage(configs, "config", file =>
     `export { default } from "#stage/config${file}";`);
 
-  await app.stage2(app.path.config, "config", file =>
+  await app.stage(app.path.config, "config", file =>
     `export { default } from "#stage/config${file}";`);
 
-  const { define = {} } = app.config("build");
-  const defines = Object.entries(define);
-  // stage components, transforming defines
-  await app.stage2(app.path.components, "components", file =>
+  // stage components
+  await app.stage(app.path.components, "components", file =>
     `export { default } from "#stage/component${file}";`);
 
   // copy framework pages
-  await app.stage(defaults, FileRef.join(location.server, location.pages));
-  // overwrite transformed pages to build
-  await app.stage(app.path.pages, FileRef.join(location.server, location.pages));
+  await defaults.copy(app.runpath(location.server, location.pages));
+  // copy pages to build
+  if (await app.path.pages.exists()) {
+    await app.path.pages.copy(app.runpath(location.server, location.pages));
+  }
 
-  // copy static files to build/server/static
-  await app.stage(app.path.static, FileRef.join(location.server, location.static));
+  if (await app.path.static.exists()) {
+    // copy static files to build/server/static
+    await app.path.static.copy(app.runpath(location.server, location.static));
+  }
 
   // publish JavaScript and CSS files
-  const imports = await FileRef.collect(app.path.static, file => /\.(?:css)$/.test(file.path));
+  const imports = await FileRef.collect(app.path.static,
+    file => /\.(?:css)$/.test(file.path));
   await Promise.all(imports.map(async file => {
     const src = file.debase(app.path.static);
     app.build.export(`import "./${location.static}${src}";`);

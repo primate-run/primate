@@ -14,6 +14,7 @@ import cache from "@rcompat/kv/cache";
 import exclude from "@rcompat/record/exclude";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import type PartialDict from "@rcompat/type/PartialDict";
+import assert from "@rcompat/assert";
 
 const ts_options = {
   loader: "ts",
@@ -55,7 +56,8 @@ export default class BuildApp extends App {
   get build() {
     return cache.get(s, () =>
       new Build({
-        ...exclude(this.config("build"), ["includes"]),
+        ...exclude(this.config("build"), ["includes", "options"]),
+        ...(this.config("build.options") ?? {}),
         outdir: this.runpath(location.client).path,
         tsconfigRaw: {
           compilerOptions: {
@@ -124,36 +126,7 @@ export default class BuildApp extends App {
     this.build.export(code);
   }
 
-  async stage(source: FileRef, directory: Path,
-    mapper: (text: string) => MaybePromise<string> = identity) {
-    if (!await source.exists()) {
-      return;
-    }
-
-    const target_base = this.runpath(directory.toString());
-
-    await Promise.all((await source.collect(file => file.isFile()))
-      .map(async abs => {
-        const rel = FileRef.join(directory, abs.debase(source));
-        const is_ts = abs.path.endsWith(".ts");
-        const is_angular = abs.path.endsWith(".component.ts");
-        let text = await mapper(await abs.text());
-        if (is_ts) {
-          text = compile(text);
-        }
-
-        const base = abs.base;
-        const extension = abs.extension;
-        const outdir = target_base.join(rel.debase(directory)).directory;
-        await outdir.create();
-
-        const e = is_angular ? ".ts" : is_ts ? ".js" : extension;
-        const outfile = outdir.join(base.concat(e));
-        await outfile.write(text);
-      }));
-  }
-
-  async stage2(directory: FileRef, context: BindingContext,
+  async stage(directory: FileRef, context: BindingContext,
     importer: (file: FileRef) => string) {
     if (!await directory.exists()) {
       return;

@@ -67,7 +67,6 @@ export type Instantiation<TRequest = I32, TResponse = I32> = {
 
 export type InstantiateProps = {
   wasmFile: string;
-  // storesFolder: string,
   imports?: WebAssembly.Imports;
 };
 
@@ -80,29 +79,7 @@ export type InstantiateProps = {
  */
 const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiateProps) => {
   const wasmFileRef = new FileRef(args.wasmFile);
-  // TODO: Add getStores() functionality
-  // const storesFolderRef = new FileRef(args.storesFolder);
   const wasmImports = args.imports;
-
-  const stores = {} as Record<string, Store>;
-  const idToStore = new Map<number, Store>();
-  const nameToId = new Map<string, number>();
-
-  /**
-   *
-   *  let id = 0;
-   *  if (await storesFolderRef.exists()) {
-   *    for (const store of await storesFolderRef.glob("...GLOB_GOES_HERE...")) {
-   *      const storeName = store.debase(storesFolderRef.path).path.slice(0, -".js".length);
-   *      const storeInstance = await store.import("default");
-   *      const storeId = id++;
-   *
-   *      stores[storeName] = storeInstance;
-   *      idToStore.set(storeId, storeInstance);
-   *      nameToId.set(storeName, storeId);
-   *    }
-   *  }
-   */
 
   // default payload is set to an empty buffer via setPayloadBuffer
   let payload = new Uint8Array(0) as Uint8Array;
