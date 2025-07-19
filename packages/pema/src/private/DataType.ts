@@ -2,9 +2,9 @@
 import type Id from "#Id";
 
 type DataType = {
-  id: Id;
   //array: unknown[];
   blob: Blob;
+  //typedarray: Uint8Array;
   boolean: boolean;
   datetime: Date;
   //document: EO;
@@ -18,12 +18,13 @@ type DataType = {
   //json: EO;
   string: string;
   time: Date;
-  isotime: string;
+  //isotime: string;
   u8: number;
   u16: number;
   u32: number;
   u64: bigint;
   u128: bigint;
+  primary: string;
 };
 
 export type { DataType as default };

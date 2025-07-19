@@ -20,7 +20,8 @@
     "build": "npm run clean && tsc && cp -a src/private/defaults lib/private",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && npx proby"
   },
   "dependencies": {
     "@rcompat/args": "^0.7.0",

@@ -5,6 +5,7 @@ import type MaybePromise from "@rcompat/type/MaybePromise";
 type ResponseLike = MaybePromise<
   string |
   Dict |
+  Dict[] |
   URL |
   ReadableStream |
   Blob |

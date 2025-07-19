@@ -1,3 +1,3 @@
-type Id = string | number;
+type Id = string;
 
 export type { Id as default };

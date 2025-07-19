@@ -2,19 +2,18 @@ import User from "#store/User";
 import route from "primate/route";
 
 export default route({
-  async put(request) {
-    await User.db.schema.create("user", {
-      id: "id",
-      name: "string",
-    });
-    await User.db.schema.delete("user");
+  async get() {
+    //await User.schema.delete();
+    await User.schema.create();
 
-    /*await User.insert({
+    const donald = await User.insert({
       name: "Donald",
     });
+    console.log(donald);
 
-    const users = await User.find({ name: "string" }, { name: true });*/
+    const r = await User.find({ name: "Donald" });//, { id: true });
+    console.log(r);
 
-    return "hi";
+    return r;
   },
 });

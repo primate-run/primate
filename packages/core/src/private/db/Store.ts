@@ -19,8 +19,11 @@ type X<T> = {
 } & {};
 type Criteria<T extends StoreSchema> = X<Partial<InferStore<T>>>;
 
-type Fields<T> = {
+type Select<T> = {
   [K in keyof T]?: true;
+};
+type Sort<T> = {
+  [K in keyof T]?: "asc" | "desc";
 };
 
 type Insertable<T extends StoreSchema> =
@@ -32,36 +35,55 @@ type Filter<A, B = undefined> = B extends undefined ? A : {
   ]: A[K];
 };
 
-type Config<S extends StoreSchema> = {
+type Config = {
   name?: string;
-  db?: Database<S>;
+  db?: Database;
 };
 
 export default class Store<S extends StoreSchema> {
   #schema: S;
   #type: StoreType<S>;
-  #config: Config<S>;
+  #config: Config;
   #types: Types;
+  #db: Database;
 
-  constructor(schema: S, config?: Config<S>) {
+  constructor(schema: S, config?: Config) {
     this.#schema = schema;
     this.#type = new StoreType(schema);
     this.#config = config ?? {};
     this.#types = Object.fromEntries(Object.entries(schema)
       .map(([key, value]) => [key, value.datatype]));
+    this.#db = this.#config.db ?? new InMemoryDatabase();
+  }
+
+  get #as() {
+    return {
+      name: this.name,
+      types: this.#types,
+    };
+  }
+
+  get schema() {
+    const db = this.db;
+    const name = this.#config.name!;
+    const schema = this.#schema;
+    return {
+      create: () => db.schema.create(name, schema),
+      delete: () => db.schema.delete(name),
+    };
   }
 
   get infer() {
     return undefined as unknown as InferStore<S>;
   }
 
-  derive(name: string, db: Database<S>) {
+  derive(name: string, db: Database) {
     const _name = this.#config.name;
 
     return new Store(this.#schema, { name: _name ?? name, db });
   }
 
-  [derive](name: string, db: Database<S>) {
+  [derive](name: string, db: Database) {
     const _name = this.#config.name;
 
     return new Store(this.#schema, {
@@ -71,7 +93,7 @@ export default class Store<S extends StoreSchema> {
   }
 
   get db() {
-    return this.#config.db ?? new InMemoryDatabase();
+    return this.#db;
   }
 
   get types() {
@@ -85,7 +107,7 @@ export default class Store<S extends StoreSchema> {
     return this.#config.name;
   }
 
-  static new <S extends StoreSchema>(schema: S, config?: Config<S>) {
+  static new <S extends StoreSchema>(schema: S, config?: Config) {
     return new Store<S>(schema, config);
   }
 
@@ -97,11 +119,10 @@ export default class Store<S extends StoreSchema> {
   async exists(id: Id) {
     is(id).string();
 
-    const options = { count: true };
-
-    const { length } = (await this.db.read(this, { id }, null, options));
-
-    return length === 1;
+    return (await this.db.read(this.#as, {
+      criteria: { id },
+      count: true,
+    })) === 1;
   }
 
   /**
@@ -113,10 +134,10 @@ export default class Store<S extends StoreSchema> {
   async get(id: Id): Promise<Document<S>> {
     is(id).string();
 
-    // assert (await this.count(key)) === 1 const n = this.name;
-    const options = { limit: 1 };
-
-    const document = await this.db.read(this, { id }, null, options);
+    const [document] = await this.db.read(this.#as, {
+      criteria: { id },
+      limit: 1,
+    });
 
     return this.#type.validate(document);
   }
@@ -131,12 +152,9 @@ export default class Store<S extends StoreSchema> {
   async insert(document: Insertable<S>): Promise<Document<S>> {
     is(document).object();
 
-    const validated = this.#type.validate(document);
-
-    // @ts-expect-error store
-    const [returned] = await this.db.create(this, validated);
-
-    return returned as Document<S>;
+    return this.db.create(this.#as, {
+      document: this.#type.validate(document),
+    });
   }
 
   /**
@@ -152,11 +170,19 @@ export default class Store<S extends StoreSchema> {
    * @throws if the given id does not exist in the store
    * @returns the updated document
    */
-  async update(id: Id, _changes: Changes<S>): Promise<Document<S>> {
+  async update(id: Id, changes: Changes<S>): Promise<Document<S>> {
     is(id).string();
-    is(document).object();
+    is(changes).object();
 
-    return this.#type.validate(document);
+    // to do: validate optionally: this.#type.validate(document, { partial: true })
+
+    const [document] = await this.db.update(this.#as, {
+      criteria: { id },
+      delta: changes,
+      limit: 1,
+    });
+
+    return document as Document<S>;
   }
 
   /**
@@ -167,6 +193,10 @@ export default class Store<S extends StoreSchema> {
    */
   async delete(id: Id): Promise<void> {
     is(id).string();
+
+    await this.db.delete(this.#as, {
+      criteria: { id },
+    });
   }
 
   /**
@@ -178,19 +208,32 @@ export default class Store<S extends StoreSchema> {
    * @returns any documents matching the criteria, with their selected fields
    */
   find(criteria: Criteria<S>): Promise<Filter<Document<S>>[]>;
-  find<F extends Fields<Document<S>>>(
+  find<F extends Select<Document<S>>>(
     criteria: Criteria<S>,
-    fields: F
+    options?: {
+      select?: F;
+      sort?: Sort<Document<S>>;
+    }
   ): Promise<Filter<Document<S>, F>[]>;
-  async find<F extends Fields<Document<S>>>(
+  async find<F extends Select<Document<S>>>(
     criteria: Criteria<S>,
-    fields?: Fields<Document<S>>): Promise<Filter<Document<S>, F>[]> {
+    options?: {
+      select?: Select<Document<S>>;
+      sort: Sort<Document<S>>;
+    },
+  ): Promise<Filter<Document<S>, F>[]> {
     is(criteria).object();
-    maybe(fields).object();
+    maybe(options).object();
+    maybe(options?.select).object();
+    maybe(options?.sort).object();
 
-    const result = await this.db.read(this, {});
+    const result = await this.db.read(this.#as, {
+      criteria,
+      fields: Object.keys(options?.select ?? {}),
+      sort: options?.sort,
+    });
 
-    return result as any;
+    return result as Filter<Document<S>, F>[];
   };
 
   /**

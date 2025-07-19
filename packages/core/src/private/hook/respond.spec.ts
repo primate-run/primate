@@ -14,7 +14,7 @@ const app = {
   },
 };
 
-const url = "https://primate.run";
+const url = "https://primate.run/";
 const status = Status.FOUND;
 
 test.case("guess URL", async assert => {

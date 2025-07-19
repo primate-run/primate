@@ -1,12 +1,11 @@
-import type Infer from "#Infer";
 import type StoreSchema from "#StoreSchema";
 import type Validated from "#Validated";
 import type UndefinedToOptional from "@rcompat/type/UndefinedToOptional";
 
+type StoreValue<T> = T extends Validated<infer U> ? U : never;
+
 type InferStore<T extends StoreSchema> = UndefinedToOptional<{
-  [K in keyof T]: T[K] extends Validated<unknown>
-    ? Infer<T[K]>
-    : "store-never"
+  [K in keyof T]: StoreValue<T[K]>;
 }>;
 
 export type { InferStore as default };

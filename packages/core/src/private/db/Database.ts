@@ -1,50 +1,42 @@
-import type Store from "#db/Store";
-import type EO from "@rcompat/type/EO";
+import type As from "#db/As";
+import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
-import type DataType from "pema/DataType";
-import type InferStore from "pema/InferStore";
 import type StoreSchema from "pema/StoreSchema";
 
-type Criteria = EO;
-type Projection = EO[] | null;
-type ReadOptions = {
-  count?: boolean;
-  limit?: number;
-};
-
-type CreateOptions = {
-  limit?: number;
-};
-type Document = EO;
-type Description = Record<string, keyof DataType>;
-
-export default abstract class Database<S extends StoreSchema> {
+export default abstract class Database {
   abstract schema: {
-    create(name: string, description: Description): MaybePromise<void>;
+    create(name: string, description: StoreSchema): MaybePromise<void>;
     delete(name: string ): MaybePromise<void>;
   };
 
-  abstract create(
-    store: Store<S>,
-    document: InferStore<S>,
-    options?: CreateOptions,
-  ): MaybePromise<InferStore<S>>;
+  abstract create<O extends Dict>(as: As, args: {
+    document: Dict;
+  }): MaybePromise<O>;
 
-  abstract read(
-    store: Store<S>,
-    criteria: Criteria,
-    projection?: Projection,
-    options?: ReadOptions,
-  ): MaybePromise<Document[]>;
+  abstract read(as: As, args: {
+    criteria: Dict;
+    count: true;
+  }): MaybePromise<number>;
+  abstract read(as: As, args: {
+    criteria: Dict;
+    fields?: string[];
+    sort?: Dict<"asc" | "desc" | undefined>;
+    limit?: number;
+  }): MaybePromise<Dict[]>;
 
-  abstract update(
-    store: Store<S>,
-    criteria: Criteria,
-    set: Document
-  ): MaybePromise<number>;
+  abstract update(as: As, args: {
+    criteria: Dict;
+    delta: Dict;
+    count?: true;
+  }): MaybePromise<number>;
+  abstract update(as: As, args: {
+    criteria: Dict;
+    delta: Dict;
+    sort?: Dict<"asc" | "desc">;
+    limit?: number;
+  }): MaybePromise<Dict[]>;
 
-  abstract delete(
-    store: Store<S>,
-    criteria: Criteria,
-  ): MaybePromise<void>;
+  abstract delete(as: As, args: {
+    criteria: Dict;
+  }): MaybePromise<void>;
 };
