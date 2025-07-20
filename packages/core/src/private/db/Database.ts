@@ -6,11 +6,11 @@ import type StoreSchema from "pema/StoreSchema";
 export default abstract class Database {
   abstract schema: {
     create(name: string, description: StoreSchema): MaybePromise<void>;
-    delete(name: string ): MaybePromise<void>;
+    delete(name: string): MaybePromise<void>;
   };
 
   abstract create<O extends Dict>(as: As, args: {
-    document: Dict;
+    record: Dict;
   }): MaybePromise<O>;
 
   abstract read(as: As, args: {
@@ -26,17 +26,17 @@ export default abstract class Database {
 
   abstract update(as: As, args: {
     criteria: Dict;
-    delta: Dict;
-    count?: true;
+    changes: Dict;
+    count: true;
   }): MaybePromise<number>;
   abstract update(as: As, args: {
     criteria: Dict;
-    delta: Dict;
+    changes: Dict;
     sort?: Dict<"asc" | "desc">;
     limit?: number;
   }): MaybePromise<Dict[]>;
 
   abstract delete(as: As, args: {
     criteria: Dict;
-  }): MaybePromise<void>;
+  }): MaybePromise<number>;
 };

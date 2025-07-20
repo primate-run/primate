@@ -1,9 +1,9 @@
 import AppError from "#AppError";
 import type Changes from "#db/Changes";
 import type Database from "#db/Database";
-import type Document from "#db/Document";
+import type DataRecord from "#db/DataRecord";
 import InMemoryDatabase from "#db/InMemoryDatabase";
-import Query from "#db/Query";
+//import Query from "#db/Query";
 import derive from "#db/symbol/derive";
 import type Types from "#db/Types";
 import is from "@rcompat/assert/is";
@@ -27,7 +27,7 @@ type Sort<T> = {
 };
 
 type Insertable<T extends StoreSchema> =
-  Omit<Document<T>, "id"> & { id?: StoreId<T> };
+  Omit<DataRecord<T>, "id"> & { id?: StoreId<T> };
 
 type Filter<A, B = undefined> = B extends undefined ? A : {
   [K in keyof A as K extends keyof B
@@ -102,7 +102,7 @@ export default class Store<S extends StoreSchema> {
 
   get name() {
     if (this.#config.name === undefined) {
-      throw new AppError("Store missing name");
+      throw new AppError("store missing name");
     }
     return this.#config.name;
   }
@@ -112,116 +112,187 @@ export default class Store<S extends StoreSchema> {
   }
 
   /**
-   * *Check whether a document with the given id exists in the store.*
-   * @param id the document id
-   * @returns *true* if a document with the given id exists
+   * *Count records.*
+   * @param criteria criteria to limit records by
+   * @returns the number of records if given criteria, otherwise all
+   */
+  async count(criteria?: Criteria<S>) {
+    maybe(criteria).object();
+
+    return (await this.db.read(this.#as, {
+      criteria: criteria ?? {},
+      count: true,
+    }));
+  }
+
+  /**
+   * *Check whether a record with the given id exists.*
+   * @param id the record id
+   * @returns *true* if a record with the given id exists
    */
   async exists(id: Id) {
     is(id).string();
 
-    return (await this.db.read(this.#as, {
-      criteria: { id },
-      count: true,
-    })) === 1;
+    // @ts-expect-error type
+    return (await this.count({ id })) === 1;
   }
 
   /**
-   * *Get a single document with the given id from the store.*
-   * @param id the document id
-   * @throws if a document with given id does not exist
-   * @returns the document for the given id
+   * *Get a single record with the given id.*
+   * @param id the record id
+   * @throws if a record with given id does not exist
+   * @returns the record for the given id
    */
-  async get(id: Id): Promise<Document<S>> {
+  async get(id: Id): Promise<DataRecord<S>> {
     is(id).string();
 
-    const [document] = await this.db.read(this.#as, {
+    const [record] = await this.db.read(this.#as, {
       criteria: { id },
       limit: 1,
     });
 
-    return this.#type.validate(document);
+    return this.#type.validate(record);
   }
 
   /**
-   * *Insert a document into the store.*
+   * *Insert a single record.*
    *
-   * @param document the document to insert, will generate id if missing
-   * @throws if the document id exists in the store
-   * @returns the inserted document
+   * @param record the record to insert, will generate id if missing
+   * @throws if the record id exists in the store
+   * @returns the inserted record
    */
-  async insert(document: Insertable<S>): Promise<Document<S>> {
-    is(document).object();
+  async insert(record: Insertable<S>): Promise<DataRecord<S>> {
+    is(record).object();
 
     return this.db.create(this.#as, {
-      document: this.#type.validate(document),
+      record: this.#type.validate(record),
     });
   }
 
   /**
-   * *Update a document in the store.*
+   * *Update a single record.*
    *
-   * When updating a document, any field in the *changes* parameter that is
+   * When updating a record, any field in the *changes* parameter that is
    * - **undefined** or missing, is unaffected
    * - **null**, is unset
    * - present but not **null** or **undefined**, is set
    *
-   * @param id the document id
-   * @param changes changes to the document, see above
+   * @param id the record id
+   * @param changes changes to the record, see above
    * @throws if the given id does not exist in the store
-   * @returns the updated document
+   * @returns the updated record
    */
-  async update(id: Id, changes: Changes<S>): Promise<Document<S>> {
-    is(id).string();
+  update(id: Id, changes: Changes<S>): Promise<DataRecord<S>>;
+
+  /**
+   * *Update multiple record.*
+   *
+   * When updating records, any field in the *changes* parameter that is
+   * - **undefined** or missing, is unaffected
+   * - **null**, is unset
+   * - present but not **null** or **undefined**, is set
+   *
+   * @param criteria criteria for updating record
+   * @param changes changes to the record, see above
+   * @returns the updated record
+   */
+  update(criteria: Criteria<S>, changes: Changes<S>): Promise<DataRecord<S>[]>;
+
+  async update(
+    criteria: Id | Criteria<S>,
+    changes: Changes<S>,
+  ) {
     is(changes).object();
 
-    // to do: validate optionally: this.#type.validate(document, { partial: true })
+    return typeof criteria === "string"
+      ? this.#update_1(criteria, changes)
+      : this.#update_n(criteria, changes);
+  }
 
-    const [document] = await this.db.update(this.#as, {
+  async #update_1(id: Id, changes: Changes<S>) {
+    is(id).string();
+
+    const [record] = await this.db.update(this.#as, {
       criteria: { id },
-      delta: changes,
+      changes,
       limit: 1,
     });
 
-    return document as Document<S>;
+    return record as DataRecord<S>;
+  }
+
+  async #update_n(criteria: Criteria<S>, changes: Changes<S>) {
+    is(criteria).object();
+
+    const records = await this.db.update(this.#as, {
+      criteria,
+      changes,
+    });
+
+    return records as DataRecord<S>[];
   }
 
   /**
-   * *Delete a document from the store.*
+   * *Delete a single record.*
    *
-   * @param id the document id
+   * @param id the record id
    * @throws if the given id does not exist in the store
    */
-  async delete(id: Id): Promise<void> {
+  delete(id: Id): Promise<void>;
+
+  /**
+   * *Delete multiple records.*
+   *
+   * @param criteria criteria for updating records
+   * @returns the number of deleted records
+   */
+  delete(criteria: Criteria<S>): Promise<number>;
+
+  async delete(criteria: Id | Criteria<S>) {
+    return typeof criteria === "string"
+      ? this.#delete_1(criteria)
+      : this.#delete_n(criteria);
+  }
+
+  async #delete_1(id: Id) {
     is(id).string();
 
-    await this.db.delete(this.#as, {
-      criteria: { id },
-    });
+    const n = await this.db.delete(this.#as, { criteria: { id } });
+
+    if (n !== 1) {
+      new AppError(`${n} records deleted instead of 1`);
+    }
+  }
+
+  async #delete_n(criteria: Criteria<S>) {
+    is(criteria).object();
+
+    return await this.db.delete(this.#as, { criteria });
   }
 
   /**
-   * *Find matching documents.*
+   * *Find matching records.*
    *
    * @param criteria the search criteria
    * @param fields the selected fields
    *
-   * @returns any documents matching the criteria, with their selected fields
+   * @returns any record matching the criteria with its selected fields
    */
-  find(criteria: Criteria<S>): Promise<Filter<Document<S>>[]>;
-  find<F extends Select<Document<S>>>(
+  find(criteria: Criteria<S>): Promise<Filter<DataRecord<S>>[]>;
+  find<F extends Select<DataRecord<S>>>(
     criteria: Criteria<S>,
     options?: {
       select?: F;
-      sort?: Sort<Document<S>>;
+      sort?: Sort<DataRecord<S>>;
     }
-  ): Promise<Filter<Document<S>, F>[]>;
-  async find<F extends Select<Document<S>>>(
+  ): Promise<Filter<DataRecord<S>, F>[]>;
+  async find<F extends Select<DataRecord<S>>>(
     criteria: Criteria<S>,
     options?: {
-      select?: Select<Document<S>>;
-      sort: Sort<Document<S>>;
+      select?: Select<DataRecord<S>>;
+      sort: Sort<DataRecord<S>>;
     },
-  ): Promise<Filter<Document<S>, F>[]> {
+  ): Promise<Filter<DataRecord<S>, F>[]> {
     is(criteria).object();
     maybe(options).object();
     maybe(options?.select).object();
@@ -233,7 +304,7 @@ export default class Store<S extends StoreSchema> {
       sort: options?.sort,
     });
 
-    return result as Filter<Document<S>, F>[];
+    return result as Filter<DataRecord<S>, F>[];
   };
 
   /**
@@ -241,7 +312,7 @@ export default class Store<S extends StoreSchema> {
    *
    * @returns a buildable query
   */
-  query(): Query<S> {
+  /*query(): Query<S> {
     return new Query(this.#schema);
-  }
+  }*/
 };

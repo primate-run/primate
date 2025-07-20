@@ -1,20 +1,30 @@
+import type Database from "#db/Database";
 import Store from "#db/Store";
 import test from "@rcompat/test";
+import type Dict from "@rcompat/type/Dict";
 import number from "pema/number";
 import optional from "pema/optional";
+import primary from "pema/primary";
 import string from "pema/string";
 import uint from "pema/uint";
-import primary from "pema/primary";
-import type Database from "#db/Database";
-import type Dict from "@rcompat/type/Dict";
 
 function pick<
   D extends Dict,
   P extends string[],
->(document: D, ...projection: P) {
-  return Object.fromEntries(Object.entries(document)
+>(record: D, ...projection: P) {
+  return Object.fromEntries(Object.entries(record)
     .filter(([key]) => projection.includes(key)));
 };
+
+const users = {
+  donald: { name: "Donald", age: 30, lastname: "Duck" },
+  ryan: { name: "Ryan", age: 40, lastname: "Wilson" },
+  ben: { name: "Ben", age: 60, lastname: "Miller" },
+  jeremy: { name: "Just Jeremy", age: 20 },
+  paul: { name: "Paul", age: 40, lastname: "Miller" },
+} as const;
+type User = keyof typeof users;
+
 
 export default <D extends Database>(database: D) => {
   const _Post = new Store({
@@ -28,15 +38,16 @@ export default <D extends Database>(database: D) => {
     name: string.default("Donald"),
     lastname: optional(string),
     age: number,
-  //   //post_id: Post.schema.id,
-  //   //post: Post.one({ post_id: post => post.id }),
-  //   //posts: Post.many({ id: post => post.user_id }),
   }, { name: "user", db: database });
 
-  /*test.case("query", async assert => {
-    const r = await User.query().select("lastname", "name").run();
-    assert(r).type<{ name: string; lastname?: string }>();
-  });*/
+  const bootstrap = async (tester: () => Promise<void>) => {
+    await User.schema.create();
+    for (const user of Object.values(users)) {
+      await User.insert(user);
+    }
+    await tester();
+    await User.schema.delete();
+  };
 
   test.case("insert", async assert => {
     await User.schema.create();
@@ -51,67 +62,112 @@ export default <D extends Database>(database: D) => {
     await User.schema.delete();
   });
 
-  test.case("find", async assert => {
-    await User.schema.create();
-
-    const donald = { name: "Donald", age: 30 };
-    const donald_duck = { name: "Donald", age: 34, lastname: "Duck" };
-    const ryan = { name: "Ryan", age: 40 };
-    const ryan_wilson = { name: "Ryan", age: 25, lastname: "Wilson"};
-    const ben_miller = { name: "Ben", age: 60, lastname: "Miller"};
-
-    await User.insert(donald);
-    await User.insert(donald_duck);
-    await User.insert(ryan);
-    await User.insert(ryan_wilson);
-    await User.insert(ben_miller);
-
-    const ryans = await User.find({ name: "Ryan" });
-    assert(ryans).type<{
-      id?: string;
-      name: string;
-      lastname?: string;
-      age: number;
-    }[]>();
-    assert(ryans.length).equals(2);
-    assert(ryans[0]).equals({ id: ryans[0].id, ...ryan });
-    assert(ryans[1]).equals({ id: ryans[1].id, ...ryan_wilson });
-
-    const no_one = await User.find({ name: "No One" });
-    assert(no_one.length).equals(0);
-    const no_one_name = await User.find({ name: "No One" },
-      { select: { name: true } });
-    assert(no_one_name.length).equals(0);
-
-    const donalds = await User.find({ name: "Donald" },
-      { select: { name: true, lastname: true } });
-    assert(donalds).type<{
-      name: string;
-      lastname?: string;
-    }[]>();
-    assert(donalds.length).equals(2);
-    assert(donalds[0]).equals(pick(donald, "name", "lastname"));
-    assert(donalds[1]).equals(pick(donald_duck, "name", "lastname"));
-
-    const sorted_donalds = await User.find({ name: "Donald" },
-      { sort: { age: "desc" }});
-    assert(sorted_donalds.length).equals(2);
-    assert(sorted_donalds[0]).equals(pick(donald_duck, "name", "lastname"));
-    assert(sorted_donalds[1]).equals(pick(donald, "name", "lastname"));
-
-    /*const users2 = await User.find({ name: "string" }, { age: true });
-    assert(users2).type<{
-      age: number;
-    }[]>();
-
-    const users3 = await User.find({ name: "string" }, {
-      age: true, lastname: true,
+  test.case("find - basic query", async assert => {
+    await bootstrap(async () => {
+      const result = await User.find({ name: "Ryan" });
+      assert(result.length).equals(1);
+      assert(result[0]).equals({ id: result[0].id, ...users.ryan });
     });
-    assert(users3).type<{
-      age: number;
-      lastname?: string;
-    }[]>();*/
+  });
 
-    await User.schema.delete();
+  test.case("find - sorting by multiple fields", async assert => {
+    await bootstrap(async () => {
+      // Sorting by multiple fields: age descending, then Lastname ascending
+      const sorted = await User.find({}, {
+        sort: { age: "desc", lastname: "asc" },
+        select: { name: true, age: true },
+      });
+
+      assert(sorted.length).equals(5);
+      ["ben", "paul", "ryan", "donald", "jeremy"].forEach((user, i) => {
+        assert(sorted[i]).equals(pick(users[user as User], "name", "age"));
+      });
+    });
+  });
+
+  test.case("find - sorting ascending and descending", async assert => {
+    await bootstrap(async () => {
+      const ascending = await User.find({}, {
+        sort: { age: "asc" },
+        select: { name: true, age: true },
+      });
+
+      const ascended = ["jeremy", "donald", "ryan", "paul", "ben"];
+      ascended.forEach((user, i) => {
+        assert(ascending[i]).equals(pick(users[user as User], "name", "age"));
+      });
+
+      const descending = await User.find({}, {
+        sort: { age: "desc" },
+        select: { name: true, age: true },
+      });
+
+      // NB: Since Ryan and Paul have the same age, they will be returned in
+      // order of insertion; can't use `ascended.toReversed()`
+      const descended = ["ben", "ryan", "paul", "donald", "jeremy"];
+      descended.forEach((user, i) => {
+        assert(descending[i]).equals(pick(users[user as User], "name", "age"));
+      });
+    });
+  });
+
+  test.case("update - single record", async assert => {
+    await bootstrap(async () => {
+      const donald = { name: "Donald", age: 30 };
+      const donald_id = (await User.insert(donald)).id!;
+
+      const updated = await User.update(donald_id, { age: 35 });
+      assert(updated.age).equals(35);
+    });
+  });
+
+  test.case("update - multiple records", async assert => {
+    await bootstrap(async () => {
+      const updated = await User.update({ age: 40 }, { age: 45 });
+
+      assert(updated.length).equals(2);
+      assert(updated[0].age).equals(45);
+      assert(updated[1].age).equals(45);
+    });
+  });
+
+  test.case("delete - single record", async assert => {
+    await bootstrap(async () => {
+      const [donald] = await User.find({ name: "Donald" });
+      await User.delete(donald.id!);
+
+      const deleted = await User.find({ name: "Donald" });
+      assert(deleted.length).equals(0);
+    });
+  });
+
+  test.case("delete - multiple records", async assert => {
+    await bootstrap(async () => {
+      const n = await User.delete({ age: 40 });
+      assert(n).equals(2);
+
+      const remaining = await User.find({});
+      assert(remaining.length).equals(3);
+      assert(remaining[0].name).equals("Donald");
+    });
+  });
+
+  test.case("count", async assert => {
+    await bootstrap(async () => {
+      assert(await User.count()).equals(5);
+      assert(await User.count({ name: "Ryan" })).equals(1);
+      assert(await User.count({ age: 40 })).equals(2);
+      assert(await User.count({ age: 30 })).equals(1);
+      assert(await User.count({ age: 35 })).equals(0);
+    });
+  });
+
+  test.case("exists", async assert => {
+    await bootstrap(async () => {
+      const [donald] = await User.find({ name: "Donald" });
+
+      assert(await User.exists(donald.id!)).true();
+      assert(await User.exists("1fd4")).false();
+    });
   });
 };

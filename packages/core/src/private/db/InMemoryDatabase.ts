@@ -4,29 +4,46 @@ import type Database from "#db/Database";
 import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import type PartialDict from "@rcompat/type/PartialDict";
+import entries from "@rcompat/record/entries";
 
-const match = (document: Dict, criteria: Dict) =>
+const match = (record: Dict, criteria: Dict) =>
   Object.entries(criteria).every(([key, value]) =>
-    document[key] === value);
+    record[key] === value);
 
-const filter = (document: Dict, fields: string[]) =>
-  Object.fromEntries(Object.entries(document)
+const filter = (record: Dict, fields: string[]) =>
+  Object.fromEntries(Object.entries(record)
     .filter(([key]) => fields.includes(key)));
 
-/*const sorted = (a: Dict, b: Dict, sort: Dict<"asc" | "desc">) => {
-  Object.entries(sort).map(([key, direction]) => {
-    if ()
-  })
-};*/
+const to_sorted = <T extends Dict>(d1: T, d2: T, sort: Dict<"asc" | "desc">) =>
+  [...entries(sort).valmap(([, value]) => value === "asc" ? 1 : -1)]
+    .reduce((sorting, [field, direction]) => {
+      const left = d1[field] as T[keyof T];
+      const right = d2[field] as typeof left;
+
+      // if sorting has been established, it stays fixed
+      if (sorting !== 0) {
+        return sorting;
+      }
+      // equal, sorting doesn't change
+      if (left === right) {
+        return sorting;
+      }
+
+      if (left < right) {
+        return -1 * direction;
+      }
+
+      return direction;
+    }, 0);
 
 export default class InMemoryDatabase implements Database {
-  #collections: PartialDict<Dict<Dict>> = {};
+  #collections: PartialDict<Dict[]> = {};
 
   #new(name: string) {
     if (this.#collections[name] !== undefined) {
       throw new AppError(`collection ${name} already exists`);
     }
-    this.#collections[name] = {};
+    this.#collections[name] = [];
   }
 
   #drop(name: string) {
@@ -38,7 +55,7 @@ export default class InMemoryDatabase implements Database {
 
   #use(name: string) {
     if (this.#collections[name] === undefined) {
-      this.#collections[name] = {};
+      this.#collections[name] = [];
     }
     return this.#collections[name];
   }
@@ -50,20 +67,21 @@ export default class InMemoryDatabase implements Database {
     };
   }
 
-  create<O extends Dict>(as: As, args: {
-    document: Dict;
-  }) {
+  create<O extends Dict>(as: As, args: { record: Dict }) {
     const collection = this.#use(as.name);
-    const document = {...args.document};
-    if (document.id === undefined) {
-      document.id = crypto.randomUUID();
+    const record = { ...args.record };
+    if (record.id === undefined) {
+      record.id = crypto.randomUUID();
     };
-    if (typeof document.id !== "string") {
-      throw new AppError(`id must be string, got: ${document.id}`);
+    if (typeof record.id !== "string") {
+      throw new AppError(`id must be string, got: ${record.id}`);
     }
-    collection[document.id] = { ...document };
+    if (collection.find(stored => stored.id === record.id)) {
+      throw new AppError(`id ${record.id} already existed in the database`);
+    }
+    collection.push({ ...record });
 
-    return document as MaybePromise<O>;
+    return record as MaybePromise<O>;
   }
 
   read(as: As, args: {
@@ -84,67 +102,72 @@ export default class InMemoryDatabase implements Database {
     limit?: number;
   }): MaybePromise<number | Dict[]> {
     const collection = this.#use(as.name);
-    const matches = Object.values(collection)
-      .filter(document => match(document, args.criteria));
+    const matches = collection
+      .filter(record => match(record, args.criteria));
 
     if (args.count === true) {
       return matches.length;
     }
 
-    console.log("sort", args.sort);
     const fields = args.fields ?? [];
-
-    const filtered = fields.length === 0
-      ? matches
-      : matches.map(matched => filter(matched, fields));
-
     const sort = args.sort ?? {};
 
-    return Object.keys(sort).length === 0
-       ? filtered
-       : filtered; //.toSorted((a, b) => sorted(a, b, sort));
+    const sorted = Object.keys(sort).length === 0
+      ? matches
+      : matches.toSorted((a, b) => to_sorted(a, b, sort));
+
+    return fields.length === 0
+      ? sorted
+      : sorted.map(s => filter(s, fields));
   }
 
   update(as: As, args: {
     criteria: Dict;
-    delta: Dict;
+    changes: Dict;
     count?: true;
   }): MaybePromise<number>;
   update(as: As, args: {
     criteria: Dict;
-    delta: Dict;
+    changes: Dict;
     sort?: Dict<"asc" | "desc">;
     limit?: number;
   }): MaybePromise<Dict[]>;
   update(as: As, args: {
     criteria: Dict;
-    delta: Dict;
+    changes: Dict;
     count?: true;
     sort?: Dict<"asc" | "desc">;
     limit?: number;
   }): MaybePromise<number | Dict[]> {
     const collection = this.#use(as.name);
-    const limit = args.limit ?? -1;
+    const { criteria } = args;
 
-    const matches = Object.values(collection)
-      .filter(document => match(document, args.criteria)).slice(0, limit);
-    matches.forEach(matched => {
-      collection[matched.id as string] = {...match, ...args.delta};
+    const matched = collection.filter(record => match(record, criteria));
+    const limit = args.limit ?? matched.length;
+
+    const updated = matched.slice(0, limit).map(record => {
+      const changed = {...record, ...args.changes};
+      const index = collection.findIndex(stored => stored.id === record.id);
+      collection.splice(index, 1, changed);
+      return changed;
     });
 
     if (args.count === true) {
-      return matches.length;
+      return updated.length;
     }
 
-    return matches;
+    return updated;
   }
 
   delete(as: As, args: {
     criteria: Dict;
   }) {
     const collection = this.#use(as.name);
+    const size_before = Object.keys(collection).length;
 
-    this.#collections[as.name] = Object.fromEntries(Object.entries(collection)
-      .filter(([, document]) => !match(document, args.criteria)));
+    this.#collections[as.name] = collection
+      .filter(record => !match(record, args.criteria));
+
+    return size_before - Object.keys(this.#use(as.name)).length;
   }
 }
