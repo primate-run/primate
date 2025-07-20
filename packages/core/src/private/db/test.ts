@@ -7,6 +7,7 @@ import optional from "pema/optional";
 import primary from "pema/primary";
 import string from "pema/string";
 import uint from "pema/uint";
+import u8 from "pema/u8";
 
 function pick<
   D extends Dict,
@@ -37,7 +38,7 @@ export default <D extends Database>(database: D) => {
     id: primary,
     name: string.default("Donald"),
     lastname: optional(string),
-    age: number,
+    age: u8,
   }, { name: "user", db: database });
 
   const bootstrap = async (tester: () => Promise<void>) => {
@@ -111,13 +112,29 @@ export default <D extends Database>(database: D) => {
     });
   });
 
+  test.case("find - limiting", async assert => {
+    await bootstrap(async () => {
+      const ascending = await User.find({}, {
+        sort: { age: "asc" },
+        select: { name: true, age: true },
+        limit: 3,
+      });
+
+      assert(ascending.length).equals(3);
+      const ascended = ["jeremy", "donald", "ryan"];
+      ascended.forEach((user, i) => {
+        assert(ascending[i]).equals(pick(users[user as User], "name", "age"));
+      });
+    });
+  });
+
   test.case("update - single record", async assert => {
     await bootstrap(async () => {
-      const donald = { name: "Donald", age: 30 };
-      const donald_id = (await User.insert(donald)).id!;
+      const [donald] = (await User.find({ name: "Donald" }));
 
-      const updated = await User.update(donald_id, { age: 35 });
+      const updated = await User.update(donald.id!, { age: 35 });
       assert(updated.age).equals(35);
+      assert(updated).equals({ ...users.donald, id: donald.id!, age: 35 });
     });
   });
 
@@ -167,7 +184,7 @@ export default <D extends Database>(database: D) => {
       const [donald] = await User.find({ name: "Donald" });
 
       assert(await User.exists(donald.id!)).true();
-      assert(await User.exists("1fd4")).false();
+      assert(await User.exists("1234")).false();
     });
   });
 };

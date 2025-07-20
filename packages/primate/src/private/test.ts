@@ -1,7 +1,7 @@
 import verbs from "@primate/core/verbs";
 import type Dict from "@rcompat/type/Dict";
 
-export type Body = string | Dict<string> | Dict<string>[];
+export type Body = string | Dict | Dict[];
 
 export type MockedResponse = {
   status: {

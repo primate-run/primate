@@ -284,6 +284,7 @@ export default class Store<S extends StoreSchema> {
     options?: {
       select?: F;
       sort?: Sort<DataRecord<S>>;
+      limit?: number;
     }
   ): Promise<Filter<DataRecord<S>, F>[]>;
   async find<F extends Select<DataRecord<S>>>(
@@ -291,17 +292,20 @@ export default class Store<S extends StoreSchema> {
     options?: {
       select?: Select<DataRecord<S>>;
       sort: Sort<DataRecord<S>>;
+      limit?: number;
     },
   ): Promise<Filter<DataRecord<S>, F>[]> {
     is(criteria).object();
     maybe(options).object();
     maybe(options?.select).object();
     maybe(options?.sort).object();
+    maybe(options?.limit).usize();
 
     const result = await this.db.read(this.#as, {
       criteria,
       fields: Object.keys(options?.select ?? {}),
       sort: options?.sort,
+      limit: options?.limit,
     });
 
     return result as Filter<DataRecord<S>, F>[];

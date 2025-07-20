@@ -27,7 +27,7 @@
     "@rcompat/assert": "^0.1.1",
     "@rcompat/async": "^0.8.0",
     "@rcompat/record": "^0.8.0",
-    "@rcompat/sqlite": "^0.3.1"
+    "@rcompat/sqlite": "^0.3.3"
   },
   "devDependencies": {
     "pema": "workspace:^"

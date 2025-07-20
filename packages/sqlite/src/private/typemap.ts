@@ -1,12 +1,11 @@
 import numeric from "@rcompat/assert/numeric";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import type DataType from "pema/DataType";
-type PrimitiveParam = string | number | bigint | null | Uint8Array;
-type Param = PrimitiveParam | Record<string, PrimitiveParam>;
+import type PrimitiveParam from "@rcompat/sqlite/PrimitiveParam";
 
 type TypeDescriptor<T extends keyof DataType> = {
   type: string;
-  in: (value: DataType[T]) => MaybePromise<Param>;
+  in: (value: DataType[T]) => MaybePromise<PrimitiveParam>;
   out: (value: unknown) => DataType[T];
 };
 
@@ -14,7 +13,7 @@ type TypeMap = {
   [K in keyof DataType]: TypeDescriptor<K>;
 };
 
-function ident<T extends Param>(type: string) {
+function ident<T extends PrimitiveParam>(type: string) {
   return {
     type,
     in(value: T) {
@@ -25,6 +24,16 @@ function ident<T extends Param>(type: string) {
     },
   };
 }
+
+const number = {
+  type: "number",
+  in(value: number) {
+    return BigInt(value);
+  },
+  out(value: unknown) {
+    return Number(value as bigint);
+  },
+};
 
 const types: TypeMap = {
   blob: {
@@ -61,9 +70,9 @@ const types: TypeMap = {
   f32: ident<number>("real"),
   f64: ident<number>("real"),
   string: ident<string>("text"),
-  i8: ident<number>("integer"),
-  i16: ident<number>("integer"),
-  i32: ident<number>("integer"),
+  i8: number,
+  i16: number,
+  i32: number,
   i64: ident<bigint>("integer"),
   i128: ident<any>("-"),
   primary: {
@@ -87,9 +96,9 @@ const types: TypeMap = {
       return new Date(value as string);
     },
   },
-  u8: ident<number>("integer"),
-  u16: ident<number>("integer"),
-  u32: ident<number>("integer"),
+  u8: number,
+  u16: number,
+  u32: number,
   u64: ident<bigint>("integer"),
   u128: ident<any>("-"),
 };

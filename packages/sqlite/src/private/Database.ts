@@ -2,35 +2,54 @@ import typemap from "#typemap";
 import type As from "@primate/core/db/As";
 import type Database from "@primate/core/db/Database";
 import type Types from "@primate/core/db/Types";
+import is from "@rcompat/assert/is";
 import maybe from "@rcompat/assert/maybe";
 import entries from "@rcompat/record/entries";
 import type Client from "@rcompat/sqlite";
-import type Param from "@rcompat/sqlite/Param";
+import type PrimitiveParam from "@rcompat/sqlite/PrimitiveParam";
 import type Dict from "@rcompat/type/Dict";
-import type MaybePromise from "@rcompat/type/MaybePromise";
 import type StoreSchema from "pema/StoreSchema";
 
-const make_sort = ({ sort = {} } = {}) => {
-  maybe(sort).object();
+type Bindings = Dict<PrimitiveParam>;
 
-  const _entries = Object.entries(sort)
+function make_sort(sort: Dict<"asc" | "desc">)  {
+  is(sort).object();
+
+  const sorting = Object.entries(sort)
     .map(([field, direction]) => `${field} ${direction}`);
 
-  return _entries.length === 0 ? "" : `order by ${_entries.join(",")}`;
+  return sorting.length === 0 ? "" : `ORDER BY ${sorting.join(",")}`;
 };
 
-const predicate = (criteria: Dict) => {
-  const keys = Object.keys(criteria);
-  if (keys.length === 0) {
-    return { where: "", bindings: {} };
+function make_limit(limit?: number) {
+  maybe(limit).usize();
+
+  if (limit === undefined) {
+    return "";
   }
-
-  const where = `where ${keys.map(key => `"${key}"=$${key}`).join(" and ")}`;
-
-  return { where, bindings: criteria };
+  return `LIMIT ${limit}`;
 };
 
-export default class Sqlite implements Database {
+function make_where(bindings: Bindings)  {
+  const keys = Object.keys(bindings);
+
+  if (keys.length === 0) {
+    return "";
+  }
+  return `WHERE ${keys.map(key => `"${key}"=$${key}`).join(" AND ")}`;
+};
+
+const change = (changes: Bindings) => {
+  const keys = Object.keys(changes);
+  const set = keys.map(field => `"${field}"=$s_${field}`).join(",");
+  return {
+    set: `SET ${set}`,
+    bindings: entries(changes).keymap(([key]) => `s_${key}`).get(),
+  };
+};
+
+
+export default class SqliteDatabase implements Database {
   #client: Client;
 
   constructor(client: Client) {
@@ -41,12 +60,12 @@ export default class Sqlite implements Database {
     const body = Object.entries(schema)
       .map(([key, value]) => `"${key}" ${typemap(value.datatype).type}`)
       .join(",");
-    const query = `create table if not exists ${name} (${body})`;
+    const query = `CREATE TABLE IF NOT EXISTS ${name} (${body})`;
     this.#client.prepare(query).run();
   }
 
   #drop(name: string) {
-    const query = `drop table if exists ${name}`;
+    const query = `DROP TABLE IF EXISTS ${name}`;
     this.#client.prepare(query).run();
   }
 
@@ -57,98 +76,127 @@ export default class Sqlite implements Database {
     };
   }
 
-  #unwrap(document: Dict, types: Types) {
-    return Object.fromEntries(Object.entries(document).map(([key, value]) =>
+  #unbind(record: Dict, types: Types): Dict {
+    return Object.fromEntries(Object.entries(record).map(([key, value]) =>
       [key, typemap(types[key]).out(value)]));
   }
 
-  async #wrap(document: Dict, types: Types): Promise<Param> {
-    return Object.fromEntries(Object.entries(document).map(([key, value]) =>
-      [key, typemap(types[key]).in(value as never)])) as Param;
+  async #bind(record: Dict, types: Types) {
+    return Object.fromEntries(await Promise.all(Object.entries(record)
+      .map(async ([key, value]) =>
+        [key, await typemap(types[key]).in(value as never)])));
   }
 
-  async create<O extends Dict>(as: As, args: {
-    document: Dict;
-  }) {
-    const keys = Object.keys(args.document);
+  async create<O extends Dict>(as: As, args: { record: Dict }) {
+    const keys = Object.keys(args.record);
     const columns = keys.map(key => `"${key}"`);
     const values = keys.map(key => `$${key}`).join(",");
     const $predicate = columns.length > 0
-      ? `(${columns.join(",")}) values (${values})`
-      : "default values";
-    const query = `insert into ${as.name} ${$predicate} returning id`;
+      ? `(${columns.join(",")}) VALUES (${values})`
+      : "DEFAULT VALUES";
+    const query = `INSERT INTO ${as.name} ${$predicate} RETURNING ID;`;
+    const bindings = await this.#bind(args.record, as.types);
     const statement = this.#client.prepare(query);
-    const changes = statement.run(await this.#wrap(args.document, as.types));
+    const changes = statement.run(bindings);
     const id = changes.lastInsertRowid;
 
-    return this.#unwrap({ ...args.document, id }, as.types) as O;
+    return this.#unbind({ ...args.record, id }, as.types) as O;
   }
 
-  #count(as: As, criteria: Dict) {
-    const { where, bindings } = predicate(criteria);
-    const query = `select count(*) as n from ${as.name} ${where};`;
+  #count(as: As, bindings: Bindings) {
+    const where = make_where(bindings);
+    const query = `SELECT COUNT(*) AS n FROM ${as.name} ${where};`;
     const statement = this.#client.prepare(query);
-    const [{ n }] = statement.all(bindings as Dict<any>);
+    const [{ n }] = statement.all(bindings);
     return Number(n);
   }
 
   read(as: As, args: {
     criteria: Dict;
     count: true;
-  }): MaybePromise<number>;
+  }): Promise<number>;
   read(as: As, args: {
     criteria: Dict;
     fields?: string[];
     sort?: Dict<"asc" | "desc">;
     limit?: number;
-  }): MaybePromise<Dict[]>;
-  read(as: As, args: {
+  }): Promise<Dict[]>;
+  async read(as: As, args: {
     criteria: Dict;
     fields?: string[];
     count?: true;
     sort?: Dict<"asc" | "desc">;
     limit?: number;
-  }): MaybePromise<number | Dict[]> {
+  }) {
+    const bindings = await this.#bind(args.criteria, as.types);
+
     if (args.count === true) {
-      return this.#count(as, args.criteria);
+      return this.#count(as, bindings);
     }
+
     const fields = args.fields ?? [];
-
-    const sorting = make_sort(args.sort ?? {});
-    const { where, bindings } = predicate(args.criteria);
+    const sort = make_sort(args.sort ?? {});
+    const limit = make_limit(args.limit);
+    const where = make_where(bindings);
     const select = fields.length === 0 ? "*" : fields.join(", ");
-    const query = `select ${select} from ${as.name} ${where} ${sorting};`;
-    const statement = this.#client.prepare(query);
-    const results = statement.all(bindings as Dict<any>);
-    return results.map(result => this.#unwrap(
-      entries(result).filter(([, value]) => value !== null)
-        .get(), as.types));
+    const query = `SELECT ${select} FROM ${as.name} ${where} ${sort} ${limit};`;
+    const records = this.#client.prepare(query).all(bindings);
+
+    return records.map(record =>
+      this.#unbind(entries(record).filter(([, value]) => value !== null).get(),
+        as.types));
   }
 
   update(as: As, args: {
     criteria: Dict;
-    delta: Dict;
-    count?: true;
-  }): MaybePromise<number>;
+    changes: Dict;
+    count: true;
+  }): Promise<number>;
   update(as: As, args: {
     criteria: Dict;
-    delta: Dict;
+    changes: Dict;
     sort?: Dict<"asc" | "desc">;
     limit?: number;
-  }): MaybePromise<Dict[]>;
-  update(as: As, args: {
+  }): Promise<Dict[]>;
+  async update(as: As, args: {
     criteria: Dict;
-    delta: Dict;
+    changes: Dict;
     count?: true;
     sort?: Dict<"asc" | "desc">;
     limit?: number;
-  }): MaybePromise<number | Dict[]> {
-    return 0;
+  }) {
+    const criteria_bindings = await this.#bind(args.criteria, as.types);
+    const changes = await this.#bind(args.changes, as.types);
+    const where = make_where(criteria_bindings);
+    const { set, bindings: set_bindings } = change(changes);
+    const bindings = { ...criteria_bindings, ...set_bindings };
+    const sort = make_sort(args.sort ?? {});
+
+    const query = `
+      WITH to_update AS (
+        SELECT id FROM ${as.name}
+        ${where}
+        ${sort}
+      )
+      UPDATE ${as.name} 
+      ${set}
+      WHERE id IN (SELECT id FROM to_update)
+    `;
+    if (args.count === true) {
+      return this.#client.prepare(`${query};`).run(bindings).changes;
+    }
+
+    const updated = this.#client.prepare(`${query} RETURNING *;`).all(bindings);
+    return updated.map(record =>
+      this.#unbind(entries(record).filter(([, value]) => value !== null).get(),
+        as.types));
   }
 
-  delete(_as: As, _args: {
-    criteria: Dict;
-  }){
+  async delete(as: As, args: { criteria: Dict }) {
+    const bindings = await this.#bind(args.criteria, as.types);
+    const where = make_where(bindings);
+    const query = `DELETE FROM ${as.name} ${where}`;
 
+    return Number(this.#client.prepare(query).run(bindings).changes);
   };
 }

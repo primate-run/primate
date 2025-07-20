@@ -103,6 +103,7 @@ export default async () => {
       try {
         return await check();
       } catch (error) {
+        console.log(error);
         return [
           false, "()", "test execution failed",
         ];

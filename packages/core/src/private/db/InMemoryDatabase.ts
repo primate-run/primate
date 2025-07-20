@@ -115,10 +115,11 @@ export default class InMemoryDatabase implements Database {
     const sorted = Object.keys(sort).length === 0
       ? matches
       : matches.toSorted((a, b) => to_sorted(a, b, sort));
+    const limit = args.limit ?? sorted.length;
 
-    return fields.length === 0
+    return (fields.length === 0
       ? sorted
-      : sorted.map(s => filter(s, fields));
+      : sorted.map(s => filter(s, fields))).slice(0, limit);
   }
 
   update(as: As, args: {
@@ -159,9 +160,7 @@ export default class InMemoryDatabase implements Database {
     return updated;
   }
 
-  delete(as: As, args: {
-    criteria: Dict;
-  }) {
+  delete(as: As, args: { criteria: Dict }) {
     const collection = this.#use(as.name);
     const size_before = Object.keys(collection).length;
 

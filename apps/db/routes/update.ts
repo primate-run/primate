@@ -1,0 +1,14 @@
+import User from "#store/User";
+import route from "primate/route";
+
+export default route({
+  async get() {
+    await User.schema.create();
+
+    const { id } = await User.insert({ name: "Donald", age: 30 });
+
+    const { id: _id, ...updated } = await User.update(id!, { age: 35 });
+
+    return updated;
+  },
+});
