@@ -3,8 +3,8 @@ import poly from "@primate/poly";
 import config from "primate/config";
 
 export default config({
-  modules: [poly(), i18n()],
   http: {
-    port: 10006,
+    port: 10007,
   },
+  modules: [poly(), i18n()],
 });

@@ -3,8 +3,8 @@ import solid from "@primate/solid";
 import config from "primate/config";
 
 export default config({
-  modules: [solid({ extension: ".jsx" }), i18n()],
   http: {
-    port: 10011,
+    port: 10013,
   },
+  modules: [solid({ extension: ".jsx" }), i18n()],
 });

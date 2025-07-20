@@ -3,8 +3,8 @@ import ruby from "@primate/ruby";
 import html from "@primate/html";
 
 export default config({
-  modules: [ruby(), html()],
   http: {
-    port: 10009,
+    port: 10011,
   },
+  modules: [ruby(), html()],
 });

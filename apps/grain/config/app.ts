@@ -3,8 +3,8 @@ import grain from "@primate/grain";
 import html from "@primate/html";
 
 export default config({
-  modules: [grain(), html()],
   http: {
-    port: 10002,
+    port: 10003,
   },
+  modules: [grain(), html()],
 });

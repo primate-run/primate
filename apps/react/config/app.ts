@@ -3,8 +3,8 @@ import react from "@primate/react";
 import config from "primate/config";
 
 export default config({
-  modules: [react(), i18n()],
   http: {
-    port: 10008,
+    port: 10009,
   },
+  modules: [react(), i18n()],
 });

@@ -3,8 +3,8 @@ import svelte from "@primate/svelte";
 import i18n from "@primate/i18n";
 
 export default config({
-  modules: [svelte(), i18n()],
   http: {
-    port: 10012,
+    port: 10014,
   },
+  modules: [svelte(), i18n()],
 });

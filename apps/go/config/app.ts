@@ -3,8 +3,8 @@ import go from "@primate/go";
 import html from "@primate/html";
 
 export default config({
-  modules: [go(), html()],
   http: {
-    port: 10001,
+    port: 10002,
   },
+  modules: [go(), html()],
 });
