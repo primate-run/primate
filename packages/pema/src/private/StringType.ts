@@ -1,5 +1,4 @@
 import PrimitiveType from "#PrimitiveType";
-import type Infer from "#Infer";
 import type Storeable from "#Storeable";
 import type Validator from "#Validator";
 import email from "#validator/email";
