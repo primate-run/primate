@@ -4,7 +4,7 @@
     "test": "npx primate test"
   },
   "dependencies": {
-    "@angular/core": "^20.0.5",
+    "@angular/core": "^20.1.2",
     "@primate/angular": "workspace:^",
     "@rcompat/fs": "^0.13.2",
     "primate": "workspace:^"

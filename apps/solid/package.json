@@ -3,11 +3,11 @@
   "dependencies": {
     "@primate/i18n": "workspace:^",
     "@primate/solid": "workspace:^",
-    "@rcompat/assert": "^0.1.0",
-    "babel-preset-solid": "^1.9.5",
+    "@rcompat/assert": "^0.1.1",
+    "babel-preset-solid": "^1.9.6",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "solid-js": "^1.9.5"
+    "solid-js": "^1.9.7"
   },
   "type": "module"
 }

@@ -7,7 +7,7 @@
     "@rcompat/http": "^0.12.6",
     "@rcompat/record": "^0.8.0",
     "primate": "workspace:^",
-    "svelte": "^5.36.2"
+    "svelte": "^5.36.10"
   },
   "type": "module"
 }

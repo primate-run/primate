@@ -3,7 +3,7 @@
   "dependencies": {
     "@primate/i18n": "workspace:^",
     "@primate/poly": "workspace:^",
-    "@rcompat/assert": "^0.1.0",
+    "@rcompat/assert": "^0.1.1",
     "pema": "workspace:^",
     "poly": "^0.7.2",
     "primate": "workspace:^"

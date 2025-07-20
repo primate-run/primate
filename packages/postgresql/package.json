@@ -16,9 +16,6 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@primate/store": "workspace:^",
-    "@rcompat/assert": "^0.1.0",
-    "@rcompat/object": "^0.5.0",
     "postgres": "^3.4.7"
   },
   "type": "module",

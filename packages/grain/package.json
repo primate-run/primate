@@ -8,7 +8,7 @@
   "type": "module",
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.1.0",
+    "@rcompat/assert": "^0.1.1",
     "@rcompat/fs": "^0.13.2",
     "@rcompat/stdio": "^0.10.0",
     "pema": "workspace:^"
