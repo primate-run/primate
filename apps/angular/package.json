@@ -1,7 +1,10 @@
 {
   "name": "@primate/app/angular",
   "scripts": {
-    "test": "npx primate test"
+    "test": "npm run test:node",
+    "test:node": "npx primate test",
+    "test:deno": "deno run -A npm:primate test",
+    "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
     "@angular/core": "^20.1.2",
