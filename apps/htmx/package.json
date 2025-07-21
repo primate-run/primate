@@ -2,7 +2,7 @@
   "name": "@primate/app/htmx",
   "dependencies": {
     "@primate/htmx": "workspace:^",
-    "@rcompat/fs": "^0.13.2",
+    "@rcompat/fs": "^0.13.3",
     "htmx-esm": "^0.2.1910",
     "pema": "workspace:^",
     "primate": "workspace:^"

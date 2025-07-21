@@ -9,7 +9,7 @@
   "dependencies": {
     "@angular/core": "^20.1.2",
     "@primate/angular": "workspace:^",
-    "@rcompat/fs": "^0.13.2",
+    "@rcompat/fs": "^0.13.3",
     "primate": "workspace:^"
   },
   "type": "module"

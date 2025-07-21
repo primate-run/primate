@@ -6,18 +6,26 @@
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
   "files": [
-    "src/**/*.js",
-    "!src/**/*.spec.js"
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/primate-run/primate",
     "directory": "packages/native"
   },
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf ./lib",
+    "lint": "eslint .",
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && npx proby"
+  },
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/cli": "^0.9.0",
-    "@rcompat/fs": "^0.13.2",
+    "@rcompat/fs": "^0.13.3",
     "@rcompat/stdio": "^0.10.0",
     "@rcompat/webview": "^0.11.2"
   },

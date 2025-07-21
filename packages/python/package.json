@@ -24,7 +24,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.1.2",
-    "@rcompat/fs": "^0.13.2",
+    "@rcompat/fs": "^0.13.3",
     "pema": "workspace:^",
     "pyodide": "^0.28.0"
   },

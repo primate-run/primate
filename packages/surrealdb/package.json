@@ -6,8 +6,9 @@
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
   "files": [
-    "src/**/*.js",
-    "!src/**/*.spec.js"
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
   ],
   "repository": {
     "type": "git",
@@ -15,6 +16,11 @@
     "directory": "packages/surrealdb"
   },
   "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf ./lib",
+    "lint": "eslint .",
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && npx proby",
     "db:start": "surreal start --user primate --pass primate"
   },
   "dependencies": {
@@ -24,11 +30,14 @@
   "type": "module",
   "imports": {
     "#*": {
-      "livetypes": "./src/private/*.js",
-      "default": "./src/private/*.js"
+      "apekit": "./src/private/*.ts",
+      "default": "./lib/private/*.js"
     }
   },
   "exports": {
-    ".": "./src/default.js"
+    ".": {
+      "apekit": "./src/public/index.ts",
+      "default": "./lib/public/index.js"
+    }
   }
 }

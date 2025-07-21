@@ -28,7 +28,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/build": "^0.12.2",
-    "@rcompat/fs": "^0.13.2",
+    "@rcompat/fs": "^0.13.3",
     "@rcompat/runtime": "^0.5.0"
   },
   "peerDependencies": {
