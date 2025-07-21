@@ -4,7 +4,7 @@ import mark from "#mark";
 import { form, json } from "@rcompat/http/mime";
 import get from "@rcompat/record/get";
 import test from "@rcompat/test";
-import never from "@rcompat/test/never";
+import any from "@rcompat/test/any";
 
 const app = {
   get: (config_key: string) => get(config(), config_key),
@@ -26,7 +26,7 @@ const r = await (async () => {
 // test.case("body is json", async assert => {
 //   const body = JSON.stringify({ foo: "bar" });
 //   const headers = { "content-type": json };
-//   const request = await r.post("/", never({ body, headers }));
+//   const request = await r.post("/", any({ body, headers }));
 //   assert(request.body).equals({ foo: "bar" });
 //   assert(request.body.foo).equals("bar");
 //   assert(request.body.bar).undefined();
@@ -34,11 +34,11 @@ const r = await (async () => {
 //   const faulty = `${body}%`;
 //   const error = `cannot parse body with content type ${json}`;
 //   const throws = mark("{0}: {1}", "/", error);
-//   assert(() => r.post("/", never({ body: faulty, headers }))).throws(throws);
+//   assert(() => r.post("/", any({ body: faulty, headers }))).throws(throws);
 // });
 
 // test.case("body is form", async assert => {
-//   const { body } = await r.post("/", never({
+//   const { body } = await r.post("/", any({
 //      body: encodeURI("foo=bar &bar=baz"),
 //      headers: {
 //        "content-type": form,
@@ -98,23 +98,23 @@ const r = await (async () => {
 // test.case("cookies", async assert => {
 //   assert((await r.get("/")).cookies).equals({});
 
-//   const r0 = await r.get("/?key=value", never({ headers: { cookie: "" } }));
+//   const r0 = await r.get("/?key=value", any({ headers: { cookie: "" } }));
 //   assert(r0.cookies).equals({});
 
 //   const r1 = await r.get("/?key=value",
-//     never({ headers: { cookie: "key=value" } }));
+//     any({ headers: { cookie: "key=value" } }));
 //   assert(r1.cookies).equals({ key: "value" });
 //   assert(r1.cookies.key).equals("value");
 //   assert(r1.cookies.key2).undefined();
 
-//   const r1a = await r.get("/?key=value", never({ headers: {
+//   const r1a = await r.get("/?key=value", any({ headers: {
 //     cookie: "key=value;",
 //   } }));
 //   assert(r1a.cookies).equals({ key: "value" });
 //   assert(r1a.cookies.key).equals("value");
 //   assert(r1a.cookies.key2).undefined();
 
-//   const r2 = await r.get("/?key=value", never({ headers: {
+//   const r2 = await r.get("/?key=value", any({ headers: {
 //    cookie: "key=value;key2=value2",
 //   } }));
 //   assert(r2.cookies).equals({ key: "value", key2: "value2" });
@@ -126,7 +126,7 @@ const r = await (async () => {
 // test.case("headers", async assert => {
 //   assert((await r.get("/")).headers).equals({});
 
-//   const r0 = await r.get("/?key=value", never({ headers: {
+//   const r0 = await r.get("/?key=value", any({ headers: {
 //      "x-user": "Donald",
 //   } }));
 
@@ -138,7 +138,7 @@ const r = await (async () => {
 // });
 
 // test.case("cookies double as headers", async assert => {
-//   const r0 = await r.get("/?key=value", never({
+//   const r0 = await r.get("/?key=value", any({
 //      headers: {
 //        cookie: "key=value",
 //      },

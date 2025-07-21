@@ -5,7 +5,7 @@
     "@primate/svelte": "workspace:^",
     "@rcompat/fs": "^0.13.2",
     "@rcompat/http": "^0.12.6",
-    "@rcompat/record": "^0.8.0",
+    "@rcompat/record": "^0.8.1",
     "primate": "workspace:^",
     "svelte": "^5.36.10"
   },

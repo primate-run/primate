@@ -1,4 +1,5 @@
 import type As from "#db/As";
+import type Types from "#db/Types";
 import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import type StoreSchema from "pema/StoreSchema";
@@ -8,6 +9,9 @@ export default abstract class Database {
     create(name: string, description: StoreSchema): MaybePromise<void>;
     delete(name: string): MaybePromise<void>;
   };
+
+  abstract bind(record: Dict, types: Types): MaybePromise<Dict>;
+  abstract unbind(record: Dict, types: Types): Dict;
 
   abstract create<O extends Dict>(as: As, args: {
     record: Dict;

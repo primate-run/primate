@@ -2,7 +2,7 @@
   "name": "@primate/app/handlebars",
   "dependencies": {
     "@primate/handlebars": "workspace:^",
-    "@rcompat/assert": "^0.1.1",
+    "@rcompat/assert": "^0.1.2",
     "handlebars": "^4.7.8",
     "primate": "workspace:^"
   },

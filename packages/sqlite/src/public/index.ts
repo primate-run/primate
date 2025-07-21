@@ -1,5 +1,3 @@
-////import defaults from "#defaults";
-import config from "#config";
+import Module from "#Module";
 
-export default config;
-//(database = defaults.database) => config(database);
+export default (path: string) => new Module(path);

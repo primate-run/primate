@@ -26,7 +26,7 @@ function ident<T extends PrimitiveParam>(type: string) {
 }
 
 const number = {
-  type: "number",
+  type: "integer",
   in(value: number) {
     return BigInt(value);
   },
@@ -74,7 +74,15 @@ const types: TypeMap = {
   i16: number,
   i32: number,
   i64: ident<bigint>("integer"),
-  i128: ident<any>("-"),
+  i128: {
+    type: "text",
+    in(value: bigint) {
+      return String(value);
+    },
+    out(value: unknown) {
+      return BigInt(value as string);
+    },
+  },
   primary: {
     type: "integer primary key",
     in(value: string) {
@@ -99,8 +107,24 @@ const types: TypeMap = {
   u8: number,
   u16: number,
   u32: number,
-  u64: ident<bigint>("integer"),
-  u128: ident<any>("-"),
+  u64: {
+    type: "text",
+    in(value: bigint) {
+      return String(value);
+    },
+    out(value: unknown) {
+      return BigInt(value as string);
+    },
+  },
+  u128: {
+    type: "text",
+    in(value: bigint) {
+      return String(value);
+    },
+    out(value: unknown) {
+      return BigInt(value as string);
+    },
+  },
 };
 
 export default (value: keyof typeof types) => types[value];

@@ -104,7 +104,7 @@ const post = async (app: BuildApp) => {
     `import db from "#db";
 import store from "#stage/store${file}";
 
-export default db.wrap("${file.base}", store);`);
+export default await db.wrap("${file.base}", store);`);
 
   const configs = FileRef.join(dirname, "../../private/config/config");
 

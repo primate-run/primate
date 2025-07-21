@@ -1,13 +1,26 @@
 import type Database from "#db/Database";
 import Store from "#db/Store";
 import test from "@rcompat/test";
+import any from "@rcompat/test/any";
 import type Dict from "@rcompat/type/Dict";
-import number from "pema/number";
+import boolean from "pema/boolean";
+import date from "pema/date";
+import f32 from "pema/f32";
+import f64 from "pema/f64";
+import i128 from "pema/i128";
+import i16 from "pema/i16";
+import i32 from "pema/i32";
+import i64 from "pema/i64";
+import i8 from "pema/i8";
 import optional from "pema/optional";
 import primary from "pema/primary";
 import string from "pema/string";
-import uint from "pema/uint";
+import u128 from "pema/u128";
+import u16 from "pema/u16";
+import u32 from "pema/u32";
+import u64 from "pema/u64";
 import u8 from "pema/u8";
+import uint from "pema/uint";
 
 function pick<
   D extends Dict,
@@ -41,6 +54,25 @@ export default <D extends Database>(database: D) => {
     age: u8,
   }, { name: "user", db: database });
 
+  const Type = new Store({
+    id: primary,
+    boolean: boolean.optional(),
+    date: date.optional(),
+    f32: f32.optional(),
+    f64: f64.optional(),
+    i8: i8.optional(),
+    i16: i16.optional(),
+    i32: i32.optional(),
+    i64: i64.optional(),
+    i128: i128.optional(),
+    string: string.optional(),
+    u8: u8.optional(),
+    u16: u16.optional(),
+    u32: u32.optional(),
+    u64: u64.optional(),
+    u128: u128.optional(),
+  }, { name: "type", db: database });
+
   const bootstrap = async (tester: () => Promise<void>) => {
     await User.schema.create();
     for (const user of Object.values(users)) {
@@ -48,6 +80,12 @@ export default <D extends Database>(database: D) => {
     }
     await tester();
     await User.schema.delete();
+  };
+
+  const typestrap = async (tester: () => Promise<void>) => {
+    await Type.schema.create();
+    await tester();
+    await Type.schema.delete();
   };
 
   test.case("insert", async assert => {
@@ -185,6 +223,146 @@ export default <D extends Database>(database: D) => {
 
       assert(await User.exists(donald.id!)).true();
       assert(await User.exists("1234")).false();
+    });
+  });
+
+  test.case("type - boolean", async assert => {
+    await typestrap(async () => {
+      const t = await Type.insert({ boolean: true });
+      assert(t.boolean).equals(true);
+      assert((await Type.get(t.id!)).boolean).equals(true);
+
+      const tu = await Type.update(t.id!, { boolean: false });
+      assert(tu.boolean).equals(false);
+      assert((await Type.get(t.id!)).boolean).equals(false);
+    });
+  });
+
+  test.case("type - string", async assert => {
+    await typestrap(async () => {
+      const t = await Type.insert({ string: "foo" });
+      assert(t.string).equals("foo");
+      assert((await Type.get(t.id!)).string).equals("foo");
+
+      const tu = await Type.update(t.id!, { string: "bar" });
+      assert(tu.string).equals("bar");
+      assert((await Type.get(t.id!)).string).equals("bar");
+    });
+  });
+
+  test.case("type - date", async assert => {
+    await typestrap(async () => {
+      const now = new Date();
+      const t = await Type.insert({ date: now });
+      assert(t.date).equals(now);
+      assert((await Type.get(t.id!)).date).equals(now);
+
+      const next = new Date();
+
+      const tu = await Type.update(t.id!, { date: next });
+      assert(tu.date).equals(next);
+      assert((await Type.get(t.id!)).date).equals(next);
+    });
+  });
+
+  test.case("type - f32", async assert => {
+    await typestrap(async () => {
+      const t = await Type.insert({ f32: 1.5 });
+      assert(t.f32).equals(1.5);
+      assert((await Type.get(t.id!)).f32).equals(1.5);
+
+      const tu = await Type.update(t.id!, { f32: 123456.75 });
+      assert(tu.f32).equals(123456.75);
+      assert((await Type.get(t.id!)).f32).equals(123456.75);
+    });
+  });
+
+  test.case("type - f64", async assert => {
+    await typestrap(async () => {
+      const f1 = 123456.78901;
+      const t = await Type.insert({ f64: f1 });
+      assert(t.f64).equals(f1);
+      assert((await Type.get(t.id!)).f64).equals(f1);
+
+      const tu = await Type.update(t.id!, { f32: 1.5 });
+      assert(tu.f32).equals(1.5);
+      assert((await Type.get(t.id!)).f32).equals(1.5);
+    });
+  });
+
+  [8, 16, 32].forEach(n => {
+    test.case(`type - l${n}`, async assert => {
+      await typestrap(async () => {
+        const key = `i${n}`;
+
+        // lower bound
+        const lb = -(2 ** (n - 1));
+        const t = await Type.insert({ [key]: lb });
+        assert(t[any(key)]).equals(lb);
+        assert((await Type.get(t.id!))[any(key)]).equals(lb);
+
+        // upper bound
+        const ub = 2 ** (n - 1) - 1;
+        const tu = await Type.update(t.id!, { [key]: ub });
+        assert(tu[any(key)]).equals(ub);
+        assert((await Type.get(t.id!))[any(key)]).equals(ub);
+      });
+    });
+
+    test.case(`type - u${n}`, async assert => {
+      await typestrap(async () => {
+        const key = `u${n}`;
+
+        // lower bound
+        const lb = 0;
+        const t = await Type.insert({ [key]: lb });
+        assert(t[any(key)]).equals(lb);
+        assert((await Type.get(t.id!))[any(key)]).equals(lb);
+
+        // upper bound
+        const ub = 2 ** n - 1;
+        const tu = await Type.update(t.id!, { [key]: ub });
+        assert(tu[any(key)]).equals(ub);
+        assert((await Type.get(t.id!))[any(key)]).equals(ub);
+      });
+    });
+  });
+
+  [64n, 128n].forEach(i => {
+    test.case(`type - i${i}`, async assert => {
+      await typestrap(async () => {
+        const key = `i${i}`;
+
+        // lower bound
+        const lb = -(2n ** (i - 1n));
+        const t = await Type.insert({ [key]: lb });
+        assert(t[any(key)]).equals(lb);
+        assert((await Type.get(t.id!))[any(key)]).equals(lb);
+
+        // upper bound
+        const ub = 2n ** (i - 1n) - 1n;
+        const tu = await Type.insert({ [key]: ub });
+        assert(tu[any(key)]).equals(ub);
+        assert((await Type.get(tu.id!))[any(key)]).equals(ub);
+      });
+    });
+
+    test.case(`type - u${i}`, async assert => {
+      await typestrap(async () => {
+        const key = `u${i}`;
+
+        // lower bound
+        const lb = 0n;
+        const t = await Type.insert({ [key]: lb });
+        assert(t[any(key)]).equals(lb);
+        assert((await Type.get(t.id!))[any(key)]).equals(lb);
+
+        // upper bound
+        const ub = 2n ** i - 1n;
+        const tu = await Type.insert({ [key]: ub });
+        assert(tu[any(key)]).equals(ub);
+        assert((await Type.get(tu.id!))[any(key)]).equals(ub);
+      });
     });
   });
 };

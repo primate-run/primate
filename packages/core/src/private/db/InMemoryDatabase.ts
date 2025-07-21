@@ -5,6 +5,7 @@ import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import type PartialDict from "@rcompat/type/PartialDict";
 import entries from "@rcompat/record/entries";
+import Types from "./Types.js";
 
 const match = (record: Dict, criteria: Dict) =>
   Object.entries(criteria).every(([key, value]) =>
@@ -65,6 +66,14 @@ export default class InMemoryDatabase implements Database {
       create: this.#new.bind(this),
       delete: this.#drop.bind(this),
     };
+  }
+
+  bind(record: Dict) {
+    return record;
+  }
+
+  unbind(record: Dict) {
+    return record;
   }
 
   create<O extends Dict>(as: As, args: { record: Dict }) {

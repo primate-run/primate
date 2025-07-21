@@ -22,7 +22,7 @@ export default pema({
   },
   http: {
     host: string.default("localhost"),
-    port: uint.range(2 ** 10, 2 ** 16 - 1).default(6161),
+    port: uint.port().default(6161),
     headers: record(string, string).optional(),
     csp: record(string, array(string)).optional(),
     static: {

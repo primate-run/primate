@@ -164,9 +164,7 @@ export default class Store<S extends StoreSchema> {
   async insert(record: Insertable<S>): Promise<DataRecord<S>> {
     is(record).object();
 
-    return this.db.create(this.#as, {
-      record: this.#type.validate(record),
-    });
+    return this.db.create(this.#as, { record: this.#type.validate(record) });
   }
 
   /**
