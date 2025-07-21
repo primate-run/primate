@@ -20,6 +20,10 @@ const is_constructor = (value: unknown): value is AbstractConstructor => {
     return false;
   }
 };
+
+/**
+* Create a validation schema.
+*/
 export default function schema<const S extends Schema>(s: S):
 SchemaType<NormalizeSchema<S>> {
   if (s === null) {

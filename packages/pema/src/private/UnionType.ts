@@ -67,10 +67,16 @@ export default class UnionType<T extends Schema[]> extends
     return "union";
   }
 
+  /**
+  * Value is optional.
+  */
   optional() {
     return new OptionalType(this);
   }
 
+  /**
+  * Use the given default if value is missing.
+  */
   default(value: Infer<this> | (() => Infer<this>)) {
     return new DefaultType(this, value);
   }

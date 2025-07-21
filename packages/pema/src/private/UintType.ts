@@ -4,6 +4,7 @@ import type Storeable from "#Storeable";
 import type UintDataType from "#UintDataType";
 import type Validator from "#Validator";
 import integer from "#validator/integer";
+import port from "#validator/port";
 import range from "#validator/range";
 import values from "#validator/values";
 
@@ -31,5 +32,12 @@ export default class UintType<T extends UintDataType = "u32">
 
   range(from: number, to: number) {
     return new UintType(this.#datatype, [...this.validators, range(from, to)]);
+  }
+
+  /**
+  * Value is a non-privileged port number (1000 - 65535).
+  */
+  port() {
+    return new UintType(this.#datatype, [...this.validators, port]);
   }
 }

@@ -27,6 +27,9 @@ export default class RecordType<
     this.#value = v;
   }
 
+  /**
+  * Value is optional.
+  */
   optional() {
     return new OptionalType(this);
   }

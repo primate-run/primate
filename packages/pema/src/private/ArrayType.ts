@@ -31,6 +31,9 @@ export default class ArrayType<T extends Validated<unknown>> extends
     return "array";
   }
 
+  /**
+  * Value is optional.
+  */
   optional() {
     return new OptionalType(this);
   }
