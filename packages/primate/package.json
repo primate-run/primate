@@ -24,7 +24,7 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@rcompat/record": "^0.8.0",
+    "@rcompat/record": "^0.8.1",
     "pema": "workspace:^"
   },
   "dependencies": {
