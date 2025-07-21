@@ -5,12 +5,11 @@ import type Types from "@primate/core/db/Types";
 import is from "@rcompat/assert/is";
 import maybe from "@rcompat/assert/maybe";
 import entries from "@rcompat/record/entries";
-import type Client from "@rcompat/sqlite";
-import type PrimitiveParam from "@rcompat/sqlite/PrimitiveParam";
 import type Dict from "@rcompat/type/Dict";
+import type {
+  Connection, Pool, ResultSetHeader as Result, RowDataPacket as RowData,
+} from "mysql2/promise";
 import type StoreSchema from "pema/StoreSchema";
-
-type Bindings = Dict<PrimitiveParam>;
 
 function make_sort(sort: Dict<"asc" | "desc">)  {
   is(sort).object();
@@ -30,43 +29,62 @@ function make_limit(limit?: number) {
   return ` LIMIT ${limit}`;
 };
 
-function make_where(bindings: Bindings)  {
-  const keys = Object.keys(bindings).map(key => key.slice(1));
+function make_where(bindings: Dict)  {
+  const keys = Object.keys(bindings);
 
   if (keys.length === 0) {
     return "";
   }
-  return `WHERE ${keys.map(key => `${key}=$${key}`).join(" AND ")}`;
+
+  return `where ${keys.map(key => `\`${key}\`=:${key}`).join(" and ")}`;
 };
 
-const change = (bindings: Bindings) => {
-  const keys = Object.keys(bindings).map(key => key.slice(1));
+const change = (bindings: Dict) => {
+  const keys = Object.keys(bindings);
 
-  const set = keys.map(field => `${field}=$s_${field}`).join(",");
+  const set = keys.map(field => `${field}=:s_${field}`).join(",");
   return {
     set: `SET ${set}`,
-    bindings: entries(bindings).keymap(([key]) => `$s_${key.slice(1)}`).get(),
+    bindings: entries(bindings).keymap(([key]) => `s_${key}`).get(),
   };
 };
 
-export default class SqliteDatabase implements Database {
-  #client: Client;
+export default class MySQLDatabase implements Database {
+  #client: Pool;
 
-  constructor(client: Client) {
+  constructor(client: Pool) {
     this.#client = client;
   }
 
-  #new(name: string, schema: StoreSchema) {
-    const body = Object.entries(schema)
-      .map(([key, value]) => `"${key}" ${typemap(value.datatype).type}`)
-      .join(",");
-    const query = `CREATE TABLE IF NOT EXISTS \`${name}\` (${body})`;
-    this.#client.prepare(query).run();
+  async close() {
+    await this.#client.end();
   }
 
-  #drop(name: string) {
+  async #with<T>(executor: (connection: Connection) => Promise<unknown>) {
+    const connection = await this.#client.getConnection();
+    try {
+      return await executor(connection) as T;
+    } finally {
+      this.#client.releaseConnection(connection);
+    }
+  }
+
+  async #new(name: string, schema: StoreSchema) {
+    const body = Object.entries(schema)
+      .map(([column, value]) => `\`${column}\` ${typemap(value.datatype).type}`)
+      .join(",");
+    const query = `CREATE TABLE IF NOT EXISTS ${name} (${body})`;
+
+    await this.#with(async connection => {
+      await connection.query(query);
+    });
+  }
+
+  async #drop(name: string) {
     const query = `DROP TABLE IF EXISTS ${name}`;
-    this.#client.prepare(query).run();
+    await this.#with(async connection => {
+      await connection.query(query);
+    });
   }
 
   get schema() {
@@ -76,31 +94,30 @@ export default class SqliteDatabase implements Database {
     };
   }
 
-  unbind(record: Dict, types: Types): Dict {
+  unbind(record: Dict, types: Types) {
     return Object.fromEntries(Object.entries(record).map(([key, value]) =>
       [key, typemap(types[key]).out(value)]));
   }
 
-  async bind(record: Dict, types: Types) {
+  async bind(record: Dict, types: Types): Promise<Dict> {
     return Object.fromEntries(await Promise.all(Object.entries(record)
       .map(async ([key, value]) =>
-        [`$${key}`, await typemap(types[key]).in(value as never)])));
+        [key, await typemap(types[key]).in(value as never)])));
   }
 
   async create<O extends Dict>(as: As, args: { record: Dict }) {
     const keys = Object.keys(args.record);
-    const columns = keys.map(key => `"${key}"`);
-    const values = keys.map(key => `$${key}`).join(",");
-    const $predicate = columns.length > 0
-      ? `(${columns.join(",")}) VALUES (${values})`
-      : "DEFAULT VALUES";
-    const query = `INSERT INTO ${as.name} ${$predicate} RETURNING ID;`;
+    const columns = keys.map(key => `\`${key}\``);
+    const values = keys.map(key => `:${key}`).join(",");
+    const $predicate = `(${columns.join(",")}) VALUES (${values})`;
+    const query = `INSERT INTO ${as.name} ${$predicate}`;
     const bindings = await this.bind(args.record, as.types);
-    const statement = this.#client.prepare(query);
-    const changes = statement.run(bindings);
-    const id = changes.lastInsertRowid;
 
-    return this.unbind({ ...args.record, id }, as.types) as O;
+    return this.#with(async connection => {
+      const [{ insertId }] = await connection.query<Result>(query, bindings);
+
+      return this.unbind({ ...args.record, id: insertId }, as.types) as O;
+    }) as Promise<O>;
   }
 
   read(as: As, args: {
@@ -124,10 +141,11 @@ export default class SqliteDatabase implements Database {
     const where = make_where(bindings);
 
     if (args.count === true) {
-      const query = `SELECT COUNT(*) AS n FROM ${as.name} ${where};`;
-      const statement = this.#client.prepare(query);
-      const [{ n }] = statement.all(bindings);
-      return Number(n);
+      const query = `SELECT COUNT(*) AS n FROM ${as.name} ${where}`;
+      return this.#with(async connection => {
+        const [[{ n }]] = await connection.query<RowData[]>(query, bindings);
+        return Number(n);
+      });
     }
 
     const fields = args.fields ?? [];
@@ -135,11 +153,14 @@ export default class SqliteDatabase implements Database {
     const limit = make_limit(args.limit);
     const select = fields.length === 0 ? "*" : fields.join(", ");
     const query = `SELECT ${select} FROM ${as.name} ${where}${sort}${limit};`;
-    const records = this.#client.prepare(query).all(bindings);
 
-    return records.map(record =>
-      this.unbind(entries(record).filter(([, value]) => value !== null).get(),
-        as.types));
+    return this.#with(async connection => {
+      const [records] = await connection.query<RowData[]>(query, bindings);
+
+      return records.map(record =>
+        this.unbind(entries(record).filter(([, value]) => value !== null).get(),
+          as.types));
+    });
   }
 
   async update(as: As, args: {
@@ -156,17 +177,23 @@ export default class SqliteDatabase implements Database {
     const sort = make_sort(args.sort ?? {});
 
     const query = `
-      WITH to_update AS (
-        SELECT id FROM ${as.name}
-        ${where}
-        ${sort}
-      )
       UPDATE ${as.name}
       ${set}
-      WHERE id IN (SELECT id FROM to_update)
+      WHERE id IN (
+        SELECT id FROM (
+          SELECT id FROM ${as.name}
+          ${where}
+          ${sort}
+        ) AS to_update
+      );
     `;
 
-    return Number(this.#client.prepare(`${query};`).run(bindings).changes);
+    return this.#with<number>(async connection => {
+      const [{ affectedRows }] = await connection
+        .query<Result>(query, bindings);
+
+      return affectedRows;
+    });
   }
 
   async delete(as: As, args: { criteria: Dict }) {
@@ -174,6 +201,11 @@ export default class SqliteDatabase implements Database {
     const where = make_where(bindings);
     const query = `DELETE FROM ${as.name} ${where}`;
 
-    return Number(this.#client.prepare(query).run(bindings).changes);
+    return this.#with<number>(async connection => {
+      const [{ affectedRows }] = await connection
+        .query<Result>(query, bindings);
+
+      return affectedRows;
+    });
   };
 }

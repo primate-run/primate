@@ -13,6 +13,7 @@ import type InferStore from "pema/InferStore";
 import type StoreId from "pema/StoreId";
 import type StoreSchema from "pema/StoreSchema";
 import StoreType from "pema/StoreType";
+import assert from "@rcompat/assert";
 
 type X<T> = {
   [K in keyof T]: T[K]
@@ -178,12 +179,11 @@ export default class Store<S extends StoreSchema> {
    * @param id the record id
    * @param changes changes to the record, see above
    * @throws if the given id does not exist in the store
-   * @returns the updated record
    */
-  update(id: Id, changes: Changes<S>): Promise<DataRecord<S>>;
+  update(id: Id, changes: Changes<S>): Promise<void>;
 
   /**
-   * *Update multiple record.*
+   * *Update multiple records.*
    *
    * When updating records, any field in the *changes* parameter that is
    * - **undefined** or missing, is unaffected
@@ -192,9 +192,9 @@ export default class Store<S extends StoreSchema> {
    *
    * @param criteria criteria for updating record
    * @param changes changes to the record, see above
-   * @returns the updated record
+   * @returns the number of updated records
    */
-  update(criteria: Criteria<S>, changes: Changes<S>): Promise<DataRecord<S>[]>;
+  update(criteria: Criteria<S>, changes: Changes<S>): Promise<number>;
 
   async update(
     criteria: Id | Criteria<S>,
@@ -210,24 +210,24 @@ export default class Store<S extends StoreSchema> {
   async #update_1(id: Id, changes: Changes<S>) {
     is(id).string();
 
-    const [record] = await this.db.update(this.#as, {
+    const count = await this.db.update(this.#as, {
       criteria: { id },
       changes,
       limit: 1,
     });
 
-    return record as DataRecord<S>;
+    assert(count === 1);
   }
 
   async #update_n(criteria: Criteria<S>, changes: Changes<S>) {
     is(criteria).object();
 
-    const records = await this.db.update(this.#as, {
+    const count = await this.db.update(this.#as, {
       criteria,
       changes,
     });
 
-    return records as DataRecord<S>[];
+    return count;
   }
 
   /**

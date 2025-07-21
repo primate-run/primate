@@ -3,6 +3,7 @@ import Store from "#db/Store";
 import test from "@rcompat/test";
 import any from "@rcompat/test/any";
 import type Dict from "@rcompat/type/Dict";
+import type MaybePromise from "@rcompat/type/MaybePromise";
 import boolean from "pema/boolean";
 import date from "pema/date";
 import f32 from "pema/f32";
@@ -39,20 +40,24 @@ const users = {
 } as const;
 type User = keyof typeof users;
 
+export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
 
-export default <D extends Database>(database: D) => {
+  if (end !== undefined) {
+    test.ended(end);
+  }
+
   const _Post = new Store({
     id: primary,
     title: string,
     user_id: uint,
-  }, { name: "post", db: database });
+  }, { name: "post", db });
 
   const User = new Store({
     id: primary,
     name: string.default("Donald"),
     lastname: optional(string),
     age: u8,
-  }, { name: "user", db: database });
+  }, { name: "user", db });
 
   const Type = new Store({
     id: primary,
@@ -71,7 +76,7 @@ export default <D extends Database>(database: D) => {
     u32: u32.optional(),
     u64: u64.optional(),
     u128: u128.optional(),
-  }, { name: "type", db: database });
+  }, { name: "type", db });
 
   const bootstrap = async (tester: () => Promise<void>) => {
     await User.schema.create();
@@ -170,7 +175,9 @@ export default <D extends Database>(database: D) => {
     await bootstrap(async () => {
       const [donald] = (await User.find({ name: "Donald" }));
 
-      const updated = await User.update(donald.id!, { age: 35 });
+      await User.update(donald.id!, { age: 35 });
+
+      const [updated] = (await User.find({ name: "Donald" }));
       assert(updated.age).equals(35);
       assert(updated).equals({ ...users.donald, id: donald.id!, age: 35 });
     });
@@ -178,11 +185,12 @@ export default <D extends Database>(database: D) => {
 
   test.case("update - multiple records", async assert => {
     await bootstrap(async () => {
-      const updated = await User.update({ age: 40 }, { age: 45 });
+      const n_updated = await User.update({ age: 40 }, { age: 45 });
 
+      assert(n_updated).equals(2);
+
+      const updated = await User.find({ age: 45 });
       assert(updated.length).equals(2);
-      assert(updated[0].age).equals(45);
-      assert(updated[1].age).equals(45);
     });
   });
 
@@ -232,8 +240,7 @@ export default <D extends Database>(database: D) => {
       assert(t.boolean).equals(true);
       assert((await Type.get(t.id!)).boolean).equals(true);
 
-      const tu = await Type.update(t.id!, { boolean: false });
-      assert(tu.boolean).equals(false);
+      await Type.update(t.id!, { boolean: false });
       assert((await Type.get(t.id!)).boolean).equals(false);
     });
   });
@@ -244,8 +251,7 @@ export default <D extends Database>(database: D) => {
       assert(t.string).equals("foo");
       assert((await Type.get(t.id!)).string).equals("foo");
 
-      const tu = await Type.update(t.id!, { string: "bar" });
-      assert(tu.string).equals("bar");
+      await Type.update(t.id!, { string: "bar" });
       assert((await Type.get(t.id!)).string).equals("bar");
     });
   });
@@ -259,8 +265,7 @@ export default <D extends Database>(database: D) => {
 
       const next = new Date();
 
-      const tu = await Type.update(t.id!, { date: next });
-      assert(tu.date).equals(next);
+      await Type.update(t.id!, { date: next });
       assert((await Type.get(t.id!)).date).equals(next);
     });
   });
@@ -271,8 +276,7 @@ export default <D extends Database>(database: D) => {
       assert(t.f32).equals(1.5);
       assert((await Type.get(t.id!)).f32).equals(1.5);
 
-      const tu = await Type.update(t.id!, { f32: 123456.75 });
-      assert(tu.f32).equals(123456.75);
+      await Type.update(t.id!, { f32: 123456.75 });
       assert((await Type.get(t.id!)).f32).equals(123456.75);
     });
   });
@@ -284,8 +288,7 @@ export default <D extends Database>(database: D) => {
       assert(t.f64).equals(f1);
       assert((await Type.get(t.id!)).f64).equals(f1);
 
-      const tu = await Type.update(t.id!, { f32: 1.5 });
-      assert(tu.f32).equals(1.5);
+      await Type.update(t.id!, { f32: 1.5 });
       assert((await Type.get(t.id!)).f32).equals(1.5);
     });
   });
@@ -303,8 +306,7 @@ export default <D extends Database>(database: D) => {
 
         // upper bound
         const ub = 2 ** (n - 1) - 1;
-        const tu = await Type.update(t.id!, { [key]: ub });
-        assert(tu[any(key)]).equals(ub);
+        await Type.update(t.id!, { [key]: ub });
         assert((await Type.get(t.id!))[any(key)]).equals(ub);
       });
     });
@@ -321,8 +323,7 @@ export default <D extends Database>(database: D) => {
 
         // upper bound
         const ub = 2 ** n - 1;
-        const tu = await Type.update(t.id!, { [key]: ub });
-        assert(tu[any(key)]).equals(ub);
+        await Type.update(t.id!, { [key]: ub });
         assert((await Type.get(t.id!))[any(key)]).equals(ub);
       });
     });

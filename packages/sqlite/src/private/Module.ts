@@ -17,4 +17,6 @@ export default class Sqlite extends Module {
   init() {
     return new Database(new Client(this.#path, { safeIntegers: true }));
   }
+
+  deinit() {}
 }

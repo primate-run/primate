@@ -6,26 +6,40 @@
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
   "files": [
-    "src/**/*.js",
-    "!src/**/*.spec.js"
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/primate-run/primate",
     "directory": "packages/mysql"
   },
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf ./lib",
+    "lint": "eslint .",
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && npx proby"
+  },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "mysql2": "^3.14.2"
+    "@rcompat/assert": "^0.1.2",
+    "@rcompat/record": "^0.8.1",
+    "mysql2": "^3.14.2",
+    "pema": "workspace:"
   },
   "type": "module",
   "imports": {
     "#*": {
-      "livetypes": "./src/private/*.js",
-      "default": "./src/private/*.js"
+      "apekit": "./src/private/*.ts",
+      "default": "./lib/private/*.js"
     }
   },
   "exports": {
-    ".": "./src/default.js"
+    ".": {
+      "apekit": "./src/public/index.ts",
+      "default": "./lib/public/index.js"
+    }
   }
 }

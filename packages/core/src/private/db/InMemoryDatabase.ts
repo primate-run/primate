@@ -1,11 +1,10 @@
 import AppError from "#AppError";
 import type As from "#db/As";
 import type Database from "#db/Database";
+import entries from "@rcompat/record/entries";
 import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import type PartialDict from "@rcompat/type/PartialDict";
-import entries from "@rcompat/record/entries";
-import Types from "./Types.js";
 
 const match = (record: Dict, criteria: Dict) =>
   Object.entries(criteria).every(([key, value]) =>
@@ -134,21 +133,9 @@ export default class InMemoryDatabase implements Database {
   update(as: As, args: {
     criteria: Dict;
     changes: Dict;
-    count?: true;
-  }): MaybePromise<number>;
-  update(as: As, args: {
-    criteria: Dict;
-    changes: Dict;
     sort?: Dict<"asc" | "desc">;
     limit?: number;
-  }): MaybePromise<Dict[]>;
-  update(as: As, args: {
-    criteria: Dict;
-    changes: Dict;
-    count?: true;
-    sort?: Dict<"asc" | "desc">;
-    limit?: number;
-  }): MaybePromise<number | Dict[]> {
+  }): MaybePromise<number> {
     const collection = this.#use(as.name);
     const { criteria } = args;
 
@@ -162,11 +149,7 @@ export default class InMemoryDatabase implements Database {
       return changed;
     });
 
-    if (args.count === true) {
-      return updated.length;
-    }
-
-    return updated;
+    return updated.length;
   }
 
   delete(as: As, args: { criteria: Dict }) {

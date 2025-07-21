@@ -31,14 +31,9 @@ export default abstract class Database {
   abstract update(as: As, args: {
     criteria: Dict;
     changes: Dict;
-    count: true;
-  }): MaybePromise<number>;
-  abstract update(as: As, args: {
-    criteria: Dict;
-    changes: Dict;
     sort?: Dict<"asc" | "desc">;
     limit?: number;
-  }): MaybePromise<Dict[]>;
+  }): MaybePromise<number>;
 
   abstract delete(as: As, args: {
     criteria: Dict;
