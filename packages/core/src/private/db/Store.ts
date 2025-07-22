@@ -3,9 +3,9 @@ import type Changes from "#db/Changes";
 import type Database from "#db/Database";
 import type DataRecord from "#db/DataRecord";
 import InMemoryDatabase from "#db/InMemoryDatabase";
-//import Query from "#db/Query";
 import derive from "#db/symbol/derive";
 import type Types from "#db/Types";
+import assert from "@rcompat/assert";
 import is from "@rcompat/assert/is";
 import maybe from "@rcompat/assert/maybe";
 import type Id from "pema/Id";
@@ -13,7 +13,6 @@ import type InferStore from "pema/InferStore";
 import type StoreId from "pema/StoreId";
 import type StoreSchema from "pema/StoreSchema";
 import StoreType from "pema/StoreType";
-import assert from "@rcompat/assert";
 
 type X<T> = {
   [K in keyof T]: T[K]

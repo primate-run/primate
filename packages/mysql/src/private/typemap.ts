@@ -1,125 +1,110 @@
 import numeric from "@rcompat/assert/numeric";
-import type MaybePromise from "@rcompat/type/MaybePromise";
-import type DataType from "pema/DataType";
+import type TypeMap from "@primate/core/db/TypeMap";
+import type ColumnTypes from "#ColumnTypes";
 
-type TypeDescriptor<T extends keyof DataType> = {
-  type: string;
-  in: (value: DataType[T]) => MaybePromise<unknown>;
-  out: (value: unknown) => DataType[T];
-};
-
-type TypeMap = {
-  [K in keyof DataType]: TypeDescriptor<K>;
-};
-
-function ident<T>(type: string) {
+function identity<C extends keyof ColumnTypes>(column: C): {
+  column: C;
+  bind: (value: ColumnTypes[C]) => ColumnTypes[C];
+  unbind: (value: ColumnTypes[C]) => ColumnTypes[C];
+} {
   return {
-    type,
-    in(value: T) {
-      return value;
-    },
-    out(value: unknown) {
-      return value as T;
-    },
+    column,
+    bind: value => value,
+    unbind: value => value,
   };
 }
 
-const types: TypeMap = {
+function number<C extends keyof ColumnTypes>(column: C): {
+  column: C;
+  bind: (value: number) => number;
+  unbind: (value: ColumnTypes[C]) => number;
+} {
+  return {
+    column,
+    bind: (value) => value,
+    unbind: (value) => Number(value),
+  };
+}
+
+const typemap: TypeMap<ColumnTypes> = {
   blob: {
-    type: "BLOB",
-    async in(value) {
+    column: "BLOB",
+    async bind(value) {
       const arrayBuffer = await value.arrayBuffer();
       return new Uint8Array(arrayBuffer);
     },
-    out(value) {
-      return new Blob([value as Uint8Array],
-        { type: "application/octet-stream" });
+    unbind(value) {
+      return new Blob([value], { type: "application/octet-stream" });
     },
   },
   boolean: {
-    type: "BOOL",
-    in(value) {
+    column: "BOOL",
+    bind(value) {
       return value === true ? 1 : 0;
     },
-    out(value) {
+    unbind(value) {
       return Number(value) === 1;
     },
   },
-  datetime: {
-    type: "DATETIME(3)",
-    in(value) {
-      return value;
-    },
-    out(value) {
-      return new Date(value as string);
-    },
-  },
-  f32: ident<number>("DOUBLE"),
-  f64: ident<number>("DOUBLE"),
-  string: ident<string>("TEXT"),
-  i8: ident<number>("TINYINT"),
-  i16: ident<number>("SMALLINT"),
-  i32: ident<number>("INT"),
+  datetime: identity("DATETIME(3)"),
+  f32: identity("DOUBLE"),
+  f64: identity("DOUBLE"),
+  string: identity("TEXT"),
+  i8: number("TINYINT"),
+  i16: number("SMALLINT"),
+  i32: number("INT"),
   i64: {
-    type: "BIGINT",
-    in(value: bigint) {
+    column: "BIGINT",
+    bind(value) {
       return String(value);
     },
-    out(value: unknown) {
-      return BigInt(value as string);
+    unbind(value) {
+      return BigInt(value);
     },
   },
   i128: {
-    type: "DECIMAL(39, 0)",
-    in(value: bigint) {
+    column: "DECIMAL(39, 0)",
+    bind(value) {
       return String(value);
     },
-    out(value: unknown) {
-      return BigInt(value as string);
+    unbind(value) {
+      return BigInt(value);
     },
   },
   primary: {
-    type: "INT NOT NULL AUTO_INCREMENT PRIMARY KEY",
-    in(value: string) {
+    column: "INT NOT NULL AUTO_INCREMENT PRIMARY KEY",
+    bind(value) {
       if (numeric(value)) {
         return Number(value);
       }
       throw new Error(`\`${value}\` is not a valid primary key value`);
     },
-    out(value: unknown) {
-      return String(value as number);
-    },
-  },
-  time: {
-    type: "TIME",
-    in(value) {
-      return value.toISOString().slice(11, 19);
-    },
-    out(value) {
-      return new Date(value as string);
-    },
-  },
-  u8: ident<number>("TINYINT UNSIGNED"),
-  u16: ident<number>("SMALLINT UNSIGNED"),
-  u32: ident<number>("INT UNSIGNED"),
-  u64: {
-    type: "BIGINT UNSIGNED",
-    in(value: bigint) {
+    unbind(value) {
       return String(value);
     },
-    out(value: unknown) {
-      return BigInt(value as string);
+  },
+  time: identity("TEXT"),
+  u8: number("TINYINT UNSIGNED"),
+  u16: number("SMALLINT UNSIGNED"),
+  u32: number("INT UNSIGNED"),
+  u64: {
+    column: "BIGINT UNSIGNED",
+    bind(value) {
+      return String(value);
+    },
+    unbind(value) {
+      return BigInt(value);
     },
   },
   u128: {
-    type: "DECIMAL(39, 0)",
-    in(value: bigint) {
+    column: "DECIMAL(39, 0)",
+    bind(value) {
       return String(value);
     },
-    out(value: unknown) {
-      return BigInt(value as string);
+    unbind(value) {
+      return BigInt(value);
     },
   },
 };
 
-export default (value: keyof typeof types) => types[value];
+export default typemap;

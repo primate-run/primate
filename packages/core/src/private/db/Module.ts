@@ -1,5 +1,6 @@
 import type Database from "#db/Database";
 import type MaybePromise from "@rcompat/type/MaybePromise";
+import type Dict from "@rcompat/type/Dict";
 
 export default abstract class Module {
   abstract init(): MaybePromise<Database>;

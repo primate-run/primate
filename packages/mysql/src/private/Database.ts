@@ -1,7 +1,8 @@
 import typemap from "#typemap";
 import type As from "@primate/core/db/As";
-import type Database from "@primate/core/db/Database";
-import type Types from "@primate/core/db/Types";
+import Database from "@primate/core/db/Database";
+import type DataDict from "@primate/core/db/DataDict";
+import type TypeMap from "@primate/core/db/TypeMap";
 import is from "@rcompat/assert/is";
 import maybe from "@rcompat/assert/maybe";
 import entries from "@rcompat/record/entries";
@@ -49,11 +50,17 @@ const change = (bindings: Dict) => {
   };
 };
 
-export default class MySQLDatabase implements Database {
+export default class MySQLDatabase extends Database {
   #client: Pool;
 
   constructor(client: Pool) {
+    super();
+
     this.#client = client;
+  }
+
+  get typemap() {
+    return typemap as unknown as TypeMap<Dict>;
   }
 
   async close() {
@@ -71,7 +78,7 @@ export default class MySQLDatabase implements Database {
 
   async #new(name: string, schema: StoreSchema) {
     const body = Object.entries(schema)
-      .map(([column, value]) => `\`${column}\` ${typemap(value.datatype).type}`)
+      .map(([key, value]) => `\`${key}\` ${this.column(value.datatype)}`)
       .join(",");
     const query = `CREATE TABLE IF NOT EXISTS ${name} (${body})`;
 
@@ -94,18 +101,7 @@ export default class MySQLDatabase implements Database {
     };
   }
 
-  unbind(record: Dict, types: Types) {
-    return Object.fromEntries(Object.entries(record).map(([key, value]) =>
-      [key, typemap(types[key]).out(value)]));
-  }
-
-  async bind(record: Dict, types: Types): Promise<Dict> {
-    return Object.fromEntries(await Promise.all(Object.entries(record)
-      .map(async ([key, value]) =>
-        [key, await typemap(types[key]).in(value as never)])));
-  }
-
-  async create<O extends Dict>(as: As, args: { record: Dict }) {
+  async create<O extends Dict>(as: As, args: { record: DataDict }) {
     const keys = Object.keys(args.record);
     const columns = keys.map(key => `\`${key}\``);
     const values = keys.map(key => `:${key}`).join(",");
@@ -121,17 +117,17 @@ export default class MySQLDatabase implements Database {
   }
 
   read(as: As, args: {
-    criteria: Dict;
+    criteria: DataDict;
     count: true;
   }): Promise<number>;
   read(as: As, args: {
-    criteria: Dict;
+    criteria: DataDict;
     fields?: string[];
     sort?: Dict<"asc" | "desc">;
     limit?: number;
   }): Promise<Dict[]>;
   async read(as: As, args: {
-    criteria: Dict;
+    criteria: DataDict;
     fields?: string[];
     count?: true;
     sort?: Dict<"asc" | "desc">;
@@ -164,8 +160,8 @@ export default class MySQLDatabase implements Database {
   }
 
   async update(as: As, args: {
-    criteria: Dict;
-    changes: Dict;
+    criteria: DataDict;
+    changes: DataDict;
     sort?: Dict<"asc" | "desc">;
     limit?: number;
   }) {
@@ -196,7 +192,7 @@ export default class MySQLDatabase implements Database {
     });
   }
 
-  async delete(as: As, args: { criteria: Dict }) {
+  async delete(as: As, args: { criteria: DataDict }) {
     const bindings = await this.bind(args.criteria, as.types);
     const where = make_where(bindings);
     const query = `DELETE FROM ${as.name} ${where}`;

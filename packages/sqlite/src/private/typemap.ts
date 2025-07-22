@@ -1,130 +1,117 @@
 import numeric from "@rcompat/assert/numeric";
-import type MaybePromise from "@rcompat/type/MaybePromise";
-import type DataType from "pema/DataType";
-import type PrimitiveParam from "@rcompat/sqlite/PrimitiveParam";
+import type TypeMap from "@primate/core/db/TypeMap";
+import type ColumnTypes from "#ColumnTypes";
 
-type TypeDescriptor<T extends keyof DataType> = {
-  type: string;
-  in: (value: DataType[T]) => MaybePromise<PrimitiveParam>;
-  out: (value: unknown) => DataType[T];
-};
-
-type TypeMap = {
-  [K in keyof DataType]: TypeDescriptor<K>;
-};
-
-function ident<T extends PrimitiveParam>(type: string) {
+function identity<C extends keyof ColumnTypes>(column: C): {
+  column: C;
+  bind: (value: ColumnTypes[C]) => ColumnTypes[C];
+  unbind: (value: ColumnTypes[C]) => ColumnTypes[C];
+} {
   return {
-    type,
-    in(value: T) {
-      return value;
-    },
-    out(value: unknown) {
-      return value as T;
-    },
+    column,
+    bind: value => value,
+    unbind: value => value,
   };
 }
 
-const number = {
-  type: "integer",
-  in(value: number) {
-    return BigInt(value);
-  },
-  out(value: unknown) {
-    return Number(value as bigint);
-  },
-};
-
-const types: TypeMap = {
+function number<C extends keyof ColumnTypes>(column: C): {
+  column: C;
+  bind: (value: number) => number;
+  unbind: (value: ColumnTypes[C]) => number;
+} {
+  return {
+    column,
+    bind: (value) => value,
+    unbind: (value) => Number(value),
+  };
+}
+const typemap: TypeMap<ColumnTypes> = {
   blob: {
-    type: "blob",
-    async in(value) {
+    column: "BLOB",
+    async bind(value) {
       const arrayBuffer = await value.arrayBuffer();
       return new Uint8Array(arrayBuffer);
     },
-    out(value) {
-      return new Blob([value as Uint8Array],
-        { type: "application/octet-stream" });
+    unbind(value) {
+      return new Blob([value], { type: "application/octet-stream" });
     },
   },
-  //ident<Uint8Array>("blob"),
   boolean: {
-    type: "integer",
-    in(value) {
+    column: "INTEGER",
+    bind(value) {
       return value === true ? 1 : 0;
     },
-    out(value) {
-      // out: find/get currently set statement.safeIntegers(true);
+    unbind(value) {
       return Number(value) === 1;
     },
   },
   datetime: {
-    type: "text",
-    in(value) {
+    column: "TEXT",
+    bind(value)  {
       return value.toJSON();
     },
-    out(value) {
-      return new Date(value as string);
+    unbind(value) {
+      return new Date(value);
     },
   },
-  f32: ident<number>("real"),
-  f64: ident<number>("real"),
-  string: ident<string>("text"),
-  i8: number,
-  i16: number,
-  i32: number,
-  i64: ident<bigint>("integer"),
+  f32: identity("REAL"),
+  f64: identity("REAL"),
+  string: identity("TEXT"),
+  i8: number("INTEGER"),
+  i16: number("INTEGER"),
+  i32: number("INTEGER"),
+  i64: {
+    column: "INTEGER",
+    bind(value) {
+      return value;
+    },
+    unbind(value) {
+      return BigInt(value);
+    },
+  },
   i128: {
-    type: "text",
-    in(value: bigint) {
+    column: "TEXT",
+    bind(value) {
       return String(value);
     },
-    out(value: unknown) {
-      return BigInt(value as string);
+    unbind(value) {
+      return BigInt(value);
     },
   },
   primary: {
-    type: "integer primary key",
-    in(value: string) {
+    column: "INTEGER PRIMARY KEY",
+    bind(value) {
       if (numeric(value)) {
         return Number(value);
       }
       throw new Error(`\`${value}\` is not a valid primary key value`);
     },
-    out(value: unknown) {
-      return String(value as bigint);
-    },
-  },
-  time: {
-    type: "text",
-    in(value) {
-      return value.toJSON();
-    },
-    out(value) {
-      return new Date(value as string);
-    },
-  },
-  u8: number,
-  u16: number,
-  u32: number,
-  u64: {
-    type: "text",
-    in(value: bigint) {
+    unbind(value) {
       return String(value);
     },
-    out(value: unknown) {
-      return BigInt(value as string);
+  },
+  time: identity("TEXT"),
+  u8: number("INTEGER"),
+  u16: number("INTEGER"),
+  u32: number("INTEGER"),
+  u64: {
+    column: "TEXT",
+    bind(value) {
+      return String(value);
+    },
+    unbind(value) {
+      return BigInt(value);
     },
   },
   u128: {
-    type: "text",
-    in(value: bigint) {
+    column: "TEXT",
+    bind(value) {
       return String(value);
     },
-    out(value: unknown) {
-      return BigInt(value as string);
+    unbind(value) {
+      return BigInt(value);
     },
   },
 };
 
-export default (value: keyof typeof types) => types[value];
+export default typemap;

@@ -1,6 +1,8 @@
 import AppError from "#AppError";
 import type As from "#db/As";
-import type Database from "#db/Database";
+import type ColumnTypes from "#db/ColumnTypes";
+import Database from "#db/Database";
+import type TypeMap from "#db/TypeMap";
 import entries from "@rcompat/record/entries";
 import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
@@ -36,8 +38,46 @@ const to_sorted = <T extends Dict>(d1: T, d2: T, sort: Dict<"asc" | "desc">) =>
       return direction;
     }, 0);
 
-export default class InMemoryDatabase implements Database {
+
+function ident<C extends keyof ColumnTypes>(column: C): {
+  column: C;
+  bind: (value: ColumnTypes[C]) => ColumnTypes[C];
+  unbind: (value: ColumnTypes[C]) => ColumnTypes[C];
+} {
+  return {
+    column,
+    bind: value => value,
+    unbind: value => value,
+  };
+}
+
+const typemap: TypeMap<ColumnTypes> = {
+  blob: ident("BLOB"),
+  boolean: ident("BOOLEAN"),
+  datetime: ident("DATE"),
+  f32: ident("NUMBER"),
+  f64: ident("NUMBER"),
+  string: ident("STRING"),
+  i8: ident("NUMBER"),
+  i16: ident("NUMBER"),
+  i32: ident("NUMBER"),
+  i64: ident("BIGINT"),
+  i128: ident("BIGINT"),
+  primary: ident("STRING"),
+  time: ident("STRING"),
+  u8: ident("NUMBER"),
+  u16: ident("NUMBER"),
+  u32: ident("NUMBER"),
+  u64: ident("BIGINT"),
+  u128: ident("BIGINT"),
+};
+
+export default class InMemoryDatabase extends Database {
   #collections: PartialDict<Dict[]> = {};
+
+  get typemap() {
+    return typemap as unknown as TypeMap<Dict>;
+  }
 
   #new(name: string) {
     if (this.#collections[name] !== undefined) {
@@ -67,14 +107,6 @@ export default class InMemoryDatabase implements Database {
     };
   }
 
-  bind(record: Dict) {
-    return record;
-  }
-
-  unbind(record: Dict) {
-    return record;
-  }
-
   create<O extends Dict>(as: As, args: { record: Dict }) {
     const collection = this.#use(as.name);
     const record = { ...args.record };
@@ -95,20 +127,20 @@ export default class InMemoryDatabase implements Database {
   read(as: As, args: {
     criteria: Dict;
     count: true;
-  }): MaybePromise<number>;
+  }): number;
   read(as: As, args: {
     criteria: Dict;
     fields?: string[];
     sort?: Dict<"asc" | "desc">;
     limit?: number;
-  }): MaybePromise<Dict[]>;
+  }): Dict[];
   read(as: As, args: {
     criteria: Dict;
     fields?: string[];
     count?: true;
     sort?: Dict<"asc" | "desc">;
     limit?: number;
-  }): MaybePromise<number | Dict[]> {
+  }): number | Dict[] {
     const collection = this.#use(as.name);
     const matches = collection
       .filter(record => match(record, args.criteria));
