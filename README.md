@@ -51,18 +51,4 @@ MIT
 
 ## Contributing
 
-By contributing to Primate, you agree that your contributions will be licensed
-under its MIT license.
-
-Clone this repo and https://github.com/primate-run/app in the same location,
-and switch to the `dev` branch in the app repo. Then, in the app repo, run
-
-* `npm run node` for Node in development mode
-* `npm run node:prod` for Node in production mode
-* `npm run deno` for Deno in development mode
-* `npm run deno:prod` for Deno in production mode
-* `npm run bun` for Bun in development mode
-* `npm run bun:prod` for Bun in production mode
-* `npm run bun:compile` for compiling desktop app with Bun
-
-[read guide]: https://primatejs.com/guide/getting-started
+See [Hacking](HACKING.md)

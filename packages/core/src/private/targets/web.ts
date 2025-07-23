@@ -1,6 +1,6 @@
-import FileRef from "@rcompat/fs/FileRef";
 import type App from "#App";
 import location from "#location";
+import FileRef from "@rcompat/fs/FileRef";
 
 const html = /^.*.html$/ui;
 
@@ -19,19 +19,22 @@ export default async (app: App): Promise<void> => {
       };
     });
   const d = app.runpath(location.server, location.pages);
-  const pages = await Promise.all((await FileRef.collect(d, file => html.test(file.path)))
-    .map(async file => `${file.debase(d)}`.slice(1)));
+  const pages = await Promise.all(
+    (await FileRef.collect(d, file => html.test(file.path)))
+      .map(async file => `${file.debase(d)}`.slice(1)));
   const pages_str = pages.map(page =>
     `"${page}": await load_text(import.meta.url,
-    "${FileRef.webpath(`../${location.server}/${location.pages}/${page}`)}"),`).join("\n");
+    "${FileRef.webpath(`../${location.server}/${location.pages}/${page}`)}"),`)
+    .join("\n");
 
   const assets_scripts = `
+
   import loader from "primate/loader";
   import load_text from "primate/load-text";
 
   ${client_imports.map(({ path }, i) =>
     `const asset${i} = await load_text(import.meta.url, "../${path}");`)
-    .join("\n  ")}
+      .join("\n  ")}
   const assets = [${client_imports.map(($import, i) => `{
   src: "${$import.src}",
   code: asset${i},
@@ -41,7 +44,7 @@ export default async (app: App): Promise<void> => {
 
   const imports = {
     app: "${client_imports.find(({ src }) =>
-      src.includes("app") && src.endsWith(".js"))!.src}"
+        src.includes("app") && src.endsWith(".js"))!.src}"
   };
   // importmap
   assets.push({
