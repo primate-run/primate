@@ -22,7 +22,7 @@ which isn't supported by npm.
 ## Development cycle
 
 To build the project, run `pnpm run build` in the root directory to build the
-packages. To test the packages and the example apps under `app`, run
+packages. To test the packages and the example apps under `apps`, run
 `pnpm run test`.
 
 You can also run the same command for individual packages in their respective
