@@ -6,7 +6,7 @@ import log from "#log";
 import type Module from "#module/Module";
 import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
-import manifest from "@rcompat/package/manifest";
+import json from "@rcompat/package/json";
 import stringify from "@rcompat/record/stringify";
 import type Dict from "@rcompat/type/Dict";
 
@@ -53,9 +53,9 @@ const write_components = async (build_directory: FileRef, app: BuildApp) => {
   const components_js = `
 const component = [];
 ${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
-  `import * as component${i} from "${FileRef.webpath(`#component/${bare}`)}";
+    `import * as component${i} from "${FileRef.webpath(`#component/${bare}`)}";
 component.push(["${FileRef.webpath(bare)}", component${i}]);`,
-).join("\n")}
+  ).join("\n")}
 
 ${app.roots.map((root, i) => `
 import * as root${i} from "${FileRef.webpath(`../server/${root.name}`)}";
@@ -71,9 +71,9 @@ const write_bootstrap = async (build_number: string, app: BuildApp, mode: string
 import serve from "primate/serve";
 const files = {};
 ${app.server_build.map(name => `${name}s`).map(name =>
-  `import ${name} from "./${build_number}/${name}.js";
+    `import ${name} from "./${build_number}/${name}.js";
      files.${name} = ${name};`,
-).join("\n")}
+  ).join("\n")}
 import components from "./${build_number}/components.js";
 import target from "./target.js";
 import session from "#session";
@@ -138,13 +138,13 @@ export default await db.wrap("${file.base}", store);`);
     app.build.export(`import "./${location.static}${src}";`);
   }));
 
-  app.build.export(`export { default } from "primate/client/app";`);
+  app.build.export("export { default } from \"primate/client/app\";");
 
   app.build.plugin({
     name: "@primate/core/frontend",
     setup(build) {
       build.onResolve({ filter: /#frontends/ }, ({ path }) => {
-        return { path, namespace: `frontends` };
+        return { path, namespace: "frontends" };
       });
       build.onLoad({ filter: /#frontends/ }, async () => {
         const contents = app.frontends.map(name =>
@@ -178,7 +178,7 @@ export default await db.wrap("${file.base}", store);`);
   await write_bootstrap(build_number, app, app.mode);
 
   const manifest_data = {
-    ...await manifest() as Dict,
+    ...await json.json() as Dict,
     imports: {
       "#config": "./config/app.js",
       "#locale/*": "./locales/*.js",

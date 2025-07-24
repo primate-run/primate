@@ -38,7 +38,6 @@ const to_sorted = <T extends Dict>(d1: T, d2: T, sort: Dict<"asc" | "desc">) =>
       return direction;
     }, 0);
 
-
 function ident<C extends keyof ColumnTypes>(column: C): {
   column: C;
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];
@@ -175,7 +174,9 @@ export default class InMemoryDatabase extends Database {
     const limit = args.limit ?? matched.length;
 
     const updated = matched.slice(0, limit).map(record => {
-      const changed = {...record, ...args.changes};
+      const changed = entries({ ...record, ...args.changes })
+        .filter(([, value]) => value !== null)
+        .get();
       const index = collection.findIndex(stored => stored.id === record.id);
       collection.splice(index, 1, changed);
       return changed;

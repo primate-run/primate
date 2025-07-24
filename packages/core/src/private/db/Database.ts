@@ -1,14 +1,13 @@
 import type As from "#db/As";
+import type DataDict from "#db/DataDict";
+import type DataKey from "#db/DataKey";
 import type TypeMap from "#db/TypeMap";
 import type Types from "#db/Types";
+import entries from "@rcompat/record/entries";
 import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import type DataType from "pema/DataType";
 import type StoreSchema from "pema/StoreSchema";
-
-type DataKey = keyof DataType;
-type DataValue = DataType[DataKey];
-type DataDict = Dict<DataValue>;
 
 export default abstract class Database {
   #bindPrefix: string;
@@ -17,8 +16,10 @@ export default abstract class Database {
     this.#bindPrefix = bindPrefix ?? "";
   }
 
-  #bind<K extends DataKey>(key: K, value: DataType[K]) {
-    return this.typemap[key].bind(value);
+  #bind<K extends DataKey>(key: K, value: DataType[K] | null) {
+    return value === null
+      ? null
+      : this.typemap[key].bind(value);
   }
 
   #unbind(key: DataKey, value: unknown) {
@@ -42,9 +43,11 @@ export default abstract class Database {
         [`${this.#bindPrefix}${key}`, await this.#bind(types[key], value)])));
   }
 
-  unbind(object: Dict, types: Types): DataDict {
-    return Object.fromEntries(Object.entries(object).map(([key, value]) =>
-      [key, this.#unbind(types[key], value)]));
+  unbind(object: Dict, types: Types): Dict {
+    return entries(object)
+      .filter(([, value]) => value !== null)
+      .map(([key, value]) => [key, this.#unbind(types[key], value)])
+      .get();
   }
 
   abstract create<O extends Dict>(as: As, args: {

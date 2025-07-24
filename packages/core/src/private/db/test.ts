@@ -41,7 +41,6 @@ const users = {
 type User = keyof typeof users;
 
 export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
-
   if (end !== undefined) {
     test.ended(end);
   }
@@ -180,6 +179,25 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
       const [updated] = (await User.find({ name: "Donald" }));
       assert(updated.age).equals(35);
       assert(updated).equals({ ...users.donald, id: donald.id!, age: 35 });
+    });
+  });
+
+  test.case("update - unset fields", async assert => {
+    await bootstrap(async () => {
+      const [donald] = (await User.find({ name: "Donald" }));
+
+      assert(donald.age).equals(30);
+      await User.update(donald.id!, { age: null });
+
+      const [updated] = (await User.find({ name: "Donald" }));
+      assert(updated.age).undefined();
+
+      const [paul] = (await User.find({ name: "Paul" }));
+      await User.update(paul.id!, { age: null, lastname: null });
+
+      const [updated_pual] = (await User.find({ name: "Paul" }));
+      assert(updated_pual).equals({ id: updated_pual.id, name: "Paul" });
+
     });
   });
 

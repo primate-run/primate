@@ -10,7 +10,7 @@ import type Client from "@rcompat/sqlite";
 import type Dict from "@rcompat/type/Dict";
 import type StoreSchema from "pema/StoreSchema";
 
-function make_sort(sort: Dict<"asc" | "desc">)  {
+function make_sort(sort: Dict<"asc" | "desc">) {
   is(sort).object();
 
   const sorting = Object.entries(sort)
@@ -28,7 +28,7 @@ function make_limit(limit?: number) {
   return ` LIMIT ${limit}`;
 };
 
-function make_where(bindings: Dict)  {
+function make_where(bindings: Dict) {
   const keys = Object.keys(bindings).map(key => key.slice(1));
 
   if (keys.length === 0) {
@@ -130,9 +130,7 @@ export default class SqliteDatabase extends Database {
     const query = `SELECT ${select} FROM ${as.name} ${where}${sort}${limit};`;
     const records = this.#client.prepare(query).all(bindings);
 
-    return records.map(record =>
-      this.unbind(entries(record).filter(([, value]) => value !== null).get(),
-        as.types)) as Dict[];
+    return records.map(record => this.unbind(record, as.types));
   }
 
   async update(as: As, args: {

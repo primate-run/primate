@@ -12,7 +12,7 @@ import type {
 } from "mysql2/promise";
 import type StoreSchema from "pema/StoreSchema";
 
-function make_sort(sort: Dict<"asc" | "desc">)  {
+function make_sort(sort: Dict<"asc" | "desc">) {
   is(sort).object();
 
   const sorting = Object.entries(sort)
@@ -30,7 +30,7 @@ function make_limit(limit?: number) {
   return ` LIMIT ${limit}`;
 };
 
-function make_where(bindings: Dict)  {
+function make_where(bindings: Dict) {
   const keys = Object.keys(bindings);
 
   if (keys.length === 0) {
@@ -153,9 +153,7 @@ export default class MySQLDatabase extends Database {
     return this.#with(async connection => {
       const [records] = await connection.query<RowData[]>(query, bindings);
 
-      return records.map(record =>
-        this.unbind(entries(record).filter(([, value]) => value !== null).get(),
-          as.types));
+      return records.map(record => this.unbind(record, as.types));
     });
   }
 
