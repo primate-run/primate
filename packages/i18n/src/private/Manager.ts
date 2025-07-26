@@ -16,7 +16,7 @@ export default class Manager {
 
     log.info("loaded {0}", Object.keys(locales).join(" "));
 
-    this.#locales = {...locales};
+    this.#locales = { ...locales };
   }
 
   get active() {

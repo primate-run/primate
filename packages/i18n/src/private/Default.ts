@@ -1,7 +1,7 @@
 import Runtime from "#Runtime";
+import AppError from "@primate/core/AppError";
 import type BuildApp from "@primate/core/BuildApp";
 import type NextBuild from "@primate/core/NextBuild";
-import AppError from "@primate/core/AppError";
 
 const repository = "locales";
 
