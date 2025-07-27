@@ -276,6 +276,14 @@ export default class Store<S extends StoreSchema> {
    * @returns any record matching the criteria with its selected fields
    */
   find(criteria: Criteria<S>): Promise<Filter<DataRecord<S>>[]>;
+  find(
+    criteria: Criteria<S>,
+    options: {
+      select?: undefined;
+      sort?: Sort<DataRecord<S>>;
+      limit?: number;
+    }
+  ): Promise<Filter<DataRecord<S>>[]>;
   find<F extends Select<DataRecord<S>>>(
     criteria: Criteria<S>,
     options?: {
@@ -288,10 +296,10 @@ export default class Store<S extends StoreSchema> {
     criteria: Criteria<S>,
     options?: {
       select?: Select<DataRecord<S>>;
-      sort: Sort<DataRecord<S>>;
+      sort?: Sort<DataRecord<S>>;
       limit?: number;
     },
-  ): Promise<Filter<DataRecord<S>, F>[]> {
+  ) {
     is(criteria).object();
     maybe(options).object();
     maybe(options?.select).object();

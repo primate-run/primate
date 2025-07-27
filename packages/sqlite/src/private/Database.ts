@@ -28,8 +28,8 @@ function make_limit(limit?: number) {
   return ` LIMIT ${limit}`;
 };
 
-function make_where(bindings: Dict) {
-  const keys = Object.keys(bindings).map(key => key.slice(1));
+function make_where(bound: Dict) {
+  const keys = Object.keys(bound).map(key => key.slice(1));
 
   if (keys.length === 0) {
     return "";
@@ -37,13 +37,13 @@ function make_where(bindings: Dict) {
   return `WHERE ${keys.map(key => `${key}=$${key}`).join(" AND ")}`;
 };
 
-const change = (bindings: Dict) => {
-  const keys = Object.keys(bindings).map(key => key.slice(1));
+const change = (changes: Dict) => {
+  const keys = Object.keys(changes).map(key => key.slice(1));
 
   const set = keys.map(field => `${field}=$s_${field}`).join(",");
   return {
     set: `SET ${set}`,
-    bindings: entries(bindings).keymap(([key]) => `$s_${key.slice(1)}`).get(),
+    bound: entries(changes).keymap(([key]) => `$s_${key.slice(1)}`).get(),
   };
 };
 
@@ -84,13 +84,13 @@ export default class SqliteDatabase extends Database {
     const keys = Object.keys(args.record);
     const columns = keys.map(key => `"${key}"`);
     const values = keys.map(key => `$${key}`).join(",");
-    const $predicate = columns.length > 0
+    const payload = columns.length > 0
       ? `(${columns.join(",")}) VALUES (${values})`
       : "DEFAULT VALUES";
-    const query = `INSERT INTO ${as.name} ${$predicate} RETURNING ID;`;
-    const bindings = await this.bind(args.record, as.types);
+    const query = `INSERT INTO ${as.name} ${payload} RETURNING ID;`;
+    const bound = await this.bind(args.record, as.types);
     const statement = this.#client.prepare(query);
-    const changes = statement.run(bindings);
+    const changes = statement.run(bound);
     const id = BigInt(changes.lastInsertRowid);
 
     return this.unbind({ ...args.record, id }, as.types) as O;
@@ -113,13 +113,13 @@ export default class SqliteDatabase extends Database {
     sort?: Dict<"asc" | "desc">;
     limit?: number;
   }) {
-    const bindings = await this.bind(args.criteria, as.types);
-    const where = make_where(bindings);
+    const bound = await this.bind(args.criteria, as.types);
+    const where = make_where(bound);
 
     if (args.count === true) {
       const query = `SELECT COUNT(*) AS n FROM ${as.name} ${where};`;
       const statement = this.#client.prepare(query);
-      const [{ n }] = statement.all(bindings);
+      const [{ n }] = statement.all(bound);
       return Number(n);
     }
 
@@ -128,7 +128,7 @@ export default class SqliteDatabase extends Database {
     const limit = make_limit(args.limit);
     const select = fields.length === 0 ? "*" : fields.join(", ");
     const query = `SELECT ${select} FROM ${as.name} ${where}${sort}${limit};`;
-    const records = this.#client.prepare(query).all(bindings);
+    const records = this.#client.prepare(query).all(bound);
 
     return records.map(record => this.unbind(record, as.types));
   }
@@ -139,11 +139,11 @@ export default class SqliteDatabase extends Database {
     sort?: Dict<"asc" | "desc">;
     limit?: number;
   }) {
-    const criteria_bindings = await this.bind(args.criteria, as.types);
+    const bound_criteria = await this.bind(args.criteria, as.types);
     const changes = await this.bind(args.changes, as.types);
-    const where = make_where(criteria_bindings);
-    const { set, bindings: set_bindings } = change(changes);
-    const bindings = { ...criteria_bindings, ...set_bindings };
+    const where = make_where(bound_criteria);
+    const { set, bound: bound_changes } = change(changes);
+    const bound = { ...bound_criteria, ...bound_changes };
     const sort = make_sort(args.sort ?? {});
 
     const query = `
@@ -157,14 +157,14 @@ export default class SqliteDatabase extends Database {
       WHERE id IN (SELECT id FROM to_update)
     `;
 
-    return Number(this.#client.prepare(`${query};`).run(bindings).changes);
+    return Number(this.#client.prepare(`${query};`).run(bound).changes);
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
-    const bindings = await this.bind(args.criteria, as.types);
-    const where = make_where(bindings);
+    const bound = await this.bind(args.criteria, as.types);
+    const where = make_where(bound);
     const query = `DELETE FROM ${as.name} ${where}`;
 
-    return Number(this.#client.prepare(query).run(bindings).changes);
+    return Number(this.#client.prepare(query).run(bound).changes);
   };
 }

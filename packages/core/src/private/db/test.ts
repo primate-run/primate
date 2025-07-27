@@ -125,6 +125,15 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
       ["ben", "paul", "ryan", "donald", "jeremy"].forEach((user, i) => {
         assert(sorted[i]).equals(pick(users[user as User], "name", "age"));
       });
+
+      const descending = await User.find({}, {
+        sort: { age: "desc", lastname: "desc" },
+        select: { name: true, age: true },
+      });
+      const descended = ["ben", "ryan", "paul", "donald", "jeremy"];
+      descended.forEach((user, i) => {
+        assert(descending[i]).equals(pick(users[user as User], "name", "age"));
+      });
     });
   });
 
@@ -133,9 +142,10 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
       const ascending = await User.find({}, {
         sort: { age: "asc" },
         select: { name: true, age: true },
+        limit: 2,
       });
 
-      const ascended = ["jeremy", "donald", "ryan", "paul", "ben"];
+      const ascended = ["jeremy", "donald"];
       ascended.forEach((user, i) => {
         assert(ascending[i]).equals(pick(users[user as User], "name", "age"));
       });
@@ -143,14 +153,10 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
       const descending = await User.find({}, {
         sort: { age: "desc" },
         select: { name: true, age: true },
+        limit: 1,
       });
 
-      // NB: Since Ryan and Paul have the same age, they will be returned in
-      // order of insertion; can't use `ascended.toReversed()`
-      const descended = ["ben", "ryan", "paul", "donald", "jeremy"];
-      descended.forEach((user, i) => {
-        assert(descending[i]).equals(pick(users[user as User], "name", "age"));
-      });
+      assert(descending[0]).equals(pick(users.ben, "name", "age"));
     });
   });
 
@@ -159,11 +165,11 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
       const ascending = await User.find({}, {
         sort: { age: "asc" },
         select: { name: true, age: true },
-        limit: 3,
+        limit: 2,
       });
 
-      assert(ascending.length).equals(3);
-      const ascended = ["jeremy", "donald", "ryan"];
+      assert(ascending.length).equals(2);
+      const ascended = ["jeremy", "donald"];
       ascended.forEach((user, i) => {
         assert(ascending[i]).equals(pick(users[user as User], "name", "age"));
       });
@@ -227,9 +233,9 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
       const n = await User.delete({ age: 40 });
       assert(n).equals(2);
 
-      const remaining = await User.find({});
+      const remaining = await User.find({}, { sort: { age: "asc" } });
       assert(remaining.length).equals(3);
-      assert(remaining[0].name).equals("Donald");
+      assert(remaining[0].name).equals("Just Jeremy");
     });
   });
 

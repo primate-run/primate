@@ -30,23 +30,23 @@ function make_limit(limit?: number) {
   return ` LIMIT ${limit}`;
 };
 
-function make_where(bindings: Dict) {
-  const keys = Object.keys(bindings);
+function make_where(bound: Dict) {
+  const keys = Object.keys(bound);
 
   if (keys.length === 0) {
     return "";
   }
 
-  return `where ${keys.map(key => `\`${key}\`=:${key}`).join(" and ")}`;
+  return `WHERE ${keys.map(key => `\`${key}\`=:${key}`).join(" AND ")}`;
 };
 
-const change = (bindings: Dict) => {
-  const keys = Object.keys(bindings);
+const change = (bound: Dict) => {
+  const keys = Object.keys(bound);
 
   const set = keys.map(field => `${field}=:s_${field}`).join(",");
   return {
     set: `SET ${set}`,
-    bindings: entries(bindings).keymap(([key]) => `s_${key}`).get(),
+    bound: entries(bound).keymap(([key]) => `s_${key}`).get(),
   };
 };
 
@@ -107,10 +107,10 @@ export default class MySQLDatabase extends Database {
     const values = keys.map(key => `:${key}`).join(",");
     const $predicate = `(${columns.join(",")}) VALUES (${values})`;
     const query = `INSERT INTO ${as.name} ${$predicate}`;
-    const bindings = await this.bind(args.record, as.types);
+    const bound = await this.bind(args.record, as.types);
 
     return this.#with(async connection => {
-      const [{ insertId }] = await connection.query<Result>(query, bindings);
+      const [{ insertId }] = await connection.query<Result>(query, bound);
 
       return this.unbind({ ...args.record, id: insertId }, as.types) as O;
     }) as Promise<O>;
@@ -133,13 +133,13 @@ export default class MySQLDatabase extends Database {
     sort?: Dict<"asc" | "desc">;
     limit?: number;
   }) {
-    const bindings = await this.bind(args.criteria, as.types);
-    const where = make_where(bindings);
+    const bound = await this.bind(args.criteria, as.types);
+    const where = make_where(bound);
 
     if (args.count === true) {
       const query = `SELECT COUNT(*) AS n FROM ${as.name} ${where}`;
       return this.#with(async connection => {
-        const [[{ n }]] = await connection.query<RowData[]>(query, bindings);
+        const [[{ n }]] = await connection.query<RowData[]>(query, bound);
         return Number(n);
       });
     }
@@ -151,7 +151,7 @@ export default class MySQLDatabase extends Database {
     const query = `SELECT ${select} FROM ${as.name} ${where}${sort}${limit};`;
 
     return this.#with(async connection => {
-      const [records] = await connection.query<RowData[]>(query, bindings);
+      const [records] = await connection.query<RowData[]>(query, bound);
 
       return records.map(record => this.unbind(record, as.types));
     });
@@ -163,11 +163,11 @@ export default class MySQLDatabase extends Database {
     sort?: Dict<"asc" | "desc">;
     limit?: number;
   }) {
-    const criteria_bindings = await this.bind(args.criteria, as.types);
+    const bound_criteria = await this.bind(args.criteria, as.types);
     const changes = await this.bind(args.changes, as.types);
-    const where = make_where(criteria_bindings);
-    const { set, bindings: set_bindings } = change(changes);
-    const bindings = { ...criteria_bindings, ...set_bindings };
+    const where = make_where(bound_criteria);
+    const { set, bound: bound_changes } = change(changes);
+    const bound = { ...bound_criteria, ...bound_changes };
     const sort = make_sort(args.sort ?? {});
 
     const query = `
@@ -183,21 +183,19 @@ export default class MySQLDatabase extends Database {
     `;
 
     return this.#with<number>(async connection => {
-      const [{ affectedRows }] = await connection
-        .query<Result>(query, bindings);
+      const [{ affectedRows }] = await connection.query<Result>(query, bound);
 
       return affectedRows;
     });
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
-    const bindings = await this.bind(args.criteria, as.types);
-    const where = make_where(bindings);
+    const bound = await this.bind(args.criteria, as.types);
+    const where = make_where(bound);
     const query = `DELETE FROM ${as.name} ${where}`;
 
     return this.#with<number>(async connection => {
-      const [{ affectedRows }] = await connection
-        .query<Result>(query, bindings);
+      const [{ affectedRows }] = await connection.query<Result>(query, bound);
 
       return affectedRows;
     });
