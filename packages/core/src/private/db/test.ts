@@ -248,7 +248,8 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
       const [donald] = await User.find({ name: "Donald" });
 
       assert(await User.exists(donald.id!)).true();
-      assert(await User.exists("1234")).false();
+      await User.delete(donald.id!);
+      assert(await User.exists(donald.id!)).false();
     });
   });
 

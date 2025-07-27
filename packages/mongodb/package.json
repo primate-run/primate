@@ -24,7 +24,10 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "mongodb": "^6.17.0"
+    "@rcompat/assert": "^0.1.2",
+    "@rcompat/record": "^0.8.3",
+    "mongodb": "^6.17.0",
+    "pema": "workspace:"
   },
   "type": "module",
   "imports": {

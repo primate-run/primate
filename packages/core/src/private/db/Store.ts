@@ -31,7 +31,7 @@ type Insertable<T extends StoreSchema> =
 
 type Filter<A, B = undefined> = B extends undefined ? A : {
   [K in keyof A as K extends keyof B
-    ? B[K] extends true ? K : never : never
+  ? B[K] extends true ? K : never : never
   ]: A[K];
 };
 
@@ -107,7 +107,7 @@ export default class Store<S extends StoreSchema> {
     return this.#config.name;
   }
 
-  static new <S extends StoreSchema>(schema: S, config?: Config) {
+  static new<S extends StoreSchema>(schema: S, config?: Config) {
     return new Store<S>(schema, config);
   }
 
