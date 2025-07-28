@@ -29,7 +29,7 @@
     "@rcompat/record": "^0.8.3",
     "@rcompat/stdio": "^0.10.0",
     "@rcompat/string": "^0.9.1",
-    "@rcompat/webview": "^0.11.2",
+    "@rcompat/webview": "^0.12.0",
     "pema": "workspace:^"
   },
   "type": "module",

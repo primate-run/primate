@@ -3,7 +3,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@primate/svelte": "workspace:^",
-    "@rcompat/fs": "^0.13.3",
+    "@rcompat/fs": "^0.14.0",
     "@rcompat/http": "^0.12.6",
     "@rcompat/record": "^0.8.1",
     "primate": "workspace:^",

@@ -3,7 +3,6 @@ import FileRef from "@rcompat/fs/FileRef";
 import entries from "@rcompat/record/entries";
 import type Dict from "@rcompat/type/Dict";
 import type PartialDict from "@rcompat/type/PartialDict";
-import type Webview from "@rcompat/webview";
 
 type Init = {
   pages_app: string;
@@ -12,11 +11,9 @@ type Init = {
   static_root: string;
   client_imports: Dict<string>;
   static_imports: Dict<string>;
-  Webview: typeof Webview;
 };
 
 export default class NativeLoader extends Loader {
-  #webview: typeof Webview;
   #clients: PartialDict<FileRef> = {};
   #statics: PartialDict<FileRef> = {};
 
@@ -27,7 +24,6 @@ export default class NativeLoader extends Loader {
       .valmap(([, url]) => new FileRef(url)).get();
     this.#statics = entries(init.static_imports)
       .valmap(([, url]) => new FileRef(url)).get();
-    this.#webview = init.Webview;
   }
 
   async serve(pathname: string) {
@@ -42,9 +38,5 @@ export default class NativeLoader extends Loader {
         return this.asset(static_file);
       }
     }
-  }
-
-  get webview() {
-    return this.#webview;
   }
 }

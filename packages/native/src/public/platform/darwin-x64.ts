@@ -1,1 +1,1 @@
-export { default } from "#platform/darwin-x64";
+export { default } from "@rcompat/webview/darwin-x64";

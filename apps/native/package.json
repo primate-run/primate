@@ -1,7 +1,11 @@
 {
   "name": "@primate/app/native",
   "scripts": {
-    "build:desktop": "npx primate build desktop",
+    "build": "bunx --bun primate build desktop",
+    "build:linux-x64": "bunx --bun primate build linux-x64",
+    "build:darwin-x64": "bunx --bun primate build darwin-x64",
+    "build:darwin-arm64": "bunx --bun primate build darwin-arm64",
+    "build:windows-x64": "bunx --bun primate build windows-x64",
     "test": "npx primate test"
   },
   "dependencies": {

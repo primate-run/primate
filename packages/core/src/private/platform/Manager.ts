@@ -32,10 +32,10 @@ export default class PlatformManager {
   set(name: string) {
     if (!this.has(name)) {
       let message = "no platform {0}, available platforms {1}";
-      if (Object.keys(this.#platforms).length === 1) {
+      if (this.#platforms.length === 1) {
         message += "\n   - add {2} for more platforms";
       }
-      const platforms = Object.keys(this.#platforms).join(", ");
+      const platforms = this.#platforms.map(p => p.name).join(", ");
       throw new AppError(message, name, platforms, "@primate/native");
     }
 

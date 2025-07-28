@@ -1,4 +1,3 @@
-import type Loader from "#Loader";
 import type NativePlatform from "#NativePlatform";
 import platforms from "#platforms";
 import type App from "@primate/core/App";
@@ -15,7 +14,7 @@ import pema from "pema";
 import boolean from "pema/boolean";
 import string from "pema/string";
 
-const command = "bun build build/serve.js --conditions=runtime --compile --minify";
+const command = "bun build build/serve.js build/worker.js --conditions=runtime --compile --minify";
 
 const names = platforms.map(platform => platform.name);
 
@@ -47,6 +46,14 @@ export default class NativeModule extends Module {
       app.done(async () => {
         const { flags, exe } = app.platform.get() as NativePlatform;
         const executable_path = dim(`${app.path.build}/${exe}`);
+        const { host, port } = app.config("http");
+        await app.runpath("worker.js").write(`
+          import platform from "@primate/native/platform/${app.platform.target}";
+          import Webview from "@primate/native/Webview";
+          const webview = new Webview({ platform });
+          webview.navigate("http://${host}:${port}/${this.#config.start}");
+          webview.run();
+        `);
         await execute(`${command} ${flags} --outfile build/${exe}`);
         log.system("executable written to {0}", executable_path);
       });
@@ -57,13 +64,11 @@ export default class NativeModule extends Module {
 
   serve(app: ServeApp, next: NextServe) {
     if (names.includes(app.platform.name)) {
-      const Webview = app.loader<Loader>().webview;
-      const webview = new Webview({ debug: this.#config.debug });
-      const { host, port } = app.config("http");
-      webview.navigate(`http://${host}:${port}${this.#config.start}`);
-      webview.run();
-      webview.closed(() => {
-        app.stop();
+      const worker = new Worker(app.root.join("worker.js").path);
+      worker.addEventListener("message", event => {
+        if (event.data === "destroyed") {
+          app.stop();
+        }
       });
     }
 

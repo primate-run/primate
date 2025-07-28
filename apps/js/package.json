@@ -1,6 +1,8 @@
 {
   "name": "@primate/app/js",
   "scripts": {
+    "build": "npx primate build",
+    "start": "npx primate",
     "test": "npx primate test"
   },
   "dependencies": {

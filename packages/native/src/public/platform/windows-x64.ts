@@ -1,1 +1,1 @@
-export { default } from "#platform/windows-x64";
+export { default } from "@rcompat/webview/windows-x64";
