@@ -1,8 +1,8 @@
-import forward from "#forward";
 import client_error from "#handler/error";
 import respond from "#hook/respond";
 import log from "#log";
 import type RequestHook from "#module/RequestHook";
+import pass from "#pass";
 import type RequestFacade from "#RequestFacade";
 import type ResponseLike from "#ResponseLike";
 import type RouteFunction from "#RouteFunction";
@@ -121,7 +121,7 @@ const as_route = async (app: ServeApp, partial_request: RequestFacade) => {
 
 export default (app: ServeApp) => {
   const handle = async (request: RequestFacade) =>
-    (await app.loader.asset(request.url.pathname)) ?? as_route(app, request);
+    await app.serve(request.url.pathname) ?? as_route(app, request);
 
   const assets = app.assets
     .filter(asset => asset.type !== "importmap")
@@ -134,7 +134,7 @@ export default (app: ServeApp) => {
     const { pathname } = new URL(facade.url);
 
     return paths.includes(pathname as "/esbuild")
-      ? forward(`${reload_url}${pathname}`, facade.request)
+      ? pass(`${reload_url}${pathname}`, facade.request)
       : next(facade);
   };;
 

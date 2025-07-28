@@ -1,6 +1,6 @@
 import type Asset from "#asset/Asset";
 import type Config from "#config/Config";
-import type loader from "#loader";
+import type Loader from "#Loader";
 import type Mode from "#Mode";
 import type RouteExport from "#RouteExport";
 import type RouteSpecial from "#RouteSpecial";
@@ -23,15 +23,15 @@ type BuildFiles = {
   }][];
 };
 
-type ServeOptions = {
+type ServeInit = {
   config: Config;
   files: BuildFiles;
   components?: [string, Import][];
   mode: Mode;
-  target: string;
-  loader: ReturnType<typeof loader>;
+  platform: string;
+  loader: Loader;
   assets: Asset[];
   session_config: SessionConfig;
 };
 
-export type { ServeOptions as default };
+export type { ServeInit as default };

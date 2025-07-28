@@ -4,6 +4,7 @@ import type Config from "#config/Config";
 import location from "#location";
 import type Mode from "#Mode";
 import type Module from "#module/Module";
+import PlatformManager from "#platform/Manager";
 import type RouteFunction from "#RouteFunction";
 import assert from "@rcompat/assert";
 import transform from "@rcompat/build/sync/transform";
@@ -65,7 +66,8 @@ export default class App {
   #kv = new Map<symbol, unknown>();
   #mode: Mode;
   #defaultErrorRoute: RouteFunction | undefined;
-  #bindings = {...default_bindings};
+  #bindings = { ...default_bindings };
+  #platform: PlatformManager;
 
   constructor(root: FileRef, config: Config, mode: Mode) {
     this.#root = root;
@@ -73,9 +75,10 @@ export default class App {
     this.#modules = config.modules?.flat(10) ?? [];
     this.#path = entries(location).valmap(([, path]) => root.join(path)).get();
     this.#mode = mode;
+    this.#platform = new PlatformManager(this);
   }
 
-  async init() {
+  async init(platform: string) {
     const error = this.#path.routes.join("+error.js");
 
     this.#defaultErrorRoute = await error.exists()
@@ -87,7 +90,15 @@ export default class App {
       throw new AppError("module {0} loaded twice", doubled(names));
     }
 
-    return await reducer(this.#modules, this);
+    const app = await reducer(this.#modules, this);
+
+    this.#platform.set(platform);
+
+    return app;
+  }
+
+  get platform() {
+    return this.#platform;
   }
 
   get root() {
@@ -111,7 +122,7 @@ export default class App {
   }
 
   get bindings() {
-    return {...this.#bindings};
+    return { ...this.#bindings };
   }
 
   get<T>(key: symbol) {

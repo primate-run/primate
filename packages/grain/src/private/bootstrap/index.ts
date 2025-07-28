@@ -1,4 +1,4 @@
-import instantiate from "@primate/core/wasm/instantiate";
+import instantiate from "primate/wasm/instantiate";
 
 const instantiated = await instantiate({
   wasmFile: "__FILE_NAME__",

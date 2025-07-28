@@ -1,5 +1,5 @@
-export default (target: string, request: Request) =>
-  fetch(target, {
+export default (address: string, request: Request) =>
+  fetch(address, {
     headers: request.headers,
     method: request.method,
     body: request.body,

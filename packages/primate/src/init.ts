@@ -1,12 +1,20 @@
 import blue from "@rcompat/cli/color/blue";
 import bold from "@rcompat/cli/color/bold";
 import print from "@rcompat/cli/print";
-import manifest from "@rcompat/package/manifest";
+import json from "@rcompat/package/json";
 import find from "./commands/index.js";
+
+type PkgJSON = {
+  name: string;
+  version: string;
+};
 
 export default async (...args: string[]) => {
   const [command, ...flags] = args;
-  const primate = await manifest(import.meta.url);
-  print(blue(bold(primate.name as string)), blue(primate.version as string), "\n");
+  const {
+    name,
+    version,
+  } = await (await json(import.meta.url)).json() as PkgJSON;
+  print(blue(bold(name as string)), blue(version as string), "\n");
   find(command)(...flags);
 };

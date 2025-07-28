@@ -1,5 +1,6 @@
 import App from "#App";
 import AppError from "#AppError";
+import type Asset from "#asset/Asset";
 import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
@@ -11,12 +12,13 @@ import type ServerComponent from "#frontend/ServerComponent";
 import hash from "#hash";
 import handle from "#hook/handle";
 import parse from "#hook/parse";
+import type Loader from "#Loader";
 import location from "#location";
 import log from "#log";
 import type RequestFacade from "#RequestFacade";
 import type RouteExport from "#RouteExport";
 import type RouteSpecial from "#RouteSpecial";
-import type ServeOptions from "#ServeOptions";
+import type ServeInit from "#ServeInit";
 import tags from "#tags";
 import type Verb from "#Verb";
 import is from "@rcompat/assert/is";
@@ -73,7 +75,7 @@ const to_csp = (config_csp: Entry<CSP>[], assets: CSP, override: CSP) => config_
   .map(([key, directives]) => `${key} ${directives.join(" ")}`)
   .join(";");
 
-const render_head = (assets: ServeOptions["assets"], fonts: unknown[], head?: string) =>
+const render_head = (assets: Asset[], fonts: unknown[], head?: string) =>
   assets.toSorted(({ type }) => -1 * Number(type === "importmap"))
     .map(({ src, code, type, inline, integrity }) =>
       type === "style"
@@ -97,30 +99,29 @@ type Import = Dict & {
 };
 
 export default class ServeApp extends App {
-  #build: ServeOptions;
+  #init: ServeInit;
   #server?: Server;
   #components: PartialDict<Import>;
   #csp: CSP = {};
   #fonts: unknown[] = [];
-  #assets: ServeOptions["assets"] = [];
+  #assets: Asset[] = [];
   #frontends: PartialDict<Frontend> = {};
   #router: ReturnType<typeof Router.init<RouteExport, RouteSpecial>>;
 
-  constructor(rootfile: string, build: ServeOptions) {
-    const root = new FileRef(rootfile).directory;
-    super(root, build.config, build.mode);
+  constructor(rootfile: string, init: ServeInit) {
+    super(new FileRef(rootfile).directory, init.config, init.mode);
 
-    this.#build = build;
-    this.#components = Object.fromEntries(build.components ?? []);
+    this.#init = init;
+    this.#components = Object.fromEntries(init.components ?? []);
 
-    const http = this.#build.config.http;
+    const http = this.#init.config.http;
 
     this.set(s_http, {
       host: http.host,
       port: http.port,
       ssl: this.secure ? {
-        key: root.join(http.ssl.key!),
-        cert: root.join(http.ssl.cert!),
+        key: this.root.join(http.ssl.key!),
+        cert: this.root.join(http.ssl.cert!),
       } : {},
     });
 
@@ -136,7 +137,7 @@ export default class ServeApp extends App {
         return (route as { default: Dict })
           .default[request.method.toLowerCase()] !== undefined;
       },
-    }, build.files.routes);
+    }, init.files.routes);
   }
 
   get secure() {
@@ -145,8 +146,12 @@ export default class ServeApp extends App {
     return ssl.key !== undefined && ssl.cert !== undefined;
   }
 
-  get loader() {
-    return this.#build.loader;
+  loader<T extends Loader>() {
+    return this.#init.loader as T;
+  }
+
+  serve(pathname: string) {
+    return this.loader().serve(pathname);
   }
 
   get assets() {
@@ -163,11 +168,11 @@ export default class ServeApp extends App {
   }
 
   get frontends() {
-    return {...this.#frontends};
+    return { ...this.#frontends };
   }
 
   get files() {
-    return this.#build.files;
+    return this.#init.files;
   }
 
   component<T = ServerComponent>(name: string) {
@@ -175,7 +180,7 @@ export default class ServeApp extends App {
     const component = this.#components[base];
     if (component === undefined) {
       const path = `${location.components}/${name}`;
-      throw new AppError(`missing component {0}`, path);
+      throw new AppError("missing component {0}", path);
     }
     return (component!.default ?? component) as T;
   };
@@ -201,13 +206,17 @@ export default class ServeApp extends App {
     return partial ? body : Object.entries(placeholders)
       // replace given placeholders, defaulting to ""
       .reduce((html, [key, value]) => html.replace(`%${key}%`, value?.toString() ?? ""),
-        this.loader.page(page))
+        this.page(page))
       // replace non-given placeholders, aside from %body% / %head%
       .replaceAll(/(?<keep>%(?:head|body)%)|%.*?%/gus, "$1")
       // replace body and head
       .replace("%body%", body)
       .replace("%head%", render_head(this.#assets, this.#fonts, head));
-  };
+  }
+
+  page(page?: string) {
+    return this.loader().page(page);
+  }
 
   respond(body: BodyInit | null, init?: ResponseInit) {
     const { status, headers } = pema({
@@ -215,8 +224,10 @@ export default class ServeApp extends App {
       headers: record(string, string),
     }).validate(init);
 
-    return new Response(body, { status: status as number, headers: {
-      "Content-Type": html, ...this.headers(), ...headers },
+    return new Response(body, {
+      status: status as number, headers: {
+        "Content-Type": html, ...this.headers(), ...headers,
+      },
     });
   };
 
@@ -236,7 +247,7 @@ export default class ServeApp extends App {
   async publish({ src, code, type = "", inline = false }: PublishOptions) {
     if (inline || type === "style") {
       this.#assets.push({
-        src: FileRef.join(this.#build.config.http.static.root, src ?? "").path,
+        src: FileRef.join(this.#init.config.http.static.root, src ?? "").path,
         code: inline ? code : "",
         type,
         inline,
@@ -253,19 +264,19 @@ export default class ServeApp extends App {
       [`${directive === "style" ? "style" : "script"}-src`, integrity])
       .reduce((csp: CSP, [directive, hash]) =>
         ({ ...csp, [directive]: csp[directive as keyof CSP]!.concat(`'${hash}'`) }),
-      { "style-src": [], "script-src": [] },
+        { "style-src": [], "script-src": [] },
       );
   };
 
   register(extension: string, frontend: Frontend) {
     if (this.#frontends[extension] !== undefined) {
-      throw new AppError( "double file extension {0}", extension);
+      throw new AppError("double file extension {0}", extension);
     }
     this.#frontends[extension] = frontend;
   };
 
   async start() {
-    this.#assets = await Promise.all(this.#build.assets.map(async asset => {
+    this.#assets = await Promise.all(this.#init.assets.map(async asset => {
       const code = asset.type === "importmap"
         ? stringify(asset.code as Dict)
         : asset.code as string;
@@ -295,8 +306,6 @@ export default class ServeApp extends App {
   upgrade(request: Request, actions: Actions) {
     return this.#server!.upgrade(request, actions);
   }
-
-  target(_: unknown) {}
 
   async route(facade: RequestFacade) {
     const { request, url } = facade;
@@ -328,6 +337,6 @@ export default class ServeApp extends App {
   }
 
   get session() {
-    return this.#build.session_config;
+    return this.#init.session_config;
   };
 }

@@ -1,0 +1,14 @@
+{
+  "name": "@primate/app/native",
+  "scripts": {
+    "build:desktop": "npx primate build desktop",
+    "test": "npx primate test"
+  },
+  "dependencies": {
+    "@primate/html": "workspace:^",
+    "@primate/grain": "workspace:^",
+    "@primate/native": "workspace:^",
+    "primate": "workspace:^"
+  },
+  "type": "module"
+}

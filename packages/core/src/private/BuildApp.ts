@@ -4,36 +4,16 @@ import build from "#hook/build";
 import location from "#location";
 import log from "#log";
 import s_layout_depth from "#symbol/layout-depth";
-import web from "#targets/web";
 import Build from "@rcompat/build";
-import transform from "@rcompat/build/sync/transform";
-import FileRef from "@rcompat/fs/FileRef";
-import type Path from "@rcompat/fs/Path";
-import identity from "@rcompat/function/identity";
+import type FileRef from "@rcompat/fs/FileRef";
 import cache from "@rcompat/kv/cache";
 import exclude from "@rcompat/record/exclude";
-import type MaybePromise from "@rcompat/type/MaybePromise";
 import type PartialDict from "@rcompat/type/PartialDict";
-import assert from "@rcompat/assert";
-
-const ts_options = {
-  loader: "ts",
-  tsconfigRaw: {
-    compilerOptions: {
-      experimentalDecorators: true,
-    },
-  },
-} as const;
 
 const s = Symbol("primate.Build");
 
-const compile = (code: string) => transform(code, ts_options).code;
-
-type TargetHandler = (app: BuildApp) => MaybePromise<void>;
-type Target = { forward?: string; target: TargetHandler };
-
 type ExtensionCompileFunction = (component: FileRef, app: BuildApp)
-=> Promise<void>;
+  => Promise<void>;
 
 type ExtensionCompile = {
   client: ExtensionCompileFunction;
@@ -42,12 +22,15 @@ type ExtensionCompile = {
 
 export default class BuildApp extends App {
   #frontends: Set<string> = new Set();
-  #targets: PartialDict<Target> = { web: { target: web } };
   #postbuild: (() => void)[] = [];
   #extensions: PartialDict<ExtensionCompile> = {};
   #roots: FileRef[] = [];
   #server_build: string[] = ["route"];
-  #target: string = "web";
+
+  async buildInit() {
+    log.system("starting {0} build in {1} mode", this.platform.name, this.mode);
+    await build(this);
+  }
 
   get frontends() {
     return [...this.#frontends.values()];
@@ -79,10 +62,6 @@ export default class BuildApp extends App {
     return this.#server_build;
   }
 
-  get targets() {
-    return {...this.#targets};
-  }
-
   addRoot(root: FileRef) {
     this.#roots.push(root);
   }
@@ -93,25 +72,6 @@ export default class BuildApp extends App {
 
   frontend(name: string) {
     this.#frontends.add(name);
-  }
-
-  async runTarget() {
-    await this.targets[this.#target]?.target(this);
-  }
-
-  async initBuild(target: string) {
-    await this.init();
-
-    this.#target = target;
-    if (this.targets[target]?.forward !== undefined) {
-      this.#target = this.targets[target].forward;
-    }
-    log.system("starting {0} build in {1} mode", target, this.mode);
-    return await build(this);
-  }
-
-  target(name: string, target: TargetHandler) {
-    this.#targets[name] = { target };
   }
 
   done(fn: () => void) {

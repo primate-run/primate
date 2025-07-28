@@ -1,6 +1,6 @@
 import serve from "#hook/serve";
 import ServeApp from "#ServeApp";
-import type ServeOptions from "#ServeOptions";
+import type ServeInit from "#ServeInit";
 
-export default async (root: string, options: ServeOptions) =>
-  serve(await new ServeApp(root, options).init());
+export default async (root: string, options: ServeInit) =>
+  serve(await new ServeApp(root, options).init(options.platform));

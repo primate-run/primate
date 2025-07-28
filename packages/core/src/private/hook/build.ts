@@ -75,13 +75,13 @@ ${app.server_build.map(name => `${name}s`).map(name =>
      files.${name} = ${name};`,
   ).join("\n")}
 import components from "./${build_number}/components.js";
-import target from "./target.js";
+import platform from "./platform.js";
 import session from "#session";
 import config from "#config";
 import s_config from "primate/symbol/config";
 
 const app = await serve(import.meta.url, {
-  ...target,
+  ...platform,
   config,
   files,
   components,
@@ -165,8 +165,8 @@ export default await db.wrap("${file.base}", store);`);
   // start the build
   await app.build.start();
 
-  // a target needs to create an `assets.js` that exports assets
-  await app.runTarget();
+  // a platform needs to create an `assets.js` that exports assets
+  await app.platform.run();
 
   const build_number = crypto.randomUUID().slice(0, 8);
   const build_directory = app.path.build.join(build_number);
@@ -178,7 +178,7 @@ export default await db.wrap("${file.base}", store);`);
   await write_bootstrap(build_number, app, app.mode);
 
   const manifest_data = {
-    ...await json.json() as Dict,
+    ...await (await json()).json() as Dict,
     imports: {
       "#config": "./config/app.js",
       "#locale/*": "./locales/*.js",
@@ -200,6 +200,8 @@ export default await db.wrap("${file.base}", store);`);
   log.system("build written to {0}", app.path.build);
 
   app.cleanup();
+
+  return app;
 };
 
 const reducer = async (modules: Module[], app: BuildApp): Promise<BuildApp> => {

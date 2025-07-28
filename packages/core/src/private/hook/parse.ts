@@ -1,5 +1,5 @@
 import type RequestFacade from "#RequestFacade";
-import forward from "#forward";
+import pass from "#pass";
 import type PartialDict from "@rcompat/type/PartialDict";
 
 export default (request: Request): RequestFacade => {
@@ -18,6 +18,6 @@ export default (request: Request): RequestFacade => {
     cookies: Object.fromEntries(headers.cookie?.split(";").map(cookie =>
       cookie.trim().split("=")) ?? []),
     path: {},
-    pass: (to: string) => forward(`${to}${url.pathname}`, request),
+    pass: (to: string) => pass(`${to}${url.pathname}`, request),
   };
 };

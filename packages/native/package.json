@@ -1,7 +1,7 @@
 {
   "name": "@primate/native",
   "version": "0.1.6",
-  "description": "Primate native applications",
+  "description": "Primate native",
   "homepage": "https://primate.run/docs/native",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
@@ -25,14 +25,28 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/cli": "^0.9.0",
-    "@rcompat/fs": "^0.13.3",
+    "@rcompat/fs": "^0.14.0",
+    "@rcompat/record": "^0.8.3",
     "@rcompat/stdio": "^0.10.0",
-    "@rcompat/webview": "^0.11.2"
+    "@rcompat/string": "^0.9.1",
+    "@rcompat/webview": "^0.11.2",
+    "pema": "workspace:^"
   },
   "type": "module",
+  "imports": {
+    "#*": {
+      "apekit": "./src/private/*.ts",
+      "default": "./lib/private/*.js"
+    }
+  },
   "exports": {
-    ".": "./src/index.js",
-    "./*": "./src/public/*.js",
-    "./platform/*": "./src/platform/*.js"
+    ".": {
+      "apekit": "./src/public/index.ts",
+      "default": "./lib/public/index.js"
+    },
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
+    }
   }
 }

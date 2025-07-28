@@ -40,11 +40,14 @@ const get_config = async (project_root: FileRef) => {
   return default_config();
 };
 
-export default async (mode: Mode, target: string) => {
+export default async (mode: Mode, platform: string) => {
   try {
     const package_root = await root();
-    const app_config = await get_config(package_root);
-    await new BuildApp(package_root, app_config, mode).initBuild(target);
+    const config = await get_config(package_root) as Config;
+
+    const app = await new BuildApp(package_root, config, mode).init(platform);
+
+    await app.buildInit();
     return true;
   } catch (error) {
     log.error(error);
