@@ -9,9 +9,12 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.1.2",
-    "@rcompat/fs": "^0.13.3",
+    "@rcompat/fs": "^0.14.0",
     "@rcompat/stdio": "^0.10.0",
     "pema": "workspace:^"
+  },
+  "peerDependencies": {
+    "primate": "workspace:^"
   },
   "files": [
     "/lib/**/*.js",
