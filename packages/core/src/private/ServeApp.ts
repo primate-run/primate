@@ -16,14 +16,13 @@ import type Loader from "#Loader";
 import location from "#location";
 import log from "#log";
 import type RequestFacade from "#RequestFacade";
-import type RouteExport from "#RouteExport";
 import type RouteSpecial from "#RouteSpecial";
 import type ServeInit from "#ServeInit";
 import tags from "#tags";
 import type Verb from "#Verb";
 import is from "@rcompat/assert/is";
 import FileRef from "@rcompat/fs/FileRef";
-import Router from "@rcompat/fs/router";
+import Router from "@rcompat/fs/Router";
 import type Actions from "@rcompat/http/Actions";
 import BodyParser from "@rcompat/http/body";
 import type Conf from "@rcompat/http/Conf";
@@ -106,7 +105,7 @@ export default class ServeApp extends App {
   #fonts: unknown[] = [];
   #assets: Asset[] = [];
   #frontends: PartialDict<Frontend> = {};
-  #router: ReturnType<typeof Router.init<RouteExport, RouteSpecial>>;
+  #router: Router;
 
   constructor(rootfile: string, init: ServeInit) {
     super(new FileRef(rootfile).directory, init.config, init.mode);
@@ -125,19 +124,14 @@ export default class ServeApp extends App {
       } : {},
     });
 
-    this.#router = Router.init<RouteExport, RouteSpecial>({
-      import: true,
+    this.#router = Router.init({
       extensions: [".js"],
       specials: {
         guard: { recursive: true },
         error: { recursive: false },
         layout: { recursive: true },
       },
-      predicate(route, request) {
-        return (route as { default: Dict })
-          .default[request.method.toLowerCase()] !== undefined;
-      },
-    }, init.files.routes);
+    }, init.files.routes.map(r => r[0]));
   }
 
   get secure() {
@@ -318,16 +312,27 @@ export default class ServeApp extends App {
       return;
     }
 
-    const local_parse_body = route.file.body?.parse ?? $request_body_parse;
+    const local_parse_body = /*route.file.body?.parse ?? */$request_body_parse;
     const body = local_parse_body ? await parse_body(request, url) : null;
     const { guards = [], errors = [], layouts = [] } = entries(route.specials)
       .map(([key, value]) => [`${key}s`, value]).get();
 
+    const [, found] = this.#init.files.routes
+      .find(([name]) => name === route.fullpath)!;
+    const def = found.default;
+
+    const _guards = guards.map(g => this.#init.files.routes
+      .find(([name]) => name === g)![1]);
+    const _errors = errors.map(g => this.#init.files.routes
+      .find(([name]) => name === g)![1]);
+    const _layouts = layouts.map(g => this.#init.files.routes
+      .find(([name]) => name === g)![1]);
+
     return {
-      guards: guards as RouteSpecial[],
-      errors: errors as RouteSpecial[],
-      layouts: layouts as RouteSpecial[],
-      handler: route.file.default[request.method.toLowerCase() as Verb],
+      guards: _guards as RouteSpecial[],
+      errors: _errors as RouteSpecial[],
+      layouts: _layouts as RouteSpecial[],
+      handler: def[request.method.toLowerCase() as Verb],
       request: {
         ...facade,
         body,

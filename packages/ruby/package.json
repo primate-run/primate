@@ -25,8 +25,8 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.1.2",
-    "@rcompat/fs": "^0.14.0",
-    "@rcompat/package": "^0.15.0",
+    "@rcompat/fs": "^0.15.0",
+    "@rcompat/package": "^0.16.0",
     "@ruby/head-wasm-wasi": "^2.7.1",
     "@ruby/wasm-wasi": "^2.7.1"
   },

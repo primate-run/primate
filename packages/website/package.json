@@ -3,7 +3,7 @@
   "private": true,
   "dependencies": {
     "@primate/frontend": "^0.15.0",
-    "@rcompat/fs": "^0.14.0",
+    "@rcompat/fs": "^0.15.0",
     "@rcompat/http": "^0.11.2",
     "@rcompat/record": "^0.8.1",
     "handlebars": "^4.7.8",
