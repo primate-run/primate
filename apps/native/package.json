@@ -5,8 +5,7 @@
     "build:linux-x64": "bunx --bun primate build linux-x64",
     "build:darwin-x64": "bunx --bun primate build darwin-x64",
     "build:darwin-arm64": "bunx --bun primate build darwin-arm64",
-    "build:windows-x64": "bunx --bun primate build windows-x64",
-    "test": "npx primate test"
+    "build:windows-x64": "bunx --bun primate build windows-x64"
   },
   "dependencies": {
     "@primate/html": "workspace:^",
