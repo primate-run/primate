@@ -1,3 +1,4 @@
+import command from "#command";
 import type NativePlatform from "#NativePlatform";
 import platforms from "#platforms";
 import type App from "@primate/core/App";
@@ -13,8 +14,6 @@ import execute from "@rcompat/stdio/execute";
 import pema from "pema";
 import boolean from "pema/boolean";
 import string from "pema/string";
-
-const command = "bun build build/serve.js build/worker.js --conditions=runtime --compile --minify";
 
 const names = platforms.map(platform => platform.name);
 
@@ -54,7 +53,11 @@ export default class NativeModule extends Module {
           webview.navigate("http://${host}:${port}/${this.#config.start}");
           webview.run();
         `);
-        await execute(`${command} ${flags} --outfile build/${exe}`);
+        await execute(command({
+          files: ["serve.js", "worker.js"],
+          flags,
+          exe,
+        }));
         log.system("executable written to {0}", executable_path);
       });
     }
