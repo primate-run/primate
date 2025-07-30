@@ -1,16 +1,18 @@
 {
   "name": "@primate/app/htmx",
+  "type": "module",
   "scripts": {
-    "build": "npx primate build",
     "start": "npx primate",
-    "test": "npx primate test"
+    "build": "npx primate build",
+    "test": "npx primate test",
+    "test:deno": "deno run -A npm:primate test",
+    "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
     "@primate/htmx": "workspace:^",
-    "@rcompat/fs": "^0.15.0",
+    "@rcompat/fs": "^0.16.0",
     "htmx-esm": "^0.2.1910",
     "pema": "workspace:^",
     "primate": "workspace:^"
-  },
-  "type": "module"
+  }
 }

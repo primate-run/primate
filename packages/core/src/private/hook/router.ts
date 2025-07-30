@@ -1,6 +1,6 @@
 import AppError from "#AppError";
 import type FileRef from "@rcompat/fs/FileRef";
-import FileRouter from "@rcompat/fs/Router";
+import FileRouter from "@rcompat/fs/FileRouter";
 
 const error_entries = Object.entries({
   DoubleRoute: "double route {0}, disambiguate routes",

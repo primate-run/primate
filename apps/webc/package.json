@@ -1,8 +1,12 @@
 {
   "name": "@primate/app/webc",
+  "type": "module",
+  "scripts": {
+    "start": "npx primate",
+    "build": "npx primate build"
+  },
   "dependencies": {
     "@primate/webc": "workspace:^",
     "primate": "workspace:^"
-  },
-  "type": "module"
+  }
 }

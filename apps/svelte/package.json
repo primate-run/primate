@@ -1,7 +1,12 @@
 {
   "name": "@primate/app/svelte",
+  "type": "module",
   "scripts": {
-    "test": "npx primate test"
+    "start": "npx primate",
+    "build": "npx primate build",
+    "test": "npx primate test",
+    "test:deno": "deno run -A npm:primate test",
+    "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
@@ -10,7 +15,6 @@
     "@rcompat/assert": "^0.1.2",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "svelte": "^5.36.10"
-  },
-  "type": "module"
+    "svelte": "^5.37.1"
+  }
 }

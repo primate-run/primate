@@ -1,12 +1,16 @@
 {
   "name": "@primate/app/vue",
+  "type": "module",
   "scripts": {
-    "test": "npx primate test"
+    "start": "npx primate",
+    "build": "npx primate build",
+    "test": "npx primate test",
+    "test:deno": "deno run -A npm:primate test",
+    "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
     "@primate/vue": "workspace:^",
     "primate": "workspace:^",
     "vue": "^3.5.17"
-  },
-  "type": "module"
+  }
 }

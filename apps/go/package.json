@@ -1,7 +1,12 @@
 {
   "name": "@primate/app/go",
+  "type": "module",
   "scripts": {
-    "test": "npx primate test"
+    "start": "npx primate",
+    "build": "npx primate build",
+    "test": "npx primate test",
+    "test:deno": "deno run -A npm:primate test",
+    "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
     "@primate/html": "workspace:^",

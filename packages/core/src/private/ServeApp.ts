@@ -22,7 +22,7 @@ import tags from "#tags";
 import type Verb from "#Verb";
 import is from "@rcompat/assert/is";
 import FileRef from "@rcompat/fs/FileRef";
-import FileRouter from "@rcompat/fs/Router";
+import FileRouter from "@rcompat/fs/FileRouter";
 import type Actions from "@rcompat/http/Actions";
 import BodyParser from "@rcompat/http/body";
 import type Conf from "@rcompat/http/Conf";

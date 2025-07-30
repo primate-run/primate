@@ -1,15 +1,17 @@
 {
   "name": "@primate/app/markdown",
+  "type": "module",
   "scripts": {
-    "build": "npx primate build",
     "start": "npx primate",
-    "test": "npx primate test"
+    "build": "npx primate build",
+    "test": "npx primate test",
+    "test:deno": "deno run -A npm:primate test",
+    "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
     "@primate/i18n": "workspace:^",
     "@primate/markdown": "workspace:^",
     "marked": "^16.1.1",
     "primate": "workspace:^"
-  },
-  "type": "module"
+  }
 }

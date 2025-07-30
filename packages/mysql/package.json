@@ -26,7 +26,7 @@
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.1.2",
     "@rcompat/record": "^0.8.1",
-    "mysql2": "^3.14.2",
+    "mysql2": "^3.14.3",
     "pema": "workspace:"
   },
   "type": "module",

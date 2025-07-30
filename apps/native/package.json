@@ -1,6 +1,8 @@
 {
   "name": "@primate/app/native",
+  "type": "module",
   "scripts": {
+    "start": "npx primate",
     "build": "bunx --bun primate build desktop",
     "build:linux-x64": "bunx --bun primate build linux-x64",
     "build:darwin-x64": "bunx --bun primate build darwin-x64",
@@ -12,6 +14,5 @@
     "@primate/grain": "workspace:^",
     "@primate/native": "workspace:^",
     "primate": "workspace:^"
-  },
-  "type": "module"
+  }
 }

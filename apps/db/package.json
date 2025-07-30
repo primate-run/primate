@@ -1,11 +1,18 @@
 {
   "name": "@primate/app/db",
+  "type": "module",
+  "scripts": {
+    "start": "npx primate",
+    "build": "npx primate build",
+    "test": "npx primate test",
+    "test:deno": "deno run -A npm:primate test",
+    "test:bun": "bun x --bun primate test"
+  },
   "dependencies": {
     "@primate/core": "workspace:^",
     "@primate/html": "workspace:^",
     "@primate/sqlite": "workspace:^",
     "pema": "workspace:^",
     "primate": "workspace:^"
-  },
-  "type": "module"
+  }
 }

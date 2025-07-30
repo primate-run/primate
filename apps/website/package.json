@@ -1,13 +1,15 @@
 {
   "name": "@primate/app/website",
+  "type": "module",
+  "scripts": {
+    "start": "npx primate",
+    "build": "npx primate build"
+  },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@primate/svelte": "workspace:^",
-    "@rcompat/fs": "^0.15.0",
+    "@rcompat/fs": "^0.16.0",
     "@rcompat/http": "^0.12.6",
     "@rcompat/record": "^0.8.1",
-    "primate": "workspace:^",
-    "svelte": "^5.36.10"
-  },
-  "type": "module"
+    "primate": "workspace:^"
+  }
 }
