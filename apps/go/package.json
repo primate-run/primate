@@ -12,6 +12,5 @@
     "@primate/html": "workspace:^",
     "@primate/go": "workspace:^",
     "primate": "workspace:^"
-  },
-  "type": "module"
+  }
 }

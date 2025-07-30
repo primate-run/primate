@@ -47,7 +47,7 @@ export default async (mode: Mode, platform: string) => {
 
     const app = await new BuildApp(package_root, config, mode).init(platform);
 
-    await app.buildInit();
+    await (app as BuildApp).buildInit();
     return true;
   } catch (error) {
     log.error(error);

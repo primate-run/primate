@@ -13,6 +13,5 @@
     "@primate/ruby": "workspace:^",
     "@ruby/head-wasm-wasi": "^2.7.1",
     "primate": "workspace:^"
-  },
-  "type": "module"
+  }
 }

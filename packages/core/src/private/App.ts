@@ -5,6 +5,7 @@ import location from "#location";
 import type Mode from "#Mode";
 import type Module from "#module/Module";
 import PlatformManager from "#platform/Manager";
+import reducer from "#reducer";
 import wrap from "#route/wrap";
 import type RouteFunction from "#RouteFunction";
 import assert from "@rcompat/assert";
@@ -49,18 +50,6 @@ const default_bindings: PartialDict<Binder> = {
   },
 };
 
-const reducer = async <A extends App>(modules: Module[], app: A): Promise<A> => {
-  if (modules.length === 0) {
-    return app;
-  }
-  const [first, ...rest] = modules;
-
-  if (rest.length === 0) {
-    return await first.init(app, _ => _);
-  };
-  return await first.init(app, _ => reducer(rest, _));
-};
-
 const doubled = (set: string[]) =>
   set.find((part: string, i: number, array: string[]) =>
     array.filter((_, j) => i !== j).includes(part)) ?? "";
@@ -97,7 +86,7 @@ export default class App {
       throw new AppError("module {0} loaded twice", doubled(names));
     }
 
-    const app = await reducer(this.#modules, this);
+    const app = await reducer(this.#modules, this, "init");
 
     this.#platform.set(platform);
 

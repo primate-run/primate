@@ -3,7 +3,7 @@ import copy_includes from "#hook/copy-includes";
 import $router from "#hook/router";
 import location from "#location";
 import log from "#log";
-import type Module from "#module/Module";
+import reducer from "#reducer";
 import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
 import json from "@rcompat/package/json";
@@ -206,17 +206,5 @@ export default await db.wrap("${file.base}", store);`);
   return app;
 };
 
-const reducer = async (modules: Module[], app: BuildApp): Promise<BuildApp> => {
-  if (modules.length === 0) {
-    return app;
-  }
-  const [first, ...rest] = modules;
-
-  if (rest.length === 0) {
-    return await first.build(app, _ => _);
-  };
-  return await first.build(app, _ => reducer(rest, _));
-};
-
 export default async (app: BuildApp) =>
-  post(await reducer(app.modules, await pre(app)));
+  post(await reducer(app.modules, await pre(app), "build"));

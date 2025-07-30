@@ -2,14 +2,10 @@ import client_error from "#handler/error";
 import respond from "#hook/respond";
 import log from "#log";
 import type RequestHook from "#module/RequestHook";
-import pass from "#pass";
 import type RequestFacade from "#RequestFacade";
 import type ResponseLike from "#ResponseLike";
 import type RouteFunction from "#RouteFunction";
 import type ServeApp from "#ServeApp";
-import session_hook from "#session/hook";
-import reload_defaults from "@rcompat/build/reload/defaults";
-import reload_path from "@rcompat/build/reload/path";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 
 type HookExec<I, O> = (i: I, next: (_: I) => MaybePromise<O>)
@@ -82,7 +78,7 @@ const last = (handler: RouteFunction) => async (request: RequestFacade) => {
   };
 };
 
-const as_route = async (app: ServeApp, partial_request: RequestFacade) => {
+export default async function(app: ServeApp, partial_request: RequestFacade) {
   // if tryreturn throws, this will default
   let error_handler = app.defaultErrorRoute;
 
@@ -118,34 +114,4 @@ const as_route = async (app: ServeApp, partial_request: RequestFacade) => {
       return client_error()(app, {}, request) as Response;
     }
   }
-};
-
-export default (app: ServeApp) => {
-  const handle = async (request: RequestFacade) =>
-    await app.serve(request.url.pathname) ?? as_route(app, request);
-
-  const assets = app.assets
-    .filter(asset => asset.type !== "importmap")
-    .map(asset => asset.src);
-  const paths = ([reload_path as string]).concat(assets as string[]);
-  const http = app.config("http");
-  const reload_url = `http://${http.host}:${reload_defaults.port}`;
-
-  const proxy: RequestHook = (facade, next) => {
-    const { pathname } = new URL(facade.url);
-
-    return paths.includes(pathname as "/esbuild")
-      ? pass(`${reload_url}${pathname}`, facade.request)
-      : next(facade);
-  };;
-
-  // first hook
-  const hotreload = ((facade, next) => app.mode === "development"
-    ? proxy(facade, next)
-    : next(facade)) satisfies RequestHook;
-
-  const modules = [hotreload, session_hook(app),
-    ...app.modules.map(module => module.handle.bind(module)), handle];
-
-  return (request: RequestFacade) => reducer2(modules, request);
 };

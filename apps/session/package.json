@@ -11,6 +11,5 @@
   "dependencies": {
     "@primate/html": "workspace:^",
     "primate": "workspace:^"
-  },
-  "type": "module"
+  }
 }

@@ -5,16 +5,19 @@ import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
 import type Body from "#Body";
+import DevModule from "#builtin/DevModule";
+import HandleModule from "#builtin/HandleModule";
+import SessionModule from "#builtin/SessionModule";
 import type CSP from "#CSP";
 import type Frontend from "#frontend/Frontend";
 import type FrontendOptions from "#frontend/Options";
 import type ServerComponent from "#frontend/ServerComponent";
 import hash from "#hash";
-import handle from "#hook/handle";
 import parse from "#hook/parse";
 import type Loader from "#Loader";
 import location from "#location";
 import log from "#log";
+import reducer from "#reducer";
 import type RequestFacade from "#RequestFacade";
 import router from "#router";
 import type ServeInit from "#ServeInit";
@@ -106,6 +109,11 @@ export default class ServeApp extends App {
   #assets: Asset[] = [];
   #frontends: PartialDict<Frontend> = {};
   #router: FileRouter;
+  #builtins: {
+    dev?: DevModule;
+    session: SessionModule;
+    handle: HandleModule;
+  };
 
   constructor(rootfile: string, init: ServeInit) {
     super(new FileRef(rootfile).directory, init.config, init.mode);
@@ -132,7 +140,13 @@ export default class ServeApp extends App {
         layout: { recursive: true },
       },
     }, init.files.routes.map(s => s[0]));
-  }
+
+    this.#builtins = {
+      dev: init.mode === "development" ? new DevModule(this) : undefined,
+      session: new SessionModule(this),
+      handle: new HandleModule(this),
+    };
+  };
 
   get secure() {
     const ssl = this.config("http.ssl");
@@ -280,10 +294,15 @@ export default class ServeApp extends App {
         integrity: await hash(code),
       };
     }));
-    const _handle = handle(this);
+    const modules = [this.#builtins.dev, this.#builtins.session,
+    ...this.modules, this.#builtins.handle].filter(m => m !== undefined);
+
+    const handle = (request: RequestFacade) =>
+      reducer(modules, request, "handle") as Promise<Response>;
+
     this.#server = await serve(async request => {
       try {
-        return await _handle(parse(request));
+        return await handle(parse(request));
       } catch (error) {
         log.error(error);
         return new Response(null, { status: Status.INTERNAL_SERVER_ERROR });

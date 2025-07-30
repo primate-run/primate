@@ -6,7 +6,7 @@ test.get("/headers", response => {
     "accept-encoding": "gzip, deflate",
     "accept-language": "*",
     connection: "keep-alive",
-    host: "localhost:6161",
+    host: "localhost:10007",
     "sec-fetch-mode": "cors",
     "user-agent": "node",
   });
