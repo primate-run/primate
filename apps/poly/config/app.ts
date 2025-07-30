@@ -4,7 +4,7 @@ import config from "primate/config";
 
 export default config({
   http: {
-    port: 10007,
+    port: 10010,
   },
   modules: [poly(), i18n()],
 });

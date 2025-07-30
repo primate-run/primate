@@ -12,9 +12,7 @@ type Import = Dict & {
 
 type BuildFiles = {
   routes: [string, { default: any }][];
-  locales?: [string, {
-    default: Dict<string>;
-  }][];
+  locales?: [string, Dict<string>][];
   stores?: [string, {
     default: Schema;
     name?: string;

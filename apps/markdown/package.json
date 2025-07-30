@@ -1,5 +1,10 @@
 {
   "name": "@primate/app/markdown",
+  "scripts": {
+    "build": "npx primate build",
+    "start": "npx primate",
+    "test": "npx primate test"
+  },
   "dependencies": {
     "@primate/i18n": "workspace:^",
     "@primate/markdown": "workspace:^",

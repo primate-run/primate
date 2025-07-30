@@ -6,8 +6,4 @@ const posts = [{
   title: "First post",
 }];
 
-export default route({
-  get() {
-    return view("Index.svelte", { posts });
-  },
-});
+route.get(() => view("Index.svelte", { posts }));

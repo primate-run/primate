@@ -1,10 +1,11 @@
 import Runtime from "#Runtime";
-import execute from "@rcompat/stdio/execute";
-import assert from "@rcompat/assert";
 import type BuildApp from "@primate/core/BuildApp";
-import type NextBuild from "@primate/core/NextBuild";
-import FileRef from "@rcompat/fs/FileRef";
 import type Mode from "@primate/core/Mode";
+import type NextBuild from "@primate/core/NextBuild";
+import wrap from "@primate/core/route/wrap";
+import assert from "@rcompat/assert";
+import FileRef from "@rcompat/fs/FileRef";
+import execute from "@rcompat/stdio/execute";
 
 const dirname = import.meta.dirname;
 const postlude_file = FileRef.join(dirname, "bootstrap", "postlude.gr");
@@ -47,7 +48,7 @@ export default class Default extends Runtime {
   }
 
   build(app: BuildApp, next: NextBuild) {
-    app.bind(this.extension, async (route, context) => {
+    app.bind(this.extension, async (route, { context, build }) => {
       assert(context === "routes", "grain: only route files are supported");
 
       const text = await route.text();
@@ -55,11 +56,11 @@ export default class Default extends Runtime {
       await route.write(`${text}\n${postlude}`);
       const wasm = route.bare(".wasm");
       const command = this.#command(wasm, route, app.mode);
-      await execute(command , { cwd: `${route.directory}` });
+      await execute(command, { cwd: `${route.directory}` });
 
-      const code = (await bootstrap_file.text()).replace("__FILE_NAME__",
+      const code = (await bootstrap_file.text()).replace("__FILENAME__",
         wasm.path);
-      await route.bare(".gr.js").write(code);
+      await route.bare(".gr.js").write(wrap(code, route, build));
     });
 
     return next(app);

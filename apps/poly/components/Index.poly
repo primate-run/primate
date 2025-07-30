@@ -11,7 +11,7 @@
   <meta name="keywords" content={title} />
 </svelte:head>
 <a href="/redirect">redirect</a>
-<h1 on:click={() => { console.log("clicked!"); }}>{$t("All posts")}</h1>
+<h1 on:click={() => { console.log("clicked!"); }}>{$t("All posts2")}</h1>
 {#each posts as post}
 <Link {post} />
 {/each}

@@ -1,5 +1,8 @@
 {
   "name": "@primate/app/svelte",
+  "scripts": {
+    "test": "npx primate test"
+  },
   "dependencies": {
     "@primate/core": "workspace:^",
     "@primate/i18n": "workspace:^",

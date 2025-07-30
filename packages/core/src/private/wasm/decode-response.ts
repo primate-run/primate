@@ -2,6 +2,7 @@ import error from "#handler/error";
 import redirect from "#handler/redirect";
 import view from "#handler/view";
 import type ResponseFunction from "#ResponseFunction";
+import type Instantiation from "#wasm/Instantiation";
 import assert from "@rcompat/assert";
 import type BufferView from "@rcompat/bufferview";
 import type { Known } from "@rcompat/http/Status";
@@ -10,7 +11,6 @@ import decodeBytes from "./decode-bytes.js";
 import decodeJson from "./decode-json.js";
 import decodeOption from "./decode-option.js";
 import decodeString from "./decode-string.js";
-import type { Instantiation } from "./instantiate.js";
 import openWebsocket from "./open-websocket.js";
 
 type MaybeRedirectionStatus = Parameters<typeof redirect>[1];
@@ -33,12 +33,12 @@ type DecodedResponse =
   }
   | {
     type:
-      | "blob"
-      | "error"
-      | "json"
-      | "redirect"
-      | "uri"
-      | "view";
+    | "blob"
+    | "error"
+    | "json"
+    | "redirect"
+    | "uri"
+    | "view";
     value: any;
   }
   | {
@@ -104,7 +104,8 @@ const decodeResponse = (source: BufferView): DecodedResponse | undefined => {
 
     case RESPONSE_REDIRECT: {
       const to = decodeString(source);
-      const status = decodeOption(source => source.readU32(), source) as MaybeRedirectionStatus;
+      const status = decodeOption(source =>
+        source.readU32(), source) as MaybeRedirectionStatus;
       return {
         type: "redirect",
         value: redirect(to, status),

@@ -1,5 +1,8 @@
 {
   "name": "@primate/app/react",
+  "scripts": {
+    "test": "npx primate test"
+  },
   "dependencies": {
     "@primate/i18n": "workspace:^",
     "@primate/react": "workspace:^",

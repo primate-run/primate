@@ -1,5 +1,6 @@
 import type App from "@primate/core/App";
 import Module from "@primate/core/frontend/Module";
+import type Render from "@primate/core/frontend/Render";
 import type Next from "@primate/core/Next";
 import type FileRef from "@rcompat/fs/FileRef";
 
@@ -9,6 +10,10 @@ export default class Runtime extends Module {
   defaultExtension = ".webc";
   layouts = false;
   client = true;
+
+  render: Render = (_component, _props) => {
+    return { body: "", head: "" };
+  };
 
   get components() {
     return this.#components;

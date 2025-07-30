@@ -16,13 +16,13 @@ import type Loader from "#Loader";
 import location from "#location";
 import log from "#log";
 import type RequestFacade from "#RequestFacade";
-import type RouteSpecial from "#RouteSpecial";
+import router from "#router";
 import type ServeInit from "#ServeInit";
 import tags from "#tags";
 import type Verb from "#Verb";
 import is from "@rcompat/assert/is";
 import FileRef from "@rcompat/fs/FileRef";
-import Router from "@rcompat/fs/Router";
+import FileRouter from "@rcompat/fs/Router";
 import type Actions from "@rcompat/http/Actions";
 import BodyParser from "@rcompat/http/body";
 import type Conf from "@rcompat/http/Conf";
@@ -105,7 +105,7 @@ export default class ServeApp extends App {
   #fonts: unknown[] = [];
   #assets: Asset[] = [];
   #frontends: PartialDict<Frontend> = {};
-  #router: Router;
+  #router: FileRouter;
 
   constructor(rootfile: string, init: ServeInit) {
     super(new FileRef(rootfile).directory, init.config, init.mode);
@@ -124,14 +124,14 @@ export default class ServeApp extends App {
       } : {},
     });
 
-    this.#router = Router.init({
+    this.#router = FileRouter.init({
       extensions: [".js"],
       specials: {
         guard: { recursive: true },
         error: { recursive: false },
         layout: { recursive: true },
       },
-    }, init.files.routes.map(r => r[0]));
+    }, init.files.routes.map(s => s[0]));
   }
 
   get secure() {
@@ -312,27 +312,33 @@ export default class ServeApp extends App {
       return;
     }
 
+    const verb = request.method.toLowerCase() as Verb;
     const local_parse_body = /*route.file.body?.parse ?? */$request_body_parse;
     const body = local_parse_body ? await parse_body(request, url) : null;
     const { guards = [], errors = [], layouts = [] } = entries(route.specials)
-      .map(([key, value]) => [`${key}s`, value]).get();
+      .map(([key, value]) => [`${key}s`, value ?? []])
+      .map(([key, value]) => [key, value.map(v => {
+        const verbs = router.get(v);
+        const handler = verbs[verb];
+        if (handler === undefined) {
+          throw new AppError("route {0} has no {1} verb", route.fullpath, verb);
+        }
+        return handler;
+      })])
+      .get();
 
-    const [, found] = this.#init.files.routes
-      .find(([name]) => name === route.fullpath)!;
-    const def = found.default;
+    const verbs = router.get(route.fullpath)!;
+    const handler = verbs[verb];
 
-    const _guards = guards.map(g => this.#init.files.routes
-      .find(([name]) => name === g)![1]);
-    const _errors = errors.map(g => this.#init.files.routes
-      .find(([name]) => name === g)![1]);
-    const _layouts = layouts.map(g => this.#init.files.routes
-      .find(([name]) => name === g)![1]);
+    if (handler === undefined) {
+      throw new AppError("route {0} has no {1} verb", route.fullpath, verb);
+    }
 
     return {
-      guards: _guards as RouteSpecial[],
-      errors: _errors as RouteSpecial[],
-      layouts: _layouts as RouteSpecial[],
-      handler: def[request.method.toLowerCase() as Verb],
+      guards,
+      errors,
+      layouts,
+      handler,
       request: {
         ...facade,
         body,

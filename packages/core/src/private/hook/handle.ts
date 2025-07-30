@@ -6,14 +6,14 @@ import pass from "#pass";
 import type RequestFacade from "#RequestFacade";
 import type ResponseLike from "#ResponseLike";
 import type RouteFunction from "#RouteFunction";
-import type RouteSpecial from "#RouteSpecial";
 import type ServeApp from "#ServeApp";
 import session_hook from "#session/hook";
 import reload_defaults from "@rcompat/build/reload/defaults";
 import reload_path from "@rcompat/build/reload/path";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 
-type HookExec<I, O> = (i: I, next: (_: I) => MaybePromise<O>) => MaybePromise<O>;
+type HookExec<I, O> = (i: I, next: (_: I) => MaybePromise<O>)
+  => MaybePromise<O>;
 type RouteHook = HookExec<RequestFacade, ResponseLike>;
 type HandleHook = HookExec<RequestFacade, Response>;
 
@@ -42,11 +42,12 @@ type GuardError = {
 
 const guard_error = Symbol("guard_error");
 
-const guard = (app: ServeApp, guards: RouteSpecial[]): RequestHook => async (request, next) => {
+const guard = (app: ServeApp, guards: RouteFunction[]): RequestHook => async (request, next) => {
   // handle guards
   try {
     for (const guard of guards) {
-      const response = await guard.default(request);
+      const response = await guard(request);
+      // @ts-expect-error guard
       if (response !== true) {
         throw {
           response,
@@ -66,11 +67,11 @@ const guard = (app: ServeApp, guards: RouteSpecial[]): RequestHook => async (req
   }
 };
 
-const get_layouts = async (layouts: RouteSpecial[], request: RequestFacade) => {
-  const stop_at = layouts.findIndex(({ recursive }) => recursive === false);
+const get_layouts = async (layouts: RouteFunction[], request: RequestFacade) => {
+  //  const stop_at = layouts.findIndex(({ recursive }) => recursive === false);
   return Promise.all(layouts
-    .slice(stop_at === -1 ? 0 : stop_at)
-    .map(layout => (layout.default as RouteFunction)(request)));
+    //   .slice(stop_at === -1 ? 0 : stop_at)
+    .map(layout => layout(request)));
 };
 // last handler, preserve final request form
 const last = (handler: RouteFunction) => async (request: RequestFacade) => {
@@ -94,7 +95,7 @@ const as_route = async (app: ServeApp, partial_request: RequestFacade) => {
 
     const { guards, errors, layouts, handler } = route;
 
-    error_handler = errors.at(-1)?.default as RouteFunction;
+    error_handler = errors.at(-1);
 
     const route_hooks = app.modules.map(module => module.route.bind(module));
     const hooks = [...route_hooks, guard(app, guards), last(handler)];

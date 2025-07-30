@@ -1,5 +1,3 @@
-export default {
-  get(request) {
-    return request.headers;
-  },
-};
+import route from "primate/route";
+
+route.get(request => request.headers);

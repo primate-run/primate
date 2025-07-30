@@ -6,8 +6,4 @@ const posts = [{
   title: "First post",
 }];
 
-export default route({
-  get() {
-    return view("Index.poly", { posts });
-  },
-});
+route.get(() => view("Index.poly", { posts }));

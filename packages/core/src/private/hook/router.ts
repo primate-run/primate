@@ -1,6 +1,6 @@
 import AppError from "#AppError";
 import type FileRef from "@rcompat/fs/FileRef";
-import Router from "@rcompat/fs/Router";
+import FileRouter from "@rcompat/fs/Router";
 
 const error_entries = Object.entries({
   DoubleRoute: "double route {0}, disambiguate routes",
@@ -8,11 +8,9 @@ const error_entries = Object.entries({
   RestRoute: "rest route {0} may not be a directory",
 });
 
-type Return = ReturnType<typeof Router.load>;
-
-export default async (directory: FileRef, extensions: string[]): Return => {
+export default async (directory: FileRef, extensions: string[]) => {
   try {
-    return await Router.load({
+    return await FileRouter.load({
       extensions,
       directory: directory.toString(),
       specials: {
@@ -23,7 +21,7 @@ export default async (directory: FileRef, extensions: string[]): Return => {
     });
   } catch (error) {
     error_entries.forEach(([key, value]) => {
-      if (key in Router.Error) {
+      if (key in FileRouter.Error) {
         throw new AppError(value, (error as { route: string }).route);
       }
     });

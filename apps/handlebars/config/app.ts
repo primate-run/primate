@@ -3,7 +3,7 @@ import config from "primate/config";
 
 export default config({
   http: {
-    port: 10004,
+    port: 10005,
   },
   modules: [handlebars()],
 });

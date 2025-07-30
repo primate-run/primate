@@ -1,8 +1,7 @@
 import type ResponseFunction from "#ResponseFunction";
 import type Dict from "@rcompat/type/Dict";
-import type MaybePromise from "@rcompat/type/MaybePromise";
 
-type ResponseLike = MaybePromise<
+type ResponseLike =
   string |
   Dict |
   Dict[] |
@@ -10,6 +9,6 @@ type ResponseLike = MaybePromise<
   ReadableStream |
   Blob |
   Response |
-  ResponseFunction>;
+  ResponseFunction;
 
 export { ResponseLike as default };

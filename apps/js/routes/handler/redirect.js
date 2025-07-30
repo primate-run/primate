@@ -1,7 +1,4 @@
 import redirect from "primate/redirect";
+import route from "primate/route";
 
-export default {
-  get() {
-    return redirect("/redirected");
-  },
-};
+route.get(() => redirect("/redirected"));

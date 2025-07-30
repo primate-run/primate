@@ -1,6 +1,7 @@
 import Runtime from "#Runtime";
 import type BuildApp from "@primate/core/BuildApp";
 import type NextBuild from "@primate/core/NextBuild";
+import wrap from "@primate/core/route/wrap";
 import verbs from "@primate/core/verbs";
 import assert from "@rcompat/assert";
 import FileRef from "@rcompat/fs/FileRef";
@@ -11,15 +12,16 @@ const get_routes = (code: string) => [...code.matchAll(routes_re)]
 
 const this_directory = new FileRef(import.meta.url).up(1);
 const request = await this_directory.join("./request.rb").text();
-const make_route = (route: string) => `async ${route.toLowerCase()}(request) {
-    try {
-      return to_response(await environment.callAsync("run_${route}",
-        vm.wrap(request), vm.wrap(helpers), vm.wrap(session())));
-    } catch (e) {
-      console.log("ruby error", e);
-      return "Ruby error";
-    }
-  },`;
+const make_route = (route: string) => `
+route.${route.toLowerCase()}(async request => {
+  try {
+    return to_response(await environment.callAsync("run_${route}",
+      vm.wrap(request), vm.wrap(helpers), vm.wrap(session())));
+  } catch (e) {
+    console.log("ruby error", e);
+    return "Ruby error";
+  }
+});`;
 
 const type_map = {
   i8: { transfer: "to_i", type: "int8" },
@@ -49,38 +51,39 @@ const js_wrapper = async (path: FileRef, routes: string[]) => {
   const request_defs: string[] = [];
 
   return `
+import FileRef from "primate/runtime/FileRef";
+import route from "primate/route";
 import to_response from "@primate/ruby/to-response";
 import helpers from "@primate/ruby/helpers";
 import default_ruby_vm from "@primate/ruby/default-ruby-vm";
 import ruby from "@primate/ruby/ruby";
-import FileRef from "primate/runtime/FileRef";
 import session from "primate/config/session";
 
 const { vm } = await default_ruby_vm(ruby);
 const code = await FileRef.text(${JSON.stringify(path.toString())});
 const wrappers = ${JSON.stringify(create_ruby_wrappers(routes))};
 const request = ${JSON.stringify(request
-  .replace("%%CLASSES%%", _ => classes.join("\n"))
-  .replace("%%REQUEST_INITIALIZE%%", _ => request_initialize.join("\n"))
-  .replace("%%REQUEST_DEFS%%", _ => request_defs.join("\n")))};
+    .replace("%%CLASSES%%", _ => classes.join("\n"))
+    .replace("%%REQUEST_INITIALIZE%%", _ => request_initialize.join("\n"))
+    .replace("%%REQUEST_DEFS%%", _ => request_defs.join("\n")))};
 
 const environment = await vm.evalAsync(request+code+wrappers);
 
-export default {
-  ${routes.map(route => make_route(route)).join("\n  ")}
-};
+${routes.map(route => make_route(route)).join("\n  ")}
 `;
 };
 
 export default class Default extends Runtime {
   build(app: BuildApp, next: NextBuild) {
-    app.bind(this.extension, async (file, context) => {
+    app.bind(this.extension, async (route, { context, build }) => {
       assert(context === "routes", "ruby: only route files are supported");
 
-      const code = await file.text();
+      const code = await route.text();
       const routes = get_routes(code);
+
+      const js_code = wrap(await js_wrapper(route, routes), route, build);
       // write .js wrapper
-      await file.append(".js").write(await js_wrapper(file, routes));
+      await route.append(".js").write(js_code);
     });
 
     return next(app);

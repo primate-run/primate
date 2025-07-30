@@ -1,3 +1,4 @@
+import route from "primate/route";
 import view from "primate/view";
 
 const posts = [{
@@ -5,8 +6,4 @@ const posts = [{
   title: "First post",
 }];
 
-export default {
-  get() {
-    return view("post-index.component.ts", { posts });
-  },
-};
+route.get(() => view("post-index.component.ts", { posts }));

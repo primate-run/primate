@@ -28,10 +28,10 @@ import boolean from "pema/boolean";
 import string from "pema/string";
 
 type Layout = (app: ServeApp, transfer: Dict, request: RequestFacade)
-=> Component;
+  => Component;
 
 async function normalize(path: string) {
-  return `_${await hash(path)}`;
+  return `p_${await hash(path)}`;
 }
 
 export default abstract class FrontendModule<
@@ -51,7 +51,7 @@ export default abstract class FrontendModule<
   compile: {
     server?: (text: string) => MaybePromise<string>;
     client?: (text: string, file: FileRef) =>
-    MaybePromise<{ js: string; css?: string | null }>;
+      MaybePromise<{ js: string; css?: string | null }>;
   } = {};
   css?: {
     filter: RegExp;
@@ -106,7 +106,7 @@ export default abstract class FrontendModule<
       return { body, head, headers };
     }
 
-    const code = `import app from "app"; app.start();`;
+    const code = "import app from \"app\"; app.start();";
     const inlined = await inline(code, "module");
 
     const json_props = JSON.stringify({ frontend: this.name, ...client });
@@ -118,6 +118,10 @@ export default abstract class FrontendModule<
       head: head.concat(inlined.head, hydrated.head),
       headers: app.headers({ "script-src": script_src }),
     };
+  }
+
+  normalize(name: string) {
+    return normalize(name);
   }
 
   handler: Frontend = (component, props = {}, options = {}) =>
@@ -253,9 +257,9 @@ export default abstract class FrontendModule<
             let contents = compiled.js;
 
             if (css
-                && compiled.css !== null
-                && compiled.css !== undefined
-                && compiled.css !== "") {
+              && compiled.css !== null
+              && compiled.css !== undefined
+              && compiled.css !== "") {
               const path = FileRef.webpath(`${args.path}css`);
               app.build.save(path, compiled.css);
               contents += `\nimport "${path}";`;
@@ -269,13 +273,15 @@ export default abstract class FrontendModule<
   }
 
   init<T extends App>(app: T, next: Next<T>) {
-    app.bind(this.extension, async (file, context) => {
-      assert(context === "components", `${this.name}: only components supported`);
+    app.bind(this.extension, async (file, { context }) => {
+      assert(context === "components",
+        `${this.name}: only components supported`);
 
       if (this.compile.server) {
         // compile server component
         const code = await this.compile.server(await file.text());
-        await file.append(".js").write(code.replaceAll(this.extension, `${this.extension}.js`));
+        await file.append(".js")
+          .write(code.replaceAll(this.extension, `${this.extension}.js`));
       }
     });
     return next(app);

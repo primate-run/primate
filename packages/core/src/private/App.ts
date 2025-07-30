@@ -5,6 +5,7 @@ import location from "#location";
 import type Mode from "#Mode";
 import type Module from "#module/Module";
 import PlatformManager from "#platform/Manager";
+import wrap from "#route/wrap";
 import type RouteFunction from "#RouteFunction";
 import assert from "@rcompat/assert";
 import transform from "@rcompat/build/sync/transform";
@@ -25,20 +26,26 @@ const ts_options = {
 const compile = (code: string) => transform(code, ts_options).code;
 
 const default_bindings: PartialDict<Binder> = {
-  ".js": async (file, context) => {
+  ".js": async (file, { context, build }) => {
     const contexts = ["routes", "stores", "config"];
     const error = "js: only route, store and config files are supported";
     assert(contexts.includes(context), error);
+    const code = context === "routes"
+      ? wrap(await file.text(), file, build)
+      : await file.text();
 
-    await file.append(".js").write(await file.text());
+    await file.append(".js").write(code);
 
   },
-  ".ts": async (file, context) => {
+  ".ts": async (file, { context, build }) => {
     const contexts = ["routes", "stores", "config"];
     const error = "ts: only route, store and config files are supported";
     assert(contexts.includes(context), error);
 
-    await file.append(".js").write(compile(await file.text()));
+    const code = context === "routes"
+      ? wrap(compile(await file.text()), file, build)
+      : compile(await file.text());
+    await file.append(".js").write(code);
   },
 };
 

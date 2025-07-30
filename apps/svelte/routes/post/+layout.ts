@@ -1,3 +1,4 @@
 import view from "primate/view";
+import route from "primate/route";
 
-export default () => view("layout.svelte");
+route.get(() => view("layout.svelte"));

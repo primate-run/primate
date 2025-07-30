@@ -1,5 +1,6 @@
 import header from "#header";
 import Manager from "#Manager";
+import AppError from "@primate/core/AppError";
 import Module from "@primate/core/Module";
 import type NextHandle from "@primate/core/NextHandle";
 import type NextRoute from "@primate/core/NextRoute";
@@ -8,7 +9,6 @@ import type RequestFacade from "@primate/core/RequestFacade";
 import type ServeApp from "@primate/core/ServeApp";
 import is from "@rcompat/assert/is";
 import Status from "@rcompat/http/Status";
-import AppError from "@primate/core/AppError";
 
 const default_locale = "en-US";
 
@@ -25,7 +25,7 @@ const cookie: Cookie = (name, value, { path, secure, httpOnly, sameSite }) =>
   `${name}=${value};${httpOnly};Path=${path};${secure};SameSite=${sameSite}`;
 
 const options = {
-  sameSite: "Strict" ,
+  sameSite: "Strict",
   path: "/",
   httpOnly: "HttpOnly",
   secure: "Secure",
@@ -57,7 +57,7 @@ export default class Runtime extends Module {
     }
 
     this.manager.init(Object.fromEntries(locales.map(([name, locale]) =>
-      [name, locale.default],
+      [name, locale],
     )));
 
     return next(app);
@@ -95,9 +95,11 @@ export default class Runtime extends Module {
       ?? client_locales.find(c_locale => server_locales.includes(c_locale))
       ?? this.manager.locale;
 
-    return next({ ...request, context: {
-      ...request.context,
-      i18n: { locale, locales: this.manager.locales } },
+    return next({
+      ...request, context: {
+        ...request.context,
+        i18n: { locale, locales: this.manager.locales },
+      },
     });
   }
 }

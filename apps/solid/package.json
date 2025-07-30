@@ -1,5 +1,8 @@
 {
   "name": "@primate/app/solid",
+  "scripts": {
+    "test": "npx primate test"
+  },
   "dependencies": {
     "@primate/i18n": "workspace:^",
     "@primate/solid": "workspace:^",

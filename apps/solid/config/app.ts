@@ -4,7 +4,7 @@ import config from "primate/config";
 
 export default config({
   http: {
-    port: 10013,
+    port: 10016,
   },
   modules: [solid({ extension: ".jsx" }), i18n()],
 });

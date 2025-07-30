@@ -1,5 +1,3 @@
-export default {
-  get() {
-    return "Redirected!";
-  },
-};
+import route from "primate/route";
+
+route.get(() => "Redirected!");

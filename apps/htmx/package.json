@@ -1,5 +1,10 @@
 {
   "name": "@primate/app/htmx",
+  "scripts": {
+    "build": "npx primate build",
+    "start": "npx primate",
+    "test": "npx primate test"
+  },
   "dependencies": {
     "@primate/htmx": "workspace:^",
     "@rcompat/fs": "^0.15.0",

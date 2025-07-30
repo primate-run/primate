@@ -2,6 +2,8 @@ import type Dict from "@rcompat/type/Dict";
 
 export default abstract class Component extends HTMLElement {
   #props: Dict;
+  #component?: string;
+  static tag: string = "";
 
   constructor(props?: Dict) {
     super();
@@ -42,8 +44,6 @@ export default abstract class Component extends HTMLElement {
   }
 
   toString() {
-    const uuid = crypto.randomUUID();
-    globalThis.registry[uuid] = this;
-    return `<p-wrap-with id="${uuid}"></p-wrap-with>`;
+    return this.render(this.props);
   }
 }

@@ -8,6 +8,7 @@ import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
 import json from "@rcompat/package/json";
 import stringify from "@rcompat/record/stringify";
+import dedent from "@rcompat/string/dedent";
 import type Dict from "@rcompat/type/Dict";
 
 const dirname = import.meta.dirname;
@@ -38,7 +39,7 @@ const write_directories = async (build_directory: FileRef, app: BuildApp) => {
     const files_js = `
     const ${name} = [];
     ${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
-      `import * as ${name}${i} from "${FileRef.webpath(`#${name}/${bare}`)}";
+      `const ${name}${i} = (await import("${FileRef.webpath(`#${name}/${bare}`)}")).default;
     ${name}.push(["${FileRef.webpath(bare)}", ${name}${i}]);`,
     ).join("\n")}
     export default ${name};`;
@@ -66,15 +67,15 @@ export default component;`;
   await build_directory.join("components.js").write(components_js);
 };
 
-const write_bootstrap = async (build_number: string, app: BuildApp, mode: string) => {
+const write_bootstrap = async (app: BuildApp, mode: string) => {
   const build_start_script = `
 import serve from "primate/serve";
 const files = {};
 ${app.server_build.map(name => `${name}s`).map(name =>
-    `import ${name} from "./${build_number}/${name}.js";
+    `import ${name} from "./${app.id}/${name}.js";
      files.${name} = ${name};`,
   ).join("\n")}
-import components from "./${build_number}/components.js";
+import components from "./${app.id}/components.js";
 import platform from "./platform.js";
 import session from "#session";
 import config from "#config";
@@ -96,9 +97,11 @@ export default app;
 
 const post = async (app: BuildApp) => {
   const defaults = FileRef.join(import.meta.url, "../../defaults");
+  //.push("${file.path.slice(1, -file.extension.length)}");
 
-  await app.stage(app.path.routes, "routes", file =>
-    `export { default } from "#stage/route${file}";`);
+  await app.stage(app.path.routes, "routes", file => dedent`
+    export * from "#stage/route${file}";
+  `);
 
   await app.stage(app.path.stores, "stores", file =>
     `import db from "#db";
@@ -168,14 +171,13 @@ export default await db.wrap("${file.base}", store);`);
   // a platform needs to create an `assets.js` that exports assets
   await app.platform.run();
 
-  const build_number = crypto.randomUUID().slice(0, 8);
-  const build_directory = app.path.build.join(build_number);
+  const build_directory = app.path.build.join(app.id);
   // TODO: remove after rcompat automatically creates directories
   await build_directory.create();
 
   await write_components(build_directory, app);
   await write_directories(build_directory, app);
-  await write_bootstrap(build_number, app, app.mode);
+  await write_bootstrap(app, app.mode);
 
   const manifest_data = {
     ...await (await json()).json() as Dict,

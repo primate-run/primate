@@ -2,6 +2,6 @@ import config from "primate/config";
 
 export default config({
   http: {
-    port: 10001,
+    port: 10002,
   },
 });

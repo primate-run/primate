@@ -1,8 +1,5 @@
 import Status from "primate/http/Status";
 import redirect from "primate/redirect";
+import route from "primate/route";
 
-export default {
-  get() {
-    return redirect("/redirected", Status.MOVED_PERMANENTLY);
-  },
-};
+route.get(() => redirect("/redirected", Status.MOVED_PERMANENTLY));

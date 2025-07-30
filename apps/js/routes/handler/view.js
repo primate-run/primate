@@ -1,7 +1,4 @@
+import route from "primate/route";
 import view from "primate/view";
 
-export default {
-  get() {
-    return view("index.html", { hello: "world" });
-  },
-};
+route.get(() => view("index.html", { hello: "world" }));

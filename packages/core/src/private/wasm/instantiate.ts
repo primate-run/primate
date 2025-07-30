@@ -1,85 +1,52 @@
-import BufferView from "@rcompat/bufferview";
-import FileRef from "@rcompat/fs/FileRef";
-import type MaybePromise from "@rcompat/type/MaybePromise";
-import assert from "@rcompat/assert";
+import text from "#handler/text";
 import type RequestFacade from "#RequestFacade";
 import type ResponseLike from "#ResponseLike";
 import session from "#session/index";
-import encodeSession from "#wasm/encode-session";
-import encodeRequest from "#wasm/encode-request";
-import decodeResponse from "#wasm/decode-response";
+import verbs from "#verbs";
+import type API from "#wasm/API";
 import decodeJson from "#wasm/decode-json";
-import decodeWebsocketSendMessage from "./decode-websocket-send.js";
-import decodeWebsocketClose from "./decode-websocket-close.js";
-import text from "#handler/text";
-import type Store from "#db/Store";
-import utf8size from "@rcompat/string/utf8size";
+import decodeResponse from "#wasm/decode-response";
+import encodeRequest from "#wasm/encode-request";
+import encodeSession from "#wasm/encode-session";
+import type Exports from "#wasm/Exports";
+import type Instantiation from "#wasm/Instantiation";
+import type Tagged from "#wasm/Tagged";
+import assert from "@rcompat/assert";
+import BufferView from "@rcompat/bufferview";
+import FileRef from "@rcompat/fs/FileRef";
 import { WASI } from "node:wasi";
-
-/** A helper function to encourage type safety when working with wasm pointers, tagging them as a specific type. */
-type Tagged<Name, T> = { _tag: Name } & T;
-
-/** The HTTP methods supported by Primate. */
-const methods = ["get", "head", "post", "put", "delete", "connect", "options", "trace", "patch"] as const;
-type HTTPMethod = typeof methods[number];
-
-/** A request handler function type. */
-type RequestHandler = (request: RequestFacade) => MaybePromise<ResponseLike>;
+import decodeWebsocketClose from "./decode-websocket-close.js";
+import decodeWebsocketSendMessage from "./decode-websocket-send.js";
 
 type ServerWebSocket = {
   send(value: string | ArrayBufferLike | Blob | ArrayBufferView): void;
   close(code?: number, reason?: string): void;
 };
 
-/** The default request and response types, which are likely pointers into a WASM linear memory space. */
+/** The default request and response types, which are likely pointers into a
+ * WASM linear memory space. */
 type I32 = number;
 
-/** The API that Primate exposes to the WASM module. */
-export type API = {
-  [Method in HTTPMethod]?: MaybePromise<RequestHandler>;
-};
-
-/** The HTTP Methods that are potentially exported by the WASM module if they are following the Primate WASM ABI convention. */
-export type ExportedMethods<TRequest = I32, TResponse = I32> = {
-  [Method in HTTPMethod]?: (request: Tagged<"Request", TRequest>) => Tagged<"Response", TResponse>;
-};
-
-/** These functions should be exported by a WASM module to be compatible with Primate. This follows the Primate WASM ABI convention. */
-export type PrimateWasmExports<TRequest = I32, TResponse = I32> = {
-  memory: WebAssembly.Memory;
-  newRequest(): Tagged<"Request", TRequest>;
-  sendResponse(response: Tagged<"Response", TResponse>): void;
-  finalizeRequest(value: Tagged<"Request", TRequest>): void;
-  finalizeResponse(value: Tagged<"Response", TResponse>): void;
-  websocketOpen(): void;
-  websocketClose(): void;
-  websocketMessage(): void;
-  getStoreValueDone(): void;
-} & ExportedMethods<TRequest, TResponse>;
-
-export type Instantiation<TRequest = I32, TResponse = I32> = {
-  api: API;
-  sockets: Map<bigint, any>;
-  memory: WebAssembly.Memory;
-  exports: PrimateWasmExports<TRequest, TResponse>;
-  setPayload(value: Uint8Array): void;
-};
-
-export type InstantiateProps = {
-  wasmFile: string;
+type Init = {
+  filename: string;
   imports?: WebAssembly.Imports;
 };
 
+// used by instance
+export type { API };
+
 /**
- * Instantiate a WASM module from a file reference and the given web assembly imports..
+ * Instantiate a WASM module from a file reference and the given web assembly
+ * imports.
  *
- * @param ref - The file reference to the WASM module.
- * @param imports - The imports to pass to the WASM module when instantiating it.
- * @returns - The instantiated WASM module, its exports, and the API that Primate exposes to the WASM module.
+ * @param ref The file reference to the WASM module.
+ * @param imports The imports to pass to the WASM module when instantiating it.
+ * @returns The instantiated WASM module, its exports, and the API that Primate
+ * exposes to the WASM module.
  */
-const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiateProps) => {
-  const wasmFileRef = new FileRef(args.wasmFile);
-  const wasmImports = args.imports;
+const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
+  const wasmFileRef = new FileRef(args.filename);
+  const wasmImports = args.imports ?? {};
 
   // default payload is set to an empty buffer via setPayloadBuffer
   let payload = new Uint8Array(0) as Uint8Array;
@@ -91,15 +58,18 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
   const sockets = new Map<bigint, ServerWebSocket>();
 
   /**
-   * The imports that Primate provides to the WASM module. This follows the Primate WASM ABI convention.
+   * The imports that Primate provides to the WASM module. This follows the
+   * Primate WASM ABI convention.
    */
   const primateImports = {
     /**
-     * Create a new session and set it as the current session. This method should only be called after
-     * a JSON payload has been received via the `send` function.
+     * Create a new session and set it as the current session. This method
+     * should only be called after a JSON payload has been received via the
+     * `send` function.
      *
-     * Once the session has been created, the `payload` should be set to the encoded session, and then
-     * `payloadByteLength` and `receive` should be called to send the payload to the WASM module.
+     * Once the session has been created, the `payload` should be set to the
+     * encoded session, and then `payloadByteLength` and `receive` should be
+     * called to send the payload to the WASM module.
      */
     newSession() {
       const data = decodeJson.from(received);
@@ -109,8 +79,9 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
     },
 
     /**
-     * Get the current session and set it as the payload. This method should only be called after
-     * a JSON payload has been received via the `send` function.
+     * Get the current session and set it as the payload. This method should
+     * only be called after a JSON payload has been received via the `send`
+     * function.
      */
     getSession() {
       const currentSession = session();
@@ -121,11 +92,14 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
     /**
      * Send the current active payload to the WASM module.
      *
-     * @param ptr The pointer to where the payload should be written into the WASM linear memory space.
-     * @param length The length of the payload. This must match the actual payload length, otherwise an exception will be thrown.
+     * @param ptr The pointer to where the payload should be written into the
+     * WASM linear memory space.
+     * @param length The length of the payload. This must match the actual
+     * payload length, otherwise an exception will be thrown.
      */
     receive(ptr: number, length: number) {
       assert(payload.length === length, "Payload length mismatch");
+
       const wasmBuffer = new Uint8Array(memory.buffer, ptr, length);
       wasmBuffer.set(payload);
     },
@@ -157,7 +131,9 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
      */
     websocketSend() {
       const { id, message } = decodeWebsocketSendMessage(payload);
-      assert(sockets.has(id), `Invalid socket id ${id}. Was the socket already closed?`);
+      assert(sockets.has(id),
+        `Invalid socket id ${id}. Was the socket already closed?`);
+
       const socket = sockets.get(id)!;
       socket.send(message);
     },
@@ -167,7 +143,8 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
      */
     websocketClose() {
       const { id } = decodeWebsocketClose(payload);
-      assert(sockets.has(id), "Invalid socket id. Was the socket already closed?");
+      assert(sockets.has(id),
+        "Invalid socket id. Was the socket already closed?");
       const socket = sockets.get(id)!;
       socket.close();
       sockets.delete(id);
@@ -182,7 +159,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
     const context = new Context({
       args: Deno.args,
       env: Deno.env.toObject(),
-      preopens: {"./": "./"},
+      preopens: { "./": "./" },
     });
 
     const instance = await WebAssembly.instantiate(bytes, {
@@ -194,11 +171,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
   };
 
   const defaultInstantiate = async () => {
-    const wasiSnapshotPreview1 = new WASI({
-      version: "preview1",
-      //      env: process.env,
-      //      args: process.argv,
-    });
+    const wasiSnapshotPreview1 = new WASI({ version: "preview1" });
     const wasm = await WebAssembly.instantiate(
       bytes,
       {
@@ -216,26 +189,35 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: InstantiatePro
     ? await instantiateDeno()
     : await defaultInstantiate();
 
-  const exports = wasm.instance.exports as unknown as PrimateWasmExports<TRequest, TResponse>;
+  const exports = wasm.instance.exports as Exports<TRequest, TResponse>;
   const memory = exports.memory;
 
-  const api = {} as API;
-  const instance = { setPayload, api, memory, exports, sockets } as Instantiation<TRequest, TResponse>;
-  for (const method of methods) {
+  const api: API = {};
+  const instance = {
+    setPayload,
+    api,
+    memory,
+    exports,
+    sockets,
+  } as Instantiation<TRequest, TResponse>;
+  for (const method of verbs) {
     if (method in exports && typeof exports[method] === "function") {
-      const methodFunc = (request: Tagged<"Request", TRequest>) => exports[method]!(request) as Tagged<"Response", TResponse>;
+      const methodFunc = (request: Tagged<"Request", TRequest>) =>
+        exports[method]!(request) as Tagged<"Response", TResponse>;
 
       api[method] = async (request: RequestFacade): Promise<ResponseLike> => {
         // payload is now set
         payload = await encodeRequest(request);
-        // immediately tell the wasm module to obtain the payload and create a request
+        // immediately tell the wasm module to obtain the payload and create a
+        // request
         const wasmRequest = exports.newRequest();
 
         // call the http method and obtain the response, finalizing the request
         const wasmResponse = methodFunc(wasmRequest);
         exports.finalizeRequest(wasmRequest);
 
-        // send the response to the wasm module and decode the response, finalizing the response
+        // send the response to the wasm module and decode the response,
+        // finalizing the response
         exports.sendResponse(wasmResponse);
         const bufferView = new BufferView(received);
         const response = decodeResponse(bufferView)!;

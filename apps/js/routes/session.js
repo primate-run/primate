@@ -1,9 +1,8 @@
 import session from "#session";
+import route from "primate/route";
 
-export default {
-  get() {
-    session.create({ foo: "bar" });
+route.get(() => {
+  session.create({ foo: "bar" });
 
-    return session.data;
-  },
-};
+  return session.data;
+});

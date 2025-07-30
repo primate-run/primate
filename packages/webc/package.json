@@ -33,6 +33,11 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
+    },
+    "#Component": {
+      "apekit": "./src/private/client/Component.ts",
+      "browser": "./lib/private/client/Component.js",
+      "default": "./lib/private/server/Component.js"
     }
   },
   "exports": {

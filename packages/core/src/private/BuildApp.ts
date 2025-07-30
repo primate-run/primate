@@ -26,10 +26,15 @@ export default class BuildApp extends App {
   #extensions: PartialDict<ExtensionCompile> = {};
   #roots: FileRef[] = [];
   #server_build: string[] = ["route"];
+  #id = crypto.randomUUID().slice(0, 8);
 
   async buildInit() {
     log.system("starting {0} build in {1} mode", this.platform.name, this.mode);
     await build(this);
+  }
+
+  get id() {
+    return this.#id;
   }
 
   get frontends() {
@@ -114,7 +119,10 @@ export default class BuildApp extends App {
 
       // copy to build/stage/${directory}
       await file.copy(target);
-      await this.bindings[file.fullExtension]?.(target, context);
+      await this.bindings[file.fullExtension]?.(target, {
+        context,
+        build: { id: this.id, stage: this.runpath("stage") },
+      });
 
       // actual
       const runtime_file = build_directory.join(debased.bare(".js"));

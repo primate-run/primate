@@ -23,7 +23,7 @@ export default function(init: Init) {
   return `
     ${which(runtime)} \
     ${init.files.map(file => `build/${file}`).join(" ")} \
-    --conditions=run --compile --minify \
+    --conditions=runtime --compile --minify \
     ${init.flags} \
     --outfile build/${init.exe}
   `;

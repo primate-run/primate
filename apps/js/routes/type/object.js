@@ -1,5 +1,3 @@
-export default {
-  get() {
-    return { name: "Donald" };
-  },
-};
+import route from "primate/route";
+
+route.get(() => ({ name: "Donald" }));

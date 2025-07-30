@@ -1,1 +1,1 @@
-export { default } from "#client/Component";
+export { default } from "#Component";

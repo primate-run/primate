@@ -3,6 +3,7 @@ import AppError from "@primate/core/AppError";
 import type BuildApp from "@primate/core/BuildApp";
 import log from "@primate/core/log";
 import type NextBuild from "@primate/core/NextBuild";
+import wrap from "@primate/core/route/wrap";
 import verbs from "@primate/core/verbs";
 import assert from "@rcompat/assert";
 import user from "@rcompat/env/user";
@@ -34,20 +35,21 @@ const add_setter = (route: string) => `
   js.Global().Set("${route}", cb${route});
 `;
 
-const make_route = (route: string) =>
-  `  ${route.toLowerCase()}(request) {
-    const go = new globalThis.Go();
-    return WebAssembly.instantiate(route, {...go.importObject}).then(result => {
-      go.run(result.instance);
-      return to_response(globalThis.${route}(to_request(request)));
-    });
-  }`;
+const make_route = (route: string) => `
+route.${route.toLowerCase()}(request => {
+  const go = new globalThis.Go();
+  return WebAssembly.instantiate(go_route, {...go.importObject}).then(result => {
+    go.run(result.instance);
+    return to_response(globalThis.${route}(to_request(request)));
+  });
+});`;
 
 const js_wrapper = (path: string, routes: string[]) => `
 import env from "@primate/go/env";
 import to_request from "@primate/go/to-request";
 import to_response from "@primate/go/to-response";
 import session from "primate/config/session";
+import route from "primate/route";
 
 globalThis.PRMT_SESSION = {
   get new() {
@@ -67,21 +69,19 @@ globalThis.PRMT_SESSION = {
   },
 };
 
-${
-  (runtime as "node" | "bun" | "deno") === "bun"
+${(runtime as "node" | "bun" | "deno") === "bun"
     ? `import route_path from "${path}" with { type: "file" };
-const route = await Bun.file(route_path).arrayBuffer();`
+const go_route = await Bun.file(route_path).arrayBuffer();`
     :
     `import FileRef from "primate/runtime/FileRef";
 
 const buffer = await FileRef.arrayBuffer(import.meta.url+"/../${path}");
-const route = new Uint8Array(buffer);`
-}
+const go_route = new Uint8Array(buffer);`
+  }
 env();
 
-export default {
 ${routes.map(route => make_route(route)).join(",\n")}
-};`;
+`;
 
 const go_wrapper = (code: string, routes: string[]) =>
   `${code.replace("package main",
@@ -141,7 +141,7 @@ const create_meta_files = async (directory: FileRef) => {
 
 export default class Default extends Runtime {
   build(app: BuildApp, next: NextBuild) {
-    app.bind(this.extension, async (route, context) => {
+    app.bind(this.extension, async (route, { context, build }) => {
       assert(context === "routes", "go: only route files are supported");
 
       // build/stage/routes
@@ -156,14 +156,16 @@ export default class Default extends Runtime {
 
       const wasm = route.bare(".wasm");
 
-      await route.append(".js").write(js_wrapper(wasm.name, routes));
+      const js_code = wrap(js_wrapper(wasm.name, routes), route, build);
+
+      await route.append(".js").write(js_code);
       try {
-        log.info(`compiling {0} to WebAssembly`, route);
+        log.info("compiling {0} to WebAssembly", route);
         // compile .go to .wasm
         await execute(run(wasm, route), { cwd: `${directory}`, env });
       } catch (error) {
-        throw new AppError(`Error in module {0}\n{1}`, route, error);
-      }
+        throw new AppError("Error in module {0}\n{1}", route, error);
+      };
     });
 
     return next(app);

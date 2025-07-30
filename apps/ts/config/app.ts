@@ -1,9 +1,9 @@
-import config from "primate/config";
 import html from "@primate/html";
+import config from "primate/config";
 
 export default config({
   http: {
-    port: 10015,
+    port: 10018,
   },
   modules: [html()],
 });

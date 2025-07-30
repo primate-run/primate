@@ -1,7 +1,4 @@
 import error from "primate/error";
+import route from "primate/route";
 
-export default {
-  get() {
-    return error();
-  },
-};
+route.get(() => error());

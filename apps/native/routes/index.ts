@@ -1,7 +1,4 @@
 import route from "primate/route";
+await import("node:fs");
 
-export default route({
-  get() {
-    return "hi";
-  },
-});
+route.get(() => "hi");

@@ -1,5 +1,8 @@
 {
   "name": "@primate/app/vue",
+  "scripts": {
+    "test": "npx primate test"
+  },
   "dependencies": {
     "@primate/vue": "workspace:^",
     "primate": "workspace:^",
