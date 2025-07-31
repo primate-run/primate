@@ -34,7 +34,6 @@ import serve from "@rcompat/http/serve";
 import type Server from "@rcompat/http/Server";
 import Status from "@rcompat/http/Status";
 import entries from "@rcompat/record/entries";
-import stringify from "@rcompat/record/stringify";
 import type Dict from "@rcompat/type/Dict";
 import type PartialDict from "@rcompat/type/PartialDict";
 import pema from "pema";
@@ -286,7 +285,7 @@ export default class ServeApp extends App {
   async start() {
     this.#assets = await Promise.all(this.#init.assets.map(async asset => {
       const code = asset.type === "importmap"
-        ? stringify(asset.code as Dict)
+        ? JSON.stringify(asset.code as Dict, null, 2)
         : asset.code as string;
       return {
         ...asset,

@@ -7,7 +7,6 @@ import reducer from "#reducer";
 import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
 import json from "@rcompat/package/json";
-import stringify from "@rcompat/record/stringify";
 import dedent from "@rcompat/string/dedent";
 import type Dict from "@rcompat/type/Dict";
 
@@ -34,7 +33,8 @@ const js_re = /^.*.js$/;
 const write_directories = async (build_directory: FileRef, app: BuildApp) => {
   for (const name of app.server_build) {
     const d = app.runpath(`${name}s`);
-    const e = await Promise.all((await FileRef.collect(d, file => js_re.test(file.path)))
+    const e = await Promise.all((await FileRef.collect(d, file =>
+      js_re.test(file.path)))
       .map(async path => `${path}`.replace(d.toString(), _ => "")));
     const files_js = `
     const ${name} = [];
@@ -49,7 +49,8 @@ const write_directories = async (build_directory: FileRef, app: BuildApp) => {
 
 const write_components = async (build_directory: FileRef, app: BuildApp) => {
   const d2 = app.runpath(location.components);
-  const e = await Promise.all((await FileRef.collect(d2, file => js_re.test(file.path)))
+  const e = await Promise.all((await FileRef.collect(d2, file =>
+    js_re.test(file.path)))
     .map(async path => `${path}`.replace(d2.toString(), _ => "")));
   const components_js = `
 const component = [];
@@ -196,8 +197,7 @@ export default await db.wrap("${file.base}", store);`);
     },
   };
   // create package.json
-  const package_json = "package.json";
-  await app.path.build.join(package_json).write(stringify(manifest_data));
+  await app.path.build.join("package.json").writeJSON(manifest_data);
 
   log.system("build written to {0}", app.path.build);
 

@@ -2,7 +2,6 @@ import root_selector from "#root-selector";
 import {
   Component, reflectComponentType, type ComponentDecorator,
 } from "@angular/core";
-import stringify from "@rcompat/record/stringify";
 import type Dict from "@rcompat/type/Dict";
 
 type ComponentParameters = Parameters<ComponentDecorator>;
@@ -13,7 +12,7 @@ const root_component = ({ template, imports }: ComponentParameters[0]) =>
     imports,
     template,
     standalone: true,
-  })(class {});
+  })(class { });
 
 const double_to_single = (string: string) => string.replaceAll("\"", "'");
 
@@ -21,7 +20,7 @@ export default (component: ComponentDecorator, props: Dict) => {
   const { selector } = reflectComponentType(component)!;
   const attributes = Object.entries(props)
     .map(([key, value]) =>
-      `[${key}]="${double_to_single(stringify(value as Dict))}"`)
+      `[${key}]="${double_to_single(JSON.stringify(value as Dict, null, 2))}"`)
     .join(" ");
 
   return root_component({

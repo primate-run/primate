@@ -8,9 +8,9 @@
   "type": "module",
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.1.2",
-    "@rcompat/fs": "^0.16.0",
-    "@rcompat/stdio": "^0.10.0",
+    "@rcompat/assert": "^0.2.0",
+    "@rcompat/fs": "^0.17.0",
+    "@rcompat/stdio": "^0.11.0",
     "pema": "workspace:^"
   },
   "peerDependencies": {

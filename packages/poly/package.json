@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.16.0",
+    "@rcompat/fs": "^0.17.0",
     "pema": "workspace:^"
   },
   "peerDependencies": {

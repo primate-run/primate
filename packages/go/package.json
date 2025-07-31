@@ -26,13 +26,13 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.1.2",
-    "@rcompat/cli": "^0.9.0",
-    "@rcompat/env": "^0.8.0",
-    "@rcompat/fs": "^0.16.0",
-    "@rcompat/runtime": "^0.5.0",
-    "@rcompat/stdio": "^0.10.0",
-    "@rcompat/string": "^0.9.1"
+    "@rcompat/assert": "^0.2.0",
+    "@rcompat/cli": "^0.10.0",
+    "@rcompat/env": "^0.9.0",
+    "@rcompat/fs": "^0.17.0",
+    "@rcompat/runtime": "^0.6.0",
+    "@rcompat/stdio": "^0.11.0",
+    "@rcompat/string": "^0.10.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"

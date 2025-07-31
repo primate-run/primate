@@ -1,6 +1,6 @@
 import type Dict from "@rcompat/type/Dict";
-import type Serializable from "@rcompat/type/Serializable";
+import type JSONValue from "@rcompat/type/JSONValue";
 
-type Data = Dict<Serializable>;
+type Data = Dict<JSONValue>;
 
 export { Data as default };

@@ -2,7 +2,6 @@ import root_selector from "#root-selector";
 
 export default () => `
   import { Component, reflectComponentType } from "@angular/core";
-  import stringify from "@primate/angular/stringify";
 
   const root_component = ({ template, imports }) => Component({
     selector: "${root_selector}",
@@ -15,7 +14,8 @@ export default () => `
 export default (component, props) => {
   const { selector } = reflectComponentType(component);
   const attributes = Object.entries(props)
-    .map(([key, value]) => \`[\${key}]="\${singlify(stringify(value))}"\`)
+    .map(([key, value]) =>
+      \`[\${key}]="\${singlify(JSON.stringify(value, null, 2))}"\`)
     .join(" ");
 
   return root_component({

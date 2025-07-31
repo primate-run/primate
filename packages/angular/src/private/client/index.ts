@@ -3,7 +3,6 @@ import {
   bootstrapApplication,
   provideClientHydration,
 } from "@angular/platform-browser";
-import stringify from "@rcompat/record/stringify";
 import type Dict from "@rcompat/type/Dict";
 import "zone.js";
 // @ts-expect-error esbuild vfs
@@ -20,5 +19,3 @@ export default class Angular {
     bootstrapApplication(rendered, config).catch(error => console.error(error));
   }
 }
-
-export { stringify };
