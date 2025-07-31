@@ -9,7 +9,7 @@ import type ServerComponent from "#frontend/ServerComponent";
 import type ServerData from "#frontend/ServerData";
 import inline from "#inline";
 import location from "#location";
-import Module from "#module/Module";
+import Module from "#Module";
 import type Next from "#module/Next";
 import type NextBuild from "#module/NextBuild";
 import type NextServe from "#module/NextServe";

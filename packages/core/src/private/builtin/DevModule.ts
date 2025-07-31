@@ -1,8 +1,8 @@
-import type RequestFacade from "#RequestFacade";
-import type ServeApp from "#ServeApp";
-import Module from "#module/Module";
+import Module from "#Module";
 import type NextHandle from "#module/NextHandle";
 import pass from "#pass";
+import type RequestFacade from "#RequestFacade";
+import type ServeApp from "#ServeApp";
 import reload_defaults from "@rcompat/build/reload/defaults";
 import reload_path from "@rcompat/build/reload/path";
 

@@ -1,4 +1,4 @@
-import Module from "#module/Module";
+import Module from "#Module";
 import FileRef from "@rcompat/fs/FileRef";
 import pema from "pema";
 import array from "pema/array";

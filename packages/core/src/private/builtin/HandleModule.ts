@@ -1,5 +1,5 @@
 import route from "#hook/route";
-import Module from "#module/Module";
+import Module from "#Module";
 import type RequestFacade from "#RequestFacade";
 import type ServeApp from "#ServeApp";
 

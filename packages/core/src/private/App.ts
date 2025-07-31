@@ -3,7 +3,7 @@ import type Binder from "#Binder";
 import type Config from "#config/Config";
 import location from "#location";
 import type Mode from "#Mode";
-import type Module from "#module/Module";
+import type Module from "#Module";
 import PlatformManager from "#platform/Manager";
 import reducer from "#reducer";
 import wrap from "#route/wrap";

@@ -1,1 +1,1 @@
-export { default } from "#module/Module";
+export { default } from "#Module";

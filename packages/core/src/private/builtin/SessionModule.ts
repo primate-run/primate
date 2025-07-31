@@ -1,4 +1,4 @@
-import Module from "#module/Module";
+import Module from "#Module";
 import type NextHandle from "#module/NextHandle";
 import type RequestFacade from "#RequestFacade";
 import type ServeApp from "#ServeApp";

@@ -1,6 +1,6 @@
 import type App from "#App";
 import type BuildApp from "#BuildApp";
-import type Module from "#module/Module";
+import type Module from "#Module";
 import type RequestFacade from "#RequestFacade";
 import type ResponseLike from "#ResponseLike";
 import type ServeApp from "#ServeApp";

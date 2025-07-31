@@ -1,4 +1,4 @@
-import Module from "#module/Module";
+import Module from "#Module";
 import pema from "pema";
 import string from "pema/string";
 
