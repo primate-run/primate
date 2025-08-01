@@ -5,6 +5,8 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r build",
+    "build:packages": "pnpm -r --filter='./packages/**' build",
+    "build:apps": "pnpm -r --filter='./apps/**' build",
     "clean": "pnpm -r clean",
     "publish": "pnpm -r --access=public publish",
     "upgrade": "pnpm -r update -i -L",
