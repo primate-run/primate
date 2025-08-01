@@ -1,9 +1,9 @@
 import type Dict from "@rcompat/type/Dict";
 
 export default interface Asset {
-  src?: string;
+  code: { imports: Dict } | string;
   inline: boolean;
   integrity: string;
-  code: string | { imports: Dict };
+  src?: string;
   type: string;
 }

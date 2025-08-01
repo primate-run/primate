@@ -6,19 +6,19 @@ import type ResponseLike from "#ResponseLike";
 import type ServeApp from "#ServeApp";
 
 type HookInput = {
-  init: App;
   build: BuildApp;
-  serve: ServeApp;
   handle: RequestFacade;
+  init: App;
   route: RequestFacade;
+  serve: ServeApp;
 };
 
 type HookOutput = {
-  init: App;
   build: BuildApp;
-  serve: ServeApp;
   handle: ResponseLike;
+  init: App;
   route: ResponseLike;
+  serve: ServeApp;
 };
 
 type Hook = keyof HookInput;

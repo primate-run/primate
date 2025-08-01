@@ -8,7 +8,7 @@ const data_attribute = "data-rh";
 const data_ssr = "ssr";
 const allowed = ["title", "meta", "style", "meta", "link", "script", "base"];
 
-const make_tag = ({ type, props }: Child, id: string) => {
+const make_tag = ({ props, type }: Child, id: string) => {
   const element = globalThis.document.createElement(type);
   Object.entries(props).forEach(([name, value]) => {
     element.setAttribute(name, value as string);

@@ -9,15 +9,15 @@ export default (request: Request): RequestFacade => {
     PartialDict<string>;
 
   return {
-    context: {},
     body: null,
-    request,
-    url,
-    query: Object.fromEntries(url.searchParams),
-    headers,
+    context: {},
     cookies: Object.fromEntries(headers.cookie?.split(";").map(cookie =>
       cookie.trim().split("=")) ?? []),
-    path: {},
+    headers,
     pass: (to: string) => pass(`${to}${url.pathname}`, request),
+    path: {},
+    query: Object.fromEntries(url.searchParams),
+    request,
+    url,
   };
 };

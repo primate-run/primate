@@ -1,4 +1,4 @@
-import { writable } from "svelte/store";
+import { writable } from "poly/store";
 
 const item = "colorScheme";
 

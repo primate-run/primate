@@ -1,13 +1,25 @@
+import type Infer from "#Infer";
 import Validated from "#Validated";
 import type Printable from "@rcompat/type/Printable";
-import type Infer from "#Infer";
+import OptionalType from "#OptionalType";
 
-export default abstract class StaticType<Type, Name extends string>
+export default class PureType<Type, Name extends string = "PureType">
   extends Validated<Type>
   implements Printable {
 
-  get Name(): Name {
+  get name() {
+    return "type";
+  }
+
+  get Name() {
     return undefined as unknown as Name;
+  }
+
+  /**
+  * Value is optional.
+  */
+  optional() {
+    return new OptionalType(this);
   }
 
   validate(x: unknown): Infer<this> {

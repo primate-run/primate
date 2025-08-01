@@ -14,9 +14,9 @@ const store = writable("en-US", set => {
 });
 
 export default {
-  subscribe: store.subscribe,
   set: (locale: string) => {
     store.set(locale);
     save(locale);
   },
+  subscribe: store.subscribe,
 };

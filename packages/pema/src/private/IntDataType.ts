@@ -1,3 +1,3 @@
-type IntDataType = "i8" | "i16" | "i32";
+type IntDataType = "i16" | "i32" | "i8";
 
 export type { IntDataType as default };

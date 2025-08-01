@@ -8,11 +8,11 @@ import which from "@rcompat/stdio/which";
 const default_grain = await which("grain");
 
 const schema = pema({
-  extension: string.optional(),
   command: string.default(default_grain),
-  stdlib: string.optional(),
+  extension: string.optional(),
   includeDirs: array(string).optional(),
   noPervasives: boolean.default(false),
+  stdlib: string.optional(),
   strictSequence: boolean.default(false),
 });
 

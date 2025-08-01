@@ -80,33 +80,33 @@ export default class MongoDBDatabase extends Database {
   }
 
   async create<O extends Dict>(as: As, args: { record: DataDict }) {
-    const bound = await this.#bind(args.record, as.types);
+    const binds = await this.#bind(args.record, as.types);
 
-    const { insertedId: _id } = await this.#with(as.name).insertOne(bound);
+    const { insertedId: _id } = await this.#with(as.name).insertOne(binds);
 
     return this.#unbind({ ...args.record, _id }, as.types) as O;
   }
 
   read(as: As, args: {
-    criteria: DataDict;
     count: true;
+    criteria: DataDict;
   }): Promise<number>;
   read(as: As, args: {
     criteria: DataDict;
     fields?: string[];
-    sort?: Dict<"asc" | "desc">;
     limit?: number;
+    sort?: Dict<"asc" | "desc">;
   }): Promise<Dict[]>;
   async read(as: As, args: {
+    count?: true;
     criteria: DataDict;
     fields?: string[];
-    count?: true;
-    sort?: Dict<"asc" | "desc">;
     limit?: number;
+    sort?: Dict<"asc" | "desc">;
   }) {
-    const bound = await this.#bind(args.criteria, as.types);
+    const binds = await this.#bind(args.criteria, as.types);
     if (args.count === true) {
-      return this.#with(as.name).countDocuments(bound);
+      return this.#with(as.name).countDocuments(binds);
     }
 
     const fields = args.fields ?? [];
@@ -125,7 +125,7 @@ export default class MongoDBDatabase extends Database {
 
     const options = { ...select, ...sort, useBigInt64: true };
     const records = await this.#with(as.name)
-      .find(bound, options)
+      .find(binds, options)
       .limit(make_limit(args.limit))
       .toArray();
 
@@ -133,22 +133,22 @@ export default class MongoDBDatabase extends Database {
   }
 
   async update(as: As, args: {
-    criteria: DataDict;
     changes: DataDict;
-    sort?: Dict<"asc" | "desc">;
+    criteria: DataDict;
     limit?: number;
+    sort?: Dict<"asc" | "desc">;
   }) {
-    const bound_criteria = await this.#bind(args.criteria, as.types);
-    const bound_changes = await this.#bind(args.changes, as.types);
+    const criteria_binds = await this.#bind(args.criteria, as.types);
+    const changes_binds = await this.#bind(args.changes, as.types);
 
     return (await this.#with(as.name)
-      .updateMany(bound_criteria, null_to_set_unset(bound_changes)))
+      .updateMany(criteria_binds, null_to_set_unset(changes_binds)))
       .modifiedCount;
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
-    const bound = await this.#bind(args.criteria, as.types);
+    const binds = await this.#bind(args.criteria, as.types);
 
-    return (await this.#with(as.name).deleteMany(bound)).deletedCount;
+    return (await this.#with(as.name).deleteMany(binds)).deletedCount;
   }
 }

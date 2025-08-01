@@ -6,19 +6,19 @@ type DataType = {
   datetime: Date;
   f32: number;
   f64: number;
-  i8: number;
+  i128: bigint;
   i16: number;
   i32: number;
   i64: bigint;
-  i128: bigint;
+  i8: number;
+  primary: string;
   string: string;
   time: string;
-  u8: number;
+  u128: bigint;
   u16: number;
   u32: number;
   u64: bigint;
-  u128: bigint;
-  primary: string;
+  u8: number;
 };
 
 export type { DataType as default };

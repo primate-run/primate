@@ -24,7 +24,8 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.2.0",
-    "marked": "^16.1.1"
+    "marked": "^16.1.1",
+    "pema": "workspace:^"
   },
   "peerDependencies": {
     "primate": "workspace:^"

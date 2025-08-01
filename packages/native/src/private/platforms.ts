@@ -3,32 +3,32 @@ import type NativePlatform from "#NativePlatform";
 
 const platforms: NativePlatform[] = [
   {
-    name: "linux-x64",
-    target: "linux-x64",
-    runner,
+    exe: "app",
     flags: "--target=bun-linux-x64",
-    exe: "app",
+    name: "linux-x64",
+    runner,
+    target: "linux-x64",
   },
   {
-    name: "windows-x64",
-    target: "windows-x64",
-    runner,
-    flags: "--target=bun-windows-x64",
     exe: "app.exe",
+    flags: "--target=bun-windows-x64",
+    name: "windows-x64",
+    runner,
+    target: "windows-x64",
   },
   {
-    name: "darwin-x64",
-    target: "darwin-x64",
-    runner,
+    exe: "app",
     flags: "--target=bun-darwin-x64",
-    exe: "app",
+    name: "darwin-x64",
+    runner,
+    target: "darwin-x64",
   },
   {
-    name: "darwin-arm64",
-    target: "darwin-arm64",
-    runner,
-    flags: "--target=bun-darwin-arm64",
     exe: "app",
+    flags: "--target=bun-darwin-arm64",
+    name: "darwin-arm64",
+    runner,
+    target: "darwin-arm64",
   },
 ];
 

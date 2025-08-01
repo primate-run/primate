@@ -26,10 +26,14 @@ const RESPONSE_WEB_SOCKET_UPGRADE = 7 as const;
 
 type DecodedResponse =
   | {
-    type: "text";
-    text: string;
-    status?: number | undefined;
+    callback: (api: Instantiation) => ResponseFunction;
+    type: "web_socket_upgrade";
+  }
+  | {
     headers: Dict<string>;
+    status?: number | undefined;
+    text: string;
+    type: "text";
   }
   | {
     type:
@@ -40,10 +44,6 @@ type DecodedResponse =
     | "uri"
     | "view";
     value: any;
-  }
-  | {
-    type: "web_socket_upgrade";
-    callback: (api: Instantiation) => ResponseFunction;
   };
 
 const decodeResponse = (source: BufferView): DecodedResponse | undefined => {
@@ -65,14 +65,14 @@ const decodeResponse = (source: BufferView): DecodedResponse | undefined => {
       const text = decodeString(source);
       const status = source.readU32();
       const headers = decodeJson(source) as Dict<string>;
-      return { type: "text", text, status, headers };
+      return { headers, status, text, type: "text" };
     }
 
     case RESPONSE_JSON:
       return { type: "json", value: decodeJson(source) };
 
     case RESPONSE_BLOB: {
-      const buffer = decodeBytes(source);
+      const buffer = decodeBytes(source) as Uint8Array<ArrayBuffer>;
       const contentType = decodeOption(decodeString, source);
       return {
         type: "blob",
@@ -98,7 +98,7 @@ const decodeResponse = (source: BufferView): DecodedResponse | undefined => {
       const page = decodeOption(decodeString, source);
       return {
         type: "error",
-        value: error({ body, status, page }),
+        value: error({ body, page, status }),
       };
     }
 
@@ -123,8 +123,8 @@ const decodeResponse = (source: BufferView): DecodedResponse | undefined => {
     case RESPONSE_WEB_SOCKET_UPGRADE: {
       const id = source.readU64();
       return {
-        type: "web_socket_upgrade",
         callback: openWebsocket(id),
+        type: "web_socket_upgrade",
       };
     }
   }

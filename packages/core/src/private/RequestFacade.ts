@@ -4,16 +4,16 @@ import type PartialDict from "@rcompat/type/PartialDict";
 
 type PartialStringDict = PartialDict<string>;
 
-type RequestFacade = Dict<Dict | unknown> & {
+type RequestFacade = {
+  body: Body;
   context: Dict;
+  cookies: PartialStringDict;
+  headers: PartialStringDict;
+  pass(to: string): Promise<Response>;
+  path: PartialStringDict;
+  query: PartialStringDict;
   request: Request;
   url: URL;
-  pass(to: string): Promise<Response>;
-  headers: PartialStringDict;
-  query: PartialStringDict;
-  cookies: PartialStringDict;
-  path: PartialStringDict;
-  body: Body;
-};
+} & Dict<Dict | unknown>;
 
 export { RequestFacade as default };

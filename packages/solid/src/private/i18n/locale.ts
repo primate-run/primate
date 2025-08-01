@@ -33,14 +33,14 @@ const $locale = Symbol("locale");
 export default {
   [$locale]: undefined,
 
+  get() {
+    return this[$locale]!.get();
+  },
+
   init() {
     if (this[$locale] === undefined) {
       this[$locale] = new Locale();
     }
-  },
-
-  get() {
-    return this[$locale]!.get();
   },
 
   set(name: string) {
@@ -48,7 +48,7 @@ export default {
   },
 } satisfies {
   [$locale]?: Locale;
-  init(): void;
   get(): string;
+  init(): void;
   set(locale: string): void;
 };

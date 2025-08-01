@@ -39,13 +39,13 @@ const to_sorted = <T extends Dict>(d1: T, d2: T, sort: Dict<"asc" | "desc">) =>
     }, 0);
 
 function ident<C extends keyof ColumnTypes>(column: C): {
-  column: C;
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];
+  column: C;
   unbind: (value: ColumnTypes[C]) => ColumnTypes[C];
 } {
   return {
-    column,
     bind: value => value,
+    column,
     unbind: value => value,
   };
 }
@@ -56,19 +56,19 @@ const typemap: TypeMap<ColumnTypes> = {
   datetime: ident("DATE"),
   f32: ident("NUMBER"),
   f64: ident("NUMBER"),
-  string: ident("STRING"),
-  i8: ident("NUMBER"),
+  i128: ident("BIGINT"),
   i16: ident("NUMBER"),
   i32: ident("NUMBER"),
   i64: ident("BIGINT"),
-  i128: ident("BIGINT"),
+  i8: ident("NUMBER"),
   primary: ident("STRING"),
+  string: ident("STRING"),
   time: ident("STRING"),
-  u8: ident("NUMBER"),
+  u128: ident("BIGINT"),
   u16: ident("NUMBER"),
   u32: ident("NUMBER"),
   u64: ident("BIGINT"),
-  u128: ident("BIGINT"),
+  u8: ident("NUMBER"),
 };
 
 export default class InMemoryDatabase extends Database {
@@ -124,22 +124,22 @@ export default class InMemoryDatabase extends Database {
   }
 
   read(as: As, args: {
-    criteria: Dict;
     count: true;
+    criteria: Dict;
   }): number;
   read(as: As, args: {
     criteria: Dict;
     fields?: string[];
-    sort?: Dict<"asc" | "desc">;
     limit?: number;
+    sort?: Dict<"asc" | "desc">;
   }): Dict[];
   read(as: As, args: {
+    count?: true;
     criteria: Dict;
     fields?: string[];
-    count?: true;
-    sort?: Dict<"asc" | "desc">;
     limit?: number;
-  }): number | Dict[] {
+    sort?: Dict<"asc" | "desc">;
+  }): Dict[] | number {
     const collection = this.#use(as.name);
     const matches = collection
       .filter(record => match(record, args.criteria));
@@ -162,10 +162,10 @@ export default class InMemoryDatabase extends Database {
   }
 
   update(as: As, args: {
-    criteria: Dict;
     changes: Dict;
-    sort?: Dict<"asc" | "desc">;
+    criteria: Dict;
     limit?: number;
+    sort?: Dict<"asc" | "desc">;
   }): MaybePromise<number> {
     const collection = this.#use(as.name);
     const { criteria } = args;

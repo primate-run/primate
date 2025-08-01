@@ -1,15 +1,16 @@
+import type TypedArray from "@rcompat/type/TypedArray";
 import type { Binary, Decimal128, ObjectId } from "mongodb";
 
 type Param =
-  string |
-  boolean |
-  number |
   bigint |
+  Binary |
+  boolean |
   Date |
-  ObjectId |
-  NodeJS.TypedArray |
   Decimal128 |
-  Binary
+  number |
+  ObjectId |
+  string |
+  TypedArray
   ;
 
 type Validate<T extends { [K in keyof T]: Param }> = T;
@@ -18,12 +19,12 @@ type ColumnTypes = Validate<{
   BINARY: Binary;
   BOOLEAN: boolean;
   DATE: Date;
-  STRING: string;
+  DECIMAL: Decimal128;
   DOUBLE: number;
   INT: number;
   LONG: bigint;
-  DECIMAL: Decimal128;
   PRIMARY: ObjectId;
+  STRING: string;
   TIME: string;
   UUID: string;
 }>;

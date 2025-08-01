@@ -31,7 +31,7 @@ const handler: Handler = m => (name, props = {}, options = {}) => async app => {
     body: rendered.body.replaceAll(remove, () => ""),
     head: head,
     headers: {
-      ...app.headers({ "style-src": style_src, "script-src": script_src }),
+      ...app.headers({ "script-src": script_src, "style-src": style_src }),
       ...headers,
     },
     ...rest,

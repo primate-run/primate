@@ -6,13 +6,13 @@ import type SessionConfig from "#session/Config";
 import type Dict from "@rcompat/type/Dict";
 import type Schema from "pema/Schema";
 
-type Import = Dict & {
+type Import = {
   default: unknown;
-};
+} & Dict;
 
 type BuildFiles = {
-  routes: [string, { default: any }][];
   locales?: [string, Dict<string>][];
+  routes: [string, { default: any }][];
   stores?: [string, {
     default: Schema;
     name?: string;
@@ -20,13 +20,13 @@ type BuildFiles = {
 };
 
 type ServeInit = {
+  assets: Asset[];
+  components?: [string, Import][];
   config: Config;
   files: BuildFiles;
-  components?: [string, Import][];
+  loader: Loader;
   mode: Mode;
   platform: string;
-  loader: Loader;
-  assets: Asset[];
   session_config: SessionConfig;
 };
 

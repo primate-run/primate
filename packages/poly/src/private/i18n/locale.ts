@@ -11,7 +11,6 @@ const store = writable<ContextData>({ locale: "en-US", locales: {} }, set => {
 });
 
 export default {
-  subscribe: store.subscribe,
   set: (locale: string) => {
     store.update(previous => {
       previous.locale = locale;
@@ -22,4 +21,5 @@ export default {
     });
     save(locale);
   },
+  subscribe: store.subscribe,
 };

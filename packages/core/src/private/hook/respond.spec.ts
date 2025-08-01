@@ -4,12 +4,12 @@ import Status from "@rcompat/http/Status";
 import test from "@rcompat/test";
 
 const app = {
-  respond(body: any, { status = Status.OK, headers = {} } = {}) {
+  respond(body: any, { headers = {}, status = Status.OK } = {}) {
     return new Response(body, {
-      status,
       headers: {
         "content-type": html, ...headers,
       },
+      status,
     });
   },
 };

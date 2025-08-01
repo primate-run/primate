@@ -30,8 +30,8 @@ export default config({
 
 Strings are served with the content type `text/plain`.
 
-```grain caption=routes/plain-text.gr
-module PlainText 
+```rs caption=routes/plain-text.gr
+module PlainText
 
 from "primate/request" include Request
 from "primate/response" include Response
@@ -50,7 +50,7 @@ them the string "Donald" in plain text.
 
 Use Grain's `Json` type to serve JSON.
 
-```grain caption=routes/json.grain
+```rs caption=routes/json.grain
 module PrimateJson
 
 from "primate/response" include Response
@@ -75,7 +75,7 @@ JSON array.
 
 The `Redirect` handler allows you to redirect responses.
 
-```grain caption=routes/redirect.gr
+```rs caption=routes/redirect.gr
 module Redirect
 
 from "primate/request" include Request
@@ -90,7 +90,7 @@ provide let get = (request: Request) =>
 To use a different redirect status, use the second parameter as a map with a
 `status` field.
 
-```grain caption=routes/redirect-301.gr
+```rs caption=routes/redirect-301.gr
 module RedirectStatus
 
 from "primate/request" include Request
@@ -111,7 +111,7 @@ provide let get = (request: Request) =>
 The `View` handler allows you to serve responses with content type `text/html`
 from the `components` directory.
 
-```grain caption=routes/view.gr
+```rs caption=routes/view.gr
 module View
 
 from "primate/request" include Request

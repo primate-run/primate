@@ -1,3 +1,3 @@
-type BigUintDataType = "u64" | "u128";
+type BigUintDataType = "u128" | "u64";
 
 export type { BigUintDataType as default };

@@ -7,11 +7,11 @@ import string from "pema/string";
 import uint from "pema/uint";
 
 const schema = pema({
-  host: string.default("localhost"),
-  port: uint.port().default(27017),
   database: string,
-  username: string.optional(),
+  host: string.default("localhost"),
   password: string.optional(),
+  port: uint.port().default(27017),
+  username: string.optional(),
 });
 
 export default class MongoDBModule extends Module {
@@ -27,10 +27,10 @@ export default class MongoDBModule extends Module {
   }
 
   async init() {
-    const { host, port, database } = this.#config;
+    const { database, host, port } = this.#config;
     const params = {
-      replicaSet: "rs0",
       directConnection: "true",
+      replicaSet: "rs0",
     };
     const url = `mongodb://${host}:${port}?${toQueryString(params)}`;
     const client = new MongoClient(url);

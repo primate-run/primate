@@ -32,11 +32,11 @@ function pick<
 };
 
 const users = {
-  donald: { name: "Donald", age: 30, lastname: "Duck" },
-  ryan: { name: "Ryan", age: 40, lastname: "Wilson" },
-  ben: { name: "Ben", age: 60, lastname: "Miller" },
-  jeremy: { name: "Just Jeremy", age: 20 },
-  paul: { name: "Paul", age: 40, lastname: "Miller" },
+  ben: { age: 60, lastname: "Miller", name: "Ben" },
+  donald: { age: 30, lastname: "Duck", name: "Donald" },
+  jeremy: { age: 20, name: "Just Jeremy" },
+  paul: { age: 40, lastname: "Miller", name: "Paul" },
+  ryan: { age: 40, lastname: "Wilson", name: "Ryan" },
 } as const;
 type User = keyof typeof users;
 
@@ -49,33 +49,33 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
     id: primary,
     title: string,
     user_id: uint,
-  }, { name: "post", db });
+  }, { db, name: "post" });
 
   const User = new Store({
-    id: primary,
-    name: string.default("Donald"),
-    lastname: optional(string),
     age: u8,
-  }, { name: "user", db });
+    id: primary,
+    lastname: optional(string),
+    name: string.default("Donald"),
+  }, { db, name: "user" });
 
   const Type = new Store({
-    id: primary,
     boolean: boolean.optional(),
     date: date.optional(),
     f32: f32.optional(),
     f64: f64.optional(),
-    i8: i8.optional(),
+    i128: i128.optional(),
     i16: i16.optional(),
     i32: i32.optional(),
     i64: i64.optional(),
-    i128: i128.optional(),
+    i8: i8.optional(),
+    id: primary,
     string: string.optional(),
-    u8: u8.optional(),
+    u128: u128.optional(),
     u16: u16.optional(),
     u32: u32.optional(),
     u64: u64.optional(),
-    u128: u128.optional(),
-  }, { name: "type", db });
+    u8: u8.optional(),
+  }, { db, name: "type" });
 
   const bootstrap = async (tester: () => Promise<void>) => {
     await User.schema.create();
@@ -95,10 +95,10 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
   test.case("insert", async assert => {
     await User.schema.create();
 
-    const donald = await User.insert({ name: "Donald", age: 30 });
+    const donald = await User.insert({ age: 30, name: "Donald" });
     assert(await User.exists(donald.id!)).true();
 
-    const ryan = await User.insert({ name: "Ryan", age: 40 });
+    const ryan = await User.insert({ age: 40, name: "Ryan" });
     assert(await User.exists(donald.id!)).true();
     assert(await User.exists(ryan.id!)).true();
 
@@ -117,8 +117,8 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
     await bootstrap(async () => {
       // Sorting by multiple fields: age descending, then Lastname ascending
       const sorted = await User.find({}, {
+        select: { age: true, name: true },
         sort: { age: "desc", lastname: "asc" },
-        select: { name: true, age: true },
       });
 
       assert(sorted.length).equals(5);
@@ -127,8 +127,8 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
       });
 
       const descending = await User.find({}, {
+        select: { age: true, name: true },
         sort: { age: "desc", lastname: "desc" },
-        select: { name: true, age: true },
       });
       const descended = ["ben", "ryan", "paul", "donald", "jeremy"];
       descended.forEach((user, i) => {
@@ -140,9 +140,9 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
   test.case("find - sorting ascending and descending", async assert => {
     await bootstrap(async () => {
       const ascending = await User.find({}, {
-        sort: { age: "asc" },
-        select: { name: true, age: true },
         limit: 2,
+        select: { age: true, name: true },
+        sort: { age: "asc" },
       });
 
       const ascended = ["jeremy", "donald"];
@@ -151,9 +151,9 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
       });
 
       const descending = await User.find({}, {
-        sort: { age: "desc" },
-        select: { name: true, age: true },
         limit: 1,
+        select: { age: true, name: true },
+        sort: { age: "desc" },
       });
 
       assert(descending[0]).equals(pick(users.ben, "name", "age"));
@@ -163,9 +163,9 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
   test.case("find - limiting", async assert => {
     await bootstrap(async () => {
       const ascending = await User.find({}, {
-        sort: { age: "asc" },
-        select: { name: true, age: true },
         limit: 2,
+        select: { age: true, name: true },
+        sort: { age: "asc" },
       });
 
       assert(ascending.length).equals(2);
@@ -184,7 +184,7 @@ export default <D extends Database>(db: D, end?: () => MaybePromise<void>) => {
 
       const [updated] = (await User.find({ name: "Donald" }));
       assert(updated.age).equals(35);
-      assert(updated).equals({ ...users.donald, id: donald.id!, age: 35 });
+      assert(updated).equals({ ...users.donald, age: 35, id: donald.id! });
     });
   });
 

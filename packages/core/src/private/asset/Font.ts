@@ -1,7 +1,7 @@
 export default interface Font {
-  crossorigin: string;
-  type: string;
   as: string;
-  rel: "preload";
+  crossorigin: string;
   href: string;
+  rel: "preload";
+  type: string;
 }

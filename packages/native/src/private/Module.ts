@@ -18,8 +18,8 @@ import string from "pema/string";
 const names = platforms.map(platform => platform.name);
 
 const schema = pema({
-  start: string.default("/"),
   debug: boolean.default(false),
+  start: string.default("/"),
 });
 
 export default class NativeModule extends Module {
@@ -43,7 +43,7 @@ export default class NativeModule extends Module {
   build(app: BuildApp, next: NextBuild) {
     if (names.includes(app.platform.name)) {
       app.done(async () => {
-        const { flags, exe } = app.platform.get() as NativePlatform;
+        const { exe, flags } = app.platform.get() as NativePlatform;
         const executable_path = dim(`${app.path.build}/${exe}`);
         const { host, port } = app.config("http");
         await app.runpath("worker.js").write(`
@@ -54,9 +54,9 @@ export default class NativeModule extends Module {
           webview.run();
         `);
         await execute(command({
+          exe,
           files: ["serve.js", "worker.js"],
           flags,
-          exe,
         }));
         log.system("executable written to {0}", executable_path);
       });

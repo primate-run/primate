@@ -17,7 +17,7 @@ export default abstract class Type<Type, Name extends string>
   /**
   * Use the given default if value is missing.
   */
-  default<const S extends Type>(value: S | (() => S)) {
+  default<const S extends Type>(value: (() => S) | S) {
     return new DefaultType(this, value);
   }
 

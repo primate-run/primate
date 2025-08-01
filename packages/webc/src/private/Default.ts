@@ -7,12 +7,6 @@ const webc_class_name_re = /export default class (?<name>.*?) extends/u;
 
 export default class Default extends Runtime {
   compile = {
-    server: (text: string) => {
-      const [code] = [...text.matchAll(script_re)]
-        .map(({ groups }) => groups!.code);
-      return code;
-    },
-    normalize: this.normalize,
     client: async (text: string, component: FileRef) => {
       const [script] = [...text.matchAll(script_re)]
         .map(({ groups }) => groups!.code);
@@ -30,6 +24,12 @@ export default class Default extends Runtime {
       `;
 
       return { js };
+    },
+    normalize: this.normalize,
+    server: (text: string) => {
+      const [code] = [...text.matchAll(script_re)]
+        .map(({ groups }) => groups!.code);
+      return code;
     },
   };
 }

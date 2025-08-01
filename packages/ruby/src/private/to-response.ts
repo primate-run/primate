@@ -6,7 +6,7 @@ import type ResponseFunction from "@primate/core/ResponseFunction";
 import type ResponseLike from "@primate/core/ResponseLike";
 import type Dict from "@rcompat/type/Dict";
 
-const handlers = { view, redirect, error };
+const handlers = { error, redirect, view };
 type Handler = keyof typeof handlers;
 
 type ViewParameters = Parameters<typeof view>;
@@ -15,10 +15,10 @@ type ErrorParameters = Parameters<typeof error>;
 
 const handle_handler = (handler: Handler, response: Dict) => {
   if (handler === "view") {
-    const { name, props, options } = response as {
+    const { name, options, props } = response as {
       name: ViewParameters[0];
-      props: ViewParameters[1];
       options: ViewParameters[2];
+      props: ViewParameters[1];
     };
     return view(name, props, options);
   }

@@ -24,9 +24,9 @@ const make_props = (data: ClientData<Data>) => ({
 export default class PolyClient {
   static mount(_component: string, data: ClientData<Data>) {
     const _root = new root({
-      target: document.body,
       hydrate: data.ssr ? "true" : "false",
       props: make_props(data),
+      target: document.body,
     });
     if (data.spa) {
       window.addEventListener("DOMContentLoaded", _ => spa<Data>((_data, update) => {

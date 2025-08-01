@@ -61,7 +61,7 @@ export default class RecordType<
           throw new Error(expected("number key", k));
         }
 
-        this.#value.validate((x as Record<string | number, unknown>)[k],
+        this.#value.validate((x as Record<number | string, unknown>)[k],
           error(k.toString(), key));
       });
     }

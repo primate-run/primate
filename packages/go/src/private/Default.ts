@@ -15,9 +15,9 @@ import upperfirst from "@rcompat/string/upperfirst";
 
 const command = await which("go");
 const env = {
-  GOOS: "js",
   GOARCH: "wasm",
   GOCACHE: (await execute(`${command} env GOCACHE`, {})).replaceAll("\n", ""),
+  GOOS: "js",
   HOME: user.HOME,
 };
 
@@ -69,7 +69,7 @@ globalThis.PRMT_SESSION = {
   },
 };
 
-${(runtime as "node" | "bun" | "deno") === "bun"
+${(runtime as "bun" | "deno" | "node") === "bun"
     ? `import route_path from "${path}" with { type: "file" };
 const go_route = await Bun.file(route_path).arrayBuffer();`
     :
@@ -101,32 +101,32 @@ const get_routes = (code: string) => [...code.matchAll(routes_re)]
 
 const type_map = {
   boolean: { transfer: "Bool", type: "bool" },
-  i8: { transfer: "Int", type: "int8" },
+  f32: { transfer: "Float", type: "float32" },
+  f64: { transfer: "Float", type: "float64" },
   i16: { transfer: "Int", type: "int16" },
   i32: { transfer: "Int", type: "int32" },
   i64: { transfer: "Int", type: "int64" },
-  f32: { transfer: "Float", type: "float32" },
-  f64: { transfer: "Float", type: "float64" },
-  u8: { transfer: "Int", type: "uint8" },
-  u16: { transfer: "Int", type: "uint16" },
-  u32: { transfer: "Int", type: "uint32", nullval: "0" },
-  u64: { transfer: "Int", type: "uint64" },
+  i8: { transfer: "Int", type: "int8" },
   string: { transfer: "String", type: "string" },
+  u16: { transfer: "Int", type: "uint16" },
+  u32: { nullval: "0", transfer: "Int", type: "uint32" },
+  u64: { transfer: "Int", type: "uint64" },
+  u8: { transfer: "Int", type: "uint8" },
   uuid: { transfer: "String", type: "string" },
 };
 const error_default = {
   Bool: false,
-  Int: 0,
   Float: 0,
+  Int: 0,
   String: "\"\"",
 };
 const root = new FileRef(import.meta.url).up(1);
 
 const create_meta_files = async (directory: FileRef) => {
   const meta = {
+    mod: "go.mod",
     request: "request.go",
     sum: "go.sum",
-    mod: "go.mod",
   };
 
   if (!await directory.join(meta.request).exists()) {
@@ -141,7 +141,7 @@ const create_meta_files = async (directory: FileRef) => {
 
 export default class Default extends Runtime {
   build(app: BuildApp, next: NextBuild) {
-    app.bind(this.extension, async (route, { context, build }) => {
+    app.bind(this.extension, async (route, { build, context }) => {
       assert(context === "routes", "go: only route files are supported");
 
       // build/stage/routes

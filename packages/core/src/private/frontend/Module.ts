@@ -49,9 +49,9 @@ export default abstract class FrontendModule<
     create: (depth: number) => string;
   };
   compile: {
-    server?: (text: string) => MaybePromise<string>;
     client?: (text: string, file: FileRef) =>
-      MaybePromise<{ js: string; css?: string | null }>;
+      MaybePromise<{ css?: null | string; js: string }>;
+    server?: (text: string) => MaybePromise<string>;
   } = {};
   css?: {
     filter: RegExp;
@@ -59,8 +59,8 @@ export default abstract class FrontendModule<
 
   static schema = pema({
     extension: string.optional(),
-    ssr: boolean.default(true),
     spa: boolean.default(true),
+    ssr: boolean.default(true),
   });
 
   static options = FrontendModule.schema.infer;
@@ -94,7 +94,7 @@ export default abstract class FrontendModule<
 
   #load(name: string, props: Dict, app: ServeApp) {
     const component = app.component(name)!;
-    return { name, props, component };
+    return { component, name, props };
   };
 
   async #render(server: ServerData<S>, client: ClientData, app: ServeApp) {
@@ -125,7 +125,7 @@ export default abstract class FrontendModule<
   }
 
   handler: Frontend = (component, props = {}, options = {}) =>
-    async (app, { layouts = [], as_layout } = {}, request) => {
+    async (app, { as_layout, layouts = [] } = {}, request) => {
       if (as_layout) {
         return this.#load(component, props, app);
       }
@@ -135,11 +135,11 @@ export default abstract class FrontendModule<
         .concat(this.#load(component, props, app));
 
       const $request = {
+        context: request.context,
+        cookies: request.cookies,
+        headers: request.headers,
         path: request.path,
         query: request.query,
-        headers: request.headers,
-        cookies: request.cookies,
-        context: request.context,
         url: request.url,
       };
       const $props = this.layouts
@@ -158,8 +158,8 @@ export default abstract class FrontendModule<
 
       if (this.spa && request.headers.accept === json) {
         return new Response(JSON.stringify(client), {
-          status: options.status ?? Status.OK,
           headers: { ...app.headers(), "Content-Type": json },
+          status: options.status ?? Status.OK,
         });
       }
 
@@ -196,7 +196,7 @@ export default abstract class FrontendModule<
 
   publish(app: BuildApp) {
     if (this.compile.client) {
-      const { compile, extension, name, root, css } = this;
+      const { compile, css, extension, name, root } = this;
 
       if (this.client) {
         app.frontend(this.name);
@@ -211,7 +211,7 @@ export default abstract class FrontendModule<
             const filter = new RegExp(`^${name}:root`);
 
             build.onResolve({ filter }, ({ path }) => {
-              return { path, namespace: `${name}` };
+              return { namespace: `${name}`, path };
             });
             build.onLoad({ filter }, async () => {
               const contents = (await compile.client!(root.create(app.depth()),
@@ -222,7 +222,7 @@ export default abstract class FrontendModule<
 
           if (css !== undefined) {
             build.onResolve({ filter: css.filter }, ({ path }) => {
-              return { path, namespace: `${name}css` };
+              return { namespace: `${name}css`, path };
             });
             build.onLoad({ filter: css.filter }, ({ path }) => {
               const contents = app.build.load(FileRef.webpath(path));
@@ -235,7 +235,7 @@ export default abstract class FrontendModule<
           const components_filter = new RegExp(`^${name}:components`);
 
           build.onResolve({ filter: components_filter }, ({ path }) => {
-            return { path, namespace: `${name}` };
+            return { namespace: `${name}`, path };
           });
           build.onLoad({ filter: components_filter }, async () => {
             const components = await app.root

@@ -6,8 +6,8 @@ const SIZE_I32 = Int32Array.BYTES_PER_ELEMENT;
 
 type SessionShape = {
   data: any;
-  new: boolean;
   id: string;
+  new: boolean;
 };
 
 const encodeSession = (session: SessionShape) => {

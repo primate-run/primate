@@ -1,4 +1,3 @@
-import type InputArgs from "#InputArgs";
 import Runtime from "#Runtime";
 
-export default (...args: InputArgs) => new Runtime(...args);
+export default (config: typeof Runtime.input) => new Runtime(config);

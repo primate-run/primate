@@ -14,8 +14,8 @@ type AppContext = {
 export default createContext<AppContext>({
   context: {
     i18n: {
-      locales: {},
       locale: "en-US",
+      locales: {},
     },
   },
   setContext: (_: Dict) => {},

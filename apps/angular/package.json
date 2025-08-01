@@ -9,9 +9,9 @@
     "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
-    "@angular/core": "^20.1.3",
+    "@angular/core": "^20.1.4",
     "@primate/angular": "workspace:^",
-    "@rcompat/fs": "^0.16.0",
+    "@rcompat/fs": "^0.17.0",
     "primate": "workspace:^"
   }
 }

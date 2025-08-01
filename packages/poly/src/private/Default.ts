@@ -7,14 +7,14 @@ export default class Default extends Runtime {
     create: create_root,
   };
   css = {
-    filter: /\.polycss$/,
+    filter: /\.sveltecss$/,
   };
   compile = {
+    client: (text: string) => {
+      const { css, js } = compile(text, { generate: "dom", hydratable: true });
+      return { css: css.code, js: js.code };
+    },
     server: (text: string) =>
       compile(text, { generate: "ssr", hydratable: true }).js.code,
-    client: (text: string) => {
-      const { js, css } = compile(text, { generate: "dom", hydratable: true });
-      return { js: js.code, css: css.code };
-    },
   };
 }

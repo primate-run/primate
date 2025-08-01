@@ -2,6 +2,7 @@
   "name": "@primate/monorepo",
   "type": "module",
   "license": "MIT",
+  "private": true,
   "scripts": {
     "build": "pnpm -r build",
     "clean": "pnpm -r clean",
@@ -13,17 +14,16 @@
     "sweep": "rm -rf node_modules pnpm-lock.yaml {app,package}s/*/node_modules",
     "knip": "knip"
   },
-  "private": true,
   "devDependencies": {
     "@rcompat/test": "^0.5.0",
-    "@rcompat/type": "^0.4.0",
+    "@rcompat/type": "^0.4.1",
     "@types/deno": "^2.3.0",
     "@types/node": "^24.1.0",
-    "apekit": "^0.0.26",
+    "apekit": "^0.0.33",
     "esbuild": "^0.25.8",
     "eslint": "^9.32.0",
     "knip": "^5.62.0",
     "proby": "^0.4.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   }
 }

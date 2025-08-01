@@ -12,7 +12,7 @@ import serve from "./serve.js";
 
 const directory  = "test";
 
-type Check<T> = () => MaybePromise<[boolean, T, T | null]>;
+type Check<T> = () => MaybePromise<[boolean, T, null | T]>;
 
 const fetch_options = { redirect: "manual" } as const;
 
@@ -42,13 +42,6 @@ export default async () => {
     const checks: Check<Body | number>[] = [];
 
     const mocked_response: MockedResponse = {
-      status: {
-        equals(status) {
-          checks.push(() => {
-            return [response.status === status, status, response.status];
-          });
-        },
-      },
       body: {
         equals(expected: Body) {
           checks.push(async () => {
@@ -71,14 +64,6 @@ export default async () => {
         },
       },
       headers: {
-        includes(expected: Dict<string>) {
-          checks.push(() => {
-            const actual = Object.fromEntries(response.headers.entries());
-            const lowercased = entries(expected)
-              .keymap(([key]) => key.toLowerCase()).get();
-            return [includes(actual, lowercased), lowercased, actual];
-          });
-        },
         get(name: string) {
           const actual = response.headers.get(name);
 
@@ -94,6 +79,21 @@ export default async () => {
               });
             },
           };
+        },
+        includes(expected: Dict<string>) {
+          checks.push(() => {
+            const actual = Object.fromEntries(response.headers.entries());
+            const lowercased = entries(expected)
+              .keymap(([key]) => key.toLowerCase()).get();
+            return [includes(actual, lowercased), lowercased, actual];
+          });
+        },
+      },
+      status: {
+        equals(status) {
+          checks.push(() => {
+            return [response.status === status, status, response.status];
+          });
         },
       },
     };

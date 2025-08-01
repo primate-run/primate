@@ -47,6 +47,10 @@ export default class BuildApp extends App {
         ...exclude(this.config("build"), ["includes", "options"]),
         ...(this.config("build.options") ?? {}),
         outdir: this.runpath(location.client).path,
+        stdin: {
+          contents: "",
+          resolveDir: this.root.path,
+        },
         tsconfigRaw: {
           compilerOptions: {
             baseUrl: "${configDir}",
@@ -54,10 +58,6 @@ export default class BuildApp extends App {
               "#component/*": ["components/*"],
             },
           },
-        },
-        stdin: {
-          contents: "",
-          resolveDir: this.root.path,
         },
       }, this.mode === "development" ? "development" : "production"),
     );
@@ -109,7 +109,7 @@ export default class BuildApp extends App {
     for (const file of await directory.collect(({ path }) => /^.*$/.test(path))) {
       const debased = file.debase(directory);
       const target = base.join(debased);
-      if (!await directory.exists()) {
+      if (!await target.directory.exists()) {
         await target.directory.create({ recursive: true });
       }
 
@@ -120,8 +120,8 @@ export default class BuildApp extends App {
       // copy to build/stage/${directory}
       await file.copy(target);
       await this.bindings[file.fullExtension]?.(target, {
-        context,
         build: { id: this.id, stage: this.runpath("stage") },
+        context,
       });
 
       // actual
@@ -132,7 +132,7 @@ export default class BuildApp extends App {
   }
 
   async compile(component: FileRef) {
-    const { server, client, components } = location;
+    const { client, components, server } = location;
 
     const compile = this.#extensions[component.fullExtension]
       ?? this.#extensions[component.extension];

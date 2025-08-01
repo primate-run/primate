@@ -55,21 +55,21 @@ export default abstract class Database {
   }): MaybePromise<O>;
 
   abstract read(as: As, args: {
-    criteria: Dict;
     count: true;
+    criteria: Dict;
   }): MaybePromise<number>;
   abstract read(as: As, args: {
     criteria: Dict;
     fields?: string[];
-    sort?: Dict<"asc" | "desc" | undefined>;
     limit?: number;
+    sort?: Dict<"asc" | "desc" | undefined>;
   }): MaybePromise<Dict[]>;
 
   abstract update(as: As, args: {
-    criteria: Dict;
     changes: Dict;
-    sort?: Dict<"asc" | "desc">;
+    criteria: Dict;
     limit?: number;
+    sort?: Dict<"asc" | "desc">;
   }): MaybePromise<number>;
 
   abstract delete(as: As, args: { criteria: Dict }): MaybePromise<number>;

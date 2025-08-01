@@ -1,7 +1,7 @@
 type Func = (component: {
   render(...args: any[]): {
-    html: string;
     head: string;
+    html: string;
   };
 }, ...args: any[]) => {
   body: string;
@@ -9,6 +9,6 @@ type Func = (component: {
 };
 
 export default ((component, ...args) => {
-  const { html, head } = component.render(...args);
+  const { head, html } = component.render(...args);
   return { body: html, head };
 }) as Func;

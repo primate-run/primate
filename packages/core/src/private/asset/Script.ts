@@ -1,8 +1,8 @@
 export default interface Script {
-  id?: string;
-  src?: string;
-  integrity: string;
-  type: string;
   code: string;
+  id?: string;
   inline: boolean;
+  integrity: string;
+  src?: string;
+  type: string;
 }

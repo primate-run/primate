@@ -3,12 +3,12 @@ import encodeRequest from "#wasm/encode-request";
 import test from "@rcompat/test";
 
 const simpleRequest =  {
-  url: new URL("https://primate.io/my/?webserver=forever"),
   body: "Example string body.",
-  query: {},
-  path: {},
-  headers: {},
   cookies: {},
+  headers: {},
+  path: {},
+  query: {},
+  url: new URL("https://primate.io/my/?webserver=forever"),
 } as unknown as RequestFacade;
 
 const firstExpected = [

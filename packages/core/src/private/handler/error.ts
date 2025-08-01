@@ -4,8 +4,8 @@ import Status from "@rcompat/http/Status";
 
 type Options = {
   body?: string;
-  status?: Known;
   page?: string;
+  status?: Known;
 };
 
 /**
@@ -19,6 +19,6 @@ type Options = {
 export default (options?: Options): ResponseFunction =>
   app => app.view({
     body: options?.body ?? "Not Found",
-    status: options?.status ?? Status.NOT_FOUND,
     page: options?.page ?? app.config("pages.error"),
+    status: options?.status ?? Status.NOT_FOUND,
   });

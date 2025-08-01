@@ -118,6 +118,9 @@ export default await db.wrap("${file.base}", store);`);
   await app.stage(app.path.config, "config", file =>
     `export { default } from "#stage/config${file}";`);
 
+  await app.stage(app.path.modules, "modules", file =>
+    `export { default } from "#stage/module${file}";`);
+
   // stage components
   await app.stage(app.path.components, "components", file =>
     `export { default } from "#stage/component${file}";`);
@@ -148,7 +151,7 @@ export default await db.wrap("${file.base}", store);`);
     name: "@primate/core/frontend",
     setup(build) {
       build.onResolve({ filter: /#frontends/ }, ({ path }) => {
-        return { path, namespace: "frontends" };
+        return { namespace: "frontends", path };
       });
       build.onLoad({ filter: /#frontends/ }, async () => {
         const contents = app.frontends.map(name =>
@@ -183,17 +186,19 @@ export default await db.wrap("${file.base}", store);`);
   const manifest_data = {
     ...await (await json()).json() as Dict,
     imports: {
-      "#config": "./config/app.js",
-      "#locale/*": "./locales/*.js",
-      "#db": "./config/db.js",
-      "#session": "./config/session.js",
-      "#route/*": "./routes/*.js",
-      "#store/*": "./stores/*.js",
       "#component/*": "./components/*.js",
+      "#config": "./config/app.js",
+      "#db": "./config/db.js",
+      "#locale/*": "./locales/*.js",
+      "#module/*": "./modules/*.js",
+      "#route/*": "./routes/*.js",
+      "#session": "./config/session.js",
+      "#stage/component/*": "./stage/components/*.js",
       "#stage/config/*": "./stage/config/*.js",
+      "#stage/module/*": "./stage/modules/*.js",
       "#stage/route/*": "./stage/routes/*.js",
       "#stage/store/*": "./stage/stores/*.js",
-      "#stage/component/*": "./stage/components/*.js",
+      "#store/*": "./stores/*.js",
     },
   };
   // create package.json

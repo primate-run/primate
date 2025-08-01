@@ -23,7 +23,7 @@ export default class ConstructorType<C extends AbstractConstructor>
     return "constructor";
   }
 
-  default(value: InstanceType<C> | (() => InstanceType<C>)) {
+  default(value: (() => InstanceType<C>) | InstanceType<C>) {
     return new DefaultType(this, value);
   }
 

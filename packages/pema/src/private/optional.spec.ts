@@ -21,41 +21,41 @@ test.case("empty", assert => {
 
 test.case("object", assert => {
   type S = SchemaType<{
-    foo: OptionalType<StringType>;
     bar: {
       baz: BigIntType;
     };
+    foo: OptionalType<StringType>;
   }>;
 
   const s = schema({
-    foo: optional(string),
     bar: {
       baz: bigint,
     },
+    foo: optional(string),
   });
   const sv = schema({
-    foo: string.optional(),
     bar: {
       baz: bigint,
     },
+    foo: string.optional(),
   });
 
   assert(s).type<S>();
   assert(sv).type<S>();
 
   const sv0 = sv.validate({
-    foo: undefined,
     bar: {
       baz: 1n,
     },
+    foo: undefined,
   });
   assert(sv0).equals({ bar: { baz: 1n }});
 
   const s0 = s.validate({
-    foo: undefined,
     bar: {
       baz: 1n,
     },
+    foo: undefined,
   });
   assert(s0).equals({ bar: { baz: 1n }});
 

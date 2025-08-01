@@ -1,32 +1,33 @@
+import type TypedArray from "@rcompat/type/TypedArray";
+
 type Param =
-  string |            // TEXT, CHAR, VARCHAR, UUID
-  number |            // INT, FLOAT, NUMERIC
-  bigint |            // BIGINT, NUMERIC
-  boolean |           // BOOLEAN
-  Date |              // DATE, TIMESTAMP, TIMESTAMPTZ
-  NodeJS.TypedArray | // BYTEA
-  null |              // NULL
-  Array<unknown> |    // ANYARRAY
-  object              // JSON, JSONB
+  | Array<unknown> // ANYARRAY
+  | bigint         // BIGINT, NUMERIC
+  | boolean        // BOOLEAN
+  | Date           // DATE, TIMESTAMP, TIMESTAMPTZ
+  | null           // NULL
+  | number         // INT, FLOAT, NUMERIC
+  | object         // JSON, JSONB
+  | string         // TEXT, CHAR, VARCHAR, UUID
+  | TypedArray     // BYTEA
   ;
 
 type Validate<T extends { [K in keyof T]: Param }> = T;
 
 type ColumnTypes = Validate<{
-  BYTEA: NodeJS.TypedArray;
-  BOOLEAN: boolean;
-  TIMESTAMP: Date;
-  REAL: number;
-  FLOAT8: number;
-  TEXT: string;
-  SMALLINT: number;
-  INTEGER: number;
   BIGINT: string;
+  BOOLEAN: boolean;
+  BYTEA: TypedArray;
+  FLOAT8: number;
+  INTEGER: number;
   "NUMERIC(20, 0)": string;
   "NUMERIC(39, 0)": string;
+  REAL: number;
   "SERIAL PRIMARY KEY": number;
+  SMALLINT: number;
+  TEXT: string;
   TIME: string;
+  TIMESTAMP: Date;
   UUID: string;
 }>;
-
 export type { ColumnTypes as default };

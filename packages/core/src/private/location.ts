@@ -1,20 +1,22 @@
 export default {
-  // renderable components
-  components: "components",
-  // HTML pages
-  pages: "pages",
-  // hierarchical routes
-  routes: "routes",
-  // static assets
-  static: "static",
   // build environment
   build: "build",
   // client build
   client: "client",
-  // server build
-  server: "server",
-  // stores
-  stores: "stores",
+  // renderable components
+  components: "components",
   // config
   config: "config",
+  // custom modules
+  modules: "modules",
+  // HTML pages
+  pages: "pages",
+  // hierarchical routes
+  routes: "routes",
+  // server build
+  server: "server",
+  // static assets
+  static: "static",
+  // stores
+  stores: "stores",
 };

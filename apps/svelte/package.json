@@ -12,7 +12,7 @@
     "@primate/core": "workspace:^",
     "@primate/i18n": "workspace:^",
     "@primate/svelte": "workspace:^",
-    "@rcompat/assert": "^0.1.2",
+    "@rcompat/assert": "^0.2.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
     "svelte": "^5.37.1"

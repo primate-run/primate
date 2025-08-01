@@ -5,12 +5,12 @@ import type Dict from "@rcompat/type/Dict";
 import type PartialDict from "@rcompat/type/PartialDict";
 
 type Init = {
-  pages_app: string;
-  pages: Dict<string>;
-  rootfile: string;
-  static_root: string;
   client_imports: Dict<string>;
+  pages: Dict<string>;
+  pages_app: string;
+  rootfile: string;
   static_imports: Dict<string>;
+  static_root: string;
 };
 
 export default class NativeLoader extends Loader {

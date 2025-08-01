@@ -8,7 +8,7 @@ export default class Runtime extends FrontendModule<PolyComponent> {
   client = true;
   layouts = true;
   render: Render<PolyComponent> = (component, props) => {
-    const { html, head } = component.render(props);
+    const { head, html } = component.render(props);
     return { body: html, head };
   };
 }

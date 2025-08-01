@@ -19,6 +19,6 @@ type Redirection = Range<300, 308>;
 export default (location: string, status?: Redirection): ResponseFunction =>
   // no body
   app => app.respond(null, {
-    status: status ?? Status.FOUND,
     headers: { Location: location },
+    status: status ?? Status.FOUND,
   });

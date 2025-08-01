@@ -9,7 +9,7 @@ export default class Runtime extends FrontendModule<Component> {
   layouts = true;
   client = true;
   render: Render<Component> = (component, props) => {
-    const { html, head } = render(component, { props: { p: { ...props } } });
+    const { head, html } = render(component, { props: { p: { ...props } } });
     return { body: html, head };
   };
 }

@@ -7,6 +7,6 @@ import { useContext } from "react";
 export default (key: string, placeholders: Dict<string>) => {
   locale_store.init();
 
-  const { locales, locale } = useContext(AppContext).context.i18n;
+  const { locale, locales } = useContext(AppContext).context.i18n;
   return resolve(locales[locale], key, placeholders);
 };

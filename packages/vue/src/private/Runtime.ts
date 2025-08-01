@@ -9,7 +9,7 @@ export default class Runtime extends Module<Renderer> {
   layouts = false;
   client = false;
   render: Render<Renderer> = async (component, props) => {
-    const app = createSSRApp({ render: component.render, data: () => props });
+    const app = createSSRApp({ data: () => props, render: component.render });
     return { body: await renderToString(app) };
   };
 };

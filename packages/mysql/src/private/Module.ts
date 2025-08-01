@@ -6,18 +6,18 @@ import string from "pema/string";
 import uint from "pema/uint";
 
 const schema = pema({
-  host: string.default("localhost"),
-  port: uint.port().default(3306),
   database: string.optional(),
-  username: string.optional(),
+  host: string.default("localhost"),
   password: string.optional(),
+  port: uint.port().default(3306),
+  username: string.optional(),
 });
 
 export default class MySQLModule extends Module {
-  #config: typeof schema.infer;
-  #db?: Database;
-
   static config: typeof schema.input;
+  #config: typeof schema.infer;
+
+  #db?: Database;
 
   constructor(config?: typeof schema.input) {
     super();
@@ -25,26 +25,26 @@ export default class MySQLModule extends Module {
     this.#config = schema.validate(config);
   }
 
-  init() {
-    this.#db = new Database(mysql.createPool({
-      host: this.#config.host,
-      port: this.#config.port,
-      database: this.#config.database,
-      user: this.#config.username,
-      password: this.#config.password,
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-      enableKeepAlive: true,
-      keepAliveInitialDelay: 0,
-      namedPlaceholders: true,
-      bigNumberStrings: true,
-      supportBigNumbers: true,
-    }));
-    return this.#db;
-  }
-
   deinit() {
     this.#db?.close();
+  }
+
+  init() {
+    this.#db = new Database(mysql.createPool({
+      bigNumberStrings: true,
+      connectionLimit: 10,
+      database: this.#config.database,
+      enableKeepAlive: true,
+      host: this.#config.host,
+      keepAliveInitialDelay: 0,
+      namedPlaceholders: true,
+      password: this.#config.password,
+      port: this.#config.port,
+      queueLimit: 0,
+      supportBigNumbers: true,
+      user: this.#config.username,
+      waitForConnections: true,
+    }));
+    return this.#db;
   }
 }

@@ -1,27 +1,28 @@
+import type TypedArray from "@rcompat/type/TypedArray";
 import type { RecordId } from "surrealdb";
 
 type Param =
-  string |
-  boolean |
-  number |
-  bigint |
-  Date |
-  RecordId |
-  NodeJS.TypedArray
+  | bigint
+  | boolean
+  | Date
+  | number
+  | RecordId
+  | string
+  | TypedArray
   ;
 
 type Validate<T extends { [K in keyof T]: Param }> = T;
 
 type ColumnTypes = Validate<{
-  BINARY: NodeJS.TypedArray;
+  BINARY: TypedArray;
   BOOL: boolean;
   DATETIME: Date;
-  STRING: string;
+  DECIMAL: bigint;
+  FLOAT: number;
   // https://surrealdb.com/docs/surrealql/datamodel/numbers
   INT: bigint;
-  FLOAT: number;
-  DECIMAL: bigint;
   PRIMARY: RecordId;
+  STRING: string;
   TIME: string;
   UUID: string;
 }>;

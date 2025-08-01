@@ -40,13 +40,13 @@ const change = (changes: Dict) => {
 
   const set = keys.map(field => `${field}=$s_${field}`).join(", ");
   return {
+    binds: entries(changes).keymap(([key]) => `s_${key}`).get(),
     set: `SET ${set}`,
-    bound: entries(changes).keymap(([key]) => `s_${key}`).get(),
   };
 };
 
-function make_where(bound: Dict) {
-  const keys = Object.keys(bound);
+function make_where(binds: Dict) {
+  const keys = Object.keys(binds);
 
   if (keys.length === 0) {
     return "";
@@ -112,9 +112,9 @@ export default class SurrealDBDatabase extends Database {
       ? `(${columns.join(",")}) VALUES (${values})`
       : "{}";
     const query = `INSERT INTO ${as.name} ${payload}`;
-    const bound = await this.bind(args.record, as.types);
+    const binds = await this.bind(args.record, as.types);
 
-    const [{ result }] = await this.#query<[{ id: string }][]>(query, bound);
+    const [{ result }] = await this.#query<[{ id: string }][]>(query, binds);
 
     const [created] = result as { id: string }[];
     const { id } = created;
@@ -122,29 +122,29 @@ export default class SurrealDBDatabase extends Database {
   }
 
   read(as: As, args: {
-    criteria: DataDict;
     count: true;
+    criteria: DataDict;
   }): Promise<number>;
   read(as: As, args: {
     criteria: DataDict;
     fields?: string[];
-    sort?: Dict<"asc" | "desc">;
     limit?: number;
+    sort?: Dict<"asc" | "desc">;
   }): Promise<Dict[]>;
   async read(as: As, args: {
+    count?: true;
     criteria: DataDict;
     fields?: string[];
-    count?: true;
-    sort?: Dict<"asc" | "desc">;
     limit?: number;
+    sort?: Dict<"asc" | "desc">;
   }) {
-    const bound = await this.bind(args.criteria, as.types);
-    const where = make_where(bound);
+    const binds = await this.bind(args.criteria, as.types);
+    const where = make_where(binds);
 
     if (args.count === true) {
       const query = `SELECT COUNT() FROM ${as.name} ${where}`;
 
-      const [{ result }] = await this.#query<unknown[][]>(query, bound);
+      const [{ result }] = await this.#query<unknown[][]>(query, binds);
 
       return result.length;
     }
@@ -160,38 +160,38 @@ export default class SurrealDBDatabase extends Database {
 
     const query = `SELECT ${select} FROM
       (SELECT ${subselect} FROM ${as.name} ${where} ${sort} ${limit})`;
-    const [{ result }] = await this.#query<Dict[][]>(query, bound);
+    const [{ result }] = await this.#query<Dict[][]>(query, binds);
 
     const records = result as Dict[];
     return records.map(record => this.unbind(record, as.types));
   }
 
   async update(as: As, args: {
-    criteria: DataDict;
     changes: DataDict;
-    sort?: Dict<"asc" | "desc">;
+    criteria: DataDict;
     limit?: number;
+    sort?: Dict<"asc" | "desc">;
   }) {
-    const bound_criteria = await this.bind(args.criteria, as.types);
+    const criteria_binds = await this.bind(args.criteria, as.types);
     const changes = await this.bind(args.changes, as.types);
-    const { set, bound: bound_changes } = change(null_to_undefined(changes));
-    const where = make_where(bound_criteria);
-    const bound = { ...bound_criteria, ...bound_changes };
+    const { binds: changes_binds, set } = change(null_to_undefined(changes));
+    const where = make_where(criteria_binds);
+    const binds = { ...criteria_binds, ...changes_binds };
 
     const query = `UPDATE ${as.name} ${set} ${where}`;
 
-    const [{ result }] = await this.#query<unknown[][]>(query, bound);
+    const [{ result }] = await this.#query<unknown[][]>(query, binds);
 
     return result.length;
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
-    const bound = await this.bind(args.criteria, as.types);
-    const where = make_where(bound);
+    const binds = await this.bind(args.criteria, as.types);
+    const where = make_where(binds);
 
     const query = `DELETE FROM ${as.name} ${where} RETURN diff`;
 
-    const [{ result }] = await this.#query<unknown[][]>(query, bound);
+    const [{ result }] = await this.#query<unknown[][]>(query, binds);
 
     return result.length;
   }

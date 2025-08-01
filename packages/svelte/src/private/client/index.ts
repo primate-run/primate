@@ -26,10 +26,10 @@ const make_props = (data: ClientData<Data>) => ({
 export default class SvelteClient {
   static mount(_component: string, data: ClientData<Data>) {
     const _root = (data.ssr ? hydrate : mount)(root, {
-      target: document.body,
       props: {
         p: make_props(data),
       },
+      target: document.body,
     });
     data.spa && window.addEventListener("DOMContentLoaded", () =>
       spa<Data>((_data, update) => {

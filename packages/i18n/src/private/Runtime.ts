@@ -13,21 +13,21 @@ import Status from "@rcompat/http/Status";
 const default_locale = "en-US";
 
 type CookieOptions = {
-  [key in "path" | "secure" | "httpOnly" | "sameSite"]: string
+  [key in "httpOnly" | "path" | "sameSite" | "secure"]: string
 };
 type Cookie = (
   name: string,
   value: string,
-  { path, secure, httpOnly, sameSite }: CookieOptions
+  { httpOnly, path, sameSite, secure }: CookieOptions
 ) => string;
 
-const cookie: Cookie = (name, value, { path, secure, httpOnly, sameSite }) =>
+const cookie: Cookie = (name, value, { httpOnly, path, sameSite, secure }) =>
   `${name}=${value};${httpOnly};Path=${path};${secure};SameSite=${sameSite}`;
 
 const options = {
-  sameSite: "Strict",
-  path: "/",
   httpOnly: "HttpOnly",
+  path: "/",
+  sameSite: "Strict",
   secure: "Secure",
 };
 
@@ -75,10 +75,10 @@ export default class Runtime extends Module {
     }
 
     return new Response(null, {
-      status: Status.OK,
       headers: {
         "set-cookie": cookie(this.name, set_locale, options),
       },
+      status: Status.OK,
     });
   }
 

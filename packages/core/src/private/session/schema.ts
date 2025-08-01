@@ -7,12 +7,12 @@ import string from "pema/string";
 import union from "pema/union";
 
 export default pema({
+  cookie: {
+    http_only: boolean.default(true),
+    name: string.default("session_id"),
+    path: string.startsWith("/").default("/"),
+    same_site: union("Strict", "Lax", "None").default("Lax"),
+  },
   manager: constructor(SessionManager)
     .default(() => new InMemorySessionManager()),
-  cookie: {
-    name: string.default("session_id"),
-    same_site: union("Strict", "Lax", "None").default("Lax"),
-    http_only: boolean.default(true),
-    path: string.startsWith("/").default("/"),
-  },
 });

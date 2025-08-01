@@ -1,7 +1,7 @@
 import type ClientData from "@primate/core/frontend/ClientData";
 import spa from "@primate/core/frontend/spa";
 import ReactHead from "@primate/react/Head";
-import Dict from "@rcompat/type/Dict";
+import type Dict from "@rcompat/type/Dict";
 import { createElement, type ReactNode } from "react";
 import { createRoot, hydrateRoot, type Container } from "react-dom/client";
 
@@ -19,13 +19,13 @@ const { body } = globalThis.window.document;
 ReactHead.clear();
 
 const make_root = {
-  ssr: (dom_node: Element, react_node: ReactNode) =>
-    hydrateRoot(dom_node, react_node),
   csr: (dom_node: Container, react_node: ReactNode) => {
     const root = createRoot(dom_node);
     root.render(react_node);
     return root;
   },
+  ssr: (dom_node: Element, react_node: ReactNode) =>
+    hydrateRoot(dom_node, react_node),
 };
 
 const make_props = (data: ClientData<Data>) => ({

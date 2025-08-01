@@ -9,13 +9,13 @@ export default class Default extends Runtime {
     create: create_root,
   };
   compile = {
-    server: (text: string) => {
-      const presets = [[solid, { generate: "ssr", hydratable: true }]];
-      return transformSync(text, { presets })?.code ?? "";
-    },
     client: (text: string) => {
       const presets = [[solid, { generate: "dom", hydratable: true }]];
       return { js: transformSync(text, { presets })?.code ?? "" };
+    },
+    server: (text: string) => {
+      const presets = [[solid, { generate: "ssr", hydratable: true }]];
+      return transformSync(text, { presets })?.code ?? "";
     },
   };
 }

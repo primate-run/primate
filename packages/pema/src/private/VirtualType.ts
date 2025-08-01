@@ -2,11 +2,11 @@ import GenericType from "#GenericType";
 import type Storeable from "#Storeable";
 import type Validated from "#Validated";
 
-const storeable = (x: Validated<unknown> | undefined): x is Storeable =>
+const storeable = (x: undefined | Validated<unknown>): x is Storeable =>
   !!x && "datatype" in x && "normalize" in x;
 
 export default abstract class VirtualType<
-  Type extends Validated<unknown> | undefined,
+  Type extends undefined | Validated<unknown>,
   Inferred,
   Name extends string,
 > extends GenericType<Type, Inferred, Name> {

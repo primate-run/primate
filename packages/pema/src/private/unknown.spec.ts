@@ -1,6 +1,6 @@
 import unknown from "#unknown";
-import test from "@rcompat/test";
 import type UnknownType from "#UnknownType";
+import test from "@rcompat/test";
 
 test.case("pass", assert => {
   assert(unknown).type<UnknownType>();

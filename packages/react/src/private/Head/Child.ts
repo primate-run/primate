@@ -1,8 +1,8 @@
 import type Dict from "@rcompat/type/Dict";
 
 type Child = {
-  type: string;
   props: Dict;
+  type: string;
 };
 
 export type { Child as default };

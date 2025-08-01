@@ -12,8 +12,8 @@ const id_size = 8;
 
 const analyze = ({ script, scriptSetup }: SFCDescriptor ) => {
   return {
-    inline: scriptSetup !== null,
     has_script: script !== null || scriptSetup !== null,
+    inline: scriptSetup !== null,
     is_typescript: script?.lang === "ts" || scriptSetup?.lang === "ts",
   };
 };
@@ -22,7 +22,7 @@ export default {
   server(text: string) {
     const id = crypto.randomUUID().slice(0, id_size);
     const { descriptor } = parse(text);
-    const { inline, has_script, is_typescript } = analyze(descriptor);
+    const { has_script, inline, is_typescript } = analyze(descriptor);
 
     const template = compileTemplate({
       filename: "",
@@ -30,7 +30,7 @@ export default {
       source: descriptor.template?.content ?? "",
     });
     const script = has_script
-      ? compileScript(descriptor, { id, inlineTemplate: inline, genDefaultAs })
+      ? compileScript(descriptor, { genDefaultAs, id, inlineTemplate: inline })
       : { content: `const ${genDefaultAs} = {}` };
 
     const module = `

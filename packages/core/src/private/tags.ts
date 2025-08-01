@@ -9,29 +9,29 @@ const attribute = (attributes: Dict<string>) => empty(attributes)
   : " ".concat(Object.entries(attributes)
     .map(([key, value]) => `${key}="${value}"`).join(" "))
   ;
-const tag = (name: string, { attributes = {}, code = "", close = true }) =>
+const tag = (name: string, { attributes = {}, close = true, code = "" }) =>
   `<${name}${attribute(attributes)}${close ? `>${code}</${name}>` : "/>"}`;
 const nctag = (name: string, properties: Dict) =>
   tag(name, { ...properties, close: false });
 
 export default {
+  font({ as = "font", crossorigin = "true", href, rel = "preload", type }: Font) {
+    return nctag("link", { attributes: { as, crossorigin, href, rel, type } });
+  },
   // inline: <script type integrity>...</script>
   // outline: <script type integrity src></script>
-  script({ inline, code, type, integrity, src, id }: Script) {
+  script({ code, id, inline, integrity, src, type }: Script) {
     return inline
       ? id === undefined
-        ? tag("script", { attributes: { type, integrity }, code })
-        : tag("script", { attributes: { type, integrity, id }, code })
-      : tag("script", { attributes: { type, integrity, src } });
+        ? tag("script", { attributes: { integrity, type }, code })
+        : tag("script", { attributes: { id, integrity, type }, code })
+      : tag("script", { attributes: { integrity, src, type } });
   },
   // inline: <style>...</style>
   // outline: <link rel="stylesheet" href />
-  style({ inline, code, href }: Style) {
+  style({ code, href, inline }: Style) {
     return inline
       ? tag("style", { code })
-      : nctag("link", { attributes: { rel: "stylesheet", href } });
-  },
-  font({ href, rel = "preload", as = "font", type, crossorigin = "true" }: Font) {
-    return nctag("link", { attributes: { rel, href, as, type, crossorigin } });
+      : nctag("link", { attributes: { href, rel: "stylesheet" } });
   },
 };

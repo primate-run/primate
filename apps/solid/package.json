@@ -11,7 +11,7 @@
   "dependencies": {
     "@primate/i18n": "workspace:^",
     "@primate/solid": "workspace:^",
-    "@rcompat/assert": "^0.1.2",
+    "@rcompat/assert": "^0.2.0",
     "babel-preset-solid": "^1.9.6",
     "pema": "workspace:^",
     "primate": "workspace:^",

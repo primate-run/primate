@@ -4,10 +4,10 @@ import type I32 from "#wasm/I32";
 
 type Instantiation<TRequest = I32, TResponse = I32> = {
   api: API;
-  sockets: Map<bigint, any>;
-  memory: WebAssembly.Memory;
   exports: Exports<TRequest, TResponse>;
+  memory: WebAssembly.Memory;
   setPayload(value: Uint8Array): void;
+  sockets: Map<bigint, any>;
 };
 
 export type { Instantiation as default };

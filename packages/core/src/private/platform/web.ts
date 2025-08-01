@@ -6,7 +6,6 @@ const html = /^.*.html$/ui;
 
 const web: Platform = {
   name: "web",
-  target: "web",
   runner: async app => {
     const client = app.runpath(location.client);
     const client_imports = (await client.collect())
@@ -15,9 +14,9 @@ const web: Platform = {
         const src = `/${file.debase(client).name}`;
         const path = `./${file.debase(`${app.path.build}/`)}`;
         return {
-          src,
-          path,
           code: `await load_text(asset${i})`,
+          path,
+          src,
           type,
         };
       });
@@ -72,6 +71,7 @@ const web: Platform = {
 `;
     await app.path.build.join("platform.js").write(assets_scripts);
   },
+  target: "web",
 };
 
 export default web;

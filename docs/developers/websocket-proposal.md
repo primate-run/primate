@@ -8,7 +8,7 @@ type WebSocketWasmExports = {
   /**
    * Websocket Open is simply a callback into the wasm module.
    * A payload will be required with the following structure:
-   * 
+   *
    * - [websocket_id: u64]
    */
   websocketOpen(): void;
@@ -20,9 +20,9 @@ type WebSocketWasmExports = {
    * when a message is received. The host will be required to notify
    * the wasm module which socket received a message, and the message
    * itself.
-   * 
+   *
    * It has the following structure:
-   * 
+   *
    * - [websocket_id: u64]
    * - [kind: buffer = 0, string = 1]
    * - [byte_length: u32]
@@ -31,7 +31,7 @@ type WebSocketWasmExports = {
   websocketMessage(): void;
   /**
    * Tell the wasm module to clean up it's references to the wasm module.
-   * 
+   *
    * Structure:
    * - [websocket_id: u64]
    */
@@ -43,9 +43,9 @@ type WebSocketWasmImports = {
   /**
    * The web assembly module needs to notify the host when to send a message.
    * Messages can be either strings or bytes.
-   * 
+   *
    * The outgoing payload needs to look like this:
-   * 
+   *
    * - [websocket_id: u64]
    * - [kind: buffer = 0, string = 1]
    * - [byte_length: u32]
@@ -54,9 +54,9 @@ type WebSocketWasmImports = {
   websocketSend(ptr: i32): void;
   /**
    * Sometimes a web socket needs to be closed from the server side.
-   * 
+   *
    * The outgoing payload looks like this:
-   * 
+   *
    * - [websocket_id: u64]
    */
   websocketClose(ptr: i32): void;

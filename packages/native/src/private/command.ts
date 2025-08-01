@@ -14,9 +14,9 @@ function which(target: string) {
 };
 
 type Init = {
+  exe: string;
   files: string[];
   flags: string;
-  exe: string;
 };
 
 export default function(init: Init) {

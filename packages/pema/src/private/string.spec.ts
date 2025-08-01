@@ -29,7 +29,7 @@ test.case("startsWith", assert => {
   assert(sw).type<StringType>();
   assert(sw.validate("/")).equals("/").type<string>();
   assert(sw.validate("/foo")).equals("/foo").type<string>();
-  assert(() => sw.validate("foo")).throws(`"foo" does not start with "/"`);
+  assert(() => sw.validate("foo")).throws("\"foo\" does not start with \"/\"");
 });
 
 test.case("endsWith", assert => {
@@ -38,7 +38,7 @@ test.case("endsWith", assert => {
   assert(ew).type<StringType>();
   assert(ew.validate("/")).equals("/").type<string>();
   assert(ew.validate("foo/")).equals("foo/").type<string>();
-  assert(() => ew.validate("foo")).throws(`"foo" does not end with "/"`);
+  assert(() => ew.validate("foo")).throws("\"foo\" does not end with \"/\"");
 });
 
 test.case("email", assert => {
@@ -84,7 +84,7 @@ test.case("combined validators", assert => {
   assert(sew).type<StringType>();
   assert(sew.validate("/.")).equals("/.").type<string>();
   assert(sew.validate("/foo.")).equals("/foo.").type<string>();
-  assert(() => sew.validate("foo")).throws(`"foo" does not start with "/"`);
-  assert(() => sew.validate("foo.")).throws(`"foo." does not start with "/"`);
-  assert(() => sew.validate("/foo")).throws(`"/foo" does not end with "."`);
+  assert(() => sew.validate("foo")).throws("\"foo\" does not start with \"/\"");
+  assert(() => sew.validate("foo.")).throws("\"foo.\" does not start with \"/\"");
+  assert(() => sew.validate("/foo")).throws("\"/foo\" does not end with \".\"");
 });

@@ -3,9 +3,9 @@ import type Dict from "@rcompat/type/Dict";
 import { useContext } from "solid-js";
 
 type Child = {
+  props: Dict;
   t: string;
   tagName: string;
-  props: Dict;
 };
 
 const data_attribute = "data-sh";

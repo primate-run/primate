@@ -26,10 +26,14 @@ const ts_options = {
 
 const compile = (code: string) => transform(code, ts_options).code;
 
+const toContextString = (array: string[]) => array
+  .map(member => member.endsWith("s") ? member.slice(0, -1) : member)
+  .join(", ");
+
 const default_bindings: PartialDict<Binder> = {
-  ".js": async (file, { context, build }) => {
-    const contexts = ["routes", "stores", "config"];
-    const error = "js: only route, store and config files are supported";
+  ".js": async (file, { build, context }) => {
+    const contexts = ["routes", "stores", "config", "components", "modules"];
+    const error = `js: only ${toContextString(contexts)} are supported`;
     assert(contexts.includes(context), error);
     const code = context === "routes"
       ? wrap(await file.text(), file, build)
@@ -38,9 +42,9 @@ const default_bindings: PartialDict<Binder> = {
     await file.append(".js").write(code);
 
   },
-  ".ts": async (file, { context, build }) => {
-    const contexts = ["routes", "stores", "config"];
-    const error = "ts: only route, store and config files are supported";
+  ".ts": async (file, { build, context }) => {
+    const contexts = ["routes", "stores", "config", "components", "modules"];
+    const error = `ts: only ${toContextString(contexts)} are supported`;
     assert(contexts.includes(context), error);
 
     const code = context === "routes"

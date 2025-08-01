@@ -8,7 +8,7 @@ type DictConverter = Iterable<[
 
 const dict_converter = (value: DictConverter) => Object.fromEntries(value);
 
-const normalize = (response: Map<string, unknown> | Dict) =>
+const normalize = (response: Dict | Map<string, unknown>) =>
   response instanceof Map ? Object.fromEntries(response.entries()) : response;
 
 const recursively_convert = (input: Dict) => {

@@ -10,8 +10,8 @@ import union from "pema/union";
 
 const levels = {
   error: 0,
-  warn: 1,
   info: 2,
+  warn: 1,
 } as const;
 
 type Levels = typeof levels;

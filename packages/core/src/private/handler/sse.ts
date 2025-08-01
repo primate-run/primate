@@ -2,13 +2,16 @@ import handler from "#handler";
 import { sse } from "@rcompat/http/mime";
 
 type Body = {
-  open(events: { send(name: string, data: unknown): undefined }): undefined;
   close?(): undefined;
+  open(events: { send(name: string, data: unknown): undefined }): undefined;
 };
 
 const encode = (input: string) => new TextEncoder().encode(input);
 
 const handle = (body: Body) => new ReadableStream({
+  cancel() {
+    body.close?.();
+  },
   start(controller) {
     body.open({
       send(name, data) {
@@ -17,9 +20,6 @@ const handle = (body: Body) => new ReadableStream({
         controller.enqueue(encode(`${event}data:${_data}\n\n`));
       },
     });
-  },
-  cancel() {
-    body.close?.();
   },
 });
 

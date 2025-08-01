@@ -26,11 +26,11 @@ export default async (app: App) => {
       const src = `/${file.debase(client).name}`;
       const path = `./${file.debase(`${app.path.build}/`)}`;
       return {
-        src,
-        path,
         code: `await FileRef.text(asset${i})`,
-        type,
         empty: (await file.text()).length === 0,
+        path,
+        src,
+        type,
       };
     }))).filter(file => !file.empty);
 

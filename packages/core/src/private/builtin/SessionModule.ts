@@ -6,15 +6,15 @@ import type SessionManager from "#session/Manager";
 import storage from "#session/storage";
 
 type CookieOptions = {
-  path: string;
-  secure: boolean;
   http_only: "; HttpOnly" | "";
-  same_site: "Strict" | "Lax" | "None";
+  path: string;
+  same_site: "Lax" | "None" | "Strict";
+  secure: boolean;
 };
 
 type Cookie = (name: string, options: CookieOptions) => string;
 
-const cookie: Cookie = (value, { path, secure, http_only, same_site }) =>
+const cookie: Cookie = (value, { http_only, path, same_site, secure }) =>
   `${value};${http_only};Path=${path};Secure=${secure};SameSite=${same_site}`;
 
 export default class SessionModule extends Module {

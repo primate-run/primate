@@ -28,12 +28,12 @@ const scroll_hash = (hash: string) => {
 type Updater<T extends Dict> = (json: ClientData<T>, after?: () => void) => void;
 
 const handlers = {
+  [APPLICATION_JSON]: async (response: Response, updater: Updater<any>) => {
+    updater(await response.json());
+  },
   [TEXT_PLAIN]: async (response: Response) => {
     // exit
     document.body.innerText = await response.text();
-  },
-  [APPLICATION_JSON]: async (response: Response, updater: Updater<any>) => {
-    updater(await response.json());
   },
 };
 
@@ -46,19 +46,19 @@ const handle = async (response: Response, updater: Updater<any>) => {
 };
 
 type Goto = {
-  pathname: string;
   hash: string;
+  pathname: string;
 };
 
-const goto = async ({ pathname, hash }: Goto, updater: Updater<any>, state = false) => {
+const goto = async ({ hash, pathname }: Goto, updater: Updater<any>, state = false) => {
   try {
     const response = await fetch(pathname, { headers });
     // save before loading next
     const { scrollTop } = global.document.scrollingElement!;
-    const { pathname: currentPathname, hash: currentHash } = global.location;
+    const { hash: currentHash, pathname: currentPathname } = global.location;
     await handle(response, updater);
     if (state) {
-      storage.new({ scrollTop, pathname: currentPathname, hash: currentHash });
+      storage.new({ hash: currentHash, pathname: currentPathname, scrollTop });
       const url = response.redirected ? response.url : `${pathname}${hash}`;
       history.pushState({}, "", url);
     }
@@ -69,7 +69,7 @@ const goto = async ({ pathname, hash }: Goto, updater: Updater<any>, state = fal
 
 const submit = async (pathname: string, body: any, method: string, updater: Updater<any>) => {
   try {
-    const response = await fetch(pathname, { method, body, headers });
+    const response = await fetch(pathname, { body, headers, method });
     if (response.redirected) {
       await go(response.url, updater);
       return;
@@ -82,7 +82,7 @@ const submit = async (pathname: string, body: any, method: string, updater: Upda
 
 const go = async (href: string, updater: Updater<any>, event?: Event) => {
   const url = new URL(href);
-  const { pathname, hash } = url;
+  const { hash, pathname } = url;
   const current = global.location.pathname;
   // hosts must match
   if (url.host === global.location.host) {
@@ -97,10 +97,10 @@ const go = async (href: string, updater: Updater<any>, event?: Event) => {
     if (hash !== global.location.hash) {
       const { scrollTop } = global.document.scrollingElement!;
       storage.new({
-        stop: true,
-        pathname: current,
         hash: global.location.hash,
+        pathname: current,
         scrollTop,
+        stop: true,
       });
       history.pushState(null, "", `${current}${hash}`);
       scroll_hash(hash);

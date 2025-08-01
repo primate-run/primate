@@ -12,37 +12,37 @@ import constructor from "pema/constructor";
 
 export default pema({
   base: string.default("/"),
+  build: {
+    define: record(string, string).optional(),
+    excludes: array(string).optional(),
+    includes: array(string).optional(),
+    name: string.default("app"),
+    options: record(string, unknown).optional(),
+  },
+  http: {
+    csp: record(string, array(string)).optional(),
+    headers: record(string, string).optional(),
+    host: string.default("localhost"),
+    port: uint.port().default(6161),
+    ssl: {
+      cert: union(FileRef, string).optional(),
+      key: union(FileRef, string).optional(),
+    },
+    static: {
+      root: string.default("/"),
+    },
+  },
+  log: {
+    trace: boolean.default(true),
+  },
   modules: array(constructor(Module)).optional(),
   pages: {
     app: string.default("app.html"),
     error: string.default("error.html"),
   },
-  log: {
-    trace: boolean.default(true),
-  },
-  http: {
-    host: string.default("localhost"),
-    port: uint.port().default(6161),
-    headers: record(string, string).optional(),
-    csp: record(string, array(string)).optional(),
-    static: {
-      root: string.default("/"),
-    },
-    ssl: {
-      key: union(FileRef, string).optional(),
-      cert: union(FileRef, string).optional(),
-    },
-  },
   request: {
     body: {
       parse: boolean.default(true),
     },
-  },
-  build: {
-    name: string.default("app"),
-    includes: array(string).optional(),
-    excludes: array(string).optional(),
-    define: record(string, string).optional(),
-    options: record(string, unknown).optional(),
   },
 });

@@ -1,5 +1,4 @@
-import redirect from "primate/handler/redirect";
+import redirect from "primate/redirect";
+import route from "primate/route";
 
-export default {
-  get: () => redirect("/guide/getting-started#quick-start"),
-};
+route.get(() => redirect("/guide/getting-started#quick-start"));

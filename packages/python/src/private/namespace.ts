@@ -12,30 +12,30 @@ type RedirectParams = Parameters<typeof redirect>;
 type ViewReturn = ReturnType<View>;
 
 export default {
-  session: {
-    get new() {
-      return session().new;
-    },
-    get id() {
-      return session().id;
-    },
-    get data() {
-      return session().data;
-    },
-    create(data: PyProxy) {
-      session().create(borrow(data));
-    },
-    destroy() {
-      session().destroy();
-    },
-  },
-  view(name: ViewParams[0], props?: PyProxy, options?: PyProxy): ViewReturn {
-    return view(name, borrow(props), borrow(options));
+  error(options: PyProxy): ResponseFunction {
+    return error(borrow(options));
   },
   redirect(location: RedirectParams[0], status: RedirectParams[1]): ResponseFunction {
     return redirect(location, status);
   },
-  error(options: PyProxy): ResponseFunction {
-    return error(borrow(options));
+  session: {
+    create(data: PyProxy) {
+      session().create(borrow(data));
+    },
+    get data() {
+      return session().data;
+    },
+    destroy() {
+      session().destroy();
+    },
+    get id() {
+      return session().id;
+    },
+    get new() {
+      return session().new;
+    },
+  },
+  view(name: ViewParams[0], props?: PyProxy, options?: PyProxy): ViewReturn {
+    return view(name, borrow(props), borrow(options));
   },
 };

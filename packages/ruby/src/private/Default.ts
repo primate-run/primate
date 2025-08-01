@@ -24,17 +24,17 @@ route.${route.toLowerCase()}(async request => {
 });`;
 
 const type_map = {
-  i8: { transfer: "to_i", type: "int8" },
+  f32: { transfer: "to_f", type: "float32" },
+  f64: { transfer: "to_f", type: "float64" },
   i16: { transfer: "to_i", type: "int16" },
   i32: { transfer: "to_i", type: "int32" },
   i64: { transfer: "to_i", type: "int64" },
-  f32: { transfer: "to_f", type: "float32" },
-  f64: { transfer: "to_f", type: "float64" },
-  u8: { transfer: "to_i", type: "uint8" },
-  u16: { transfer: "to_i", type: "uint16" },
-  u32: { transfer: "to_i", type: "uint32", nullval: "0" },
-  u64: { transfer: "to_i", type: "uint64" },
+  i8: { transfer: "to_i", type: "int8" },
   string: { transfer: "to_s", type: "string" },
+  u16: { transfer: "to_i", type: "uint16" },
+  u32: { nullval: "0", transfer: "to_i", type: "uint32" },
+  u64: { transfer: "to_i", type: "uint64" },
+  u8: { transfer: "to_i", type: "uint8" },
   uuid: { transfer: "to_s", type: "string" },
 };
 
@@ -75,7 +75,7 @@ ${routes.map(route => make_route(route)).join("\n  ")}
 
 export default class Default extends Runtime {
   build(app: BuildApp, next: NextBuild) {
-    app.bind(this.extension, async (route, { context, build }) => {
+    app.bind(this.extension, async (route, { build, context }) => {
       assert(context === "routes", "ruby: only route files are supported");
 
       const code = await route.text();

@@ -27,7 +27,7 @@ type Sort<T> = {
 };
 
 type Insertable<T extends StoreSchema> =
-  Omit<DataRecord<T>, "id"> & { id?: StoreId<T> };
+  { id?: StoreId<T> } & Omit<DataRecord<T>, "id">;
 
 type Filter<A, B = undefined> = B extends undefined ? A : {
   [K in keyof A as K extends keyof B
@@ -36,8 +36,8 @@ type Filter<A, B = undefined> = B extends undefined ? A : {
 };
 
 type Config = {
-  name?: string;
   db?: Database;
+  name?: string;
 };
 
 export default class Store<S extends StoreSchema> {
@@ -80,15 +80,15 @@ export default class Store<S extends StoreSchema> {
   derive(name: string, db: Database) {
     const _name = this.#config.name;
 
-    return new Store(this.#schema, { name: _name ?? name, db });
+    return new Store(this.#schema, { db, name: _name ?? name });
   }
 
   [derive](name: string, db: Database) {
     const _name = this.#config.name;
 
     return new Store(this.#schema, {
-      name: this.#config.name ?? name,
       db: this.#config.db ?? db,
+      name: this.#config.name ?? name,
     });
   }
 
@@ -120,8 +120,8 @@ export default class Store<S extends StoreSchema> {
     maybe(criteria).object();
 
     return (await this.db.read(this.#as, {
-      criteria: criteria ?? {},
       count: true,
+      criteria: criteria ?? {},
     }));
   }
 
@@ -196,7 +196,7 @@ export default class Store<S extends StoreSchema> {
   update(criteria: Criteria<S>, changes: Changes<S>): Promise<number>;
 
   async update(
-    criteria: Id | Criteria<S>,
+    criteria: Criteria<S> | Id,
     changes: Changes<S>,
   ) {
     is(changes).object();
@@ -210,8 +210,8 @@ export default class Store<S extends StoreSchema> {
     is(id).string();
 
     const count = await this.db.update(this.#as, {
-      criteria: { id },
       changes,
+      criteria: { id },
       limit: 1,
     });
 
@@ -222,8 +222,8 @@ export default class Store<S extends StoreSchema> {
     is(criteria).object();
 
     const count = await this.db.update(this.#as, {
-      criteria,
       changes,
+      criteria,
     });
 
     return count;
@@ -245,7 +245,7 @@ export default class Store<S extends StoreSchema> {
    */
   delete(criteria: Criteria<S>): Promise<number>;
 
-  async delete(criteria: Id | Criteria<S>) {
+  async delete(criteria: Criteria<S> | Id) {
     return typeof criteria === "string"
       ? this.#delete_1(criteria)
       : this.#delete_n(criteria);
@@ -279,25 +279,25 @@ export default class Store<S extends StoreSchema> {
   find(
     criteria: Criteria<S>,
     options: {
+      limit?: number;
       select?: undefined;
       sort?: Sort<DataRecord<S>>;
-      limit?: number;
     }
   ): Promise<Filter<DataRecord<S>>[]>;
   find<F extends Select<DataRecord<S>>>(
     criteria: Criteria<S>,
     options?: {
+      limit?: number;
       select?: F;
       sort?: Sort<DataRecord<S>>;
-      limit?: number;
     }
   ): Promise<Filter<DataRecord<S>, F>[]>;
   async find<F extends Select<DataRecord<S>>>(
     criteria: Criteria<S>,
     options?: {
+      limit?: number;
       select?: Select<DataRecord<S>>;
       sort?: Sort<DataRecord<S>>;
-      limit?: number;
     },
   ) {
     is(criteria).object();
@@ -309,8 +309,8 @@ export default class Store<S extends StoreSchema> {
     const result = await this.db.read(this.#as, {
       criteria,
       fields: Object.keys(options?.select ?? {}),
-      sort: options?.sort,
       limit: options?.limit,
+      sort: options?.sort,
     });
 
     return result as Filter<DataRecord<S>, F>[];

@@ -10,11 +10,11 @@ export default class Default extends Runtime {
     filter: /\.sveltecss$/,
   };
   compile = {
-    server: (text: string) => compile(text, { generate: "server" }).js.code,
     client: (text: string) => {
       const accessors = true;
-      const { js, css } = compile(text, { generate: "client", accessors });
-      return { js: js.code, css: css?.code ?? "" };
+      const { css, js } = compile(text, { accessors, generate: "client" });
+      return { css: css?.code ?? "", js: js.code };
     },
+    server: (text: string) => compile(text, { generate: "server" }).js.code,
   };
 }

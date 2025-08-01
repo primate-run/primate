@@ -1,3 +1,4 @@
-import { view } from "primate";
+import route from "primate/route";
+import view from "primate/view";
 
-export default request => view("Errorpage.svelte", { app: request.config });
+route.get(request => view("Error.svelte", { app: request.config }));

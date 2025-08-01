@@ -2,13 +2,13 @@ import type ResponseFunction from "#ResponseFunction";
 import type Dict from "@rcompat/type/Dict";
 
 type ResponseLike =
-  string |
+  Blob |
   Dict |
   Dict[] |
-  URL |
   ReadableStream |
-  Blob |
   Response |
-  ResponseFunction;
+  ResponseFunction |
+  string |
+  URL;
 
 export { ResponseLike as default };

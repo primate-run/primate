@@ -11,7 +11,6 @@ import type MaybePromise from "@rcompat/type/MaybePromise";
 type HookExec<I, O> = (i: I, next: (_: I) => MaybePromise<O>)
   => MaybePromise<O>;
 type RouteHook = HookExec<RequestFacade, ResponseLike>;
-type HandleHook = HookExec<RequestFacade, Response>;
 
 const reducer = async (hooks: RouteHook[], request: RequestFacade): Promise<ResponseLike> => {
   const [first, ...rest] = hooks;
@@ -20,15 +19,6 @@ const reducer = async (hooks: RouteHook[], request: RequestFacade): Promise<Resp
     return await first(request, _ => new Response());
   };
   return await first(request, _ => reducer(rest, _));
-};
-
-const reducer2 = async (modules: HandleHook[], request: RequestFacade): Promise<Response> => {
-  const [first, ...rest] = modules;
-
-  if (rest.length === 0) {
-    return await first(request, _ => new Response());
-  };
-  return await first(request, _ => reducer2(rest, _));
 };
 
 type GuardError = {
@@ -73,8 +63,8 @@ const get_layouts = async (layouts: RouteFunction[], request: RequestFacade) => 
 const last = (handler: RouteFunction) => async (request: RequestFacade) => {
   const response = await handler(request);
   return {
-    response: response as ResponseLike,
     request,
+    response: response as ResponseLike,
   };
 };
 
@@ -89,7 +79,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
       return client_error()(app, {}, partial_request) as Response;
     }
 
-    const { guards, errors, layouts, handler } = route;
+    const { errors, guards, handler, layouts } = route;
 
     error_handler = errors.at(-1);
 
@@ -98,8 +88,8 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
 
     // handle request
     const { request, response } = await reducer(hooks, route.request) as {
-      response: ResponseLike;
       request: RequestFacade;
+      response: ResponseLike;
     };
 
     const $layouts = { layouts: await get_layouts(layouts, request) };

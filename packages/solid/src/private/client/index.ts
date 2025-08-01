@@ -9,7 +9,7 @@ import * as components from "solid:components";
 import root_component from "solid:root";
 
 // @ts-expect-error solid hydration
-globalThis._$HY = { events: [], completed: new WeakSet(), r: {} };
+globalThis._$HY = { completed: new WeakSet(), events: [], r: {} };
 
 const { body } = globalThis.window.document;
 SolidHead.clear();
@@ -31,7 +31,6 @@ const make_props = (data: ClientData<Data>) => ({
 export default class Solid {
   static mount(component: string, data: ClientData<Data>) {
     let dispose = hydrate(() => root_component(make_props(data)), body);
-
 
     if (data.spa) {
       window.addEventListener("DOMContentLoaded", _ => spa<Data>(_data => {

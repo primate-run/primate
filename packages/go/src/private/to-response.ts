@@ -5,17 +5,17 @@ import type ResponseFunction from "@primate/core/ResponseFunction";
 import type ResponseLike from "@primate/core/ResponseLike";
 import type Dict from "@rcompat/type/Dict";
 
-type Handler = "view" | "redirect" | "error";
+type Handler = "error" | "redirect" | "view";
 
-const parse = (input: string | null) =>
+const parse = (input: null | string) =>
   input === null ? undefined : JSON.parse(input);
 
 const handle_handler = (handler: Handler, response: Dict) => {
   if (handler === "view") {
-    const { component, props, options } = response as {
+    const { component, options, props } = response as {
       component: string;
-      props: string | null;
-      options: string | null;
+      options: null | string;
+      props: null | string;
     };
     return view(component, parse(props), parse(options));
   }
@@ -23,13 +23,13 @@ const handle_handler = (handler: Handler, response: Dict) => {
     const { location, status } = response as {
       location: string;
       // unchecked, go is int
-      status: Parameters<typeof redirect>[1] | null;
+      status: null | Parameters<typeof redirect>[1];
     };
     return redirect(location, status === null ? undefined : status);
   }
 
   const { options } = response as {
-    options: string | null;
+    options: null | string;
   };
   return error(parse(options));
 };

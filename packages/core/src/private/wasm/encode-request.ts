@@ -27,7 +27,6 @@ const BODY_KIND_MAP = 2;
 const BODY_KIND_MAP_VALUE_STRING = 0;
 const BODY_KIND_MAP_VALUE_BYTES = 1;
 
-
 const sizeOfUrlSection = (url: URL) => SECTION_HEADER_SIZE + sizeOfUrl(url);
 const sizeOfBodySection = (body: Body) => {
   if (body === null)

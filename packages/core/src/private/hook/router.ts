@@ -11,11 +11,11 @@ const error_entries = Object.entries({
 export default async (directory: FileRef, extensions: string[]) => {
   try {
     return await FileRouter.load({
-      extensions,
       directory: directory.toString(),
+      extensions,
       specials: {
-        guard: { recursive: true },
         error: { recursive: false },
+        guard: { recursive: true },
         layout: { recursive: true },
       },
     });

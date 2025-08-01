@@ -62,16 +62,16 @@ test.case("empty {}", assert => {
 test.case("object", assert => {
   const o = { foo: "bar" };
   type O = { foo: string };
-  const o1 = { foo: "bar", bar: { baz: 0 } };
-  type O1 = { foo: string; bar: { baz: number } };
+  const o1 = { bar: { baz: 0 }, foo: "bar" };
+  type O1 = { bar: { baz: number }; foo: string };
 
   const s = schema({ foo: string });
-  const s1 = schema({ foo: string, bar: { baz: number } });
+  const s1 = schema({ bar: { baz: number }, foo: string });
 
   assert<typeof s>().type<SchemaType<{ foo: StringType }>>();
   assert(s.validate(o)).equals(o).type<O>();
 
-  assert(s1).type<SchemaType<{ foo: StringType; bar: { baz: NumberType }}>>();
+  assert(s1).type<SchemaType<{ bar: { baz: NumberType }; foo: StringType}>>();
   assert(s1.validate(o1)).equals(o1).type<O1>();
 });
 

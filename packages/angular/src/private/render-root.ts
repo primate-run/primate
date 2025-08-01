@@ -6,12 +6,12 @@ import type Dict from "@rcompat/type/Dict";
 
 type ComponentParameters = Parameters<ComponentDecorator>;
 
-const root_component = ({ template, imports }: ComponentParameters[0]) =>
+const root_component = ({ imports, template }: ComponentParameters[0]) =>
   Component({
-    selector: root_selector,
     imports,
-    template,
+    selector: root_selector,
     standalone: true,
+    template,
   })(class { });
 
 const double_to_single = (string: string) => string.replaceAll("\"", "'");

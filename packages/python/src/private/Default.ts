@@ -40,7 +40,7 @@ const js_wrapper = (path: FileRef, routes: string[], packages: string[]) => `
 
 export default class Default extends Runtime {
   build(app: BuildApp, next: NextBuild) {
-    app.bind(this.extension, async (route, { context, build }) => {
+    app.bind(this.extension, async (route, { build, context }) => {
       assert(context === "routes", "python: only route files are supported");
 
       const code = await route.text();

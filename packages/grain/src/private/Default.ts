@@ -48,7 +48,7 @@ export default class Default extends Runtime {
   }
 
   build(app: BuildApp, next: NextBuild) {
-    app.bind(this.extension, async (route, { context, build }) => {
+    app.bind(this.extension, async (route, { build, context }) => {
       assert(context === "routes", "grain: only route files are supported");
 
       const text = await route.text();

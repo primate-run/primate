@@ -1,8 +1,8 @@
 import type Locales from "#Locales";
 
 type ContextData = {
-  locales: Locales;
   locale: string;
+  locales: Locales;
 };
 
 export { ContextData as default};

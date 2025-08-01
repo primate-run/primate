@@ -12,9 +12,9 @@ export default class DefaultType<
   D extends Infer<S>,
 > extends VirtualType<S, Infer<S>, "DefaultType"> {
   #schema: S;
-  #default: D | (() => D);
+  #default: (() => D) | D;
 
-  constructor(s: S, d: D | (() => D)) {
+  constructor(s: S, d: (() => D) | D) {
     super();
     this.#schema = s;
     this.#default = d;

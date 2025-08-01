@@ -4,8 +4,8 @@ import { resolve } from "@rcompat/http/mime";
 import type Dict from "@rcompat/type/Dict";
 
 type Init = {
-  pages_app: string;
   pages: Dict<string>;
+  pages_app: string;
   rootfile: string;
   static_root: string;
 };
@@ -40,10 +40,10 @@ export default class Loader {
 
   asset(file: FileRef) {
     return new Response(file.stream(), {
-      status: Status.OK,
       headers: {
         "Content-Type": resolve(file.name),
       },
+      status: Status.OK,
     });
   }
 

@@ -1,30 +1,33 @@
-type Param = NodeJS.TypedArray
-  | string
-  | number
+import type TypedArray from "@rcompat/type/TypedArray";
+
+type Param =
   | bigint
   | boolean
   | Date
-  | null;
+  | null
+  | number
+  | string
+  | TypedArray;
 
 type Validate<T extends { [K in keyof T]: Param }> = T;
 
 type ColumnTypes = Validate<{
-  BLOB: NodeJS.TypedArray;
+  BIGINT: string;
+  "BIGINT UNSIGNED": string;
+  BLOB: Uint8Array<ArrayBuffer>;
   BOOL: number;
   "DATETIME(3)": Date;
-  DOUBLE: number;
-  TEXT: string;
-  TINYINT: number;
-  SMALLINT: number;
-  INT: number;
-  BIGINT: string;
   "DECIMAL(39, 0)": string;
+  DOUBLE: number;
+  INT: number;
   "INT NOT NULL AUTO_INCREMENT PRIMARY KEY": number;
-  "TIME": string;
-  "TINYINT UNSIGNED": number;
-  "SMALLINT UNSIGNED": number;
   "INT UNSIGNED": number;
-  "BIGINT UNSIGNED": string;
+  SMALLINT: number;
+  "SMALLINT UNSIGNED": number;
+  TEXT: string;
+  "TIME": string;
+  TINYINT: number;
+  "TINYINT UNSIGNED": number;
 }>;
 
 export type { ColumnTypes as default };

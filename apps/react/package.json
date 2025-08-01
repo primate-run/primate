@@ -11,7 +11,7 @@
   "dependencies": {
     "@primate/i18n": "workspace:^",
     "@primate/react": "workspace:^",
-    "@rcompat/assert": "^0.1.2",
+    "@rcompat/assert": "^0.2.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
     "react": "^19.1.1",

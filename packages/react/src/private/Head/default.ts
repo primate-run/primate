@@ -8,7 +8,7 @@ const data_attribute = "data-rh";
 const data_ssr = "ssr";
 const allowed = ["title", "meta", "style", "meta", "link", "script", "base"];
 
-const make_tag = ({ type, props }: Child, id: string) => {
+const make_tag = ({ props, type }: Child, id: string) => {
   const attributes = Object.entries(props)
     .map(([key, value]) => `${key}="${value}"`)
     .concat(`${data_attribute}="${id}"`)

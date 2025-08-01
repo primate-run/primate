@@ -6,6 +6,6 @@ import type MaybePromise from "@rcompat/type/MaybePromise";
 
 type ResponseFunction =
   (app: ServeApp, transfer: Dict, request: RequestFacade)
-  => MaybePromise<Component | Response | undefined | null>;
+  => MaybePromise<Component | null | Response | undefined>;
 
 export { ResponseFunction as default };

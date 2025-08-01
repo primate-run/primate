@@ -19,8 +19,8 @@ import decodeWebsocketClose from "./decode-websocket-close.js";
 import decodeWebsocketSendMessage from "./decode-websocket-send.js";
 
 type ServerWebSocket = {
-  send(value: string | ArrayBufferLike | Blob | ArrayBufferView): void;
   close(code?: number, reason?: string): void;
+  send(value: ArrayBufferLike | ArrayBufferView | Blob | string): void;
 };
 
 /** The default request and response types, which are likely pointers into a
@@ -63,6 +63,17 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
    */
   const primateImports = {
     /**
+     * Get the current session and set it as the payload. This method should
+     * only be called after a JSON payload has been received via the `send`
+     * function.
+     */
+    getSession() {
+      const currentSession = session();
+      const encodedSession = encodeSession(currentSession);
+      payload = encodedSession;
+    },
+
+    /**
      * Create a new session and set it as the current session. This method
      * should only be called after a JSON payload has been received via the
      * `send` function.
@@ -79,14 +90,12 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
     },
 
     /**
-     * Get the current session and set it as the payload. This method should
-     * only be called after a JSON payload has been received via the `send`
-     * function.
+     * Get the length of the current active payload.
+     *
+     * @returns The length of the payload.
      */
-    getSession() {
-      const currentSession = session();
-      const encodedSession = encodeSession(currentSession);
-      payload = encodedSession;
+    payloadByteLength() {
+      return payload.byteLength;
     },
 
     /**
@@ -105,15 +114,6 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
     },
 
     /**
-     * Get the length of the current active payload.
-     *
-     * @returns The length of the payload.
-     */
-    payloadByteLength() {
-      return payload.byteLength;
-    },
-
-    /**
      * Send a payload from the WASM module to Primate.
      *
      * @param ptr The pointer to the payload in the WASM linear memory space.
@@ -127,18 +127,6 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
     },
 
     /**
-     * Send a WebSocket message to a given socket by it's id.
-     */
-    websocketSend() {
-      const { id, message } = decodeWebsocketSendMessage(payload);
-      assert(sockets.has(id),
-        `Invalid socket id ${id}. Was the socket already closed?`);
-
-      const socket = sockets.get(id)!;
-      socket.send(message);
-    },
-
-    /**
      * Close a WebSocket.
      */
     websocketClose() {
@@ -148,6 +136,18 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
       const socket = sockets.get(id)!;
       socket.close();
       sockets.delete(id);
+    },
+
+    /**
+     * Send a WebSocket message to a given socket by it's id.
+     */
+    websocketSend() {
+      const { id, message } = decodeWebsocketSendMessage(payload);
+      assert(sockets.has(id),
+        `Invalid socket id ${id}. Was the socket already closed?`);
+
+      const socket = sockets.get(id)!;
+      socket.send(message);
     },
   };
 
@@ -164,8 +164,8 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
 
     const instance = await WebAssembly.instantiate(bytes, {
       ...wasmImports,
-      "wasi_snapshot_preview1": context.exports,
       "primate": primateImports,
+      "wasi_snapshot_preview1": context.exports,
     });
     return instance;
   };
@@ -176,8 +176,8 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
       bytes,
       {
         ...wasmImports,
-        "wasi_snapshot_preview1": wasiSnapshotPreview1.wasiImport,
         "primate": primateImports,
+        "wasi_snapshot_preview1": wasiSnapshotPreview1.wasiImport,
       },
     );
     // start the wasi instance
@@ -194,10 +194,10 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
 
   const api: API = {};
   const instance = {
-    setPayload,
     api,
-    memory,
     exports,
+    memory,
+    setPayload,
     sockets,
   } as Instantiation<TRequest, TResponse>;
   for (const method of verbs) {
@@ -231,8 +231,8 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
 
         if (response.type === "text") {
           return text(response.text, {
-            status: response.status,
             headers: response.headers,
+            status: response.status,
           });
         }
 

@@ -41,35 +41,35 @@ test.case("flat", assert => {
 
   const fb = union("foo", "bar");
   assert(fb).type<UnionType<[LiteralType<"foo">, LiteralType<"bar">]>>();
-  assert(fb.validate("foo")).equals("foo").type<"foo" | "bar">();
-  assert(fb.validate("bar")).equals("bar").type<"foo" | "bar">();
+  assert(fb.validate("foo")).equals("foo").type<"bar" | "foo">();
+  assert(fb.validate("bar")).equals("bar").type<"bar" | "foo">();
   const fb_e = "expected `\"foo\" | \"bar\"`, got `1` (number)";
   assert(() => fb.validate(1)).throws(fb_e);
 });
 
 test.case("deep", assert => {
-  const u = union(string, { foo: bigint, bar: "baz" });
-  const u_e = `string | { foo: bigint, bar: "baz" }`;
+  const u = union(string, { bar: "baz", foo: bigint });
+  const u_e = "string | { bar: \"baz\", foo: bigint }";
 
   assert(u).type<UnionType<[StringType, {
-    foo: BigIntType;
     bar: LiteralType<"baz">;
+    foo: BigIntType;
   }]>>();
   assert(u.validate("foo")).equals("foo")
-    .type<string | { foo: bigint; bar: "baz" }>();
+    .type<{ bar: "baz"; foo: bigint } | string>();
   assert(() => u.validate(1)).throws(`expected \`${u_e}\`, got \`1\` (number)`);
 });
 
 test.case("classes", assert => {
-  class Class {};
+  class Class { };
   const c = new Class();
 
   const u = union(string, Class);
-  const u_e = `string | class Class {}`;
+  const u_e = "string | class Class { }";
 
   assert(u).type<UnionType<[StringType, ConstructorType<typeof Class>]>>();
-  assert(u.validate("foo")).equals("foo").type<string | Class>();
-  assert(u.validate(c)).equals(c).type<string | Class>();
+  assert(u.validate("foo")).equals("foo").type<Class | string>();
+  assert(u.validate(c)).equals(c).type<Class | string>();
   assert(() => u.validate(1)).throws(`expected \`${u_e}\`, got \`1\` (number)`);
 });
 
@@ -82,7 +82,7 @@ test.case("default", assert => {
   [bs_def_s, bs_def_s1, bs_def_b, bs_def_b1].forEach(type => {
     assert(type).type<DefaultType<
       UnionType<[BooleanType, StringType]>,
-      string | boolean>
+      boolean | string>
     >();
   });
 

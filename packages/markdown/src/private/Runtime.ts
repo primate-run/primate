@@ -1,7 +1,11 @@
-import type InputArgs from "#InputArgs";
 import Module from "@primate/core/frontend/Module";
 import maybe from "@rcompat/assert/maybe";
+import type { MarkedExtension } from "marked";
 import { marked } from "marked";
+import pema from "pema";
+import boolean from "pema/boolean";
+import pure from "pema/pure";
+import string from "pema/string";
 
 export default class Runtime extends Module {
   name = "markdown";
@@ -9,12 +13,23 @@ export default class Runtime extends Module {
   layouts = false;
   client = false;
 
-  constructor(...args: InputArgs) {
-    super(args[0]);
+  static schema = pema({
+    extension: string.optional(),
+    marked: pure<MarkedExtension>().optional(),
+    spa: boolean.default(true),
+    ssr: boolean.default(true),
+  });
 
-    maybe(args[1]).object();
+  static options = Runtime.schema.infer;
+  static input = Runtime.schema.input;
 
-    const renderer = { ...args[1]?.renderer ?? {} };
-    marked.use({ ...args[1], renderer });
+  constructor(config: typeof Runtime.input = {}) {
+    const { marked: markedOptions, ...superConfig } = config;
+    super(superConfig);
+
+    maybe(markedOptions).object();
+
+    const renderer = { ...markedOptions?.renderer ?? {} };
+    marked.use({ ...markedOptions, renderer });
   }
 }

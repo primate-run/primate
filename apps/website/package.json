@@ -2,14 +2,22 @@
   "name": "@primate/app/website",
   "type": "module",
   "scripts": {
-    "start": "npx primate",
-    "build": "npx primate build"
+    "build": "npm run copy && npx primate build",
+    "copy": "rm -rf components/content && cp -a ../../docs components/content",
+    "start": "./scripts/start.sh"
+  },
+  "imports": {
+    "#module/*": "./modules/*.ts"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.16.0",
-    "@rcompat/http": "^0.12.6",
-    "@rcompat/record": "^0.8.1",
-    "primate": "workspace:^"
+    "@primate/markdown": "workspace:^",
+    "@primate/poly": "workspace:^",
+    "@rcompat/fs": "^0.17.0",
+    "@rcompat/http": "^0.13.0",
+    "@rcompat/record": "^0.9.0",
+    "poly": "^0.7.2",
+    "primate": "workspace:^",
+    "shiki": "^3.9.1"
   }
 }

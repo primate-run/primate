@@ -78,10 +78,10 @@ const to_csp = (config_csp: Entry<CSP>[], assets: CSP, override: CSP) => config_
 
 const render_head = (assets: Asset[], fonts: unknown[], head?: string) =>
   assets.toSorted(({ type }) => -1 * Number(type === "importmap"))
-    .map(({ src, code, type, inline, integrity }) =>
+    .map(({ code, inline, integrity, src, type }) =>
       type === "style"
-        ? tags.style({ inline, code, href: src } as Style)
-        : tags.script({ inline, code, type, integrity, src } as Script),
+        ? tags.style({ code, href: src, inline } as Style)
+        : tags.script({ code, inline, integrity, src, type } as Script),
     ).join("\n").concat("\n", head ?? "").concat("\n", fonts.map(href =>
       tags.font({ href, type: "font/woff2" } as Font),
     ).join("\n"));
@@ -89,15 +89,15 @@ const render_head = (assets: Asset[], fonts: unknown[], head?: string) =>
 const s_http = Symbol("s_http");
 
 interface PublishOptions {
-  src?: string;
   code: string;
-  type: string;
   inline: boolean;
+  src?: string;
+  type: string;
 };
 
-type Import = Dict & {
+type Import = {
   default: unknown;
-};
+} & Dict;
 
 export default class ServeApp extends App {
   #init: ServeInit;
@@ -110,8 +110,8 @@ export default class ServeApp extends App {
   #router: FileRouter;
   #builtins: {
     dev?: DevModule;
-    session: SessionModule;
     handle: HandleModule;
+    session: SessionModule;
   };
 
   constructor(rootfile: string, init: ServeInit) {
@@ -126,24 +126,24 @@ export default class ServeApp extends App {
       host: http.host,
       port: http.port,
       ssl: this.secure ? {
-        key: this.root.join(http.ssl.key!),
         cert: this.root.join(http.ssl.cert!),
+        key: this.root.join(http.ssl.key!),
       } : {},
     });
 
     this.#router = FileRouter.init({
       extensions: [".js"],
       specials: {
-        guard: { recursive: true },
         error: { recursive: false },
+        guard: { recursive: true },
         layout: { recursive: true },
       },
     }, init.files.routes.map(s => s[0]));
 
     this.#builtins = {
       dev: init.mode === "development" ? new DevModule(this) : undefined,
-      session: new SessionModule(this),
       handle: new HandleModule(this),
+      session: new SessionModule(this),
     };
   };
 
@@ -207,7 +207,7 @@ export default class ServeApp extends App {
   };
 
   render(content: Omit<ViewOptions, keyof ResponseInit>) {
-    const { body, head, partial, placeholders = {}, page } = content;
+    const { body, head, page, partial, placeholders = {} } = content;
     ["body", "head"].forEach(key => is(placeholders[key]).undefined());
 
     return partial ? body : Object.entries(placeholders)
@@ -226,39 +226,39 @@ export default class ServeApp extends App {
   }
 
   respond(body: BodyInit | null, init?: ResponseInit) {
-    const { status, headers } = pema({
-      status: uint.values(Status).default(Status.OK),
+    const { headers, status } = pema({
       headers: record(string, string),
+      status: uint.values(Status).default(Status.OK),
     }).validate(init);
 
     return new Response(body, {
-      status: status as number, headers: {
+      headers: {
         "Content-Type": html, ...this.headers(), ...headers,
-      },
+      }, status: status as number,
     });
   };
 
   view(options: ViewOptions) {
     // split render and respond options
-    const { status = Status.OK, headers = {}, statusText, ...rest } = options;
-    return this.respond(this.render(rest), { status, headers });
+    const { headers = {}, status = Status.OK, statusText, ...rest } = options;
+    return this.respond(this.render(rest), { headers, status });
   };
 
   media(content_type: string, response: ResponseInit = {}): ResponseInit {
     return {
-      status: response.status ?? Status.OK,
       headers: { ...response.headers, "Content-Type": content_type },
+      status: response.status ?? Status.OK,
     };
   };
 
-  async publish({ src, code, type = "", inline = false }: PublishOptions) {
+  async publish({ code, inline = false, src, type = "" }: PublishOptions) {
     if (inline || type === "style") {
       this.#assets.push({
-        src: FileRef.join(this.#init.config.http.static.root, src ?? "").path,
         code: inline ? code : "",
-        type,
         inline,
         integrity: await hash(code),
+        src: FileRef.join(this.#init.config.http.static.root, src ?? "").path,
+        type,
       });
     }
 
@@ -267,11 +267,11 @@ export default class ServeApp extends App {
   };
 
   create_csp() {
-    this.#csp = this.#assets.map(({ type: directive, integrity }) =>
+    this.#csp = this.#assets.map(({ integrity, type: directive }) =>
       [`${directive === "style" ? "style" : "script"}-src`, integrity])
       .reduce((csp: CSP, [directive, hash]) =>
         ({ ...csp, [directive]: csp[directive as keyof CSP]!.concat(`'${hash}'`) }),
-        { "style-src": [], "script-src": [] },
+        { "script-src": [], "style-src": [] },
       );
   };
 
@@ -333,7 +333,7 @@ export default class ServeApp extends App {
     const verb = request.method.toLowerCase() as Verb;
     const local_parse_body = /*route.file.body?.parse ?? */$request_body_parse;
     const body = local_parse_body ? await parse_body(request, url) : null;
-    const { guards = [], errors = [], layouts = [] } = entries(route.specials)
+    const { errors = [], guards = [], layouts = [] } = entries(route.specials)
       .map(([key, value]) => [`${key}s`, value ?? []])
       .map(([key, value]) => [key, value.map(v => {
         const verbs = router.get(v);
@@ -353,10 +353,10 @@ export default class ServeApp extends App {
     }
 
     return {
-      guards,
       errors,
-      layouts,
+      guards,
       handler,
+      layouts,
       request: {
         ...facade,
         body,

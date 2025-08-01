@@ -70,11 +70,11 @@ export default class PostgreSQLDatabase extends Database {
     const client = this.#client;
 
     const columns = Object.keys(args.record);
-    const bound = await this.bind(args.record, as.types);
+    const binds = await this.bind(args.record, as.types);
     const [result] = await client`INSERT INTO
       ${client(as.name)}
       ${columns.length > 0
-        ? client`(${client(columns)}) VALUES ${client(bound)}`
+        ? client`(${client(columns)}) VALUES ${client(binds)}`
         : client.unsafe("DEFAULT VALUES")}
       RETURNING id;
     `;
@@ -82,30 +82,30 @@ export default class PostgreSQLDatabase extends Database {
   }
 
   read(as: As, args: {
-    criteria: DataDict;
     count: true;
+    criteria: DataDict;
   }): Promise<number>;
   read(as: As, args: {
     criteria: DataDict;
     fields?: string[];
-    sort?: Dict<"asc" | "desc">;
     limit?: number;
+    sort?: Dict<"asc" | "desc">;
   }): Promise<Dict[]>;
   async read(as: As, args: {
+    count?: true;
     criteria: DataDict;
     fields?: string[];
-    count?: true;
-    sort?: Dict<"asc" | "desc">;
     limit?: number;
+    sort?: Dict<"asc" | "desc">;
   }) {
-    const bound = await this.bind(args.criteria, as.types);
+    const binds = await this.bind(args.criteria, as.types);
     const client = this.#client;
 
     if (args.count === true) {
       const [{ n }] = await client`
         SELECT COUNT(*) AS n
         FROM ${client(as.name)}
-        WHERE ${Object.entries(bound).reduce((acc, [key, value]) =>
+        WHERE ${Object.entries(binds).reduce((acc, [key, value]) =>
         (client as any)`${acc} AND ${client(key)} = ${value}`, client`TRUE`)}
       `;
       return Number(n);
@@ -119,7 +119,7 @@ export default class PostgreSQLDatabase extends Database {
     const records = (await client`
       SELECT ${client.unsafe(select)}
       FROM ${client(as.name)}
-      WHERE ${Object.entries(bound).reduce((acc, [key, value]) =>
+      WHERE ${Object.entries(binds).reduce((acc, [key, value]) =>
       (client as any)`${acc} AND ${client(key)} = ${value}`, client`TRUE`)}
       ${client.unsafe(sort)}
       ${client.unsafe(limit)}
@@ -129,20 +129,20 @@ export default class PostgreSQLDatabase extends Database {
   }
 
   async update(as: As, args: {
-    criteria: DataDict;
     changes: DataDict;
-    sort?: Dict<"asc" | "desc">;
+    criteria: DataDict;
     limit?: number;
+    sort?: Dict<"asc" | "desc">;
   }) {
     const client = this.#client;
 
-    const bound_criteria = await this.bind(args.criteria, as.types);
-    const bound_changes = await this.bind(args.changes, as.types);
+    const criteria_binds = await this.bind(args.criteria, as.types);
+    const changes_binds = await this.bind(args.changes, as.types);
 
     return (await client`
       UPDATE ${client(as.name)}
-      SET ${client({ ...bound_changes })}
-      WHERE ${Object.entries(bound_criteria).reduce((acc, [key, value]) =>
+      SET ${client({ ...changes_binds })}
+      WHERE ${Object.entries(criteria_binds).reduce((acc, [key, value]) =>
       (client as any)`${acc} AND ${client(key)} = ${value}`, client`TRUE`)}
       RETURNING 1;
     `).length;
@@ -151,11 +151,11 @@ export default class PostgreSQLDatabase extends Database {
   async delete(as: As, args: { criteria: DataDict }) {
     const client = this.#client;
 
-    const bound = await this.bind(args.criteria, as.types);
+    const binds = await this.bind(args.criteria, as.types);
 
     return (await client`
       DELETE FROM ${client(as.name)}
-      WHERE ${Object.entries(bound).reduce((acc, [key, value]) =>
+      WHERE ${Object.entries(binds).reduce((acc, [key, value]) =>
       (client as any)`${acc} AND ${client(key)} = ${value}`, client`TRUE`)}
       RETURNING 1;
     `).length;

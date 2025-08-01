@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-rm -r components/content
+rm -rf components/content
 cp -a ../../docs components/content
-npx primate@0.31.13 serve
+npx primate serve

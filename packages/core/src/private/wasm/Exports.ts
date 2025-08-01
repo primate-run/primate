@@ -12,15 +12,15 @@ type ExportedMethods<TRequest = I32, TResponse = I32> = {
 /** These functions should be exported by a WASM module to be compatible with
  * Primate. This follows the Primate WASM ABI convention. */
 type Exports<TRequest = I32, TResponse = I32> = {
+  finalizeRequest(value: Tagged<"Request", TRequest>): void;
+  finalizeResponse(value: Tagged<"Response", TResponse>): void;
+  getStoreValueDone(): void;
   memory: WebAssembly.Memory;
   newRequest(): Tagged<"Request", TRequest>;
   sendResponse(response: Tagged<"Response", TResponse>): void;
-  finalizeRequest(value: Tagged<"Request", TRequest>): void;
-  finalizeResponse(value: Tagged<"Response", TResponse>): void;
-  websocketOpen(): void;
   websocketClose(): void;
   websocketMessage(): void;
-  getStoreValueDone(): void;
+  websocketOpen(): void;
 } & ExportedMethods<TRequest, TResponse>;
 
 export type { Exports as default };

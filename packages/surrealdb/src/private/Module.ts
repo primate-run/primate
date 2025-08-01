@@ -7,13 +7,13 @@ import uint from "pema/uint";
 import Surreal from "surrealdb";
 
 const schema = pema({
-  host: string.default("http://localhost"),
-  port: uint.port().default(8000),
-  path: string.default("/rpc"),
-  namespace: string.optional(),
   database: string,
-  username: string.optional(),
+  host: string.default("http://localhost"),
+  namespace: string.optional(),
   password: string.optional(),
+  path: string.default("/rpc"),
+  port: uint.port().default(8000),
+  username: string.optional(),
 });
 
 export default class SurrealDBModule extends Module {
@@ -29,18 +29,18 @@ export default class SurrealDBModule extends Module {
   }
 
   get #url() {
-    const { host, port, path } = this.#config;
+    const { host, path, port } = this.#config;
 
     return `${host}:${port}/${path}`;
   }
 
   get #options() {
-    const { namespace, database, username, password } = this.#config;
+    const { database, namespace, password, username } = this.#config;
     const auth = username !== undefined && password !== undefined
-      ? { username, password }
+      ? { password, username }
       : undefined;
 
-    return { namespace, database, auth };
+    return { auth, database, namespace };
   }
 
   async init() {

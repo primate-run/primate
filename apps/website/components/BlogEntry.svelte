@@ -15,7 +15,7 @@
   <h1>{title}</h1>
   <div class="blog-metadata">
     <Icon name="calendar" />
-    {date(epoch)} by 
+    {date(epoch)} by
     <a class="author" href="https://github.com/{author}">{author}</a>
   </div>
 {@html content}

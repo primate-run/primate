@@ -1,117 +1,117 @@
-import numeric from "@rcompat/assert/numeric";
-import type TypeMap from "@primate/core/db/TypeMap";
 import type ColumnTypes from "#ColumnTypes";
+import type TypeMap from "@primate/core/db/TypeMap";
+import numeric from "@rcompat/assert/numeric";
 
 function identity<C extends keyof ColumnTypes>(column: C): {
-  column: C;
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];
+  column: C;
   unbind: (value: ColumnTypes[C]) => ColumnTypes[C];
 } {
   return {
-    column,
     bind: value => value,
+    column,
     unbind: value => value,
   };
 }
 
 function number<C extends keyof ColumnTypes>(column: C): {
-  column: C;
   bind: (value: number) => number;
+  column: C;
   unbind: (value: ColumnTypes[C]) => number;
 } {
   return {
-    column,
     bind: (value) => value,
+    column,
     unbind: (value) => Number(value),
   };
 }
 const typemap: TypeMap<ColumnTypes> = {
   blob: {
-    column: "BLOB",
     async bind(value) {
       const arrayBuffer = await value.arrayBuffer();
       return new Uint8Array(arrayBuffer);
     },
+    column: "BLOB",
     unbind(value) {
       return new Blob([value], { type: "application/octet-stream" });
     },
   },
   boolean: {
-    column: "INTEGER",
     bind(value) {
       return value === true ? 1 : 0;
     },
+    column: "INTEGER",
     unbind(value) {
       return Number(value) === 1;
     },
   },
   datetime: {
-    column: "TEXT",
-    bind(value)  {
+    bind(value) {
       return value.toJSON();
     },
+    column: "TEXT",
     unbind(value) {
       return new Date(value);
     },
   },
   f32: identity("REAL"),
   f64: identity("REAL"),
-  string: identity("TEXT"),
-  i8: number("INTEGER"),
-  i16: number("INTEGER"),
-  i32: number("INTEGER"),
-  i64: {
-    column: "INTEGER",
-    bind(value) {
-      return value;
-    },
-    unbind(value) {
-      return BigInt(value);
-    },
-  },
   i128: {
-    column: "TEXT",
     bind(value) {
       return String(value);
     },
+    column: "TEXT",
     unbind(value) {
       return BigInt(value);
     },
   },
+  i16: number("INTEGER"),
+  i32: number("INTEGER"),
+  i64: {
+    bind(value) {
+      return value;
+    },
+    column: "INTEGER",
+    unbind(value) {
+      return BigInt(value);
+    },
+  },
+  i8: number("INTEGER"),
   primary: {
-    column: "INTEGER PRIMARY KEY",
     bind(value) {
       if (numeric(value)) {
         return Number(value);
       }
       throw new Error(`\`${value}\` is not a valid primary key value`);
     },
+    column: "INTEGER PRIMARY KEY",
     unbind(value) {
       return String(value);
     },
   },
+  string: identity("TEXT"),
   time: identity("TEXT"),
-  u8: number("INTEGER"),
+  u128: {
+    bind(value) {
+      return String(value);
+    },
+    column: "TEXT",
+    unbind(value) {
+      return BigInt(value);
+    },
+  },
   u16: number("INTEGER"),
   u32: number("INTEGER"),
   u64: {
-    column: "TEXT",
     bind(value) {
       return String(value);
     },
+    column: "TEXT",
     unbind(value) {
       return BigInt(value);
     },
   },
-  u128: {
-    column: "TEXT",
-    bind(value) {
-      return String(value);
-    },
-    unbind(value) {
-      return BigInt(value);
-    },
-  },
+  u8: number("INTEGER"),
 };
 
 export default typemap;
