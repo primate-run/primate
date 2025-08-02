@@ -154,7 +154,7 @@ export default await db.wrap("${file.base}", store);`);
         return { namespace: "frontends", path };
       });
       build.onLoad({ filter: /#frontends/ }, async () => {
-        const contents = app.frontends.map(name =>
+        const contents = [...app.frontends.keys()].map(name =>
           `export { default as ${name} } from "@primate/${name}";`).join("\n");
         return { contents, resolveDir: app.root.path };
       });
@@ -163,11 +163,6 @@ export default await db.wrap("${file.base}", store);`);
 
   // copy additional subdirectories to build/server
   await copy_includes(app, location.server);
-
-  //const components = await app.runpath(location.components).collect();
-
-  // from the build directory, compile to server and client
-  //await Promise.all(components.map(component => app.compile(component)));
 
   // start the build
   await app.build.start();

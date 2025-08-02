@@ -1,29 +1,29 @@
 <script>
   import { onMount } from "svelte";
-  import Icons from "./Icons.svelte";
-  import Icon from "./Icon.svelte";
+  import Icons from "#component/Icons";
+  import Icon from "#component/Icon";
 
   export let app, title;
 
-  const {theme} = app;
-  const part = link => link.split("/")[1];
+  const { theme } = app;
+  const part = (link) => link.split("/")[1];
   const toggleColorScheme = () =>
-    colorscheme.update(value => value === "dark" ? "light" : "dark");
+    colorscheme.update((value) => (value === "dark" ? "light" : "dark"));
 
-  let highlight = _ => "";
+  let highlight = (_) => "";
   let colorscheme;
 
-  const clipboard = text => {
+  const clipboard = (text) => {
     globalThis.navigator.clipboard.writeText(text);
   };
 
   onMount(async () => {
     colorscheme = (await import("./localStorage.js")).default;
-    highlight = link =>
+    highlight = (link) =>
       part(link) === part(globalThis.window.location.pathname) ? "active" : "";
 
-    globalThis.document.querySelectorAll(".copy").forEach(snippet => {
-      snippet.addEventListener("click", event => {
+    globalThis.document.querySelectorAll(".copy").forEach((snippet) => {
+      snippet.addEventListener("click", (event) => {
         const to_clipboard = event.target.closest(".to-clipboard");
         clipboard(to_clipboard.nextElementSibling.textContent);
         to_clipboard.classList.add("copied");
@@ -34,9 +34,10 @@
     });
   });
 </script>
+
 <svelte:head>
   <title>Primate - {title}</title>
-  <meta name="description" content="{title}">
+  <meta name="description" content={title} />
 </svelte:head>
 <Icons />
 <header>
@@ -47,10 +48,10 @@
   <div class="search"></div>
 
   <ul class="navbar">
-    {#each theme.navbar as {link, label}}
-    <li>
-      <a href="{link}" class="{highlight(link)}">{label}</a>
-    </li>
+    {#each theme.navbar as { link, label }}
+      <li>
+        <a href={link} class={highlight(link)}>{label}</a>
+      </li>
     {/each}
 
     <div class="divider" />
@@ -59,7 +60,7 @@
       <Icon name={$colorscheme === "dark" ? "sun" : "moon"} />
     </button>
 
-    <a class="ic" href="{theme.chat}">
+    <a class="ic" href={theme.chat}>
       <Icon name="chat" />
     </a>
 
@@ -71,5 +72,4 @@
       <Icon name="github" />
     </a>
   </ul>
-
 </header>

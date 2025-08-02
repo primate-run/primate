@@ -6,4 +6,4 @@ const posts = [{
   title: "First post",
 }];
 
-route.get(() => view("post-index.webc", { posts }));
+route.get(() => view("PostIndex.webc", { posts }));

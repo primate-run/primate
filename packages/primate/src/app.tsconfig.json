@@ -12,7 +12,7 @@
     "exactOptionalPropertyTypes": true,
     "paths": {
       "#route/*": ["routes/*"],
-      "#component/*": ["components/*"],
+      "#component/*": ["components/*", "components/*.svelte"],
       "#store/*": ["stores/*"],
       "#module/*": ["modules/*"],
       "#config/*": ["config/*"],

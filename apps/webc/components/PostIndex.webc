@@ -1,6 +1,6 @@
 <script>
   import Component from "@primate/webc/Component";
-  import PostLink from "./post-link.webc";
+  import PostLink from "#component/PostLink";
 
   export default class PostIndex extends Component {
     mounted(root) {

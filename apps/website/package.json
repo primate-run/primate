@@ -3,8 +3,8 @@
   "type": "module",
   "scripts": {
     "build": "npm run copy && npx primate build",
-    "copy": "rm -rf components/content && cp -a ../../docs components/content",
-    "start": "./scripts/start.sh"
+    "serve": "npx primate serve",
+    "copy": "rm -rf components/content && cp -a ../../docs components/content"
   },
   "imports": {
     "#module/*": "./modules/*.ts"

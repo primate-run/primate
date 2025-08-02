@@ -1,7 +1,7 @@
 <script>
   import { onMount } from "svelte";
-  import Header from "./Header.svelte";
-  import Icon from "./Icon.svelte";
+  import Header from "#component/Header";
+  import Icon from "#component/Icon";
 
   export let content, app, examples;
 
@@ -14,24 +14,24 @@
     vue: ["PostIndex", "vue"],
     angular: ["post-index", "component.ts"],
     htmx: ["post-index", "htmx"],
-    webc: ["post-index", "webc"]
+    webc: ["post-index", "webc"],
   };
 
   const modify_route = ([name, ending]) => {
     const selector = "code .line > span";
     [...globalThis.document.querySelector(".tabs").querySelectorAll(selector)]
-      .filter(string => string.innerText.slice(1).includes("ndex."))
-      .forEach(string => {
+      .filter((string) => string.innerText.slice(1).includes("ndex."))
+      .forEach((string) => {
         string.innerText = `${name}.${ending}`;
       });
   };
 
-  const clipboard = text => {
+  const clipboard = (text) => {
     globalThis.navigator.clipboard.writeText(text);
   };
 
   onMount(() => {
-    globalThis.document.querySelectorAll(".tabbed").forEach(tabbed => {
+    globalThis.document.querySelectorAll(".tabbed").forEach((tabbed) => {
       const captions = tabbed.querySelector(".captions").childNodes;
       const tabs = tabbed.querySelector(".tabs").childNodes;
       captions.forEach((caption, i) => {
@@ -39,14 +39,14 @@
           const filename = filenames[caption.innerText.toLowerCase()];
           filename && modify_route(filename);
 
-          captions.forEach((_caption, j)  => {
+          captions.forEach((_caption, j) => {
             if (i === j) {
               _caption.classList.add("active");
             } else {
               _caption.classList.remove("active");
             }
           });
-          tabs.forEach((tab, j)  => {
+          tabs.forEach((tab, j) => {
             if (i === j) {
               tab.classList.remove("hidden");
             } else {
@@ -58,6 +58,7 @@
     });
   });
 </script>
+
 <Header {app} {title} />
 <main class="hero">
   <div class="header">
@@ -93,9 +94,9 @@
       </div>
       <p>
         Write backend code in your language of choice, leveraging the power of
-        Wasm. Mix routes of <a href="/modules/backend">different backend
-          languages</a>, allowing your application to be written by different
-        teams.
+        Wasm. Mix routes of <a href="/modules/backend"
+          >different backend languages</a
+        >, allowing your application to be written by different teams.
       </p>
       {@html examples.backend}
     </div>
@@ -110,10 +111,10 @@
         <img src="/logos/webc.svg" title="Web Components" class="invertible" />
       </div>
       <p>
-        Seamlessly switch between <a href="/modules/frontend">frontend
-          frameworks</a>, with support for SSR, hydration and layouts across
-        the board. You can even combine more than one framework in your
-        application.
+        Seamlessly switch between <a href="/modules/frontend"
+          >frontend frameworks</a
+        >, with support for SSR, hydration and layouts across the board. You can
+        even combine more than one framework in your application.
       </p>
       {@html examples.frontend}
     </div>
@@ -143,13 +144,13 @@
         <img src="/logos/mongodb.svg" title="MongoDB" />
         <img src="/logos/surrealdb.svg" title="SurrealDB" />
       </div>
-      <p>Validate input using Primate <a href="/modules/schema">schemas</a>.
-        Persist information with <a href="/modules/store">stores</a>,
-        using any of the supported <a href="/modules/drivers">database drivers</a>
-        with a unified ORM interface, or write your own optimized, low-level
-        store actions. Primate's ORM comes with automated transaction management and
-        rollback on error, saving you writing boilerplate code in your
-        application routes.
+      <p>
+        Validate input using Primate <a href="/modules/schema">schemas</a>.
+        Persist information with <a href="/modules/store">stores</a>, using any
+        of the supported <a href="/modules/drivers">database drivers</a>
+        with a unified ORM interface, or write your own optimized, low-level store
+        actions. Primate's ORM comes with automated transaction management and rollback
+        on error, saving you writing boilerplate code in your application routes.
       </p>
     </div>
     <div>
@@ -159,9 +160,11 @@
         <img src="/logos/svelte.svg" title="Svelte" />
         <img src="/logos/solid.svg" title="Solid" />
       </div>
-      <p>Easily make your application international, using a unified API across
-      different frontends with placeholder support and a built-in language
-      switcher.</p>
+      <p>
+        Easily make your application international, using a unified API across
+        different frontends with placeholder support and a built-in language
+        switcher.
+      </p>
       {@html examples.i18n}
     </div>
     <div>
@@ -169,11 +172,12 @@
       <div class="logos">
         <img src="/logos/esbuild.svg" title="esbuild" />
       </div>
-      <p>Use <a href="/modules/build">esbuild</a> for hot reload during
+      <p>
+        Use <a href="/modules/build">esbuild</a> for hot reload during
         development and bundling in production, add
         <a href="/guide/sessions">user sessions</a> or
-        <a href="/guide/extending-primate">write your own modules</a> using the
-        available hooks.
+        <a href="/guide/extending-primate">write your own modules</a> using the available
+        hooks.
       </p>
     </div>
   </div>
@@ -192,9 +196,7 @@
       </thead>
       <tbody>
         <tr>
-          <td colspan="6">
-            Backend
-          </td>
+          <td colspan="6"> Backend </td>
         </tr>
         <tr>
           <td>JavaScript</td>
@@ -245,9 +247,7 @@
           </td>
         </tr>
         <tr>
-          <td colspan="6">
-            Frontend
-          </td>
+          <td colspan="6"> Frontend </td>
         </tr>
         <tr>
           <td>React</td>
@@ -380,9 +380,7 @@
           </td>
         </tr>
         <tr>
-          <td colspan="6">
-            Native runtime
-          </td>
+          <td colspan="6"> Native runtime </td>
         </tr>
         <tr>
           <td>Node</td>
@@ -391,7 +389,7 @@
           <td>✓</td>
           <td>✓</td>
           <td>✓</td>
-        <tr>
+        </tr><tr>
           <td>Deno</td>
           <td>✗</td>
           <td>✗</td>
@@ -408,9 +406,7 @@
           <td>✓</td>
         </tr>
         <tr>
-          <td colspan="6">
-            Data stores / ORM
-          </td>
+          <td colspan="6"> Data stores / ORM </td>
         </tr>
         <tr>
           <td>SQLite</td>
@@ -453,9 +449,7 @@
           <td><a href="/modules/drivers#surrealdb">✓</a></td>
         </tr>
         <tr>
-          <td colspan="6">
-            Ecosystem
-          </td>
+          <td colspan="6"> Ecosystem </td>
         </tr>
         <tr>
           <td>I18N</td>
@@ -517,7 +511,6 @@
     </table>
   </div>
 
-
   <div class="footer">
     <div class="table">
       <div>
@@ -534,7 +527,7 @@
       <div>
         <div class="heading">community</div>
         <ul>
-          <li><a href="{theme.chat}">discord</a></li>
+          <li><a href={theme.chat}>discord</a></li>
           <li><a href="https://x.com/{theme.x}">x</a></li>
           <li><a href="https://github.com/{theme.github}">github</a></li>
         </ul>

@@ -1,8 +1,8 @@
+import Link from "#component/Link";
 import Head from "@primate/react/Head";
 import t from "@primate/react/i18n";
 import locale from "@primate/react/locale";
 import { useState } from "react";
-import Link from "./Link.jsx";
 
 export default ({ posts, title, request }) => {
   const [count, setCount] = useState(0);

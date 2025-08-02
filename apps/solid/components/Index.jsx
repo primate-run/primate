@@ -3,7 +3,7 @@ import t from "@primate/solid/i18n";
 import locale from "@primate/solid/locale";
 import { createSignal } from "solid-js";
 import { For } from "solid-js/web";
-import Link from "./Link.jsx";
+import Link from "#component/Link";
 
 export default ({ posts, title, request }) => {
   const [count, setCount] = createSignal(0);

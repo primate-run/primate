@@ -168,7 +168,7 @@ export default abstract class FrontendModule<
           ? {
             component: app.component<S>(`${this.rootname}.js`),
             props: {
-              components: components.map(({ component }) => component),
+              components: components.map(c => c.component),
               props: components.map(c => c.props),
               request: $request,
             },
@@ -199,7 +199,7 @@ export default abstract class FrontendModule<
       const { compile, css, extension, name, root } = this;
 
       if (this.client) {
-        app.frontend(this.name);
+        app.frontends.set(name, extension);
       }
 
       app.build.plugin({

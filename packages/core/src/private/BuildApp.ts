@@ -21,7 +21,7 @@ type ExtensionCompile = {
 };
 
 export default class BuildApp extends App {
-  #frontends: Set<string> = new Set();
+  frontends: Map<string, string> = new Map();
   #postbuild: (() => void)[] = [];
   #extensions: PartialDict<ExtensionCompile> = {};
   #roots: FileRef[] = [];
@@ -35,10 +35,6 @@ export default class BuildApp extends App {
 
   get id() {
     return this.#id;
-  }
-
-  get frontends() {
-    return [...this.#frontends.values()];
   }
 
   get build() {
@@ -55,7 +51,11 @@ export default class BuildApp extends App {
           compilerOptions: {
             baseUrl: "${configDir}",
             paths: {
-              "#component/*": ["components/*"],
+              "#component/*": [
+                "components/*",
+                ...[...this.frontends.values()]
+                  .map(extension => `components/*${extension}`),
+              ],
             },
           },
         },
@@ -73,10 +73,6 @@ export default class BuildApp extends App {
 
   get roots() {
     return [...this.#roots];
-  }
-
-  frontend(name: string) {
-    this.#frontends.add(name);
   }
 
   done(fn: () => void) {
