@@ -162,6 +162,8 @@ header {
 main {
   display: flex;
   padding-top: var(--height);
+  margin: 0 auto;
+  max-width: 1280px;
 }
 
 .sidebar {
@@ -186,16 +188,21 @@ main {
 }
 
 .sidebar .heading {
-  padding-top: var(--prs-page-padding-side);
+  padding-top: 40px;
+  padding-left: 0;
+  border: 0;
 }
 
 .sidebar li {
-  padding-bottom: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(60, 60, 67, .12);
 }
 
 .sidebar .current {
-  color: var(--primary);
   font-weight: bold;
+  border-left: 1px solid black;
 }
 
 .sidebar a,
@@ -333,7 +340,7 @@ article {
   padding-top: 30px;
   padding-bottom: var(--prs-page-padding-side);
   padding-left: calc(var(--sidebar-width) + 2 * var(--prs-page-padding-side));
-  padding-right: calc(var(--sidebar-width) + var(--prs-page-padding-side));
+  padding-right: calc(var(--sidebar-width) / 2);
 }
 
 article ul {
@@ -404,15 +411,6 @@ th {
   font-size: 12px;
 }
 
-.caption {
-  font-family: droid-sans-mono, sans-serif;
-  font-size: var(--prs-text-s);
-  padding: 10px;
-  background-color: var(--caption-bg);
-  color: var(--caption-fg);
-  border-bottom: 2px solid var(--caption-hr);
-}
-
 article :where(h2, h3, h4, h5, h6):hover a.deeplink {
   opacity: 1;
 }
@@ -453,9 +451,20 @@ article a.deeplink {
   width: 24px;
 }
 
-header a:hover,
-nav a:hover {
+.sidebar .depth-2 {
+  padding-left: 2rem;
+}
+
+.sidebar .depth-2 a {
+  color: var(--heading);
+}
+
+header a:hover {
   color: var(--primary);
+}
+
+nav a:hover {
+  font-weight: bold;
 }
 
 .hero .header {
@@ -554,14 +563,18 @@ main.hero {
   color: var(--primary);
 }
 
-.tabbed .captions {
+.tabbed .captionline {
   display: flex;
+  background-color: #2e3440;
+  border-bottom: 1px solid var(--tabbed);
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
+  color: #bababa;
+}
+
+.tabbed .captions {
+  display: flex;
   font-size: 12px;
-  background-color: #2e3440ff;
-  color: #fff;
-  border-bottom: 1px solid var(--tabbed);
 }
 
 .tabbed .captions span {
@@ -569,11 +582,39 @@ main.hero {
   cursor: pointer;
   border-right: 1px solid var(--tabbed);
   color: #bababa;
+  display: flex;
+}
+
+.tabbed .captions span img {
+  width: 14px;
+  margin-right: 5px;
 }
 
 .tabbed .captions .active,
 .tabbed .captions span:hover {
   color: #fff;
+}
+
+.tabbed .filenames {
+  display: flex;
+  font-size: 11px;
+  flex-grow: 1;
+  align-items: center;
+  font-family: "droid-sans-mono";
+  justify-content: flex-end;
+}
+
+.tabbed .filenames span {
+  display: none;
+  padding: 0 15px;
+}
+
+.tabbed .filenames span.active {
+  display: initial;
+}
+
+.tabbed .captions .filenames span {
+  display: none;
 }
 
 .hero .table {
@@ -666,16 +707,16 @@ main.hero {
 
 .to-clipboard svg {
   position: absolute;
-  right: 1rem;
+  right: 1.5rem;
   top: 1rem;
-  color: var(--heading);
+  color: #bababa;
   height: 24px;
   cursor: pointer;
   transition: color 0.25s;
 }
 
 .to-clipboard svg.copy:hover {
-  color: var(--primary);
+  color: #fff;
 }
 
 .to-clipboard .check,

@@ -1,9 +1,14 @@
 import markdown from "@primate/markdown";
 import poly from "@primate/poly";
+import FileRef from "@rcompat/fs/FileRef";
 import root from "@rcompat/package/root";
 import config from "primate/config";
+import type { SpecialLanguage } from "shiki";
 import { createHighlighter } from "shiki";
 import Priss from "../modules/Priss.ts";
+
+const grain = await FileRef.join(import.meta.dirname, "grain.json")
+  .json<SpecialLanguage>();
 
 const highlighter = await createHighlighter({
   langs: [
@@ -30,6 +35,25 @@ const highlighter = await createHighlighter({
   ],
   themes: ["nord"],
 });
+
+await highlighter.loadLanguage({ ...grain, aliases: ["gr"] });
+
+function make_captions(captionline: string) {
+  const captions = captionline.split(",").map(p => p.split(":")[0]);
+  const filenames = captionline.split(",").map(p => p.split(":")[1]);
+
+  const filename_block = filenames[0] !== undefined
+    ? `<span class="filenames">${filenames.map((filename, i) =>
+      `<span${i === 0 ? " class='active'" : ""}>${filename}</span>`)
+      .join("")}</span>`
+    : "";
+
+  return `<span class="captionline">
+    <span class="captions">${captions.map((caption, i) =>
+    `<span${i === 0 ? " class='active'" : ""}>${caption}</span>`)
+      .join("")
+    }</span>${filename_block}</span>`;
+}
 
 export default config({
   build: {
@@ -58,16 +82,13 @@ export default config({
 \`\`\`
 
 </div>`).join("");
-              return `<div class="tabbed"><span class="captions">${p1.split(",").map((caption, i) => `<span${i === 0 ? " class='active'" : ""}>${caption}</span>`).join("")
-                }</span><span class="tabs">${t}</span></div>`;
+              return `<div class="tabbed">${make_captions(p1)}<span class="tabs">${t}</span></div>`;
             });
           },
         },
         renderer: {
           code(token) {
             const [lang, rest = ""] = token.lang!.split(" ");
-            const caption = [...rest.matchAll(/caption=(?<caption>.*)/ug)][0]?.groups?.caption;
-            const top = caption ? `<div class="caption">${caption}</div>` : "";
             const value = highlighter.codeToHtml(token.text, {
               lang,
               themes: {
@@ -86,7 +107,7 @@ export default config({
               </div>
 
             `;
-            return `${top}${clipboard}${value}`;
+            return `${clipboard}${value}`;
           },
           heading(token) {
             const level = token.depth;
@@ -134,13 +155,23 @@ export default config({
           replacement = "%%% ";
 
           const files = await (await root()).join("snippets", folder).list();
+          const [filenamer] = files.filter(file => file.name === "filename.ts");
+          const has_filename = filenamer !== undefined;
+          const to_filename = has_filename ? await filenamer.import("default") : () => "";
 
-          replacement += files.map(file =>
-            file.name.slice(0, -file.fullExtension.length)).join(", ");
+          const snippets = files.filter(file => file.name !== "filename.ts");
+
+          replacement += snippets
+            .map(file =>
+              file.name.slice(0, -file.fullExtension.length)
+              + (has_filename ? `:${to_filename(file.fullExtension)}` : ""),
+            ).join(", ");
           replacement += "\n\n";
 
-          for (const file of files) {
-            replacement += `\`\`\`${file.extension.slice(1)}\n${await file.text()}\`\`\`\n\n`;
+          const is_sh = (file: FileRef) => file.extension === ".sh" ? "$ " : "";
+
+          for (const file of snippets) {
+            replacement += `\`\`\`${file.extension.slice(1)}\n${is_sh(file)}${await file.text()}\`\`\`\n\n`;
           }
 
           replacement += "\n%%%";
@@ -261,7 +292,10 @@ export default config({
             title: "Framework",
           },
           {
-            items: [
+            items: [{
+              href: "/frontend",
+              title: "Overview",
+            }].concat(...[
               "Angular",
               "Eta",
               "Handlebars",
@@ -279,7 +313,7 @@ export default config({
             ].toSorted().map(title => ({
               href: `/frontend/${title.replaceAll(" ", "-").toLowerCase()}`,
               title,
-            })),
+            }))),
             title: "Frontends",
           },
           {

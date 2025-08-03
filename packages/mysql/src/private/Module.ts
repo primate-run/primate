@@ -6,7 +6,7 @@ import string from "pema/string";
 import uint from "pema/uint";
 
 const schema = pema({
-  database: string.optional(),
+  database: string,
   host: string.default("localhost"),
   password: string.optional(),
   port: uint.port().default(3306),

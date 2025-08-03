@@ -1,22 +1,29 @@
-import Module from "@primate/core/db/Module";
 import Database from "#Database";
+import Module from "@primate/core/db/Module";
 import Client from "@rcompat/sqlite";
-import is from "@rcompat/assert/is";
+import pema from "pema";
+import string from "pema/string";
+
+const schema = pema({
+  database: string.default(":memory:"),
+});
 
 export default class Sqlite extends Module {
-  #path: string;
+  #config: typeof schema.infer;
 
-  constructor(path: string = ":memory:") {
+  static config: typeof schema.input;
+
+  constructor(config?: typeof schema.input) {
     super();
 
-    is(path).string();
-
-    this.#path = path;
+    this.#config = schema.validate(config);
   }
 
   init() {
-    return new Database(new Client(this.#path, { safeIntegers: true }));
+    const options = { safeIntegers: true };
+
+    return new Database(new Client(this.#config.database, options));
   }
 
-  deinit() {}
+  deinit() { }
 }

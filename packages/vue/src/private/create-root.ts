@@ -3,7 +3,7 @@ export default () => `
 
   export default (component, props) => {
     return defineComponent({
-      name: "Root",
+      name: "root",
       setup() {
         return () => h("div", { id: "app" }, [h(component, props.props)]);
       },

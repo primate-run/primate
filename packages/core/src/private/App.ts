@@ -42,6 +42,9 @@ const default_bindings: PartialDict<Binder> = {
     await file.append(".js").write(code);
 
   },
+  ".json": () => {
+    // just copy the JSON for now
+  },
   ".ts": async (file, { build, context }) => {
     const contexts = ["routes", "stores", "config", "components", "modules"];
     const error = `ts: only ${toContextString(contexts)} are supported`;

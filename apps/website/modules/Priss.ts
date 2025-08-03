@@ -19,6 +19,7 @@ const cookie_name = "color-scheme";
 const blog_base = "https://primate.run/blog";
 
 type SidebarItem = {
+  active?: true;
   href?: string;
   items?: SidebarItem[];
   title: string;
@@ -117,7 +118,7 @@ export default class PrissModule extends Module {
       };
       return {
         component: "Static.svelte",
-        props: { app: config, content, page, sidebar, toc },
+        props: { app: config, content, page, path: "/" + pathname.slice("/docs/".length), sidebar, toc },
       };
     } catch {
       return undefined;

@@ -1,3 +1,3 @@
 import Module from "#Module";
 
-export default (path: string) => new Module(path);
+export default (config?: typeof Module.config) => new Module(config);

@@ -3,7 +3,7 @@
   import Sidebar from "#component/Sidebar";
   import OnThisPage from "#component/OnThisPage";
 
-  export let content, toc, app, sidebar, page;
+  export let content, toc, app, sidebar, page, path;
 
   const [{ text: title }] = toc;
 </script>
@@ -11,7 +11,7 @@
 <Header {app} {title} />
 <main>
   {#if sidebar !== undefined}
-    <Sidebar {sidebar} {toc} />
+    <Sidebar {sidebar} {toc} {path} />
   {/if}
   <article>
     {@html content}
@@ -30,5 +30,4 @@
       </span>
     </div>
   </article>
-  <OnThisPage {toc} />
 </main>

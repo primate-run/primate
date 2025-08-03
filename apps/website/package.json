@@ -30,6 +30,12 @@
     "@primate/ruby": "workspace:^",
     "@primate/solid": "workspace:^",
     "@primate/svelte": "workspace:^",
-    "@primate/vue": "workspace:^"
+    "@primate/vue": "workspace:^",
+    "@primate/mongodb": "workspace:^",
+    "@primate/sqlite": "workspace:^",
+    "@primate/postgresql": "workspace:^",
+    "@primate/surrealdb": "workspace:^",
+    "@primate/mysql": "workspace:^",
+    "pema": "workspace:^"
   }
 }

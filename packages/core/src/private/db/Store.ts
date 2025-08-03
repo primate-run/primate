@@ -146,12 +146,18 @@ export default class Store<S extends StoreSchema> {
   async get(id: Id): Promise<DataRecord<S>> {
     is(id).string();
 
-    const [record] = await this.db.read(this.#as, {
+    const records = await this.db.read(this.#as, {
       criteria: { id },
       limit: 1,
     });
 
-    return this.#type.validate(record);
+    assert(records.length <= 1);
+
+    if (records.length === 0) {
+      throw new AppError("no record with id {0}", id);
+    }
+
+    return this.#type.validate(records[0]);
   }
 
   /**

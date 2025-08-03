@@ -1,85 +1,142 @@
 # What is Primate?
 
-Primate is the universal framework for building full-stack web applications.
+Primate is the universal web framework for building full-stack applications.
 
 Unlike other frameworks, it doesn't lock you into one particular stack,
-and instead allows you to freely combine frontends, backends, runtimes and
-databases into a mix that works best for you.
+and instead allows you to freely combine frontends, backends, databases and
+runtimes into a mix that works best for you.
 
-It's the *last* web framework you'll ever need.
+It's the **last** web framework you'll ever need.
 
 ## Quickstart
 
 The easiest way to get started with Primate is run it. Create a project
-directory, say `app`, enter it, and run
+directory, like `app`, enter it, and run:
 
-[s=quickstart]
+[s=quickstart/shell]
 
-This will start up an app running from the project directory that will serve any
-*route* files you have under `routes`. Let's create one at `routes/index.ts`.
+This will start up an app running from the project directory that will serve
+any **route** files you have under `routes`. Let's create one.
 
-```ts
-import route from "primate/route";
-
-route.get(() => "Hello, world!");
-```
-
-!!!
-If you're a JavaScript user, create `routes/index.js` instead. All TypeScript
-examples apply equally to JavaScript sans types.
-!!!
+[s=quickstart/route]
 
 Your app will now greet you with a simple message at http://localhost:6161.
 
-## Add config
-
-To further customize your app, create a config file at `config/app.ts`.
-
-```ts
-import config from "primate/config";
-
-export default config({
-  // config comes here
-});
-```
-
-## Switch backend
-If you want to use another backend other than the built-in
-TypeScript / JavaScript, first install its package.
-
-[s=switch-backend-shell]
-
 !!!
-All `@primate/*` packages are officially supported by the Primate team and
-tested against every new version.
+Requests to `/` are handled by an `index` file. Generally, Primate uses a
+[file-based routing](/routes) system.
 !!!
 
-Then add it to your config at `config/app.ts`.
+## Create config
 
-[s=switch-backend-config]
+To further customize your app, create a config directory `config` and in it a
+config file.
 
-Finally, create a route in your backend of choice.
-
-[s=switch-backend-route]
+[s=quickstart/config]
 
 ## Add frontend
 
 To add a frontend framework to your app, install the corresponding Primate
 package and the frontend itself.
 
-[s=add-frontend-shell]
+[s=add-frontend/shell]
 
 !!!
-Primate supports [many more](/frontend/intro) frontends -- but for brevity, the
+All `@primate/*` packages are officially supported by the Primate team and
+tested against every new version.
+!!!
+
+Load the frontend in your config.
+
+[s=add-frontend/config]
+
+Create a `components` directory and in it a frontend component. We will create
+a simple component that displays a counter you can increment and decrement.
+
+[s=add-frontend/component]
+
+!!!
+Primate supports [many more](/frontend) frontends -- but for brevity, the
 quickstart only lists the major ones.
 !!!
 
-Like before, add the frontend to your config file.
+You can now serve the counter component from a route by passing its filename
+and optionally component props to the Primate `view` handler. This handler
+reads components from the `components` directory and serves them using the
+appropriate frontend, based on the component extension.
 
-[s=add-frontend-config]
+[s=add-frontend/route]
 
-Create a `components` directory and in it a frontend component.
+!!!
+You can also use any other backend to serve components, check out the
+individual [backend](/backend) documentation for that.
+!!!
 
-[s=add-frontend-component]
 
+## Switch backend
+If you want to use another backend other than the built-in JavaScript /
+TypeScript, first install its package.
 
+[s=switch-backend/shell]
+
+Load the backend in your config.
+
+[s=switch-backend/config]
+
+Now create a route in your backend of choice.
+
+[s=switch-backend/route]
+
+!!!
+The example route serves a React component. But any backend can be combined
+with any frontend.
+!!!
+
+## Add database
+
+If you want your counter's state to survive reloads, you'll need a database.
+Start by installing the corresponding Primate package. We're also going to
+install the `pema` package, which takes care of database-aware runtime
+validation.
+
+[s=persist-data/shell]
+
+Create a `config/db.ts` (or `config/db.js`) file to initialize your database.
+
+[s=persist-data/config]
+
+!!!
+Primate database packages only contain clients. Except in the case of SQLite,
+you will need a server. Make sure you install and run it according to your
+system's documentation.
+!!!
+
+Next, create a store under `stores`. Primate stores are an abstraction layer
+that allows you to conveniently access a data source, typically a database
+table. We'll create a simple store that only contains one integer field for
+our counter and a primary key field.
+
+[s=persist-data/store]
+
+In our example, we've used the pema type `i8` for the counter -- signed 8-bit
+integer. This will signal to our database driver to store this field in a
+column that best approximates this type. By calling `range(-20, 20)` on the
+`i8`, we've explicitly told pema to limit the range of acceptable values to the
+range of `-20` to `20` in this store.
+
+!!!
+This is not enforced on database level. Instead, before Primate tries to save
+or update a record, it will check that all input passes validation.
+!!!
+
+Next, we need to slightly modify our Counter component to inform the backend
+every time the counter has changed. To this end, we'll store the counter id
+generated by the backend so that we can refer to it in our updates.
+
+[s=persist-data/component]
+
+To finally connect the dots, we'll create a route that loads the store,
+initializes it if necessary, and saves the counter whenever we decrement or
+increment it.
+
+[s=persist-data/route]

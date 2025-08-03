@@ -25,7 +25,8 @@
     globalThis.document.querySelectorAll(".copy").forEach((snippet) => {
       snippet.addEventListener("click", (event) => {
         const to_clipboard = event.target.closest(".to-clipboard");
-        clipboard(to_clipboard.nextElementSibling.textContent);
+        const content = to_clipboard.nextElementSibling.textContent;
+        clipboard(content.startsWith("$ ") ? content.slice(2) : content);
         to_clipboard.classList.add("copied");
         setTimeout(() => {
           to_clipboard.classList.remove("copied");
@@ -36,6 +37,8 @@
     globalThis.document.querySelectorAll(".tabbed").forEach((tabbed) => {
       const captions = tabbed.querySelector(".captions").childNodes;
       const tabs = tabbed.querySelector(".tabs").childNodes;
+      const filenames = tabbed.querySelector(".filenames")?.childNodes;
+
       captions.forEach((caption, i) => {
         caption.addEventListener("click", () => {
           captions.forEach((_caption, j) => {
@@ -43,6 +46,13 @@
               _caption.classList.add("active");
             } else {
               _caption.classList.remove("active");
+            }
+          });
+          filenames?.forEach((item, j) => {
+            if (i === j) {
+              item.classList.add("active");
+            } else {
+              item.classList.remove("active");
             }
           });
           tabs.forEach((tab, j) => {
@@ -66,6 +76,7 @@
 <header>
   <a class="home" href="/">
     <img src="/logo.svg" />
+    <span>Primate</span>
   </a>
 
   <div class="search"></div>

@@ -4,7 +4,7 @@ import { defineComponent, h } from "vue";
 
 export default function renderRoot(component: Component, props: Dict) {
   return defineComponent({
-    name: "Root",
+    name: "root",
     setup() {
       return () => h("div", { id: "app" }, [h(component, props)]);
     },
