@@ -1,14 +1,16 @@
 import type BuildApp from "@primate/core/BuildApp";
-import location from "@primate/core/location";
 import Module from "@primate/core/Module";
 import type NextBuild from "@primate/core/NextBuild";
 import type NextHandle from "@primate/core/NextHandle";
 import type NextServe from "@primate/core/NextServe";
 import type ServeApp from "@primate/core/ServeApp";
-import type FileRef from "@rcompat/fs/FileRef";
+import type Component from "@primate/markdown/Component";
+import FileRef from "@rcompat/fs/FileRef";
 import Status from "@rcompat/http/Status";
 import type RequestFacade from "primate/RequestFacade";
 import view from "primate/view";
+
+const root = new FileRef("content");
 
 const cookie = (name: string, value: string, secure: boolean) =>
   `${name}=${value};HttpOnly;Path=/;${secure};SameSite=Strict`;
@@ -33,9 +35,8 @@ type Link = {
 type Config = {
   blog: boolean;
   description: string;
-  links: Link[];
-  root: FileRef;
   theme: {
+    links: Link[];
     navbar: { label: string; link: string }[];
     sidebar: Sidebar;
   };
@@ -89,35 +90,38 @@ export default class PrissModule extends Module {
     const app = this.app;
     const config = this.#config;
 
-    const base = app.runpath(location.server, config.root.path);
-    const html = base.join(`${pathname}.md.html`);
+    try {
+      const {
+        html,
+        toc,
+      } = app.component<Component>(root.join(`${pathname}.md`).path);
+      const content = html.replace("__PATHNAME__", pathname);
+      const sidebar = config.theme.sidebar;
+      if (pathname === "/blog") {
+        return {
+          component: "Blog.svelte",
+          props: { app: config, content, sidebar, toc },
+        };
+      }
 
-    if (!await html.exists()) {
+      /*const positions = sidebar.map((page, i) => ({ ...page, i }));
+      const headings = positions.filter(page => page.title === undefined);
+      const position = positions.findIndex(page => page.link === pathname);
+      const { heading } = headings.findLast(({ i }) => position > i);
+      const pages = sidebar.filter(page => page.title !== undefined);
+      const i = pages.findIndex(page => page.link === pathname);*/
+      const page = {
+        heading: "heading",
+        next: "next",///i < pages.length - 1 ? pages[i + 1] : undefined,
+        previous: "previous",//i > 0 ? pages[i - 1] : undefined,
+      };
+      return {
+        component: "Static.svelte",
+        props: { app: config, content, page, sidebar, toc },
+      };
+    } catch {
       return undefined;
     }
-    const toc = base.join(`${pathname}.md.json`);
-
-    const content = (await html.text()).replace("%PATHNAME%", pathname);
-    /*const sidebar = config.theme.sidebar;
-    if (pathname === "/blog") {
-      return { content, toc: await toc.json(), sidebar };
-    }
-
-    const positions = sidebar.map((page, i) => ({ ...page, i }));
-    const headings = positions.filter(page => page.title === undefined);
-    const position = positions.findIndex(page => page.link === pathname);
-    const { heading } = headings.findLast(({ i }) => position > i);
-    const pages = sidebar.filter(page => page.title !== undefined);
-    const i = pages.findIndex(page => page.link === pathname);
-    const page = {
-      previous: i > 0 ? pages[i - 1] : undefined,
-      next: i < pages.length - 1 ? pages[i + 1] : undefined,
-      heading,
-    };*/
-    return {
-      component: "Static.svelte",
-      props: { content/*, toc: await toc.json(), sidebar, page, app: config*/ },
-    };
   }
 
   async #blog(pathname: string) {
@@ -125,7 +129,7 @@ export default class PrissModule extends Module {
     const config = this.#config;
 
     if (pathname.startsWith("/blog")) {
-      const directory = app.root.join(config.root, "blog");
+      const directory = app.root.join(root, "blog");
       if (await directory.exists()) {
         if (pathname === "/blog") {
           const posts = await Promise.all((await directory.collect(file =>

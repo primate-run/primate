@@ -2,7 +2,7 @@
   "name": "@primate/surrealdb",
   "version": "0.4.0",
   "description": "Primate SurrealDB database",
-  "homepage": "https://primate.run/docs/db/surrealdb",
+  "homepage": "https://primate.run/docs/database/surrealdb",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
   "files": [

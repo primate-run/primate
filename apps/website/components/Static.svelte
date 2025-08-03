@@ -11,10 +11,9 @@
 <Header {app} {title} />
 <main>
   {#if sidebar !== undefined}
-    <Sidebar {sidebar} />
+    <Sidebar {sidebar} {toc} />
   {/if}
   <article>
-    <div class="heading">{page.heading}</div>
     {@html content}
     <div class="controls">
       <span class="prev">

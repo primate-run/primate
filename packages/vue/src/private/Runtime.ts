@@ -1,15 +1,11 @@
+import render from "#render";
 import Module from "@primate/core/frontend/Module";
-import type Render from "@primate/core/frontend/Render";
-import { createSSRApp, type Renderer } from "vue";
-import { renderToString } from "vue/server-renderer";
+import { type Renderer } from "vue";
 
 export default class Runtime extends Module<Renderer> {
   name = "vue";
   defaultExtension = ".vue";
   layouts = false;
-  client = false;
-  render: Render<Renderer> = async (component, props) => {
-    const app = createSSRApp({ data: () => props, render: component.render });
-    return { body: await renderToString(app) };
-  };
+  client = true;
+  render = render;
 };

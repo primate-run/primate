@@ -6,18 +6,30 @@
     "serve": "npx primate serve",
     "copy": "rm -rf components/content && cp -a ../../docs components/content"
   },
-  "imports": {
-    "#module/*": "./modules/*.ts"
-  },
   "dependencies": {
     "@primate/core": "workspace:^",
     "@primate/markdown": "workspace:^",
     "@primate/poly": "workspace:^",
     "@rcompat/fs": "^0.17.0",
     "@rcompat/http": "^0.13.0",
+    "@rcompat/package": "^0.18.0",
     "@rcompat/record": "^0.9.0",
+    "@rcompat/string": "^0.10.0",
     "poly": "^0.7.2",
     "primate": "workspace:^",
     "shiki": "^3.9.1"
+  },
+  "devDependencies": {
+    "@angular/common": "^20.1.4",
+    "@angular/core": "^20.1.4",
+    "@primate/angular": "workspace:^",
+    "@primate/go": "workspace:^",
+    "@primate/grain": "workspace:^",
+    "@primate/python": "workspace:^",
+    "@primate/react": "workspace:^",
+    "@primate/ruby": "workspace:^",
+    "@primate/solid": "workspace:^",
+    "@primate/svelte": "workspace:^",
+    "@primate/vue": "workspace:^"
   }
 }

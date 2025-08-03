@@ -10,7 +10,7 @@ import {
 const genDefaultAs = "__SCRIPT__";
 const id_size = 8;
 
-const analyze = ({ script, scriptSetup }: SFCDescriptor ) => {
+const analyze = ({ script, scriptSetup }: SFCDescriptor) => {
   return {
     has_script: script !== null || scriptSetup !== null,
     inline: scriptSetup !== null,

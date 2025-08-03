@@ -49,7 +49,7 @@ export default abstract class FrontendModule<
     create: (depth: number) => string;
   };
   compile: {
-    client?: (text: string, file: FileRef) =>
+    client?: (text: string, file: FileRef, root: boolean) =>
       MaybePromise<{ css?: null | string; js: string }>;
     server?: (text: string) => MaybePromise<string>;
   } = {};
@@ -215,7 +215,7 @@ export default abstract class FrontendModule<
             });
             build.onLoad({ filter }, async () => {
               const contents = (await compile.client!(root.create(app.depth()),
-                new FileRef("/tmp"))).js;
+                new FileRef("/tmp"), true)).js;
               return contents ? { contents, loader: "js", resolveDir } : null;
             });
           }
@@ -253,7 +253,8 @@ export default abstract class FrontendModule<
           build.onLoad({ filter: new RegExp(`${extension}$`) }, async args => {
             const file = new FileRef(args.path);
             // Compile file to JavaScript and potentially CSS
-            const compiled = await compile.client!(await file.text(), file);
+            const compiled = await compile.client!(await file.text(), file
+              , false);
             let contents = compiled.js;
 
             if (css

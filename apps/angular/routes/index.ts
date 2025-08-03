@@ -6,4 +6,4 @@ const posts = [{
   title: "First post",
 }];
 
-route.get(() => view("post-index.component.ts", { posts }));
+route.get(() => view("PostIndex.component.ts", { posts }));

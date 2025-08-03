@@ -24,6 +24,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.2.0",
+    "@rcompat/string": "^0.10.0",
     "marked": "^16.1.1",
     "pema": "workspace:^"
   },
@@ -41,6 +42,10 @@
     ".": {
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
+    },
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
     }
   }
 }

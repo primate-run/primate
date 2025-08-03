@@ -16,6 +16,7 @@
       "#store/*": ["stores/*"],
       "#module/*": ["modules/*"],
       "#config/*": ["config/*"],
+      "#static/*": ["static/*", "static/*.ts"],
       "#app": ["config/app.ts", "config/app.js"],
       "#session": ["config/session.ts", "config/session.js"],
       "#db": ["config/db.ts", "config/db.js"]
@@ -28,6 +29,7 @@
     "${configDir}/stores",
     "${configDir}/modules",
     "${configDir}/test",
+    "${configDir}/static",
     "${configDir}/primate.config.js",
     "${configDir}/primate.config.ts"
   ],

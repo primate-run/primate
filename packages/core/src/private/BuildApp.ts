@@ -56,6 +56,9 @@ export default class BuildApp extends App {
                 ...[...this.frontends.values()]
                   .map(extension => `components/*${extension}`),
               ],
+              "#static/*": [
+                "./static/*.js", "./static/*.ts",
+              ],
             },
           },
         },

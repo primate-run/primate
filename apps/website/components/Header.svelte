@@ -18,7 +18,7 @@
   };
 
   onMount(async () => {
-    colorscheme = (await import("./localStorage.js")).default;
+    colorscheme = (await import("#static/localStorage.ts")).default;
     highlight = (link) =>
       part(link) === part(globalThis.window.location.pathname) ? "active" : "";
 
@@ -30,6 +30,29 @@
         setTimeout(() => {
           to_clipboard.classList.remove("copied");
         }, 2000);
+      });
+    });
+
+    globalThis.document.querySelectorAll(".tabbed").forEach((tabbed) => {
+      const captions = tabbed.querySelector(".captions").childNodes;
+      const tabs = tabbed.querySelector(".tabs").childNodes;
+      captions.forEach((caption, i) => {
+        caption.addEventListener("click", () => {
+          captions.forEach((_caption, j) => {
+            if (i === j) {
+              _caption.classList.add("active");
+            } else {
+              _caption.classList.remove("active");
+            }
+          });
+          tabs.forEach((tab, j) => {
+            if (i === j) {
+              tab.classList.remove("hidden");
+            } else {
+              tab.classList.add("hidden");
+            }
+          });
+        });
       });
     });
   });
@@ -60,16 +83,10 @@
       <Icon name={$colorscheme === "dark" ? "sun" : "moon"} />
     </button>
 
-    <a class="ic" href={theme.chat}>
-      <Icon name="chat" />
-    </a>
-
-    <a class="ic" href="https://x.com/{theme.x}">
-      <Icon name="x" />
-    </a>
-
-    <a class="ic" href="https://github.com/{theme.github}">
-      <Icon name="github" />
-    </a>
+    {#each theme.links as link}
+      <a class="ic" href={link.href}>
+        <Icon name={link.icon} />
+      </a>
+    {/each}
   </ul>
 </header>

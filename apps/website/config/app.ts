@@ -1,9 +1,9 @@
-import Priss from "#module/Priss";
 import markdown from "@primate/markdown";
 import poly from "@primate/poly";
-import FileRef from "@rcompat/fs/FileRef";
+import root from "@rcompat/package/root";
 import config from "primate/config";
 import { createHighlighter } from "shiki";
+import Priss from "../modules/Priss.ts";
 
 const highlighter = await createHighlighter({
   langs: [
@@ -28,17 +28,24 @@ const highlighter = await createHighlighter({
     "json",
     "http",
   ],
-  themes: ["vitesse-light", "vitesse-dark"],
+  themes: ["nord"],
 });
 
 export default config({
+  build: {
+    options: {
+      loader: {
+        ".woff2": "file",
+      },
+    },
+  },
   modules: [
     markdown({
       marked: {
         hooks: {
           postprocess(html) {
             return html.replaceAll(/!!!\n(.*?)\n!!!/gus, (_, p1) =>
-              `<div class="box">${p1}</div>`);
+              `<div class="box">${p1}</div>`).replaceAll(" -- ", " – ");
           },
           preprocess(html) {
             return html.replaceAll(/%%%(.*?)\n(.*?)%%%/gus, (_, p1, p2) => {
@@ -64,8 +71,8 @@ export default config({
             const value = highlighter.codeToHtml(token.text, {
               lang,
               themes: {
-                dark: "vitesse-dark",
-                light: "vitesse-light",
+                dark: "nord",
+                light: "nord",
               },
             });
             const clipboard = `
@@ -87,15 +94,6 @@ export default config({
 
             const name = token.text.toLowerCase().replaceAll(/[?{}%]/gu, "")
               .replace(/[^\w]+/gu, "-");
-            const href = "%REPO%/edit/master/docs%PATHNAME%.md";
-            const edit_this_page = `
-              <a href="${href}" class="edit-this-page">
-                <svg class="icon" width="16" height="16">
-                  <use href="#edit" />
-                </svg>
-                Edit on GitHub
-              </a>
-            `;
             const deeplink = `
               <a class="deeplink" href="#${name}">
                 <svg class="icon" width="16" height="16">
@@ -110,26 +108,61 @@ export default config({
                 ${level !== 1 ? deeplink : ""}
               </h${level}>
               <a class="anchor" name="${name}"></a>
-              ${level === 1 ? edit_this_page : ""}
             `;
           },
         },
+      },
+      async pretransform(text: string) {
+        const externals = /\[s=([^\]]+)\]/g;
+        const replacements = [];
+
+        let match;
+        while ((match = externals.exec(text)) !== null) {
+          const [fullMatch, folder] = match;
+          replacements.push({ folder, fullMatch });
+        }
+
+        if (replacements.length === 0) {
+          return text;
+        }
+
+        let replaced = text;
+
+        let replacement = "";
+
+        for (const { folder, fullMatch } of replacements) {
+          replacement = "%%% ";
+
+          const files = await (await root()).join("snippets", folder).list();
+
+          replacement += files.map(file =>
+            file.name.slice(0, -file.fullExtension.length)).join(", ");
+          replacement += "\n\n";
+
+          for (const file of files) {
+            replacement += `\`\`\`${file.extension.slice(1)}\n${await file.text()}\`\`\`\n\n`;
+          }
+
+          replacement += "\n%%%";
+
+          replaced = replaced.replace(fullMatch, replacement);
+        }
+
+        return replaced;
       },
     }),
     poly({ extension: ".svelte" }),
     new Priss({
       blog: true,
       description: "The universal web framework",
-      links: [
-        { href: "https://github.com/primate-run/primate", icon: "repo" },
-        { href: "https://x.com/primate_run", icon: "x" },
-        { href: "/chat", icon: "chat" },
-      ],
-      root: FileRef.join("components", "content"),
       theme: {
+        links: [
+          { href: "/chat", icon: "chat" },
+          { href: "https://x.com/primate_run", icon: "x" },
+          { href: "https://github.com/primate-run/primate", icon: "github" },
+        ],
         navbar: [
-          { label: "Guide", link: "/guide/getting-started" },
-          { label: "Modules", link: "/modules/official" },
+          { label: "Docs", link: "/docs" },
           { label: "Blog", link: "/blog" },
         ],
         sidebar: [
@@ -271,7 +304,7 @@ export default config({
               "SQLite",
               "SurrealDB",
             ].toSorted().map(title => ({
-              href: `/backend/${title.replaceAll(" ", "-").toLowerCase()}`,
+              href: `/database/${title.replaceAll(" ", "-").toLowerCase()}`,
               title,
             })),
             title: "Databases",
@@ -280,7 +313,7 @@ export default config({
             href: "targets",
             items: [
               {
-                href: "/web",
+                href: "/target/web",
                 title: "Web",
               },
               {
@@ -288,7 +321,7 @@ export default config({
                 upcoming: true,
               },
               {
-                href: "/native",
+                href: "/target/native",
                 title: "Native",
               },
             ],

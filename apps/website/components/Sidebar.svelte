@@ -1,17 +1,13 @@
 <script>
-  export let sidebar;
+  import SidebarSection from "#component/SidebarSection";
+
+  export let sidebar, toc;
 </script>
 
 <nav class="sidebar">
-<ul>
-  {#each sidebar as line}
-<li class={line.heading ? "heading" : ""}>
-  {#if line.heading !== undefined}
-    {line.heading}
-  {:else}
-    <a href={line.link} class={line.current ? "current": ""}>{line.title}</a>
-  {/if}
-</li>
-{/each}
-</ul>
+  <ul>
+    {#each sidebar as section}
+      <SidebarSection {section} />
+    {/each}
+  </ul>
 </nav>

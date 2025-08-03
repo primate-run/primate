@@ -54,7 +54,7 @@ export default class Loader {
     }
     if (pathname.startsWith(this.static_root)) {
       const assetname = pathname.slice(this.static_root.length);
-      const static_file = this.#root.join(`server/static/${assetname}`);
+      const static_file = this.#root.join(`static/${assetname}`);
       if (await static_file.isFile()) {
         return this.asset(static_file);
       }

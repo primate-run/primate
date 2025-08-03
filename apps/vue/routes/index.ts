@@ -6,4 +6,4 @@ const posts = [{
   title: "First post",
 }];
 
-route.get(() => view("index.vue", { posts }));
+route.get(() => view("Index.vue", { posts }));

@@ -1,3 +1,4 @@
+import type Component from "@primate/markdown/Component";
 import route from "primate/route";
 import view from "primate/view";
 
@@ -5,12 +6,10 @@ const example_names = ["backend", "frontend", "runtime", "i18n"];
 
 route.get(request => {
   return async (app, ...args) => {
-    const server = app.config("location.server");
-    const base = app.runpath(server, request.config.root, "examples");
-    const examples = Object.fromEntries(await Promise.all(example_names
-      .map(async section =>
-        [section, await base.join(`${section}.md.html`).text()],
-      )));
+    const examples = Object.fromEntries(example_names
+      .map(section => [
+        section,
+        app.component<Component>(`content/examples/${section}.md`).html]));
     const props = { app: request.config, examples };
     const options = { placeholders: request.placeholders };
 

@@ -133,13 +133,13 @@ export default await db.wrap("${file.base}", store);`);
   }
 
   if (await app.path.static.exists()) {
-    // copy static files to build/server/static
-    await app.path.static.copy(app.runpath(location.server, location.static));
+    // copy static files to build/static
+    await app.path.static.copy(app.runpath(location.static));
   }
 
   // publish JavaScript and CSS files
   const imports = await FileRef.collect(app.path.static,
-    file => /\.(?:css)$/.test(file.path));
+    file => /\.(?:js|ts|css)$/.test(file.path));
   await Promise.all(imports.map(async file => {
     const src = file.debase(app.path.static);
     app.build.export(`import "./${location.static}${src}";`);
@@ -157,6 +157,16 @@ export default await db.wrap("${file.base}", store);`);
         const contents = [...app.frontends.keys()].map(name =>
           `export { default as ${name} } from "@primate/${name}";`).join("\n");
         return { contents, resolveDir: app.root.path };
+      });
+    },
+  });
+
+  app.build.plugin({
+    name: "@primate/core/alias",
+    setup(build) {
+      build.onResolve({ filter: /#static/ }, args => {
+        const path = args.path.slice(1);
+        return { path: app.root.join(path).path };
       });
     },
   });

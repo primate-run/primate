@@ -97,6 +97,10 @@ export default class App {
     return app;
   }
 
+  get location() {
+    return { ...location };
+  }
+
   get platform() {
     return this.#platform;
   }

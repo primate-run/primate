@@ -2,7 +2,7 @@
   "name": "@primate/mysql",
   "version": "0.1.3",
   "description": "Primate MySQL database",
-  "homepage": "https://primate.run/docs/db/mysql",
+  "homepage": "https://primate.run/docs/database/mysql",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
   "files": [

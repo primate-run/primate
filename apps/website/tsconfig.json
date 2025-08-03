@@ -1,3 +1,15 @@
 {
-  "extends": "primate/tsconfig"
+  "extends": "primate/tsconfig",
+  "include": [
+    "${configDir}/config",
+    "${configDir}/routes",
+    "${configDir}/components",
+    "${configDir}/stores",
+    "${configDir}/modules",
+    "${configDir}/snippets",
+    "${configDir}/test",
+    "${configDir}/static",
+    "${configDir}/primate.config.js",
+    "${configDir}/primate.config.ts"
+  ]
 }

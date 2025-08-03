@@ -2,6 +2,7 @@ import { Component, Input, model } from "@angular/core";
 
 @Component({
   selector: "post-index",
+  standalone: true,
   template: `
     <h1>{{test}}</h1>
     <h3>{{posts.length}} says:</h3>
@@ -9,7 +10,6 @@ import { Component, Input, model } from "@angular/core";
     <span>{{ count() }}</span>
     <button (click)="update(+1)">+</button>
   `,
-  standalone: true,
 })
 export default class PostIndex {
   @Input() posts = [];
