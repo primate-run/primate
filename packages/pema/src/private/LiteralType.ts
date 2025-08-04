@@ -1,5 +1,4 @@
 import error from "#error";
-import expected from "#expected";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import ValidationError from "#ValidationError";
@@ -18,13 +17,12 @@ export default class LiteralType<T extends Literal> extends
   }
 
   get name() {
-    return "literal";
+    return `literal '${this.#literal}'`;
   }
 
   validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     if (x !== this.#literal) {
-      throw new ValidationError(error(expected(`literal '${this.#literal}'`, x),
-        options));
+      throw new ValidationError(error(this.name, x, options));
     }
     return x as never;
   }

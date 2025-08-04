@@ -1,4 +1,4 @@
-import error_message from "#error-message";
+import error from "#error";
 import type Infer from "#Infer";
 import Type from "#Type";
 import ValidationError from "#ValidationError";
@@ -22,7 +22,7 @@ export default class BuiltinType<StaticType, Name extends string>
 
   validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     if (!(x instanceof this.#type)) {
-      throw new ValidationError(error_message(this.#name, x, options));
+      throw new ValidationError(error(this.name, x, options));
     }
 
     return x as never;

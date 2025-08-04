@@ -1,3 +1,8 @@
 {
-  "extends": "primate/tsconfig"
+  "extends": "primate/tsconfig",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "types": ["solid-js"]
+  }
 }

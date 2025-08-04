@@ -1,31 +1,65 @@
+import type ValidationIssue from "#ValidationIssue";
 import type Dict from "@rcompat/type/Dict";
 
-function stringify(errors: Dict<string>) {
-  return JSON.stringify(errors, null, 2);
+function stringify(issue: ValidationIssue) {
+  const key = issue.key;
+  if (key === undefined) {
+    return issue.message;
+  }
+  return `${key.startsWith(".") ? "" : "."}${key}: ${issue.message}`;
 }
 
-export default class ValidationError extends Error {
-  #errors?: Dict<string>;
-  #error?: string;
+type JSONIssue = {
+  message: string;
+  messages: string[];
+};
 
-  constructor(errors: Dict<string> | string) {
-    super(typeof errors === "string" ? errors : stringify(errors));
+export default class ValidationError extends Error {
+  #issues?: ValidationIssue[];
+
+  constructor(issues: ValidationIssue[]) {
+    super(typeof issues === "string" ? issues : stringify(issues[0]));
 
     this.name = "ValidationError";
 
-    if (typeof errors === "string") {
-      this.#error = errors;
-    }
-    if (typeof errors === "object") {
-      this.#errors = errors;
+    if (typeof issues === "object") {
+      this.#issues = issues;
     }
   }
 
+  get issues() {
+    return this.#issues;
+  }
+
   toJSON() {
-    return {
-      error: this.#error,
-      errors: this.#errors,
-      name: this.name,
-    };
+    if (!this.#issues || this.#issues.length === 0) {
+      return { message: "Validation failed", messages: ["Validation failed"] };
+    }
+
+    const form = this.#issues.some(i => i.key);
+
+    if (!form) {
+      const messages = this.#issues.map(i => i.message);
+      return {
+        message: messages[0],
+        messages,
+      } as JSONIssue;
+    }
+
+    return this.#issues
+      .filter(issue => issue.key !== undefined)
+      .reduce((issues, issue) => {
+        const key = issue.key!;
+
+        if (!(key in issues)) {
+          issues[key] = { message: issue.message, messages: [] };
+        }
+        issues[key].messages.push(issue.message);
+
+        if (issues[key].messages.length === 1) {
+          issues[key].message = issue.message;
+        }
+        return issues;
+      }, {} as Dict<JSONIssue>);
   }
 }

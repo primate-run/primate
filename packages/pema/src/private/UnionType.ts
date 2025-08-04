@@ -1,6 +1,5 @@
 import DefaultType from "#DefaultType";
 import error from "#error";
-import expected from "#expected";
 import GenericType from "#GenericType";
 import schema from "#index";
 import type Infer from "#Infer";
@@ -8,7 +7,6 @@ import type InferSchema from "#InferSchema";
 import is_validated_type from "#is_validated_type";
 import OptionalType from "#OptionalType";
 import type Schema from "#Schema";
-import type Validated from "#Validated";
 import ValidationError from "#ValidationError";
 import type ValidationOptions from "#ValidationOptions";
 import assert from "@rcompat/assert";
@@ -47,7 +45,7 @@ const print = (type: unknown) => {
   return type;
 };
 
-const to_union_string = (types: Schema[]) =>
+const union_error = (types: Schema[]) =>
   `\`${types.map(t => is_validated_type(t) ? t.name : print(t)).join(" | ")}\``;
 
 export default class UnionType<T extends Schema[]> extends
@@ -80,17 +78,17 @@ export default class UnionType<T extends Schema[]> extends
 
   validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     // union validates when any of its members validates
-    const validated = this.#types.some(type => {
+    const validated = this.#types.map(type => {
       const validator = is_validated_type(type) ? type : schema(type);
       try {
         validator.validate(x, options);
         return true;
-      } catch {
-        return false;
+      } catch (e) {
+        return e as ValidationError;
       }
     });
-    if (!validated) {
-      throw new ValidationError(error(expected(to_union_string(this.#types as unknown as Validated<unknown>[]), x), options));
+    if (!validated.some(r => r === true)) {
+      throw new ValidationError(error(union_error(this.#types), x, options));
     }
 
     return x as never;

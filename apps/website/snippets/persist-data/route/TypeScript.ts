@@ -1,7 +1,7 @@
 import Counter from "#store/Counter";
+import pema from "pema";
+import number from "pema/number";
 import string from "pema/string";
-// we use the web variant of this validator to coerce strings to the target types
-import number from "pema/web/number";
 import route from "primate/route";
 import view from "primate/view";
 
@@ -20,12 +20,13 @@ route.get(async () => {
 route.post(async request => {
   // validate that an id was provided
   const id = string.validate(request.query.id);
-  // validate that the request body contains a number value
-  const value = number.validate(request.body.value);
+
+  // validate `body.value` as a number, coercing from string first
+  const body = pema({ value: number }).validate(request.body, { coerce: true });
 
   // update the value in the database
-  await Counter.update({ id }, { value });
+  await Counter.update({ id }, { value: body.value });
 
-  // no response
+  // 204 no response
   return null;
 });

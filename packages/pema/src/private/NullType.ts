@@ -1,4 +1,4 @@
-import error_message from "#error-message";
+import error from "#error";
 import type Infer from "#Infer";
 import PrimitiveType from "#PrimitiveType";
 import ValidationError from "#ValidationError";
@@ -11,7 +11,7 @@ export default class NullType extends PrimitiveType<null, "NullType"> {
 
   validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     if (x !== null) {
-      throw new ValidationError(error_message(this.name, x, options));
+      throw new ValidationError(error(this.name, x, options));
     }
 
     return x as never;

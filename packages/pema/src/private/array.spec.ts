@@ -58,17 +58,17 @@ test.case("flat", assert => {
   assert(n.validate(x(an, 6))).equals(x(an, 6));
   assert(s.validate(x(as))).equals(x(as));
 
-  assert(() => b.validate(abi)).throws(expect("b", 0n, "[0]"));
-  assert(() => bi.validate(ad)).throws(expect("bi", _d, "[0]"));
-  assert(() => d.validate(an)).throws(expect("d", 0, "[0]"));
-  assert(() => n.validate(as)).throws(expect("n", "0", "[0]"));
-  assert(() => s.validate(ab)).throws(expect("s", false, "[0]"));
+  assert(() => b.validate(abi)).throws(expect("b", 0n, 0));
+  assert(() => bi.validate(ad)).throws(expect("bi", _d, 0));
+  assert(() => d.validate(an)).throws(expect("d", 0, 0));
+  assert(() => n.validate(as)).throws(expect("n", "0", 0));
+  assert(() => s.validate(ab)).throws(expect("s", false, 0));
 
-  assert(() => b.validate([...ab, ...ad])).throws(expect("b", _d, "[1]"));
-  assert(() => bi.validate([...abi, ...ad])).throws(expect("bi", _d, "[1]"));
-  assert(() => d.validate([...ab, ...ad])).throws(expect("d", false, "[0]"));
-  assert(() => n.validate([...as, ...an])).throws(expect("n", "0", "[0]"));
-  assert(() => s.validate([...as, ...an])).throws(expect("s", 0, "[1]"));
+  assert(() => b.validate([...ab, ...ad])).throws(expect("b", _d, 1));
+  assert(() => bi.validate([...abi, ...ad])).throws(expect("bi", _d, 1));
+  assert(() => d.validate([...ab, ...ad])).throws(expect("d", false, 0));
+  assert(() => n.validate([...as, ...an])).throws(expect("n", "0", 0));
+  assert(() => s.validate([...as, ...an])).throws(expect("s", 0, 1));
 });
 
 test.case("sparse", assert => {
@@ -77,17 +77,17 @@ test.case("sparse", assert => {
   const b2 = [, "f"];
   const b3 = ["f", "f", ,];
 
-  assert(() => s.validate(b0)).throws(expect("s", undefined, "[1]"));
-  assert(() => s.validate(b1)).throws(expect("s", undefined, "[1]"));
-  assert(() => s.validate(b2)).throws(expect("s", undefined, "[0]"));
-  assert(() => s.validate(b3)).throws(expect("s", undefined, "[2]"));
+  assert(() => s.validate(b0)).throws(expect("s", undefined, 1));
+  assert(() => s.validate(b1)).throws(expect("s", undefined, 1));
+  assert(() => s.validate(b2)).throws(expect("s", undefined, 0));
+  assert(() => s.validate(b3)).throws(expect("s", undefined, 2));
 });
 
 test.case("deep", assert => {
   const rc = array(array(string));
   assert(rc.validate([as])).equals([as]).type<string[][]>();
 
-  assert(() => rc.validate(as)).throws(expect("a", "0", "[0]"));
+  assert(() => rc.validate(as)).throws(expect("a", "0", 0));
   assert(() => rc.validate([[0]])).throws();
 });
 

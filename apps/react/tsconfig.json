@@ -1,3 +1,6 @@
 {
-  "extends": "primate/tsconfig"
+  "extends": "primate/tsconfig",
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  }
 }

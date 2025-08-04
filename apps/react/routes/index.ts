@@ -6,4 +6,4 @@ const posts = [{
   title: "First post",
 }];
 
-route.get(() => view("Index.jsx", { posts }));
+route.get(() => view("Index.tsx", { posts }));

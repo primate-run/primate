@@ -13,5 +13,5 @@ route.get(request => {
   const post = posts.find(({ id }) => id === _id);
   assert(post !== undefined);
 
-  return view("ViewPost.jsx", { post });
+  return view("ViewPost.tsx", { post });
 });

@@ -17,7 +17,19 @@ const types = {
   ur: "url",
 };
 
-const prefix = (at: string) => at ? `${at}: `: "";
+const prefix = (at: string) => at ? `.${at}: ` : "";
 
-export default (type: keyof typeof types, got: unknown, at = "") =>
-  `${prefix(at)}expected ${types[type]}, got \`${got}\` (${typeof got})`;
+type At = number | string;
+
+function print_got(got: unknown) {
+  if (got === undefined) {
+    return "undefined";
+  }
+  if (got === null) {
+    return "null";
+  }
+  return `\`${got}\` (${typeof got})`;
+}
+
+export default (type: keyof typeof types, got: unknown, at: At = "") =>
+  `${prefix(`${at}`)}expected ${types[type]}, got ${print_got(got)}`;

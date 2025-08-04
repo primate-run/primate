@@ -1,7 +1,12 @@
+import expected from "#expected";
 import ValidatedKey from "#ValidatedKey";
-import type ValidationOptions from "#ValidationOptions";
+import type ValidationIssue from "#ValidationIssue";
+import type Options from "#ValidationOptions";
 
-export default (message: string, options?: ValidationOptions) =>
-  options?.[ValidatedKey] === undefined
-    ? message
-    : `${options[ValidatedKey]}: ${message}`;
+export default function error(name: string, x: unknown, options?: Options): [ValidationIssue] {
+  return [{
+    input: x,
+    key: options?.[ValidatedKey],
+    message: expected(name, x),
+  }];
+};

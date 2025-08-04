@@ -1,4 +1,5 @@
 import DefaultType from "#DefaultType";
+import expect from "#expect";
 import GenericType from "#GenericType";
 import schema from "#index";
 import type Infer from "#Infer";
@@ -49,25 +50,15 @@ export default class SchemaType<S extends Schema>
       return s.validate(x, options) as Infer<this>;
     }
 
-    if (Array.isArray(s)) {
-      if (s.length === 1) {
-        if (!Array.isArray(x)) throw new ValidationError("Expected array");
-        return x.map((item) => schema(s[0]).validate(item, options)) as any;
-      } else {
-        if (!Array.isArray(x)) throw new ValidationError("Expected tuple");
-        if (x.length !== s.length) {
-          throw new ValidationError("Tuple length mismatch");
-        }
-        return s.map((sch, i) => schema(sch).validate(x[i], options)) as any;
-      }
-    }
-
     if (typeof s === "object" && s !== null) {
       let _x = x;
       if (typeof _x !== "object" || _x === null) {
         // Allow undefined if all fields are optional or defaulted
         if (!all_optional(s)) {
-          throw new Error("Expected object");
+          throw new ValidationError([{
+            input: x,
+            message: expect("o", x),
+          }]);
         } else {
           _x = {};
         }
@@ -83,16 +74,6 @@ export default class SchemaType<S extends Schema>
         }
       }
       return result;
-    }
-
-    if (s === null) {
-      if (x !== null) throw new ValidationError("Expected null");
-      return null as unknown as Infer<this>;
-    }
-
-    if (s === undefined) {
-      if (x !== undefined) throw new ValidationError("Expected undefined");
-      return undefined as Infer<this>;
     }
 
     throw new Error("Invalid schema structure");

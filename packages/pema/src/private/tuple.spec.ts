@@ -42,10 +42,10 @@ test.case("flat", assert => {
   assert(s_n_b).type<TupleType<[StringType, NumberType, BooleanType]>>();
   assert(s_n_b.validate(fbb)).equals(fbb).type<[string, number, boolean]>();
 
-  assert(() => s.validate([])).throws(expect("s", undefined, "[0]"));
-  assert(() => s_n.validate(f)).throws(expect("n", undefined, "[1]"));
-  assert(() => s_n_b.validate(x(fb))).throws(expect("b", "bar", "[2]"));
-  assert(() => s_n_b.validate(x(fbb))).throws(expect("u", "bar", "[3]"));
+  assert(() => s.validate([])).throws(expect("s", undefined, 0));
+  assert(() => s_n.validate(f)).throws(expect("n", undefined, 1));
+  assert(() => s_n_b.validate(x(fb))).throws(expect("b", "bar", 2));
+  assert(() => s_n_b.validate(x(fbb))).throws(expect("u", "bar", 3));
 });
 
 test.case("deep", assert => {
@@ -66,8 +66,8 @@ test.case("in array", assert => {
 
   assert(() => a.validate(undef)).throws(expect("a", undefined));
   assert(() => a.validate("foo")).throws(expect("a", "foo"));
-  assert(() => a.validate([[]])).throws(expect("s", undefined, "[0][0]"));
-  assert(() => a.validate([[false]])).throws(expect("s", false, "[0][0]"));
-  assert(() => a.validate([["false"], "false"]))
-    .throws(expect("a", "false", "[1]"));
+  assert(() => a.validate([[]])).throws(expect("s", undefined, "0.0"));
+  assert(() => a.validate([[false]])).throws(expect("s", false, "0.0"));
+  assert(() => a.validate([["false"], "false"])).throws(expect("a", "false",
+    1));
 });

@@ -140,3 +140,13 @@ initializes it if necessary, and saves the counter whenever we decrement or
 increment it.
 
 [s=persist-data/route]
+
+!!!
+Here, we used pema's `coerce` option to explicitly tell it to coerce any string
+input to the target type. This is a core web issue: most data are strings, but
+runtime validation targets specific types.
+
+We could also pass `request.body` directly to `Counter.update`, and Primate
+would still validate the input. But often, you'lll  want to separate request
+validation from store validation.
+!!!

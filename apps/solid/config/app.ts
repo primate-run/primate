@@ -6,5 +6,5 @@ export default config({
   http: {
     port: 10016,
   },
-  modules: [solid({ extension: ".jsx" }), i18n()],
+  modules: [solid({ extension: ".tsx" }), i18n()],
 });

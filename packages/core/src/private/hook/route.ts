@@ -1,4 +1,5 @@
 import client_error from "#handler/error";
+import json from "#handler/json";
 import respond from "#hook/respond";
 import log from "#log";
 import type RequestHook from "#module/RequestHook";
@@ -6,7 +7,9 @@ import type RequestFacade from "#RequestFacade";
 import type ResponseLike from "#ResponseLike";
 import type RouteFunction from "#RouteFunction";
 import type ServeApp from "#ServeApp";
+import Status from "@rcompat/http/Status";
 import type MaybePromise from "@rcompat/type/MaybePromise";
+import ValidationError from "pema/ValidationError";
 
 type HookExec<I, O> = (i: I, next: (_: I) => MaybePromise<O>)
   => MaybePromise<O>;
@@ -95,8 +98,12 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
     const $layouts = { layouts: await get_layouts(layouts, request) };
     return respond(response)(app, $layouts, request) as Response;
   } catch (error) {
-    log.error(error);
     const request = partial_request;
+    if (error instanceof ValidationError) {
+      return json({ error: error.toJSON() },
+        { status: Status.BAD_REQUEST })(app) as Response;
+    }
+    log.error(error);
     // the +error.js page itself could fail
     try {
       return respond(await error_handler!(request))(app, {}, request) as Response;

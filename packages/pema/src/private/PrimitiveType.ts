@@ -1,4 +1,4 @@
-import error_message from "#error-message";
+import error from "#error";
 import type Infer from "#Infer";
 import Type from "#Type";
 import ValidationError from "#ValidationError";
@@ -26,7 +26,7 @@ export default class PrimitiveType<StaticType, Name extends string>
 
   validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     if (typeof x !== this.name) {
-      throw new ValidationError(error_message(this.name, x, options));
+      throw new ValidationError(error(this.name, x, options));
     }
 
     this.#validators.forEach(validator => validator(x as StaticType));

@@ -1,5 +1,4 @@
 import error from "#error";
-import expected from "#expected";
 import GenericType from "#GenericType";
 import schema from "#index";
 import type Infer from "#Infer";
@@ -37,7 +36,7 @@ export default class TupleType<T extends Schema[]>
 
   validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     if (!(!!x && Array.isArray(x))) {
-      throw new ValidationError(error(expected("array", x), options));
+      throw new ValidationError(error("array", x, options));
     }
 
     this.#members.forEach((v, i) => {

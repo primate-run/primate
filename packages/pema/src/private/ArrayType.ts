@@ -1,11 +1,9 @@
 import error from "#error";
-import expected from "#expected";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import member_error from "#member-error";
 import OptionalType from "#OptionalType";
 import type Validated from "#Validated";
-import ValidatedKey from "#ValidatedKey";
 import ValidationError from "#ValidationError";
 import type ValidationOptions from "#ValidationOptions";
 
@@ -34,15 +32,17 @@ export default class ArrayType<T extends Validated<unknown>> extends
 
   validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     if (!is<T[]>(x, _ => !!x && Array.isArray(x))) {
-      throw new ValidationError(error(expected("array", x), options));
+      throw new ValidationError(error("array", x, options));
     }
 
     let last = 0;
     x.forEach((v, i) => {
       // sparse array check
       if (i > last) {
-        throw new ValidationError(error(expected(this.#subtype.name, undefined),
-          { ...options, [ValidatedKey]: `[${last}]` }));
+        throw new ValidationError([{
+          ...error(this.#subtype.name, undefined, options)[0],
+          key: `${last}`,
+        }]);
       }
       const validator = this.#subtype;
       validator.validate(v, member_error(i, options));
@@ -51,8 +51,10 @@ export default class ArrayType<T extends Validated<unknown>> extends
 
     // sparse array with end slots
     if (x.length > last) {
-      throw new ValidationError(error(expected(this.#subtype.name, undefined),
-        { ...options, [ValidatedKey]: `[${last}]` }));
+      throw new ValidationError([{
+        ...error(this.#subtype.name, undefined, options)[0],
+        key: `${last}`,
+      }]);
     }
 
     return x as never;

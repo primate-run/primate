@@ -5,7 +5,7 @@ import { renderToString } from "solid-js/web";
 
 export default class Runtime extends Module<Component> {
   name = "solid";
-  defaultExtension = ".solid";
+  defaultExtension = ".jsx";
   client = true;
   layouts = true;
   render: Render<Component> = (component, props) => {

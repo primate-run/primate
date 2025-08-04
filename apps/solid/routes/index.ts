@@ -7,5 +7,5 @@ const posts = [{
 }];
 
 route.get(() => {
-  return view("Index.jsx", { posts });
+  return view("Index.tsx", { posts });
 });

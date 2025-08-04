@@ -1,4 +1,5 @@
 import Counter from "#store/Counter";
+import pema from "pema";
 import number from "pema/number";
 import string from "pema/string";
 import route from "primate/route";
@@ -19,14 +20,13 @@ route.get(async () => {
 route.post(async request => {
   // validate that an id was provided
   const id = string.validate(request.query.id);
-  // validate that the request body contains a number value
-  // since most values on the web are strings, we need to coerce to a number
-  // before validation
-  const value = number.validate(request.body.value, { coerce: true });
+
+  // validate `body.value` as a number, coercing from string first
+  const body = pema({ value: number }).validate(request.body, { coerce: true });
 
   // update the value in the database
-  await Counter.update({ id }, { value });
+  await Counter.update({ id }, { value: body.value });
 
-  // no response
+  // 204 no response
   return null;
 });

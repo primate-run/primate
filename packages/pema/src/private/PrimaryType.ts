@@ -1,4 +1,4 @@
-import error_message from "#error-message";
+import error from "#error";
 import type Infer from "#Infer";
 import PrimitiveType from "#PrimitiveType";
 import type Storeable from "#Storeable";
@@ -28,7 +28,7 @@ export default class PrimaryType
     }
 
     if (typeof x !== "string") {
-      throw new ValidationError(error_message(this.name, x, options));
+      throw new ValidationError(error(this.name, x, options));
     }
 
     return x as never;

@@ -122,8 +122,12 @@ export default await db.wrap("${file.base}", store);`);
     `export { default } from "#stage/module${file}";`);
 
   // stage components
-  await app.stage(app.path.components, "components", file =>
-    `export { default } from "#stage/component${file}";`);
+  await app.stage(app.path.components, "components", file => `
+    import * as component from "#stage/component${file}";
+
+    export * from "#stage/component${file}";
+    export default component?.default;
+  `);
 
   // copy framework pages
   await defaults.copy(app.runpath(location.server, location.pages));

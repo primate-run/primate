@@ -34,7 +34,7 @@ const types = [
 ] as const;
 
 test.case("primitive validators", assert => {
-  types.forEach(([ validated, good, bad, type ]) => {
+  types.forEach(([validated, good, bad, type]) => {
     const s = schema(validated);
     assert(s.validate(good)).equals(good);
     assert(() => s.validate(bad)).throws(expect(type, bad));
@@ -71,8 +71,10 @@ test.case("object", assert => {
   assert<typeof s>().type<SchemaType<{ foo: StringType }>>();
   assert(s.validate(o)).equals(o).type<O>();
 
-  assert(s1).type<SchemaType<{ bar: { baz: NumberType }; foo: StringType}>>();
+  assert(s1).type<SchemaType<{ bar: { baz: NumberType }; foo: StringType }>>();
   assert(s1.validate(o1)).equals(o1).type<O1>();
+  //  assert(() => s.validate(1)).throws("Expected object");
+  // assert(() => s.validate(1)).throws("Expected object");
 });
 
 test.case("array", assert => {
@@ -96,10 +98,12 @@ test.case("array", assert => {
   assert(si.validate(g1)).equals(g1).type<string[]>();
   assert(si.validate(g2)).equals(g2).type<string[]>();
 
-  assert(() => s.validate(b0)).throws(expect("s", false, "[0]"));
-  assert(() => s.validate(b1)).throws(expect("s", 0, "[1]"));
-  assert(() => si.validate(b0)).throws(expect("s", false, "[0]"));
-  assert(() => si.validate(b1)).throws(expect("s", 0, "[1]"));
+  assert(() => s.validate(b0)).throws(expect("s", false, 0));
+  assert(() => s.validate(b1)).throws(expect("s", 0, 1));
+  assert(() => si.validate(b0)).throws(expect("s", false, 0));
+  assert(() => si.validate(b1)).throws(expect("s", 0, 1));
+  assert(() => s.validate(1)).throws(expect("a", 1));
+  assert(() => si.validate(1)).throws(expect("a", 1));
 });
 
 test.case("tuple", assert => {
@@ -123,15 +127,15 @@ test.case("tuple", assert => {
   assert(snb)
     .type<SchemaType<TupleType<[StringType, NumberType, BooleanType]>>>();
 
-  assert(() => s.validate(b0)).throws(expect("s", undefined, "[0]"));
-  assert(() => s.validate(b1)).throws(expect("n", undefined, "[1]"));
-  assert(() => s.validate(b2)).throws(expect("s", 0, "[0]"));
-  assert(() => s.validate(b3)).throws(expect("s", 0, "[0]"));
+  assert(() => s.validate(b0)).throws(expect("s", undefined, 0));
+  assert(() => s.validate(b1)).throws(expect("n", undefined, 1));
+  assert(() => s.validate(b2)).throws(expect("s", 0, 0));
+  assert(() => s.validate(b3)).throws(expect("s", 0, 0));
 
-  assert(() => si.validate(b0)).throws(expect("s", undefined, "[0]"));
-  assert(() => si.validate(b1)).throws(expect("n", undefined, "[1]"));
-  assert(() => si.validate(b2)).throws(expect("s", 0, "[0]"));
-  assert(() => si.validate(b3)).throws(expect("s", 0, "[0]"));
+  assert(() => si.validate(b0)).throws(expect("s", undefined, 0));
+  assert(() => si.validate(b1)).throws(expect("n", undefined, 1));
+  assert(() => si.validate(b2)).throws(expect("s", 0, 0));
+  assert(() => si.validate(b3)).throws(expect("s", 0, 0));
 });
 
 test.case("complex", assert => {
@@ -166,7 +170,7 @@ test.case("complex", assert => {
   assert(complexi).type<ExpectSchema>();
   assert(complexi.validate(valid)).equals(valid).type<Expected>();
   assert(() => complex.validate(invalid))
-    .throws(expect("n", "oops", ".scores[0]"));
+    .throws(expect("n", "oops", "scores.0"));
 });
 
 test.case("null/undefined", assert => {
