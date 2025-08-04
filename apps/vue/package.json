@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@primate/vue": "workspace:^",
+    "@primate/sqlite": "workspace:^",
+    "pema": "workspace:^",
     "primate": "workspace:^",
     "vue": "^3.5.17"
   }
