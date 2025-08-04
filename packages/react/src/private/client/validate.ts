@@ -19,10 +19,6 @@ function useValidate<T>(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<null | ValidationError<T>>(null);
 
-  useEffect(() => {
-    setValue(initial);
-  }, [initial]);
-
   async function update(updater: ValidateUpdater<T>) {
     const previous = value;
     const newValue = updater(previous);

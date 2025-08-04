@@ -11,6 +11,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@primate/i18n": "workspace:^",
+    "@primate/sqlite": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@rcompat/assert": "^0.2.0",
     "pema": "workspace:^",
