@@ -1,5 +1,6 @@
 import type Infer from "#Infer";
 import type Validated from "#Validated";
+import type ValidationOptions from "#ValidationOptions";
 import VirtualType from "#VirtualType";
 import type UnknownFunction from "@rcompat/type/UnknownFunction";
 
@@ -32,7 +33,7 @@ export default class DefaultType<
     return undefined;
   }
 
-  validate(x: unknown, key?: string): Infer<this> {
+  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     // default fallback
     if (x === undefined) {
       if (is_default_function(this.#default)) {
@@ -41,6 +42,6 @@ export default class DefaultType<
       return this.#default as Infer<this>;
     }
 
-    return this.#schema.validate(x, key) as Infer<this>;
+    return this.#schema.validate(x, options) as Infer<this>;
   }
 }

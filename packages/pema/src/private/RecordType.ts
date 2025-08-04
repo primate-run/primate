@@ -1,14 +1,17 @@
+import expected from "#expected";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
 import type RecordTypeKey from "#RecordTypeKey";
 import type Validated from "#Validated";
-import expected from "#expected";
+import ValidatedKey from "#ValidatedKey";
+import ValidationError from "#ValidationError";
+import type ValidationOptions from "#ValidationOptions";
 
-const error = (k: string, key?: string) => {
-  return key === undefined
-    ? `.${k}`
-    : `${key}.${k}`;
+const nextOptions = (k: string, options?: ValidationOptions) => {
+  return options === undefined
+    ? { [ValidatedKey]: `.${k}` }
+    : { ...options, [ValidatedKey]: `${options[ValidatedKey] ?? ""}.${k}` };
 };
 
 const is_numeric = (string: string) => /^-?\d+(\.\d+)?$/.test(string);
@@ -38,10 +41,11 @@ export default class RecordType<
     return "record";
   }
 
-  validate(x: unknown, key?: string): Infer<this> {
+  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     if (typeof x !== "object" || x === null) {
-      throw new Error("Expected object");
+      throw new ValidationError("Expected object");
     }
+    const _options = { ...options };
 
     const key_name = this.#key.name;
     const keys = Object.keys(x);
@@ -50,30 +54,30 @@ export default class RecordType<
     if (key_name === "string" || key_name === "number") {
       // no key may be a symbol
       if (symbols.length > 0) {
-        throw new Error(expected(`${key_name} key`, symbols[0]));
+        throw new ValidationError(expected(`${key_name} key`, symbols[0]));
       }
 
       keys.forEach(k => {
         if (key_name === "string" && is_numeric(k)) {
-          throw new Error(expected("string key", +k));
+          throw new ValidationError(expected("string key", +k));
         }
         if (key_name === "number" && !is_numeric(k)) {
-          throw new Error(expected("number key", k));
+          throw new ValidationError(expected("number key", k));
         }
 
         this.#value.validate((x as Record<number | string, unknown>)[k],
-          error(k.toString(), key));
+          nextOptions(k, options));
       });
     }
 
     if (key_name === "symbol") {
       // no key may not be a symbol
       if (keys.length > 0) {
-        throw new Error(expected("symbol key", keys[0]));
+        throw new ValidationError(expected("symbol key", keys[0]));
       }
       symbols.forEach(k => {
         this.#value.validate((x as Record<symbol, unknown>)[k],
-          error(k.toString(), key));
+          nextOptions(k.toString(), options));
       });
     }
 

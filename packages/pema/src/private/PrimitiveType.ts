@@ -1,14 +1,9 @@
-import expected from "#expected";
+import error_message from "#error-message";
 import type Infer from "#Infer";
 import Type from "#Type";
+import ValidationError from "#ValidationError";
+import type ValidationOptions from "#ValidationOptions";
 import type Validator from "#Validator";
-
-const error_message = (name: string, x: unknown, key?: string) => {
-  const base = expected(name, x);
-  return key === undefined
-    ? base
-    : `${key}: ${base}`;
-};
 
 export default class PrimitiveType<StaticType, Name extends string>
   extends Type<StaticType, Name> {
@@ -29,9 +24,9 @@ export default class PrimitiveType<StaticType, Name extends string>
     return this.#validators;
   }
 
-  validate(x: unknown, key?: string): Infer<this> {
+  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     if (typeof x !== this.name) {
-      throw new Error(error_message(this.name, x, key));
+      throw new ValidationError(error_message(this.name, x, options));
     }
 
     this.#validators.forEach(validator => validator(x as StaticType));

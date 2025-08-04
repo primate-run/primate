@@ -1,5 +1,6 @@
 import type Infer from "#Infer";
 import type Validated from "#Validated";
+import type ValidationOptions from "#ValidationOptions";
 import VirtualType from "#VirtualType";
 
 export default class OptionalType<S extends Validated<unknown>>
@@ -19,7 +20,7 @@ export default class OptionalType<S extends Validated<unknown>>
     return this.#schema;
   }
 
-  validate(x: unknown, key?: string): Infer<this> {
+  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     const s = this.#schema;
 
     // optional
@@ -27,6 +28,6 @@ export default class OptionalType<S extends Validated<unknown>>
       return undefined as Infer<this>;
     }
 
-    return s.validate(x, key) as Infer<this>;
+    return s.validate(x, options) as Infer<this>;
   }
 }

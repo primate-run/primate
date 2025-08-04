@@ -1,12 +1,9 @@
+import error from "#error";
+import expected from "#expected";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
-import expected from "#expected";
-
-const error = (message: string, key?: string) => {
-  return key === undefined
-    ? message
-    : `${key}: ${message}`;
-};
+import ValidationError from "#ValidationError";
+import type ValidationOptions from "#ValidationOptions";
 
 type Literal = string;
 type InferLiteral<T extends Literal> = T;
@@ -24,9 +21,10 @@ export default class LiteralType<T extends Literal> extends
     return "literal";
   }
 
-  validate(x: unknown, key?: string): Infer<this> {
+  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     if (x !== this.#literal) {
-      throw new Error(error(expected(`literal '${this.#literal}'`, x), key));
+      throw new ValidationError(error(expected(`literal '${this.#literal}'`, x),
+        options));
     }
     return x as never;
   }

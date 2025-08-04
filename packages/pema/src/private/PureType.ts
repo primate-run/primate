@@ -1,7 +1,7 @@
 import type Infer from "#Infer";
+import OptionalType from "#OptionalType";
 import Validated from "#Validated";
 import type Printable from "@rcompat/type/Printable";
-import OptionalType from "#OptionalType";
 
 export default class PureType<Type, Name extends string = "PureType">
   extends Validated<Type>

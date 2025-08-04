@@ -1,13 +1,9 @@
+import error_message from "#error-message";
 import type Infer from "#Infer";
 import Type from "#Type";
+import ValidationError from "#ValidationError";
+import type ValidationOptions from "#ValidationOptions";
 import type AbstractorController from "@rcompat/type/AbstractConstructor";
-
-const error_message = (name: string, x: unknown, key?: string) => {
-  const base = `expected ${name}, got \`${x}\` (${(typeof x)})`;
-  return key === undefined
-    ? base
-    : `${key}: ${base}`;
-};
 
 export default class BuiltinType<StaticType, Name extends string>
   extends Type<StaticType, Name> {
@@ -24,9 +20,9 @@ export default class BuiltinType<StaticType, Name extends string>
     return this.#name;
   }
 
-  validate(x: unknown, key?: string): Infer<this> {
+  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     if (!(x instanceof this.#type)) {
-      throw new Error(error_message(this.#name, x, key));
+      throw new ValidationError(error_message(this.#name, x, options));
     }
 
     return x as never;

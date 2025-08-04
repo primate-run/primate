@@ -1,22 +1,17 @@
-import expected from "#expected";
+import error_message from "#error-message";
 import type Infer from "#Infer";
 import PrimitiveType from "#PrimitiveType";
-
-const error_message = (name: string, x: unknown, key?: string) => {
-  const base = expected(name, x);
-  return key === undefined
-    ? base
-    : `${key}: ${base}`;
-};
+import ValidationError from "#ValidationError";
+import type ValidationOptions from "#ValidationOptions";
 
 export default class NullType extends PrimitiveType<null, "NullType"> {
   constructor() {
     super("null");
   }
 
-  validate(x: unknown, key?: string): Infer<this> {
+  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     if (x !== null) {
-      throw new Error(error_message(this.name, x, key));
+      throw new ValidationError(error_message(this.name, x, options));
     }
 
     return x as never;

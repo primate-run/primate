@@ -1,22 +1,16 @@
+import error from "#error";
 import expected from "#expected";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
+import member_error from "#member-error";
 import OptionalType from "#OptionalType";
 import type Validated from "#Validated";
+import ValidatedKey from "#ValidatedKey";
+import ValidationError from "#ValidationError";
+import type ValidationOptions from "#ValidationOptions";
 
-const member_error = (i: unknown, key?: string) => {
-  return key === undefined
-    ? `[${i}]`
-    : `${key}[${i}]`;
-};
-
-const error = (message: string, key?: string) => {
-  return key === undefined
-    ? message
-    : `${key}: ${message}`;
-};
-
-const is = <T>(x: unknown, validator: (t: unknown) => boolean): x is T => validator(x);
+const is = <T>(x: unknown, validator: (t: unknown) => boolean): x is T =>
+  validator(x);
 
 export default class ArrayType<T extends Validated<unknown>> extends
   GenericType<T, Infer<T>[], "ArrayType"> {
@@ -38,25 +32,27 @@ export default class ArrayType<T extends Validated<unknown>> extends
     return new OptionalType(this);
   }
 
-  validate(x: unknown, key?: string): Infer<this> {
+  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
     if (!is<T[]>(x, _ => !!x && Array.isArray(x))) {
-      throw new Error(error(expected("array", x), key));
+      throw new ValidationError(error(expected("array", x), options));
     }
 
     let last = 0;
     x.forEach((v, i) => {
       // sparse array check
       if (i > last) {
-        throw new Error(error(expected(this.#subtype.name, undefined), `[${last}]`));
+        throw new ValidationError(error(expected(this.#subtype.name, undefined),
+          { ...options, [ValidatedKey]: `[${last}]` }));
       }
       const validator = this.#subtype;
-      validator.validate(v, `${member_error(i, key)}` as string);
+      validator.validate(v, member_error(i, options));
       last++;
     });
 
     // sparse array with end slots
     if (x.length > last) {
-      throw new Error(error(expected(this.#subtype.name, undefined), `[${last}]`));
+      throw new ValidationError(error(expected(this.#subtype.name, undefined),
+        { ...options, [ValidatedKey]: `[${last}]` }));
     }
 
     return x as never;
