@@ -1,34 +1,26 @@
+import type Validated from "#client/Validated";
+import makeValidate from "@primate/core/frontend/makeValidate";
+import validate from "@primate/core/frontend/validate";
+import type ValidateInit from "@primate/core/frontend/ValidateInit";
+import type ValidateUpdater from "@primate/core/frontend/ValidateUpdater";
 import type ValidationError from "@primate/core/frontend/ValidationError";
-import type Dict from "@rcompat/type/Dict";
 import { createSignal } from "solid-js";
 
-type ValidateUpdater<T> = (previous: T) => T;
-
-type ValidateReturn<T> = {
-  error: () => null | ValidationError<T>;
-  loading: () => boolean;
-  update: (updater: ValidateUpdater<T>) => Promise<void>;
-  value: () => T;
-};
-
-function useValidate<T>(
-  initial: T,
-  updateFn: (value: T) => Promise<void>,
-): ValidateReturn<T> {
-  const [value, setValue] = createSignal(initial);
+function useValidate<T>(init: ValidateInit<T>): Validated<T> {
+  const [value, setValue] = createSignal(init.initial);
   const [loading, setLoading] = createSignal(false);
   const [error, setError] = createSignal<null | ValidationError<T>>(null);
 
   async function update(updater: ValidateUpdater<T>) {
     const previous = value();
-    const newValue = updater(value());
+    const next = updater(previous);
 
-    setValue(() => newValue);
+    setValue(() => next);
     setLoading(true);
     setError(null);
 
     try {
-      await updateFn(newValue);
+      await validate(init, next);
     } catch (e) {
       setValue(() => previous);
       setError(() => e as ValidationError<T>);
@@ -40,24 +32,4 @@ function useValidate<T>(
   return { error, loading, update, value };
 }
 
-export default function validate<T>(initialValue: T) {
-  return {
-    post: (
-      url: string,
-      bodyMapper: (newValue: T) => unknown,
-      headers: Dict<string> = { "Content-Type": "application/json" },
-    ) =>
-      useValidate(initialValue, async (newValue) => {
-        const res = await fetch(url, {
-          body: JSON.stringify(bodyMapper(newValue)),
-          headers,
-          method: "POST",
-        });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw data.error as ValidationError<T>;
-        }
-      }),
-  };
-}
-
+export default makeValidate(useValidate);

@@ -1,35 +1,27 @@
+import type Validated from "#client/Validated";
+import makeValidate from "@primate/core/frontend/makeValidate";
+import validate from "@primate/core/frontend/validate";
+import type ValidateInit from "@primate/core/frontend/ValidateInit";
+import type ValidateUpdater from "@primate/core/frontend/ValidateUpdater";
 import type ValidationError from "@primate/core/frontend/ValidationError";
-import type Dict from "@rcompat/type/Dict";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-type ValidateUpdater<T> = (previous: T) => T;
-
-type ValidateReturn<T> = {
-  error: null | ValidationError<T>;
-  loading: boolean;
-  update: (updater: ValidateUpdater<T>) => Promise<void>;
-  value: T;
-};
-
-function useValidate<T>(
-  initial: T,
-  updateFn: (value: T) => Promise<void>,
-): ValidateReturn<T> {
-  const [value, setValue] = useState(initial);
+function useValidate<T>(init: ValidateInit<T>): Validated<T> {
+  const [value, setValue] = useState(init.initial);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<null | ValidationError<T>>(null);
 
   async function update(updater: ValidateUpdater<T>) {
     const previous = value;
-    const newValue = updater(previous);
-    setValue(newValue);
+    const next = updater(previous);
+
+    setValue(next);
     setLoading(true);
     setError(null);
 
     try {
-      await updateFn(newValue);
+      await validate(init, next);
     } catch (e) {
-      // rollback
       setValue(previous);
       setError(e as ValidationError<T>);
     } finally {
@@ -40,24 +32,4 @@ function useValidate<T>(
   return { error, loading, update, value };
 }
 
-export default function validate<T>(initial: T) {
-  return {
-    post: (
-      url: string,
-      mapper: (value: T) => unknown,
-      headers: Dict<string> = { "Content-Type": "application/json" },
-    ) => {
-      return useValidate(initial, async (value) => {
-        const response = await fetch(url, {
-          body: JSON.stringify(mapper(value)),
-          headers,
-          method: "POST",
-        });
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
-          throw data.error as ValidationError<T> ?? "Unknown error";
-        }
-      });
-    },
-  };
-}
+export default makeValidate(useValidate);
