@@ -1,11 +1,6 @@
+import type BufferViewSource from "#wasm/BufferViewSource";
 import BufferView from "@rcompat/bufferview";
 
-type BufferViewSource = ConstructorParameters<typeof BufferView>;
-
-const decodeWebsocketClose = (...bufferSource: BufferViewSource) => {
-  const bufferView = new BufferView(...bufferSource);
-  const id = bufferView.readU64();
-  return { id };
+export default function decodeWebsocketClose(...source: BufferViewSource) {
+  return { id: new BufferView(...source).readU64() };
 };
-
-export default decodeWebsocketClose;

@@ -1,15 +1,14 @@
+import type BufferViewSource from "#wasm/BufferViewSource";
+import decodeBytes from "#wasm/decode-bytes";
+import decodeString from "#wasm/decode-string";
 import assert from "@rcompat/assert";
 import BufferView from "@rcompat/bufferview";
-import decodeBytes from "./decode-bytes.js";
-import decodeString from "./decode-string.js";
-
-type BufferViewSource = ConstructorParameters<typeof BufferView>;
 
 const WEBSOCKET_MESSAGE_KIND_STRING = 0;
 const WEBSOCKET_MESSAGE_KIND_BYTES = 1;
 
-const decodeWebsocketSendMessage = (...bufferSource: BufferViewSource) => {
-  const bufferView = new BufferView(...bufferSource);
+export default function decodeWebsocketSend(...source: BufferViewSource) {
+  const bufferView = new BufferView(...source);
   const id = bufferView.readU64();
   const kind = bufferView.readU32();
   assert(
@@ -22,5 +21,3 @@ const decodeWebsocketSendMessage = (...bufferSource: BufferViewSource) => {
     : decodeBytes(bufferView);
   return { id, message };
 };
-
-export default decodeWebsocketSendMessage;

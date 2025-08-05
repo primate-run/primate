@@ -1,14 +1,13 @@
+import type BufferViewSource from "#wasm/BufferViewSource";
+import decodeString from "#wasm/decode-string";
 import BufferView from "@rcompat/bufferview";
-import decodeString from "./decode-string.js";
 
-const decodeJson = (view: BufferView) => {
-  const str = decodeString(view);
-  return JSON.parse(str);
+function decodeJson(view: BufferView) {
+  return JSON.parse(decodeString(view));
 };
 
-decodeJson.from = (...args: ConstructorParameters<typeof BufferView>) => {
-  const bufferView = new BufferView(...args);
-  return decodeJson(bufferView);
+decodeJson.from = (...source: BufferViewSource) => {
+  return decodeJson(new BufferView(...source));
 };
 
 export default decodeJson;

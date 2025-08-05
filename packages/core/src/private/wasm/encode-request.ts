@@ -1,17 +1,17 @@
 import type RequestFacade from "#RequestFacade";
+import encodeString from "#wasm/encode-string";
+import encodeStringMap from "#wasm/encode-string-map";
+import encodeURL from "#wasm/encode-url";
+import filesize from "#wasm/filesize";
+import I32_SIZE from "#wasm/I32_SIZE";
+import stringsize from "#wasm/stringsize";
+import urlsize from "#wasm/urlsize";
 import BufferView from "@rcompat/bufferview";
 import type PartialDict from "@rcompat/type/PartialDict";
-import encodeStringMap from "./encode-string-map.js";
-import encodeString from "./encode-string.js";
-import encodeURL from "./encode-url.js";
-import sizeOfFile from "./size-of-file.js";
-import sizeOfString from "./size-of-string.js";
-import sizeOfUrl from "./size-of-url.js";
 
 type Body = RequestFacade["body"];
 
-const SIZE_I32 = Int32Array.BYTES_PER_ELEMENT;
-const SECTION_HEADER_SIZE = SIZE_I32;
+const SECTION_HEADER_SIZE = I32_SIZE;
 
 const URL_SECTION = 0;
 const BODY_SECTION = 1;
@@ -27,29 +27,30 @@ const BODY_KIND_MAP = 2;
 const BODY_KIND_MAP_VALUE_STRING = 0;
 const BODY_KIND_MAP_VALUE_BYTES = 1;
 
-const sizeOfUrlSection = (url: URL) => SECTION_HEADER_SIZE + sizeOfUrl(url);
+const sizeOfUrlSection = (url: URL) => SECTION_HEADER_SIZE + urlsize(url);
 const sizeOfBodySection = (body: Body) => {
   if (body === null)
     return SECTION_HEADER_SIZE
-      + SIZE_I32; // 0 kind null
+      + I32_SIZE; // 0 kind null
 
   if (typeof body === "string")
     return SECTION_HEADER_SIZE
-      + SIZE_I32 // 1 kind string
-      + sizeOfString(body);
+      + I32_SIZE // 1 kind string
+      + stringsize(body);
 
   if (typeof body === "object") {
     let size = SECTION_HEADER_SIZE
-      + SIZE_I32 // 2 kind map
-      + SIZE_I32; // entryCount
+      + I32_SIZE // 2 kind map
+      + I32_SIZE // entry count
+      ;
 
     for (const [key, value] of Object.entries(body)) {
-      size += sizeOfString(key);
-      size += SIZE_I32 // valueKind
+      size += stringsize(key);
+      size += I32_SIZE // value kind
         + (
           typeof value === "string"
-            ? sizeOfString(value)
-            : sizeOfFile(value)
+            ? stringsize(value)
+            : filesize(value)
         );
     }
 
@@ -60,11 +61,11 @@ const sizeOfBodySection = (body: Body) => {
 };
 
 const sizeOfMapSection = (map: PartialDict<string>) => {
-  let size = SECTION_HEADER_SIZE + SIZE_I32;
+  let size = SECTION_HEADER_SIZE + I32_SIZE;
 
   for (const [key, value] of Object.entries(map)) {
     if (value) {
-      size += sizeOfString(key) + sizeOfString(value);
+      size += stringsize(key) + stringsize(value);
     }
   }
 
@@ -83,19 +84,19 @@ const sizeOfMapSection = (map: PartialDict<string>) => {
  * @param header - The header for this section.
  * @param map - The map itself to be encoded.
  * @param offset - The offset to encode the map at.
- * @param bufferView - The buffer view to encode the map into.
+ * @param view - The buffer view to encode the map into.
  */
-const encodeMapSection = (header: number, map: PartialDict<string>, bufferView: BufferView) => {
-  bufferView.writeU32(header);
-  return encodeStringMap(map, bufferView);
+const encodeMapSection = (header: number, map: PartialDict<string>, view: BufferView) => {
+  view.writeU32(header);
+  return encodeStringMap(map, view);
 };
 
-const encodeFile = async (file: File, bufferView: BufferView) => {
+const encodeFile = async (file: File, view: BufferView) => {
   const byteLength = file.size;
-  bufferView.writeU32(byteLength);
+  view.writeU32(byteLength);
 
   const bytes = await file.bytes();
-  bufferView.writeBytes(bytes);
+  view.writeBytes(bytes);
 };
 
 /**
@@ -104,9 +105,9 @@ const encodeFile = async (file: File, bufferView: BufferView) => {
  *   - [I32: length] 4 bytes
  *   - [...payload] length bytes
  */
-const encodeSectionUrl = (url: URL, bufferView: BufferView) => {
-  bufferView.writeU32(URL_SECTION);
-  encodeURL(url, bufferView);
+const encodeSectionUrl = (url: URL, view: BufferView) => {
+  view.writeU32(URL_SECTION);
+  encodeURL(url, view);
 };
 
 /**
@@ -134,12 +135,12 @@ const encodeSectionUrl = (url: URL, bufferView: BufferView) => {
  *             - [I32: value kind = 1] 4 bytes
  *             - [I32: file_descriptor] 4 bytes
  */
-const encodeSectionBody = async (body: Body, bufferView: BufferView) => {
-  bufferView.writeU32(BODY_SECTION);
+const encodeSectionBody = async (body: Body, view: BufferView) => {
+  view.writeU32(BODY_SECTION);
 
   if (typeof body === "string") {
-    bufferView.writeU32(BODY_KIND_STRING);
-    encodeString(body, bufferView);
+    view.writeU32(BODY_KIND_STRING);
+    encodeString(body, view);
     return;
   }
 
@@ -147,24 +148,24 @@ const encodeSectionBody = async (body: Body, bufferView: BufferView) => {
     const entries = Object.entries(body);
     const entryCount = entries.length;
 
-    bufferView.writeU32(BODY_KIND_MAP);
-    bufferView.writeU32(entryCount);
+    view.writeU32(BODY_KIND_MAP);
+    view.writeU32(entryCount);
 
     for (const [key, value] of Object.entries(body)) {
-      encodeString(key, bufferView);
+      encodeString(key, view);
 
       if (typeof value === "string") {
-        bufferView.writeU32(BODY_KIND_MAP_VALUE_STRING);
-        encodeString(value, bufferView);
+        view.writeU32(BODY_KIND_MAP_VALUE_STRING);
+        encodeString(value, view);
       } else {
-        bufferView.writeU32(BODY_KIND_MAP_VALUE_BYTES);
-        await encodeFile(value, bufferView);
+        view.writeU32(BODY_KIND_MAP_VALUE_BYTES);
+        await encodeFile(value, view);
       }
     }
   }
 
   if (body === null || body === void 0) {
-    bufferView.writeU32(BODY_KIND_NULL);
+    view.writeU32(BODY_KIND_NULL);
     return;
   }
 
@@ -178,13 +179,13 @@ const sizeOfRequest = (request: RequestFacade) => sizeOfUrlSection(request.url)
   + sizeOfMapSection(request.headers)
   + sizeOfMapSection(request.cookies);
 
-const encodeRequestInto = async (request: RequestFacade, bufferView: BufferView) => {
-  encodeSectionUrl(request.url, bufferView);
-  await encodeSectionBody(request.body, bufferView);
-  encodeMapSection(PATH_SECTION, request.path, bufferView);
-  encodeMapSection(QUERY_SECTION, request.query, bufferView);
-  encodeMapSection(HEADERS_SECTION, request.headers, bufferView);
-  encodeMapSection(COOKIES_SECTION, request.cookies, bufferView);
+const encodeRequestInto = async (request: RequestFacade, view: BufferView) => {
+  encodeSectionUrl(request.url, view);
+  await encodeSectionBody(request.body, view);
+  encodeMapSection(PATH_SECTION, request.path, view);
+  encodeMapSection(QUERY_SECTION, request.query, view);
+  encodeMapSection(HEADERS_SECTION, request.headers, view);
+  encodeMapSection(COOKIES_SECTION, request.cookies, view);
 };
 
 const encodeRequest = async (request: RequestFacade) => {

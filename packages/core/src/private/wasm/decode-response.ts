@@ -2,16 +2,16 @@ import error from "#handler/error";
 import redirect from "#handler/redirect";
 import view from "#handler/view";
 import type ResponseFunction from "#ResponseFunction";
+import decodeBytes from "#wasm/decode-bytes";
+import decodeJson from "#wasm/decode-json";
+import decodeOption from "#wasm/decode-option";
+import decodeString from "#wasm/decode-string";
 import type Instantiation from "#wasm/Instantiation";
+import openWebsocket from "#wasm/open-websocket";
 import assert from "@rcompat/assert";
 import type BufferView from "@rcompat/bufferview";
 import type { Known } from "@rcompat/http/Status";
 import type Dict from "@rcompat/type/Dict";
-import decodeBytes from "./decode-bytes.js";
-import decodeJson from "./decode-json.js";
-import decodeOption from "./decode-option.js";
-import decodeString from "./decode-string.js";
-import openWebsocket from "./open-websocket.js";
 
 type MaybeRedirectionStatus = Parameters<typeof redirect>[1];
 

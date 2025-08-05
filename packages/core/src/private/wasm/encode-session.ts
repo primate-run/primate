@@ -1,8 +1,7 @@
-import encodeString from "./encode-string.js";
-import sizeOfString from "./size-of-string.js";
+import encodeString from "#wasm/encode-string";
+import I32_SIZE from "#wasm/I32_SIZE";
+import stringsize from "#wasm/stringsize";
 import BufferView from "@rcompat/bufferview";
-
-const SIZE_I32 = Int32Array.BYTES_PER_ELEMENT;
 
 type SessionShape = {
   data: any;
@@ -10,13 +9,13 @@ type SessionShape = {
   new: boolean;
 };
 
-const encodeSession = (session: SessionShape) => {
+export default function encodeSession(session: SessionShape) {
   const data = JSON.stringify(session.data);
-  const dataSize = sizeOfString(data);
-  const idSize = sizeOfString(session.id);
+  const dataSize = stringsize(data);
+  const idSize = stringsize(session.id);
 
   const size = dataSize // data payload
-    + SIZE_I32 // new flat
+    + I32_SIZE // new flat
     + idSize; // id payload
 
   const output = new Uint8Array(size);
@@ -28,5 +27,3 @@ const encodeSession = (session: SessionShape) => {
 
   return output;
 };
-
-export default encodeSession;

@@ -2,7 +2,7 @@ import type RequestFacade from "#RequestFacade";
 import encodeRequest from "#wasm/encode-request";
 import test from "@rcompat/test";
 
-const simpleRequest =  {
+const simpleRequest = {
   body: "Example string body.",
   cookies: {},
   headers: {},

@@ -1,22 +1,24 @@
-import encodeBuffer from "./encode-buffer.js";
-import encodeString from "./encode-string.js";
-import sizeOfBuffer from "./size-of-buffer.js";
-import sizeOfString from "./size-of-string.js";
+import buffersize from "#wasm/buffersize";
+import encodeBuffer from "#wasm/encode-buffer";
+import encodeString from "#wasm/encode-string";
+import I32_SIZE from "#wasm/I32_SIZE";
+import stringsize from "#wasm/stringsize";
 import BufferView from "@rcompat/bufferview";
 
 const SIZE_I64 = BigInt64Array.BYTES_PER_ELEMENT;
-const SIZE_I32 = Int32Array.BYTES_PER_ELEMENT;
 
 const WEBSOCKET_MESSAGE_KIND_STRING = 0;
 const WEBSOCKET_MESSAGE_KIND_BYTES = 1;
 
-const encodeWebsocketMessage = (id: bigint, message: string | Uint8Array) => {
+type Message = string | Uint8Array;
+
+export default function encodeWebsocketMessage(id: bigint, message: Message) {
   const size = SIZE_I64 // WebsocketID
-    + SIZE_I32 // Kind
+    + I32_SIZE // Kind
     + (
       typeof message === "string"
-        ? sizeOfString(message)
-        : sizeOfBuffer(message)
+        ? stringsize(message)
+        : buffersize(message)
     );
   const output = new Uint8Array(size);
   const bufferView = new BufferView(output);
@@ -33,5 +35,3 @@ const encodeWebsocketMessage = (id: bigint, message: string | Uint8Array) => {
 
   return output;
 };
-
-export default encodeWebsocketMessage;

@@ -1,4 +1,4 @@
-import encodeString from "./encode-string.js";
+import encodeString from "#wasm/encode-string";
 import type BufferView from "@rcompat/bufferview";
 
 /**
@@ -6,12 +6,9 @@ import type BufferView from "@rcompat/bufferview";
  *
  * @param url - The url to encode.
  * @param offset - The offset to encode the url at.
- * @param bufferView - The buffer view to encode the url into.
+ * @param view - The buffer view to encode the url into.
  * @returns The next offset.
  */
-const encodeURL = (url: URL, bufferView: BufferView) => {
-  const str = url.toString();
-  return encodeString(str, bufferView);
+export default function encodeURL(url: URL, view: BufferView) {
+  return encodeString(url.toString(), view);
 };
-
-export default encodeURL;

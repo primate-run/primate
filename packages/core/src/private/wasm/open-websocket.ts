@@ -1,8 +1,8 @@
 import websocket from "#handler/ws";
 import type Instantiation from "#wasm/Instantiation";
-import encodeWebsocketClose from "./encode-websocket-close.js";
-import encodeWebsocketMessage from "./encode-websocket-message.js";
-import encodeWebsocketOpen from "./encode-websocket-open.js";
+import encodeWebsocketClose from "#wasm/encode-websocket-close";
+import encodeWebsocketMessage from "#wasm/encode-websocket-message";
+import encodeWebsocketOpen from "#wasm/encode-websocket-open";
 
 export default (websocketId: bigint) =>
   (api: Instantiation) => {

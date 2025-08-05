@@ -1,10 +1,6 @@
 import type BufferView from "@rcompat/bufferview";
 
-const encodeBuffer = (buffer: Uint8Array, bufferView: BufferView) => {
+export default function encodeBuffer(buffer: Uint8Array, view: BufferView) {
   const byteLength = buffer.byteLength;
-  bufferView
-    .writeU32(byteLength)
-    .writeBytes(buffer);
+  view.writeU32(byteLength).writeBytes(buffer);
 };
-
-export default encodeBuffer;

@@ -6,26 +6,23 @@ import verbs from "#verbs";
 import type API from "#wasm/API";
 import decodeJson from "#wasm/decode-json";
 import decodeResponse from "#wasm/decode-response";
+import decodeWebsocketClose from "#wasm/decode-websocket-close";
+import decodeWebsocketSendMessage from "#wasm/decode-websocket-send";
 import encodeRequest from "#wasm/encode-request";
 import encodeSession from "#wasm/encode-session";
 import type Exports from "#wasm/Exports";
+import type I32 from "#wasm/I32";
 import type Instantiation from "#wasm/Instantiation";
 import type Tagged from "#wasm/Tagged";
 import assert from "@rcompat/assert";
 import BufferView from "@rcompat/bufferview";
 import FileRef from "@rcompat/fs/FileRef";
 import { WASI } from "node:wasi";
-import decodeWebsocketClose from "./decode-websocket-close.js";
-import decodeWebsocketSendMessage from "./decode-websocket-send.js";
 
 type ServerWebSocket = {
   close(code?: number, reason?: string): void;
   send(value: ArrayBufferLike | ArrayBufferView | Blob | string): void;
 };
-
-/** The default request and response types, which are likely pointers into a
- * WASM linear memory space. */
-type I32 = number;
 
 type Init = {
   filename: string;
