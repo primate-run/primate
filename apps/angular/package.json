@@ -12,7 +12,9 @@
     "@angular/common": "^20.1.4",
     "@angular/core": "^20.1.4",
     "@primate/angular": "workspace:^",
+    "@primate/sqlite": "workspace:^",
     "@rcompat/fs": "^0.17.0",
+    "pema": "workspace:^",
     "primate": "workspace:^"
   }
 }

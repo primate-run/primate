@@ -14,7 +14,7 @@ const config = { providers: [provideClientHydration()] };
 
 export default class Angular {
   static mount(component: string, props: Dict) {
-    const rendered = root(components[component], props);
+    const rendered = root(components[component], props.props);
 
     bootstrapApplication(rendered, config).catch(error => console.error(error));
   }
