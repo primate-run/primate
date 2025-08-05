@@ -10,12 +10,12 @@ import validate from "@primate/angular/validate";
     <div style="margin-top: 2rem; text-align: center;">
       <h2>Counter Example</h2>
       <div>
-        <button (click)="decrement()" [disabled]="loading$ | async">-</button>
-        <span style="margin: 0 1rem;">{{ value$ | async }}</span>
-        <button (click)="increment()" [disabled]="loading$ | async">+</button>
+        <button (click)="decrement()" [disabled]="loading | async">-</button>
+        <span style="margin: 0 1rem;">{{ current | async }}</span>
+        <button (click)="increment()" [disabled]="loading | async">+</button>
       </div>
-      <p *ngIf="(error$ | async) as error" style="color:red; margin-top: 1rem;">
-        {{ error.message }}
+      <p *ngIf="(error | async) as e" style="color:red; margin-top: 1rem;">
+        {{ e.message }}
       </p>
     </div>
   `,
@@ -25,9 +25,9 @@ export default class CounterComponent {
   @Input() value!: number;
 
   counter!: ReturnType<ReturnType<typeof validate<number>>["post"]>;
-  value$!: typeof this.counter.value;
-  loading$!: typeof this.counter.loading;
-  error$!: typeof this.counter.error;
+  current!: typeof this.counter.value;
+  loading!: typeof this.counter.loading;
+  error!: typeof this.counter.error;
 
   ngOnInit() {
     this.counter = validate<number>(this.value).post(
@@ -35,9 +35,9 @@ export default class CounterComponent {
       value => ({ value }),
     );
 
-    this.value$ = this.counter.value;
-    this.loading$ = this.counter.loading;
-    this.error$ = this.counter.error;
+    this.current = this.counter.value;
+    this.loading = this.counter.loading;
+    this.error = this.counter.error;
   }
 
   increment() {

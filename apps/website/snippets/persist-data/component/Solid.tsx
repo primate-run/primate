@@ -1,4 +1,4 @@
-import validate from "@primate/react/validate";
+import validate from "@primate/solid/validate";
 
 interface Props { id: string; value: number };
 
@@ -9,19 +9,21 @@ export default function Counter(props: Props) {
   );
 
   return (
-    <div style={{ marginTop: "2rem", textAlign: "center" }}>
+    <div style={{ "margin-top": "2rem", "text-align": "center" }}>
       <h2>Counter Example</h2>
       <div>
         <button onClick={() => counter.update(n => n - 1)}
-          disabled={counter.loading}>
+          disabled={counter.loading()}>
           -
         </button>
-        <span style={{ margin: "0 1rem" }}>{counter.value}</span>
+        <span style={{ margin: "0 1rem" }}>{counter.value()}</span>
         <button onClick={() => counter.update(n => n + 1)}
-          disabled={counter.loading}>
+          disabled={counter.loading()}>
           +
         </button>
       </div>
-      {counter.error && <p style={{ color: "red" }}>{counter.error.message}</p>}
-    </div>);
+      {counter.error()
+        && <p style={{ color: "red" }}>{counter.error()!.message}</p>}
+    </div>
+  );
 }

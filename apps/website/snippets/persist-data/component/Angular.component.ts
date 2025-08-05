@@ -1,35 +1,50 @@
-import { CommonModule } from "@angular/common";
-import type { OnInit } from "@angular/core";
+import { AsyncPipe, NgIf } from "@angular/common";
 import { Component, Input } from "@angular/core";
+import validate from "@primate/angular/validate";
 
 @Component({
-  imports: [CommonModule],
+  imports: [AsyncPipe, NgIf],
   selector: "app-counter",
   standalone: true,
   template: `
-    <div style="text-align: center; margin-top: 2rem;">
+    <div style="margin-top: 2rem; text-align: center;">
       <h2>Counter Example</h2>
       <div>
-        <button (click)="decrement()">-</button>
-        <span style="margin: 0 1rem;">{{ count }}</span>
-        <button (click)="increment()">+</button>
+        <button (click)="decrement()" [disabled]="loading | async">-</button>
+        <span style="margin: 0 1rem;">{{ current | async }}</span>
+        <button (click)="increment()" [disabled]="loading | async">+</button>
       </div>
+      <p *ngIf="(error | async) as e" style="color:red; margin-top: 1rem;">
+        {{ e.message }}
+      </p>
     </div>
   `,
 })
-export default class CounterComponent implements OnInit {
-  @Input() start = 0;
-  count = 0;
+export default class CounterComponent {
+  @Input() id!: string;
+  @Input() value!: number;
+
+  counter!: ReturnType<ReturnType<typeof validate<number>>["post"]>;
+  current!: typeof this.counter.value;
+  loading!: typeof this.counter.loading;
+  error!: typeof this.counter.error;
 
   ngOnInit() {
-    this.count = this.start;
+    this.counter = validate<number>(this.value).post(
+      `/counter?id=${this.id}`,
+      value => ({ value }),
+    );
+
+    this.current = this.counter.value;
+    this.loading = this.counter.loading;
+    this.error = this.counter.error;
   }
 
   increment() {
-    this.count++;
+    this.counter.update(n => n + 1);
   }
 
   decrement() {
-    this.count--;
+    this.counter.update(n => n - 1);
   }
 }
