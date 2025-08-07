@@ -17,25 +17,25 @@
     "@rcompat/string": "^0.10.0",
     "poly": "^0.7.2",
     "primate": "workspace:^",
-    "shiki": "^3.9.1"
+    "shiki": "^3.9.2"
   },
   "devDependencies": {
-    "@angular/common": "^20.1.4",
-    "@angular/core": "^20.1.4",
+    "@angular/common": "^20.1.6",
+    "@angular/core": "^20.1.6",
     "@primate/angular": "workspace:^",
     "@primate/go": "workspace:^",
     "@primate/grain": "workspace:^",
+    "@primate/mongodb": "workspace:^",
+    "@primate/mysql": "workspace:^",
+    "@primate/postgresql": "workspace:^",
     "@primate/python": "workspace:^",
     "@primate/react": "workspace:^",
     "@primate/ruby": "workspace:^",
     "@primate/solid": "workspace:^",
+    "@primate/sqlite": "workspace:^",
+    "@primate/surrealdb": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@primate/vue": "workspace:^",
-    "@primate/mongodb": "workspace:^",
-    "@primate/sqlite": "workspace:^",
-    "@primate/postgresql": "workspace:^",
-    "@primate/surrealdb": "workspace:^",
-    "@primate/mysql": "workspace:^",
     "pema": "workspace:^"
   }
 }

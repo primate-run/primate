@@ -1,7 +1,7 @@
 import type RequestFacade from "@primate/core/RequestFacade";
-import type { PyodideInterface } from "pyodide";
+import type { PyodideAPI } from "pyodide";
 
-type ToPY = PyodideInterface["toPy"];
+type ToPY = PyodideAPI["toPy"];
 
 /*const wrap_store = (toPy: ToPY, store) => {
   return {

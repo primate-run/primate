@@ -20,7 +20,7 @@
     "@rcompat/test": "^0.5.0",
     "@rcompat/type": "^0.4.1",
     "@types/deno": "^2.3.0",
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.2.0",
     "apekit": "^0.0.33",
     "esbuild": "^0.25.8",
     "eslint": "^9.32.0",
