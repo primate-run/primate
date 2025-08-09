@@ -1,537 +1,631 @@
 <script>
-  import { onMount } from "svelte";
   import Header from "#component/Header";
-  import Icon from "#component/Icon";
+  import ExampleLink from "#component/ExampleLink";
 
-  export let content, app, examples;
+  export let app;
+  export let title = "The Universal Web Framework";
+  export let examples = { frontend: "", backend: "", runtime: "", i18n: "" };
 
-  const title = "The universal web framework";
-  const { theme } = app;
-  const filenames = {
-    react: ["PostIndex", "jsx"],
-    solid: ["PostIndex", "jsx"],
-    svelte: ["PostIndex", "svelte"],
-    vue: ["PostIndex", "vue"],
-    angular: ["post-index", "component.ts"],
-    htmx: ["post-index", "htmx"],
-    webc: ["post-index", "webc"],
-  };
-
-  const modify_route = ([name, ending]) => {
-    const selector = "code .line > span";
-    [...globalThis.document.querySelector(".tabs").querySelectorAll(selector)]
-      .filter((string) => string.innerText.slice(1).includes("ndex."))
-      .forEach((string) => {
-        string.innerText = `${name}.${ending}`;
-      });
-  };
-
-  const clipboard = (text) => {
-    globalThis.navigator.clipboard.writeText(text);
-  };
-
-  onMount(() => {
-    globalThis.document.querySelectorAll(".tabbed").forEach((tabbed) => {
-      const captions = tabbed.querySelector(".captions").childNodes;
-      const tabs = tabbed.querySelector(".tabs").childNodes;
-      captions.forEach((caption, i) => {
-        caption.addEventListener("click", () => {
-          console.log("ADDED LISTNER");
-          const filename = filenames[caption.innerText.toLowerCase()];
-          filename && modify_route(filename);
-
-          captions.forEach((_caption, j) => {
-            if (i === j) {
-              _caption.classList.add("active");
-            } else {
-              _caption.classList.remove("active");
-            }
-          });
-          tabs.forEach((tab, j) => {
-            if (i === j) {
-              tab.classList.remove("hidden");
-            } else {
-              tab.classList.add("hidden");
-            }
-          });
-        });
-      });
-    });
-  });
+  const initCmd = "npx primate init";
+  let copied = false;
+  async function copyInit() {
+    try {
+      await navigator.clipboard.writeText(initCmd);
+      copied = true;
+      setTimeout(() => (copied = false), 1200);
+    } catch {}
+  }
 </script>
 
 <Header {app} {title} />
-<main class="hero">
-  <div class="header">
-    <div class="flank"></div>
-    <div class="middle">
-      <div>
-        <img src="/logo.svg" style="width: 46px;" />
+
+<main class="homepage">
+  <section class="hero">
+    <div class="hero__bg"></div>
+
+    <div class="hero__inner">
+      <h1 class="hero__title">{title}</h1>
+      <div class="hero__lead" style="line-height: 1.8em; margin-bottom: 7rem;">
+        Frontend, backend, runtime — Primate lets you choose the tools that you
+        love <br />and
+        <span class="emphasis">combine them however you like</span>, without
+        lock-ins or rewrites
       </div>
-      <div>
-        <h1>{title}</h1>
-        <div class="buttons">
-          <a href="/guide/getting-started" class="primary">docs</a>
-          <span class="clip" on:click={() => clipboard("npm create primate")}>
-            <button>$ npx primate init</button>
-            <Icon name="clipboard" />
-          </span>
+
+      <div class="hero__actions">
+        <a class="btn btn--primary" href="/docs">Get started</a>
+        <button class="btn btn--ghost" on:click={copyInit}>
+          <span class="prompt">$ {initCmd}</span>
+          <span class="pill">{copied ? "Copied" : "Copy"}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="section-sep"></div>
+  </section>
+
+  <section class="bento">
+    <div class="bento__inner">
+      <a class="bento__card" href="#frontend">
+        <h3 class="bento__title">Frontends</h3>
+        <p class="bento__lead">
+          Mix React, Svelte, Vue, Angular — in one app. If it compiles to the
+          web, we support it.
+        </p>
+        <span class="bento__cta">See examples →</span>
+      </a>
+
+      <a class="bento__card" href="#backend">
+        <h3 class="bento__title">Backends</h3>
+        <p class="bento__lead">
+          Courtesy of Wasm: write routes in JS/TS, Go, Ruby, Python. Use one —
+          or all together.
+        </p>
+        <span class="bento__cta">See examples →</span>
+      </a>
+
+      <a class="bento__card" href="#runtime">
+        <h3 class="bento__title">Runtimes</h3>
+        <p class="bento__lead">
+          Node, Deno, Bun and emerging runtimes with consistent APIs and fast
+          native paths.
+        </p>
+        <span class="bento__cta">See examples →</span>
+      </a>
+
+      <a class="bento__card" href="#ecosystem">
+        <h3 class="bento__title">Ecosystem</h3>
+        <p class="bento__lead">
+          Databases, ORM, sessions, auth, i18n, native builds — official modules
+          that keep growing.
+        </p>
+        <span class="bento__cta">See examples →</span>
+      </a>
+    </div>
+
+    <div class="section-sep"></div>
+  </section>
+
+  <section id="frontend" class="feature">
+    <div class="feature__inner">
+      <div class="feature__head">
+        <h2 class="feature__title">Use any frontend.</h2>
+        <p class="feature__lead">
+          Primate supports every major frontend and many more lesser-known ones.
+          Build different parts of your app in different frontends. Missing
+          anything? Tell us and we’ll add it.
+        </p>
+        <div class="feature__actions">
+          <a class="btn" href="/docs/frontend">Read docs</a>
         </div>
       </div>
+      <div class="feature__demo">{@html examples.frontend}</div>
     </div>
-    <div class="flank"></div>
-  </div>
-</main>
-<h1 class="interim-title">Mix and match the best web tech, in one stack</h1>
-<div class="table">
-  <div>
-    <h1>backend</h1>
-    <div class="logos">
-      <img src="/logos/js.svg" title="JavaScript" />
-      <img src="/logos/ts.svg" title="TypeScript" />
-      <img src="/logos/go.svg" title="Golang" />
-      <img src="/logos/python.svg" title="Python" />
-      <img src="/logos/ruby.svg" title="Ruby" />
-    </div>
-    <p>
-      Write backend code in your language of choice, leveraging the power of
-      Wasm. Mix routes of <a href="/modules/backend"
-        >different backend languages</a
-      >, allowing your application to be written by different teams.
-    </p>
-    {@html examples.backend}
-  </div>
-  <div>
-    <h1>frontend</h1>
-    <div class="logos">
-      <img src="/logos/react.svg" title="React" />
-      <img src="/logos/svelte.svg" title="Svelte" />
-      <img src="/logos/vue.svg" title="Vue" />
-      <img src="/logos/solid.svg" title="Solid" />
-      <img src="/logos/angular.svg" title="Angular" />
-      <img src="/logos/webc.svg" title="Web Components" class="invertible" />
-    </div>
-    <p>
-      Seamlessly switch between <a href="/modules/frontend"
-        >frontend frameworks</a
-      >, with support for SSR, hydration and layouts across the board. You can
-      even combine more than one framework in your application.
-    </p>
-    {@html examples.frontend}
-  </div>
-  <div>
-    <h1>runtime</h1>
-    <div class="logos">
-      <img src="/logos/node.svg" title="Node" />
-      <img src="/logos/deno.svg" title="Deno" class="invertible" />
-      <img src="/logos/bun.svg" title="Bun" />
-    </div>
-    <p>
-      Compare the performance of your application across different JavaScript
-      runtimes. Use the comfort of one runtime during development and the speed
-      gains of another in production.
-    </p>
-    {@html examples.runtime}
-  </div>
-</div>
-<h1 class="interim-title">extensive, officially supported ecosystem</h1>
-<div class="table">
-  <div>
-    <h1>data handling</h1>
-    <div class="logos">
-      <img src="/logos/sqlite.svg" title="SQLite" />
-      <img src="/logos/postgresql.svg" title="PostgreSQL" />
-      <img src="/logos/mysql.svg" title="MySQL" />
-      <img src="/logos/mongodb.svg" title="MongoDB" />
-      <img src="/logos/surrealdb.svg" title="SurrealDB" />
-    </div>
-    <p>
-      Validate input using Primate <a href="/modules/schema">schemas</a>.
-      Persist information with <a href="/modules/store">stores</a>, using any of
-      the supported <a href="/modules/drivers">database drivers</a>
-      with a unified ORM interface, or write your own optimized, low-level store
-      actions. Primate's ORM comes with automated transaction management and rollback
-      on error, saving you writing boilerplate code in your application routes.
-    </p>
-  </div>
-  <div>
-    <h1>internationalization</h1>
-    <div class="logos">
-      <img src="/logos/react.svg" title="React" />
-      <img src="/logos/svelte.svg" title="Svelte" />
-      <img src="/logos/solid.svg" title="Solid" />
-    </div>
-    <p>
-      Easily make your application international, using a unified API across
-      different frontends with placeholder support and a built-in language
-      switcher.
-    </p>
-    {@html examples.i18n}
-  </div>
-  <div>
-    <h1>all around</h1>
-    <div class="logos">
-      <img src="/logos/esbuild.svg" title="esbuild" />
-    </div>
-    <p>
-      Use <a href="/modules/build">esbuild</a> for hot reload during development
-      and bundling in production, add
-      <a href="/guide/sessions">user sessions</a> or
-      <a href="/guide/extending-primate">write your own modules</a> using the available
-      hooks.
-    </p>
-  </div>
-</div>
-<h1 class="interim-title">more than all the rest, combined</h1>
-<div class="comparison">
-  <table>
-    <thead>
-      <tr>
-        <th>Feature</th>
-        <th>Next</th>
-        <th>Nuxt</th>
-        <th>SvelteKit</th>
-        <th>Analog</th>
-        <th>Primate</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td colspan="6"> Backend </td>
-      </tr>
-      <tr>
-        <td>JavaScript</td>
-        <td>✓</td>
-        <td>✓</td>
-        <td>✓</td>
-        <td>✗</td>
-        <td>✓</td>
-      </tr>
-      <tr>
-        <td>TypeScript</td>
-        <td>✓</td>
-        <td>✓</td>
-        <td>✓</td>
-        <td>✓</td>
-        <td>
-          <a href="/modules/typescript">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Go</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/go">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Python</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/python">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Ruby</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/ruby">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="6"> Frontend </td>
-      </tr>
-      <tr>
-        <td>React</td>
-        <td>✓</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/react">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Vue</td>
-        <td>✗</td>
-        <td>✓</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/vue">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Svelte</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✓</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/svelte">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Angular</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✓</td>
-        <td>
-          <a href="/modules/angular">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Solid</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/solid">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Web Components</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/web-components">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>HTML</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/html">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>HTMX</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/htmx">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Handlebars</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/handlebars">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Markdown</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/markdown">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Marko</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/marko">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Eta</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/eta">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td>Voby</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>
-          <a href="/modules/voby">✓</a>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="6"> Native runtime </td>
-      </tr>
-      <tr>
-        <td>Node</td>
-        <td>✓</td>
-        <td>✓</td>
-        <td>✓</td>
-        <td>✓</td>
-        <td>✓</td>
-      </tr><tr>
-        <td>Deno</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✓</td>
-      </tr>
-      <tr>
-        <td>Bun</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✓</td>
-      </tr>
-      <tr>
-        <td colspan="6"> Data stores / ORM </td>
-      </tr>
-      <tr>
-        <td>SQLite</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td><a href="/modules/drivers#sqlite">✓</a></td>
-      </tr>
-      <tr>
-        <td>MongoDB</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td><a href="/modules/drivers#mongodb">✓</a></td>
-      </tr>
-      <tr>
-        <td>PostgreSQL</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td><a href="/modules/drivers#postgresql">✓</a></td>
-      </tr>
-      <tr>
-        <td>MySQL</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td><a href="/modules/drivers#mysql">✓</a></td>
-      </tr>
-      <tr>
-        <td>SurrealDB</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td><a href="/modules/drivers#surrealdb">✓</a></td>
-      </tr>
-      <tr>
-        <td colspan="6"> Ecosystem </td>
-      </tr>
-      <tr>
-        <td>I18N</td>
-        <td>✓</td>
-        <td>✓</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td><a href="/modules/i18n">✓</a></td>
-      </tr>
-      <tr>
-        <td>Head Component</td>
-        <td>✓</td>
-        <td>✓</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td><a href="/modules/frontend#head-component">✓</a></td>
-      </tr>
-      <tr>
-        <td>Route guards</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td><a href="/guide/guards">✓</a></td>
-      </tr>
-      <tr>
-        <td>Recursive layouts</td>
-        <td>✓</td>
-        <td>✓</td>
-        <td>✓</td>
-        <td>✗</td>
-        <td><a href="/guide/layouts">✓</a></td>
-      </tr>
-      <tr>
-        <td>WebSockets</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td><a href="/guide/responses#websocket">✓</a></td>
-      </tr>
-      <tr>
-        <td>Server-sent events</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td><a href="/guide/responses#server-sent-events">✓</a></td>
-      </tr>
-      <tr>
-        <td>User sessions</td>
-        <td>✗</td>
-        <td>✓</td>
-        <td>✗</td>
-        <td>✗</td>
-        <td><a href="/guide/sessions">✓</a></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+    <div class="section-sep"></div>
+  </section>
 
-<div class="footer">
-  <div class="table">
-    <div>
-      <img src="/logo.svg" />
+  <section id="backend" class="feature feature--alt">
+    <div class="feature__inner">
+      <div class="feature__head">
+        <h2 class="feature__title">Combine many backends.</h2>
+        <p class="feature__lead">
+          Using Web Assembly, compose your backend in several languages — one or
+          all at the same time. New backends are added according to demand.
+        </p>
+        <div class="feature__actions">
+          <a class="btn" href="/docs/backend">Read docs</a>
+        </div>
+      </div>
+      <div class="feature__demo">{@html examples.backend}</div>
     </div>
-    <div>
-      <div class="heading">docs</div>
-      <ul>
-        <li><a href="/guide/getting-started">guide</a></li>
-        <li><a href="/modules/official">modules</a></li>
-        <li><a href="/blog">blog</a></li>
-      </ul>
+    <div class="section-sep"></div>
+  </section>
+
+  <section id="runtime" class="feature">
+    <div class="feature__inner">
+      <div class="feature__head">
+        <h2 class="feature__title">Choose your runtime.</h2>
+        <p class="feature__lead">
+          Consistent, nearly-universal support for Node, Deno, Bun and emergent
+          runtimes. Fast native API paths under the hood — no runtime-specific
+          boilerplate.
+        </p>
+        <div class="feature__actions">
+          <a class="btn" href="/docs/runtime">Read docs</a>
+        </div>
+      </div>
+      <div class="feature__demo">{@html examples.runtime}</div>
     </div>
-    <div>
-      <div class="heading">community</div>
-      <ul>
-        <li><a href={theme.chat}>discord</a></li>
-        <li><a href="https://x.com/{theme.x}">x</a></li>
-        <li><a href="https://github.com/{theme.github}">github</a></li>
-      </ul>
+    <div class="section-sep"></div>
+  </section>
+
+  <section id="ecosystem" class="feature feature--alt">
+    <div class="feature__inner">
+      <div class="feature__head">
+        <h2 class="feature__title">Extensive ecosystem.</h2>
+        <p class="feature__lead">
+          Official modules for what apps actually need — databases & ORM,
+          sessions & auth, i18n, API clients, and more. We keep adding new
+          modules.
+        </p>
+        <div class="feature__actions">
+          <a class="btn" href="/docs/databases">Databases</a>
+          <a class="btn" href="/docs/i18n">I18N</a>
+          <a class="btn" href="/docs/sessions">Sessions</a>
+          <a class="btn" href="/docs/native">Native apps</a>
+        </div>
+      </div>
+      <div class="feature__demo">{@html examples.i18n}</div>
     </div>
-  </div>
-</div>
+    <div class="section-sep"></div>
+  </section>
+
+  <section id="learn" class="examples">
+    <div class="examples__bg"></div>
+    <div class="examples__inner">
+      <div class="examples__head">
+        <h2 class="examples__title">Get productive.</h2>
+        <p class="examples__lead">
+          Short, focused guides to common tasks. Browse the topics and jump into
+          the docs.
+        </p>
+        <a class="examples__all" href="/guides">Browse all guides →</a>
+      </div>
+
+      <div class="example-group">
+        <h3 class="example-group__title">Components</h3>
+        <ul class="example-list">
+          <li><ExampleLink title="Serve component from route" /></li>
+          <li><ExampleLink title="Serve a layout component" /></li>
+          <li><ExampleLink title="Write Angular components" /></li>
+          <li><ExampleLink title="Write React components" /></li>
+          <li><ExampleLink title="Write Svelte components" /></li>
+          <li><ExampleLink title="Write Solid components" /></li>
+          <li><ExampleLink title="Write Vue components" /></li>
+          <li><ExampleLink title="Write Eta components" /></li>
+          <li><ExampleLink title="Write Marko components" /></li>
+          <li><ExampleLink title="Write HTML components" /></li>
+          <li><ExampleLink title="Write HTMX components" /></li>
+          <li><ExampleLink title="Write Handlebars compnents" /></li>
+          <li><ExampleLink title="Write Voby components" /></li>
+          <li><ExampleLink title="Write Web Components" /></li>
+          <li><ExampleLink title="Serve Markdown files" /></li>
+        </ul>
+      </div>
+
+      <div class="example-group">
+        <h3 class="example-group__title">Routes</h3>
+        <ul class="example-list">
+          <li><ExampleLink title="Use different verbs in routes" /></li>
+          <li><ExampleLink title="Add a route layout" /></li>
+          <li><ExampleLink title="Add a route guard" /></li>
+          <li><ExampleLink title="Add a route error page" /></li>
+          <li><ExampleLink title="Add routes programmtically" /></li>
+          <li><ExampleLink title="Write Golang routes" /></li>
+          <li><ExampleLink title="Write Python routes" /></li>
+          <li><ExampleLink title="Write Ruby routes" /></li>
+          <li><ExampleLink title="Write Grain routes" /></li>
+          <li><ExampleLink title="Disable body parsing" /></li>
+        </ul>
+      </div>
+
+      <div class="example-group">
+        <h3 class="example-group__title">Databases</h3>
+        <ul class="example-list">
+          <li><ExampleLink title="Add a store" /></li>
+          <li><ExampleLink title="Use store in route" /></li>
+          <li><ExampleLink title="Database lifecycle" /></li>
+          <li><ExampleLink title="Retrieve records" /></li>
+          <li><ExampleLink title="Create and update records" /></li>
+          <li><ExampleLink title="Delete records" /></li>
+          <li><ExampleLink title="Use SQLite" /></li>
+          <li><ExampleLink title="Use PostgreSQL" /></li>
+          <li><ExampleLink title="Use MySQL" /></li>
+          <li><ExampleLink title="Use SurrealDB" /></li>
+          <li><ExampleLink title="Use MongoDB" /></li>
+        </ul>
+      </div>
+
+      <div class="example-group">
+        <h3 class="example-group__title">Validation</h3>
+        <ul class="example-list">
+          <li><ExampleLink title="Runtime validation with Pema" /></li>
+          <li><ExampleLink title="Web validation" /></li>
+          <li><ExampleLink title="Validate body input" /></li>
+          <li><ExampleLink title="Validate query string" /></li>
+        </ul>
+      </div>
+
+      <div class="example-group">
+        <h3 class="example-group__title">I18N</h3>
+        <p class="examples__soon">TODO.</p>
+      </div>
+    </div>
+
+    <div class="section-sep"></div>
+  </section>
+
+  <footer class="home-footer">
+    <nav class="home-footer__links">
+      <a href="/docs">Docs</a>
+      <a href="/guides">Guides</a>
+      <a href="/blog">Blog</a>
+      <a href="/chat">Community</a>
+      <a href="https://x.com/primate_run">X</a>
+      <a href="https://github.com/primate-run/primate">Source</a>
+      <span class="license"
+        >Primate is released under the <a
+          href="https://github.com/primate-run/primate/blob/master/LICENSE"
+          >MIT license</a
+        >.
+      </span>
+    </nav>
+  </footer>
+</main>
+
+<style>
+  .emphasis {
+    font-weight: bold;
+    color: var(--fg);
+  }
+  main.homepage {
+    display: block;
+    padding-top: var(--height);
+    max-width: none;
+  }
+
+  .hero {
+    position: relative;
+    padding: 96px 0 88px;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .hero__inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 var(--prs-page-padding-side);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .hero__title {
+    font-size: clamp(3.2rem, 7vw, 6rem);
+    margin: 5rem 0;
+  }
+  .hero__lead {
+    max-width: 70ch;
+    margin: 0 auto 2.4rem;
+    color: var(--fg2);
+    font-size: 1.9rem;
+  }
+  .hero__actions {
+    display: inline-flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.95rem 1.6rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+  }
+  .btn--primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    font-size: 14px;
+    padding: 7.5px 15px;
+  }
+  .btn--ghost {
+    font-family: droid-sans-mono;
+  }
+  .btn .pill {
+    font-size: 1.2rem;
+    background: color-mix(in srgb, var(--fg) 10%, transparent);
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-family: inter;
+  }
+
+  .hero__bg {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 100vw;
+    height: 100%;
+    transform: translateX(-50%);
+    z-index: 0;
+    --grid: color-mix(in srgb, var(--fg) 5%, transparent);
+    background: radial-gradient(
+        60rem 30rem at 20% 10%,
+        color-mix(in srgb, var(--primary) 26%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        50rem 25rem at 80% 20%,
+        color-mix(in srgb, var(--primary) 18%, transparent),
+        transparent 60%
+      ),
+      repeating-linear-gradient(
+        to right,
+        var(--grid) 0 1px,
+        transparent 1px 32px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        var(--grid) 0 1px,
+        transparent 1px 32px
+      );
+  }
+
+  .section-sep {
+    height: 1px;
+    width: 100vw;
+    background: var(--border);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 0;
+  }
+
+  .bento {
+    position: relative;
+    padding: 48px 0;
+  }
+  .bento__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 var(--prs-page-padding-side);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3rem;
+  }
+  .bento__card {
+    display: grid;
+    gap: 0.4rem;
+    padding: 2rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--caption-bg) 65%, transparent);
+    text-decoration: none;
+    transition:
+      transform 0.2s ease,
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+  .bento__card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+    background: color-mix(in srgb, var(--caption-bg) 80%, transparent);
+  }
+  .bento__title {
+    margin: 0;
+    font-size: 20px;
+    color: var(--fg);
+  }
+  .bento__lead {
+    margin: 0;
+    color: var(--fg2);
+    font-size: 1.6rem;
+  }
+  .bento__cta {
+    margin-top: 0.2rem;
+    font-size: 1.3rem;
+    color: var(--primary);
+  }
+  @media (max-width: 900px) {
+    .bento__inner {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .feature {
+    position: relative;
+    padding: 72px 0;
+    isolation: isolate;
+  }
+  .feature--alt {
+    background: color-mix(in srgb, var(--caption-bg) 35%, transparent);
+  }
+  .feature__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 var(--prs-page-padding-side);
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "text demo";
+    gap: clamp(1.6rem, 4vw, 3.2rem);
+    align-items: center;
+  }
+  .feature--alt .feature__inner {
+    grid-template-areas: "demo text";
+  }
+
+  .feature__head {
+    grid-area: text;
+    max-width: 56ch;
+    margin-bottom: 1rem;
+  }
+  .feature__title {
+    font-size: clamp(2.8rem, 3.2vw + 1rem, 4.2rem);
+    line-height: 1.1;
+    margin: 0 0 3rem;
+  }
+  .feature__lead {
+    color: var(--fg2);
+    font-size: 1.8rem;
+    margin: 0;
+    max-width: 72ch;
+    margin-bottom: 30px;
+  }
+
+  .feature__actions {
+    margin-top: 1.2rem;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .feature__actions .btn {
+    padding: 0.6rem 1rem;
+    font-size: 13.5px;
+  }
+
+  .feature__demo {
+    grid-area: demo;
+    background: var(--caption-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem;
+    overflow: hidden;
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--fg) 8%, transparent),
+      0 12px 30px color-mix(in srgb, var(--fg) 6%, transparent);
+  }
+
+  .home-footer {
+    padding: 2.5rem 0 4rem;
+  }
+  .home-footer__links {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 var(--prs-page-padding-side);
+    display: flex;
+    gap: 1.4rem;
+    flex-wrap: wrap;
+    color: var(--heading);
+  }
+  .home-footer__links a {
+    color: var(--heading);
+    text-decoration: none;
+    border-bottom: 1px dashed transparent;
+  }
+  .home-footer__links a:hover {
+    border-bottom-color: var(--primary);
+  }
+  .home-footer .license {
+    flex-grow: 1;
+    text-align: right;
+  }
+  .home-footer .license a {
+    color: var(--fg);
+  }
+
+  @media (max-width: 900px) {
+    .hero {
+      padding: 80px 0 72px;
+    }
+    .feature {
+      padding: 56px 0;
+    }
+    .feature__inner {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "text"
+        "demo";
+    }
+    .feature__demo {
+      margin-top: 1.2rem;
+    }
+  }
+
+  .examples {
+    position: relative;
+    padding: 72px 0;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .examples__bg {
+    position: absolute;
+    inset: -10% -10%;
+    background: radial-gradient(
+        60rem 30rem at 12% -8%,
+        color-mix(in srgb, var(--primary) 26%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        44rem 22rem at 98% 18%,
+        color-mix(in srgb, var(--primary) 18%, transparent),
+        transparent 60%
+      ),
+      repeating-linear-gradient(
+        to right,
+        color-mix(in srgb, var(--fg) 5%, transparent) 0 1px,
+        transparent 1px 28px
+      ),
+      repeating-linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--fg) 5%, transparent) 0 1px,
+        transparent 1px 28px
+      );
+    filter: blur(48px);
+    opacity: 0.1;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .examples__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 var(--prs-page-padding-side);
+  }
+  .examples__head {
+    position: static;
+    display: grid;
+    gap: 0.6rem;
+    margin-bottom: 1.6rem;
+  }
+  .examples__title {
+    font-size: clamp(2.8rem, 3.2vw + 1rem, 4.2rem);
+    line-height: 1.1;
+    margin: 0;
+  }
+  .examples__lead {
+    margin: 0;
+    color: var(--fg2);
+    font-size: 1.7rem;
+    max-width: 72ch;
+  }
+  .examples__all {
+    justify-self: start;
+    margin-top: 0.6rem;
+    font-size: 1.4rem;
+    text-decoration: none;
+    color: var(--primary);
+    border-bottom: 1px dashed transparent;
+  }
+  .examples__all:hover {
+    border-bottom-color: var(--primary);
+  }
+
+  .example-group {
+    margin-top: 2.2rem;
+  }
+  .example-group__title {
+    margin: 0 0 0.8rem;
+    font-size: 1.2rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--heading);
+  }
+  .example-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.8rem;
+  }
+  .examples__soon {
+    margin: 0.6rem 0 0;
+    color: var(--fg2);
+    font-style: italic;
+  }
+</style>

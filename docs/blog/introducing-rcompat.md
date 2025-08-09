@@ -1,3 +1,8 @@
+---
+title: Introducing rcompat
+epoch: 1712966964000
+author: terrablue
+---
 Today we're officially introducing rcompat, a JavaScript interoperability
 and runtime compatibility layer for servers which has been doing most of the
 heavy lifting behind Primate and its multi-runtime support for a while now.

@@ -49,7 +49,7 @@ class Log {
     if (error instanceof AppError) {
       print(red("!!"), error.message, "\n");
     } else {
-      console.log(error);
+      console.error(error);
     }
   }
 }

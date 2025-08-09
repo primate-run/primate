@@ -38,9 +38,13 @@ export default class SessionModule extends Module {
     const id = request.cookies[name];
     const session = this.#manager.get(id as string);
 
-    const response = await new Promise<Response>(resolve => {
+    const response = await new Promise<Response>((resolve, reject) => {
       storage().run(session, async () => {
-        resolve(await next(request) as Response);
+        try {
+          resolve(await next(request) as Response);
+        } catch (e) {
+          reject(e);
+        }
       });
     });
 

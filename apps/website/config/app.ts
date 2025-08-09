@@ -7,8 +7,42 @@ import type { SpecialLanguage } from "shiki";
 import { createHighlighter } from "shiki";
 import Priss from "../modules/Priss.ts";
 
+const sorting = [
+  // runtime
+  "Node",
+  "Deno",
+  "Bun",
+  // frontend
+  "React",
+  "Svelte",
+  "Vue",
+  "Angular",
+  "Solid",
+  // backend
+  "TypeScript",
+  "JavaScript",
+  "Go",
+  "Python",
+  "Ruby",
+  "Grain",
+  // database
+  "SQLite",
+  "PostgreSQL",
+  "MySQL",
+  "MongoDB",
+  "SurrealDB",
+  // general
+  "Store",
+  "Route",
+  "Component",
+];
+
 const grain = await FileRef.join(import.meta.dirname, "grain.json")
   .json<SpecialLanguage>();
+
+function trim(filename: string) {
+  return /^\d-/.test(filename) ? filename.slice(2) : filename;
+}
 
 const highlighter = await createHighlighter({
   langs: [
@@ -33,7 +67,7 @@ const highlighter = await createHighlighter({
     "json",
     "http",
   ],
-  themes: ["nord"],
+  themes: ["plastic", "vesper", "nord", "min-dark", "min-light", "catppuccin-frappe"],
 });
 
 await highlighter.loadLanguage({ ...grain, aliases: ["gr"] });
@@ -57,10 +91,8 @@ function make_captions(captionline: string) {
 
 export default config({
   build: {
-    options: {
-      loader: {
-        ".woff2": "file",
-      },
+    loader: {
+      ".woff2": "file",
     },
   },
   modules: [
@@ -131,6 +163,11 @@ export default config({
               </h${level}>
             `;
           },
+          link(token) {
+            const href = token.href;
+            const url = href.startsWith("/") ? `/docs${href}` : href;
+            return `<a href="${url}">${token.text}</a>`;
+          },
         },
       },
       async pretransform(text: string) {
@@ -152,29 +189,46 @@ export default config({
         let replacement = "";
 
         for (const { folder, fullMatch } of replacements) {
-          replacement = "%%% ";
-
           const files = await (await root()).join("snippets", folder).list();
+          const has_tabs = files.length > 1;
+
+          if (has_tabs) {
+            replacement = "%%% ";
+          } else {
+            replacement = "";
+          }
+
           const [filenamer] = files.filter(file => file.name === "filename.ts");
           const has_filename = filenamer !== undefined;
           const to_filename = has_filename ? await filenamer.import("default") : () => "";
 
-          const snippets = files.filter(file => file.name !== "filename.ts");
+          const snippets = files
+            .filter(file => file.name !== "filename.ts")
+            .toSorted((a, b) =>
+              sorting.indexOf(a.base) < sorting.indexOf(b.base) ? -1 : 1)
+            ;
 
-          replacement += snippets
-            .map(file =>
-              file.name.slice(0, -file.fullExtension.length)
-              + (has_filename ? `:${to_filename(file.fullExtension)}` : ""),
-            ).join(", ");
-          replacement += "\n\n";
+          if (has_tabs) {
+            replacement += snippets
+              .map(file =>
+                trim(file.name.slice(0, -file.fullExtension.length))
+                + (has_filename ? `:${to_filename(file.fullExtension, file)}` : ""),
+              ).join(", ");
+            replacement += "\n\n";
+          }
 
           const is_sh = (file: FileRef) => file.extension === ".sh" ? "$ " : "";
 
           for (const file of snippets) {
+            if (!has_tabs) {
+              replacement += "\n\n";
+            }
             replacement += `\`\`\`${file.extension.slice(1)}\n${is_sh(file)}${await file.text()}\`\`\`\n\n`;
           }
 
-          replacement += "\n%%%";
+          if (has_tabs) {
+            replacement += "\n%%%";
+          }
 
           replaced = replaced.replace(fullMatch, replacement);
         }
@@ -194,6 +248,7 @@ export default config({
         ],
         navbar: [
           { label: "Docs", link: "/docs" },
+          { label: "Guides", link: "/guides" },
           { label: "Blog", link: "/blog" },
         ],
         sidebar: [
@@ -208,8 +263,12 @@ export default config({
                 title: "Quickstart",
               },
               {
-                href: "/setup",
-                title: "Project setup",
+                href: "/project-structure",
+                title: "Project Structure",
+              },
+              {
+                href: "/configuration",
+                title: "Configuration",
               },
             ],
             title: "Intro",
@@ -284,6 +343,10 @@ export default config({
                 ],
                 title: "Stores",
               },
+              {
+                href: "/i18n",
+                title: "I18N",
+              },
             ],
             title: "Framework",
           },
@@ -313,8 +376,10 @@ export default config({
             title: "Frontends",
           },
           {
-            href: "/backends",
-            items: [
+            items: [{
+              href: "/backend",
+              title: "Overview",
+            }].concat(...[
               "Go",
               "Grain",
               "Python",
@@ -322,12 +387,14 @@ export default config({
             ].toSorted().map(title => ({
               href: `/backend/${title.replaceAll(" ", "-").toLowerCase()}`,
               title,
-            })),
+            }))),
             title: "Backends",
           },
           {
-            href: "/databases",
-            items: [
+            items: [{
+              href: "/database",
+              title: "Overview",
+            }].concat(...[
               "MongoDB",
               "MySQL",
               "PostgreSQL",
@@ -336,8 +403,23 @@ export default config({
             ].toSorted().map(title => ({
               href: `/database/${title.replaceAll(" ", "-").toLowerCase()}`,
               title,
-            })),
+            }))),
             title: "Databases",
+          },
+          {
+            href: "/runtime",
+            items: [{
+              href: "/runtime",
+              title: "Overview",
+            }].concat(...[
+              "Node",
+              "Deno",
+              "Bun",
+            ].map(title => ({
+              href: `/runtime/${title.replaceAll(" ", "-").toLowerCase()}`,
+              title,
+            }))),
+            title: "Runtimes",
           },
           {
             href: "targets",

@@ -1,3 +1,8 @@
+---
+title: Release 0.22: Solid and Markdown support, build transformations
+epoch: 1692880155000
+author: terrablue
+---
 Today we're announcing the availability of the Primate 0.22 preview release.
 This release comes along with 2 new frontend handlers (Solid, Markdown),
 full React support and build transformations.

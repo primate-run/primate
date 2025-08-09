@@ -2,10 +2,11 @@
   import Header from "#component/Header";
   import Sidebar from "#component/Sidebar";
 
-  export let content, toc, app, sidebar, path;
+  export let content, toc, app, path;
 
-  let previous, next;
+  let previous, next, sidebar;
   $: {
+    sidebar = app.theme.sidebar;
     const flattened = sidebar.flatMap((item) => item.items);
     const index = flattened.findIndex((item) => item.href === path);
     previous = flattened[index - 1];

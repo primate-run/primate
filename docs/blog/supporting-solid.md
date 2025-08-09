@@ -1,3 +1,8 @@
+---
+title: Adding Solid support
+epoch: 1691948898000
+author: terrablue
+---
 Today we're adding another frontend framework to our growing list of supported
 handlers, [Solid]. The new handler is fully compatible with the current 0.21
 release.

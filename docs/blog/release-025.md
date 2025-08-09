@@ -1,3 +1,8 @@
+---
+title: Release 0.25: Native Deno support, I18N for Svelte/React/Solid
+epoch: 1698532413000
+author: terrablue
+---
 Today we're announcing the availability of the Primate 0.25 preview release.
 This release introduces native Deno support, meaning Primate now supports all
 the three significant runtimes in JS space (Node, Deno, Bun).

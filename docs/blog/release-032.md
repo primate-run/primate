@@ -1,3 +1,8 @@
+---
+title: Release 0.32: Primate Native, support for Voby and Eta frontends
+epoch: 1722815387000
+author: terrablue
+---
 Today we're announcing the availability of the Primate 0.32 preview release.
 This release introduces support for building native applications with Primate
 Native, adds two new frontends, Voby and Eta, and includes a host of other

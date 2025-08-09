@@ -63,7 +63,6 @@ const web: Platform = {
     loader: new Loader({
       pages,
       rootfile: import.meta.url,
-      pages_app: "${app.config("pages.app")}",
       static_root: "${app.config("http.static.root")}",
     }),
     platform: "web",

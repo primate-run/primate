@@ -96,7 +96,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
     };
 
     const $layouts = { layouts: await get_layouts(layouts, request) };
-    return respond(response)(app, $layouts, request) as Response;
+    return await respond(response)(app, $layouts, request) as Response;
   } catch (error) {
     const request = partial_request;
     if (error instanceof ValidationError) {

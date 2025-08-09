@@ -1,3 +1,4 @@
+import location from "#location";
 import FileRef from "@rcompat/fs/FileRef";
 import Status from "@rcompat/http/Status";
 import { resolve } from "@rcompat/http/mime";
@@ -5,7 +6,6 @@ import type Dict from "@rcompat/type/Dict";
 
 type Init = {
   pages: Dict<string>;
-  pages_app: string;
   rootfile: string;
   static_root: string;
 };
@@ -27,15 +27,11 @@ export default class Loader {
     return this.#init.pages;
   }
 
-  get pages_app() {
-    return this.#init.pages_app;
-  }
-
   page(name?: string) {
-    if (name === undefined) {
-      return this.#pages[this.pages_app];
+    if (name === undefined || !(name in this.#pages)) {
+      return this.#pages[location.app_html];
     }
-    return this.#pages[name] ?? this.#pages[this.pages_app];
+    return this.#pages[name];
   }
 
   asset(file: FileRef) {

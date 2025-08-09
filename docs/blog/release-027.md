@@ -1,3 +1,8 @@
+---
+title: Release 0.27: Python routes and quality of life improvements
+epoch: 1701017546000
+author: terrablue
+---
 Today we're announcing the availability of the Primate 0.27 preview release.
 This release introduces support for Python routes and several quality of life
 improvements.

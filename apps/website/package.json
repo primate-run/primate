@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "build": "npm run copy && npx primate build",
-    "serve": "npx primate serve",
+    "start": "npm run copy && npx primate",
     "copy": "rm -rf components/content && cp -a ../../docs components/content"
   },
   "dependencies": {
@@ -36,6 +36,7 @@
     "@primate/surrealdb": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@primate/vue": "workspace:^",
+    "marked": "^16.1.2",
     "pema": "workspace:^"
   }
 }

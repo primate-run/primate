@@ -1,3 +1,8 @@
+---
+title: Release 0.26: Go Wasm routes, live reload, and HTMX extensions
+epoch: 1699820750000
+author: terrablue
+---
 Today we're announcing the availability of the Primate 0.26 preview release.
 This release introduces support for Go Wasm routes, live reload using the new
 `@primate/build` module, and HTMX extensions.

@@ -134,7 +134,7 @@ export default class ServeApp extends App {
     this.#router = FileRouter.init({
       extensions: [".js"],
       specials: {
-        error: { recursive: false },
+        error: { recursive: true },
         guard: { recursive: true },
         layout: { recursive: true },
       },
@@ -212,8 +212,8 @@ export default class ServeApp extends App {
 
     return partial ? body : Object.entries(placeholders)
       // replace given placeholders, defaulting to ""
-      .reduce((html, [key, value]) => html.replace(`%${key}%`, value?.toString() ?? ""),
-        this.page(page))
+      .reduce((rendered, [key, value]) => rendered
+        .replaceAll(`%${key}%`, value?.toString() ?? ""), this.page(page))
       // replace non-given placeholders, aside from %body% / %head%
       .replaceAll(/(?<keep>%(?:head|body)%)|%.*?%/gus, "$1")
       // replace body and head

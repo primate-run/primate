@@ -1,3 +1,8 @@
+---
+title: Release 0.28: TypeScript/Ruby routes, Web Components, uploading files
+epoch: 1706390221000
+author: terrablue
+---
 Today we're announcing the availability of the Primate 0.28 preview release.
 This release introduces support for TypeScript and Ruby routes, a convenience
 wrapper for Web Components, as well as support for uploading files.
@@ -157,7 +162,7 @@ export default {
 
 ## Use
 
-To create a web component, import `@primate/webc/Component` and create a 
+To create a web component, import `@primate/webc/Component` and create a
 default export of class extending it. Implement the `render` function property
 of that class, which returns a string representing the HTML code of this
 component. Note that `Component` extends `HTMLElement`, and is thus a proper

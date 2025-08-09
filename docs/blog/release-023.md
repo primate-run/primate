@@ -1,3 +1,8 @@
+---
+title: Release 0.23: Handlebars support, transactions, bundler code splitting
+epoch: 1694873522000
+author: terrablue
+---
 Today we're announcing the availability of the Primate 0.23 preview release.
 This release comes along with a new frontend handler, Handlebars, transactions
 across most of our database drivers, bundler code splitting, as well as several

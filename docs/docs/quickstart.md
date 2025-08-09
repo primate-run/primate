@@ -29,7 +29,7 @@ config file.
 To add a frontend framework to your app, install the corresponding Primate
 package and the frontend itself.
 
-[s=add-frontend/shell]
+[s=quickstart/add-frontend]
 
 !!!
 All `@primate/*` packages are officially supported by the Primate team and

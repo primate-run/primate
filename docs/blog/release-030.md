@@ -1,3 +1,8 @@
+---
+title: Release 0.30: Windows support, new path parameter style and other improvements
+epoch: 1708854056000
+author: terrablue
+---
 Today we're announcing the availability of the Primate 0.30 preview release.
 This release introduces full Windows support and brings the path parameter
 style used by Primate's filesystem-based routes in line with other frameworks,

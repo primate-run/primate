@@ -1,3 +1,8 @@
+---
+title: Release 0.31: new hot reload, projections and sorting in stores, new router
+epoch: 1714841883000
+author: terrablue
+---
 Today we're announcing the availability of the Primate 0.31 preview release.
 This release switches to fast hot reload using esbuild, adds projections and
 sorting to stores, and uses [rcompat]'s new router, adding support for optional
@@ -62,7 +67,7 @@ path parameter and without it.
 Double brackets in route filenames, as in `user/[[action]].js`, are equivalent
 to having two identical files, `user.js` and `user/[action].js`.
 
-Optional parameters may only appear at the end of a route path and you can 
+Optional parameters may only appear at the end of a route path and you can
 combine them with runtime types, like non-optional path parameters.
 
 ### Rest path parameters

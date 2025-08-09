@@ -10,7 +10,7 @@
 </script>
 
 <Header {app} {title} />
-<main>
+<main class="blog">
   <article class="blog">
     <h1>{title}</h1>
     <div class="blog-metadata">

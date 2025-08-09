@@ -1,5 +1,4 @@
 import type BuildApp from "#BuildApp";
-import copy_includes from "#hook/copy-includes";
 import $router from "#hook/router";
 import location from "#location";
 import log from "#log";
@@ -174,9 +173,6 @@ export default await db.wrap("${file.base}", store);`);
       });
     },
   });
-
-  // copy additional subdirectories to build/server
-  await copy_includes(app, location.server);
 
   // start the build
   await app.build.start();

@@ -1,3 +1,4 @@
+import location from "#location";
 import type ResponseFunction from "#ResponseFunction";
 import type { Known } from "@rcompat/http/Status";
 import Status from "@rcompat/http/Status";
@@ -19,6 +20,6 @@ type Options = {
 export default (options?: Options): ResponseFunction =>
   app => app.view({
     body: options?.body ?? "Not Found",
-    page: options?.page ?? app.config("pages.error"),
+    page: options?.page ?? location.error_html,
     status: options?.status ?? Status.NOT_FOUND,
   });

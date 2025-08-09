@@ -1,3 +1,8 @@
+---
+title: Release 0.24: Native Bun support
+epoch: 1695477283000
+author: terrablue
+---
 Today we're announcing the availability of the Primate 0.24 preview release.
 This release introduces native Bun support, enabling you to serve your
 applications significantly faster than before.

@@ -1,3 +1,8 @@
+---
+title: Introducing a Head component
+epoch: 1695159400000
+author: terrablue
+---
 Today we're introducing a `Head` component for React and Solid that mimics the
 behavior of `<svelte:head>` for Svelte.
 

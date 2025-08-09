@@ -1,4 +1,6 @@
 export default {
+  // default rendering template
+  app_html: "app.html",
   // build environment
   build: "build",
   // client build
@@ -7,6 +9,8 @@ export default {
   components: "components",
   // config
   config: "config",
+  // error rendering template
+  error_html: "error.html",
   // custom modules
   modules: "modules",
   // HTML pages
@@ -19,4 +23,4 @@ export default {
   static: "static",
   // stores
   stores: "stores",
-};
+} as const;

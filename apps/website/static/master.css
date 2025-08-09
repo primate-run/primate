@@ -62,8 +62,8 @@
   --fg2: #bababa;
   --primary: #A65B60;
   --heading: #969696;
-  --caption-bg: #2e3440;
-  --caption-fg: rgb(198, 208, 245);
+  --caption-bg: #2b2e35;
+  --caption-fg: #ededed;
   --caption-hr: #36394b;
   --border: #5a5a5a;
   --tabbed: var(--bg);
@@ -115,10 +115,6 @@ h2 {
   margin-top: 0;
 }
 
-article h2 {
-  border-bottom: 1px solid var(--border);
-}
-
 h2 {
   margin-top: 5rem;
   position: relative;
@@ -159,12 +155,6 @@ header {
   border-bottom: 1px solid var(--border);
 }
 
-/*main {
-  display: flex;
-  padding-top: var(--height);
-  margin: 0 auto;
-  max-width: 1280px;
-}*/
 main {
   display: grid;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
@@ -223,6 +213,10 @@ main {
   background: var(--caption-bg);
   border-radius: 5px;
   border: 1px solid var(--border);
+}
+
+main.blog {
+  grid-template-columns: 0 minmax(0, 1fr);
 }
 
 .edit-this-page,
@@ -313,7 +307,6 @@ button {
 }
 
 article {
-  line-height: 1.7;
   grid-column: 2;
   /* middle/content track */
   width: min(100%, var(--content-max));
@@ -331,9 +324,39 @@ article ul {
   margin-right: 0;
 }
 
+article tr {
+  border-top: 1px solid var(--border);
+}
+
+article table a,
+article table code {
+  background: var(--caption-bg);
+  padding: 3px;
+  border-radius: 5px;
+}
+
+article :where(td:first-child) {
+  width: 28%;
+  min-width: 160px;
+  white-space: nowrap;
+  color: var(--heading);
+}
+
 article a {
   text-decoration: underline;
   color: var(--primary);
+}
+
+article td {
+  font-size: 14px;
+  text-align: left;
+}
+
+article tbody td a,
+article tbody td code {
+  font-family: droid-sans-mono;
+  font-size: 12px;
+  text-decoration: none;
 }
 
 pre,
@@ -374,13 +397,16 @@ table {
 th,
 td {
   padding: 10px 15px;
-  border: 1px solid var(--border);
-  text-align: center;
+}
+
+thead tr {
+  border-top: 0;
 }
 
 th {
-  color: var(--fg2);
+  color: var(--fg1);
   font-size: 12px;
+  text-align: left;
 }
 
 article :where(h2, h3, h4, h5, h6):hover a.deeplink {
@@ -557,11 +583,12 @@ main.hero {
 }
 
 .tabbed .captions span {
-  padding: 7px 15px;
+  padding: 10px 15px;
   cursor: pointer;
   border-right: 1px solid var(--tabbed);
   color: #bababa;
   display: flex;
+  font-weight: bold;
 }
 
 .tabbed .captions span img {
@@ -621,6 +648,10 @@ main.hero {
 
 .hero .table p {
   font-size: 18px;
+}
+
+p {
+  line-height: 30px;
 }
 
 .hero .logos img {

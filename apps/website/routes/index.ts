@@ -9,7 +9,7 @@ route.get(request => {
     const examples = Object.fromEntries(example_names
       .map(section => [
         section,
-        app.component<Component>(`content/examples/${section}.md`).html]));
+        app.component<Component>(`content/home/${section}.md`).html]));
     const props = { app: request.config, examples };
     const options = { placeholders: request.placeholders };
 

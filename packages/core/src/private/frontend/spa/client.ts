@@ -1,12 +1,10 @@
+import storage from "#frontend/spa/storage";
 import type ClientData from "@primate/core/frontend/ClientData";
 import type Dict from "@rcompat/type/Dict";
-import storage from "./storage.js";
 
-const TEXT_PLAIN = "text/plain";
 const APPLICATION_JSON = "application/json";
 const MULTIPART_FORM_DATA = "multipart/form-data";
-const global = globalThis;
-const { document } = global;
+const { document } = globalThis;
 const headers = {
   Accept: APPLICATION_JSON,
 };
@@ -14,7 +12,7 @@ const headers = {
 const get_by_id_or_name = (name: string) =>
   document.getElementById(name) ?? document.getElementsByName(name)[0];
 
-const scroll = global.scrollTo;
+const scroll = globalThis.scrollTo;
 const scroll_hash = (hash: string) => {
   if (hash === "") {
     scroll(0, 0);
@@ -27,21 +25,64 @@ const scroll_hash = (hash: string) => {
 
 type Updater<T extends Dict> = (json: ClientData<T>, after?: () => void) => void;
 
-const handlers = {
-  [APPLICATION_JSON]: async (response: Response, updater: Updater<any>) => {
-    updater(await response.json());
-  },
-  [TEXT_PLAIN]: async (response: Response) => {
-    globalThis.location.href = response.url;
-  },
+const sameorigin = (url: URL) => url.origin === globalThis.location.origin;
+
+const getLocation = (response: Response, base: string) => {
+  // only readable when not opaqueredirect
+  if (response.type === "opaqueredirect") return null;
+  const location = response.headers.get("Location");
+  return location ? new URL(location, base) : null;
+};
+
+// Follows same-origin redirects in "manual" mode up to a small limit
+async function refetch(
+  input: string | URL,
+  init: RequestInit = {},
+  maxHops = 5,
+): Promise<{ requested: URL; response: Response }> {
+  let url = new URL(input.toString(), globalThis.location.href);
+  let hops = 0;
+
+  while (true) {
+    const response = await fetch(url.pathname + url.search, { ...init, redirect: "manual" });
+
+    // cross-origin redirect → bail
+    if (response.type === "opaqueredirect") {
+      return { requested: url, response: response };
+    }
+
+    // same-origin redirect we can see?
+    const location = getLocation(response, url.toString());
+    if (location && (response.status >= 300 && response.status < 400)) {
+      if (!sameorigin(location)) {
+        // would go cross-origin → bail
+        return { requested: url, response: response };
+      }
+      // follow internally without touching history
+      url = location;
+      if (++hops > maxHops) throw new Error("Too many redirects");
+      continue;
+    }
+
+    // not a redirect → return it
+    return { requested: url, response };
+  }
+}
+
+function is_json(response: Response) {
+  const raw = response.headers.get("content-type") || "";
+  const mime = raw.split(";")[0].trim();
+  return mime === APPLICATION_JSON;
 };
 
 const handle = async (response: Response, updater: Updater<any>) => {
-  const type = response.headers.get("content-type") as keyof typeof handlers;
-  const handler = Object.keys(handlers).includes(type)
-    ? handlers[type]
-    : handlers[TEXT_PLAIN];
-  await handler(response, updater);
+  // If it's JSON, process SPA update and keep history under our control.
+  if (is_json(response)) {
+    updater(await response.json());
+    return true; // handled in-SPA
+  }
+  // Not JSON ⇒ we will hard-navigate outside the SPA.
+  return false;
 };
 
 type Goto = {
@@ -51,16 +92,23 @@ type Goto = {
 
 const goto = async ({ hash, pathname }: Goto, updater: Updater<any>, state = false) => {
   try {
-    const response = await fetch(pathname, { headers });
     // save before loading next
-    const { scrollTop } = global.document.scrollingElement!;
-    const { hash: currentHash, pathname: currentPathname } = global.location;
-    await handle(response, updater);
-    if (state) {
-      storage.new({ hash: currentHash, pathname: currentPathname, scrollTop });
-      const url = response.redirected ? response.url : `${pathname}${hash}`;
-      history.pushState({}, "", url);
+    const { scrollTop } = globalThis.document.scrollingElement!;
+    const { hash: currentHash, pathname: currentPathname } = globalThis.location;
+    const { requested, response } = await refetch(pathname, { headers });
+
+    if (await handle(response, updater)) {
+      if (state) {
+        storage.new({ hash: currentHash, pathname: currentPathname, scrollTop });
+        const url = response.redirected ? response.url : `${pathname}${hash}`;
+        history.pushState({}, "", url);
+      }
+      return;
     }
+    const target = (response.type !== "opaqueredirect")
+      ? requested.toString() + hash
+      : new URL(pathname + hash, globalThis.location.href).toString();
+    globalThis.location.assign(target);
   } catch (error) {
     console.warn(error);
   }
@@ -68,12 +116,16 @@ const goto = async ({ hash, pathname }: Goto, updater: Updater<any>, state = fal
 
 const submit = async (pathname: string, body: any, method: string, updater: Updater<any>) => {
   try {
-    const response = await fetch(pathname, { body, headers, method });
-    if (response.redirected) {
-      await go(response.url, updater);
+    const { requested, response } = await refetch(pathname, { body, headers, method });
+
+    if (await handle(response, updater)) {
+      history.replaceState({}, "", requested.pathname + requested.search);
       return;
     }
-    await handle(response, updater);
+    const target = (response.type !== "opaqueredirect")
+      ? requested.toString()
+      : new URL(pathname, globalThis.location.href).toString();
+    globalThis.location.assign(target);
   } catch (error) {
     console.warn(error);
   }
@@ -82,9 +134,9 @@ const submit = async (pathname: string, body: any, method: string, updater: Upda
 const go = async (href: string, updater: Updater<any>, event?: Event) => {
   const url = new URL(href);
   const { hash, pathname } = url;
-  const current = global.location.pathname;
+  const current = globalThis.location.pathname;
   // hosts must match
-  if (url.host === global.location.host) {
+  if (url.host === globalThis.location.host) {
     // prevent event
     event?.preventDefault();
 
@@ -96,10 +148,10 @@ const go = async (href: string, updater: Updater<any>, event?: Event) => {
       }), true);
     }
     // different hash on same page, jump to hash
-    if (hash !== global.location.hash) {
-      const { scrollTop } = global.document.scrollingElement!;
+    if (hash !== globalThis.location.hash) {
+      const { scrollTop } = globalThis.document.scrollingElement!;
       storage.new({
-        hash: global.location.hash,
+        hash: globalThis.location.hash,
         pathname: current,
         scrollTop,
         stop: true,
@@ -112,20 +164,20 @@ const go = async (href: string, updater: Updater<any>, event?: Event) => {
 };
 
 export default <T extends Dict>(updater: Updater<T>) => {
-  global.addEventListener("load", _ => {
+  globalThis.addEventListener("load", _ => {
     history.scrollRestoration = "manual";
-    if (global.location.hash !== "") {
-      scroll_hash(global.location.hash);
+    if (globalThis.location.hash !== "") {
+      scroll_hash(globalThis.location.hash);
     }
   });
 
-  global.addEventListener("beforeunload", _ => {
+  globalThis.addEventListener("beforeunload", _ => {
     history.scrollRestoration = "auto";
   });
 
-  global.addEventListener("popstate", _ => {
+  globalThis.addEventListener("popstate", _ => {
     const state = storage.peek() ?? { scrollTop: 0 };
-    const { pathname } = global.location;
+    const { pathname } = globalThis.location;
 
     let { scrollTop } = state;
     if (state.stop) {
@@ -144,23 +196,23 @@ export default <T extends Dict>(updater: Updater<T>) => {
       scrollTop = storage.forward().scrollTop;
     }
 
-    goto(global.location, props =>
+    goto(globalThis.location, props =>
       updater(props, () => scroll(0, scrollTop ?? 0)));
   });
 
-  global.addEventListener("click", event => {
+  globalThis.addEventListener("click", event => {
     const target = (event.target as HTMLElement).closest("a");
     if (target?.tagName === "A" && target.href !== "") {
       go(target.href, updater, event);
     }
   });
 
-  global.addEventListener("submit", (event) => {
+  globalThis.addEventListener("submit", (event) => {
     event.preventDefault();
     const target = event.target as HTMLFormElement;
 
     const { enctype } = target;
-    const action = target.action ?? global.location.pathname;
+    const action = target.action ?? globalThis.location.pathname;
     const url = new URL(action);
     const data = new FormData(target);
     const form = enctype === MULTIPART_FORM_DATA

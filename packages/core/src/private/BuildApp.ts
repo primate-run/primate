@@ -7,7 +7,6 @@ import s_layout_depth from "#symbol/layout-depth";
 import Build from "@rcompat/build";
 import type FileRef from "@rcompat/fs/FileRef";
 import cache from "@rcompat/kv/cache";
-import exclude from "@rcompat/record/exclude";
 import type PartialDict from "@rcompat/type/PartialDict";
 
 const s = Symbol("primate.Build");
@@ -40,8 +39,7 @@ export default class BuildApp extends App {
   get build() {
     return cache.get(s, () =>
       new Build({
-        ...exclude(this.config("build"), ["includes", "options"]),
-        ...(this.config("build.options") ?? {}),
+        ...(this.config("build")),
         outdir: this.runpath(location.client).path,
         stdin: {
           contents: "",

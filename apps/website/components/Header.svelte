@@ -86,7 +86,7 @@
 </script>
 
 <svelte:head>
-  <title>Primate - {title}</title>
+  <title>Primate — {title}</title>
   <meta name="description" content={title} />
 </svelte:head>
 <Icons />

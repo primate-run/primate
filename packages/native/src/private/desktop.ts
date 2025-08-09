@@ -91,7 +91,6 @@ export default async (app: App) => {
       loader: new Loader({
         pages,
         rootfile: import.meta.url,
-        pages_app: "${app.config("pages.app")}",
         static_root: "${app.config("http.static.root")}",
         client_imports,
         static_imports,
