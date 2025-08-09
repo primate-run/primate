@@ -6,164 +6,72 @@ Unlike other frameworks, it doesn't lock you into one particular stack,
 and instead allows you to freely combine frontends, backends, databases and
 runtimes into a mix that works best for you.
 
-It's the **last** web framework you'll ever need.
+It's the *last* web framework you'll ever need.
 
-## Quickstart
+## Universal framework
 
-The easiest way to get started with Primate is run it. Create a project
-directory, like `app`, enter it, and run:
+[s=intro/frontend]
 
-[s=quickstart/shell]
+As a web developer, you're *beset* with frameworks. There is a reason framework
+fatique is an actual term. And offering you *yet another* framework is not
+making it any better.
 
-This will start up an app running from the project directory that will serve
-any **route** files you have under `routes`. Let's create one.
+But to the extent that you're tired of everyone making a framework, Primate is
+a gust of fresh air. Because its goal is no less than making other full-stack
+web frameworks obsolete, by design.
 
-[s=quickstart/route]
+For almost every frontend out there, some very smart people thought it necessary
+to create a full-stack framework to accompany it. For React, you have NextJS.
+For Vue, Nuxt. Svelte has Sveltekit. And Angular is somehow both a frontend and
+a full-stack framework at the same time. No one knows why.
 
-Your app will now greet you with a simple message at http://localhost:6161.
+Those full-stack frameworks, also often called meta-frameworks, are similar in
+some aspects, and differ in others. It seems that for whatever frontend you've
+chosen to use, you're bound to be vendor-locked into a full-stack monstrosity.
+And if some day, you've decided you want to move on to another frontend -- well,
+tough luck, because your backend code is only good for one thing.
 
-!!!
-Requests to `/` are handled by an `index` file. Generally, Primate uses a
-[file-based routing](/routes) system.
-!!!
+Primate puts an end to this. You can use your [favorite frontend](/frontend)
+with a backend that's *universal* and works the same way with every frontend. You can
+even combine different frontends -- writing different parts of your application
+in different frameworks, or slowly migrating your code to another frontend.
 
-## Create config
+## The power of Wasm
 
-To further customize your app, create a config directory `config` and in it a
-config file.
+[s=intro/backend]
 
-[s=quickstart/config]
+Primate not only allows you to freely exchange
+-- and combine -- frontends, it does the same on the backend, with the kind
+help of Web Assembly.
 
-## Add frontend
+You can write backend code in different languages, not just TypeScript or
+JavaScript. And this code will be compiled to a specialized binary format called
+Web Assembly (Wasm), and in runtime power your backend. This means that if
+you're a developer coming from a different background than JavaScript, and you
+*still* want to enjoy access to all those frontends and keep authoring
+backends in your favourite language, you now can.
 
-To add a frontend framework to your app, install the corresponding Primate
-package and the frontend itself.
+You're not forced to work with JavaScript on the backend just because virtually
+all modern frontend frameworks are written in JavaScript. And here too, you're
+free to combine between the [different backends](/backend) in your application.
 
-[s=add-frontend/shell]
+## Runtime agnostic
 
-!!!
-All `@primate/*` packages are officially supported by the Primate team and
-tested against every new version.
-!!!
+[s=intro/runtime]
 
-Load the frontend in your config.
+Primate is not only frontend and backend agnostic, it also works on every major
+runtime -- Node, Deno and Bun. And by working, we don't just mean that you can
+use Bun's or Deno's Node compatibility layer to run your code. We mean that
+whatever runtime you use, Primate will leverage its *native*, *fastest*
+[execution paths](/runtime) to give you the best experience.
 
-[s=add-frontend/config]
+Due to the way it is written, Primate is designed to quickly support and work
+on future, emergent runtimes as well. Code that you write now will be
+forward-compatible with future runtimes, as they arise.
 
-Create a `components` directory and in it a frontend component. We will create
-a simple component that displays a counter you can increment and decrement.
+## Lights on
 
-[s=add-frontend/component]
-
-!!!
-Primate supports [many more](/frontend) frontends -- but for brevity, the
-quickstart only lists the major ones.
-!!!
-
-You can now serve the counter component from a route by passing its filename
-and optionally component props to the Primate `view` handler. This handler
-reads components from the `components` directory and serves them using the
-appropriate frontend, based on the component extension.
-
-[s=add-frontend/route]
-
-!!!
-You can also use any other backend to serve components, check out the
-individual [backend](/backend) documentation for that.
-!!!
-
-
-## Switch backend
-If you want to use another backend other than the built-in JavaScript /
-TypeScript, first install its package.
-
-[s=switch-backend/shell]
-
-Load the backend in your config.
-
-[s=switch-backend/config]
-
-Now create a route in your backend of choice.
-
-[s=switch-backend/route]
-
-!!!
-The example route serves a React component. But any backend can be combined
-with any frontend.
-!!!
-
-## Add database
-
-If you want your counter's state to survive reloads, you'll need a database.
-Start by installing the corresponding Primate package. We're also going to
-install the `pema` package, which takes care of database-aware runtime
-validation.
-
-[s=persist-data/shell]
-
-Create a `config/db.ts` (or `config/db.js`) file to initialize your database.
-
-[s=persist-data/config]
-
-!!!
-Primate database packages only contain clients. Except in the case of SQLite,
-you will need a server. Make sure you install and run it according to your
-system's documentation.
-!!!
-
-Next, create a store under `stores`. Primate stores are an abstraction layer
-that allows you to conveniently access a data source, typically a database
-table. We'll create a simple store that only contains one integer field for
-our counter and a primary key field.
-
-[s=persist-data/store]
-
-In our example, we've used the pema type `i8` for the counter -- signed 8-bit
-integer. This will signal to our database driver to store this field in a
-column that best approximates this type. By calling `range(-20, 20)` on the
-`i8`, we've explicitly told pema to limit the range of acceptable values to the
-range of `-20` to `20` in this store.
-
-!!!
-This is not enforced on database level. Instead, before Primate tries to save
-or update a record, it will check that all input passes validation.
-!!!
-
-Next, we need to slightly modify our Counter component to inform the backend
-every time the counter has changed. To this end, we'll store the counter id
-generated by the backend so that we can refer to it in our updates. We'll also
-use the frontend's individual `validate` function to keep ourfrontend properly
-validated against our backend and prevent accidental double-clicking.
-
-[s=persist-data/component]
-
-To finally connect the dots, we'll create a route that loads the store,
-initializes it if necessary, and saves the counter whenever we decrement or
-increment it.
-
-[s=persist-data/route]
-
-!!!
-We use pema's `coerce` option to convert typeless web inputs (forms, queries,
-headers) into strongly typed values before validation.
-!!!
-
-In the last example, there was no real need for us to separate the input
-validation from the database. We could also pass `request.body` directly to
-`Counter.update`, and Primate would still validate the input. But often, you'll
-want to separate request validation from store validation.
-
-## Follow-up
-
-At this stage, you should have a minimal application that can render HTML using
-your frontend of choice, process requests with different backends, validate and
-record data -- with very few lines of code.
-
-What's next?
-
-### `npx primate init`
-
-If you want to be walked through a wizard for generating an app, run `npx
-primate init`. You will be presented with a few questions.
-
-### Example apps
+Which is another way to say, *batteries included*. Primate comes with a set of
+packages -- all under the `@primate` namespace -- that extend the core
+framework. Database with ORMs, session management, I18N, and even the ability
+to build your app natively -- for desktop, are officially supported.

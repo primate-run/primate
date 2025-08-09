@@ -116,19 +116,19 @@ export default config({
             const name = token.text.toLowerCase().replaceAll(/[?{}%]/gu, "")
               .replace(/[^\w]+/gu, "-");
             const deeplink = `
-              <a class="deeplink" href="#${name}">
+              <a class="deeplink" id="${name}" href="#${name}">
                 <svg class="icon" width="16" height="16">
-                  <use href="#anchor" />
+                  <use href="#hash" />
                 </svg>
               </a>
             `;
 
             return `
               <h${level}>
+                <a name="${name}"></a>
                 ${text}
                 ${level !== 1 ? deeplink : ""}
               </h${level}>
-              <a class="anchor" name="${name}"></a>
             `;
           },
         },
@@ -204,16 +204,12 @@ export default config({
                 title: "What is Primate?",
               },
               {
-                href: "/install",
-                title: "Install",
+                href: "/quickstart",
+                title: "Quickstart",
               },
               {
-                href: "/configure",
-                title: "Configure",
-              },
-              {
-                href: "/run",
-                title: "Run",
+                href: "/setup",
+                title: "Project setup",
               },
             ],
             title: "Intro",

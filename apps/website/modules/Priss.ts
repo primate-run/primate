@@ -7,6 +7,7 @@ import type ServeApp from "@primate/core/ServeApp";
 import type Component from "@primate/markdown/Component";
 import FileRef from "@rcompat/fs/FileRef";
 import Status from "@rcompat/http/Status";
+import redirect from "primate/redirect";
 import type RequestFacade from "primate/RequestFacade";
 import view from "primate/view";
 
@@ -90,13 +91,14 @@ export default class PrissModule extends Module {
   async #page(pathname: string) {
     const app = this.app;
     const config = this.#config;
+    const $pathname = pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
 
     try {
       const {
         html,
         toc,
-      } = app.component<Component>(root.join(`${pathname}.md`).path);
-      const content = html.replace("__PATHNAME__", pathname);
+      } = app.component<Component>(root.join(`${$pathname}.md`).path);
+      const content = html.replace("__PATHNAME__", $pathname);
       const sidebar = config.theme.sidebar;
       if (pathname === "/blog") {
         return {
@@ -105,20 +107,15 @@ export default class PrissModule extends Module {
         };
       }
 
-      /*const positions = sidebar.map((page, i) => ({ ...page, i }));
-      const headings = positions.filter(page => page.title === undefined);
-      const position = positions.findIndex(page => page.link === pathname);
-      const { heading } = headings.findLast(({ i }) => position > i);
-      const pages = sidebar.filter(page => page.title !== undefined);
-      const i = pages.findIndex(page => page.link === pathname);*/
-      const page = {
-        heading: "heading",
-        next: "next",///i < pages.length - 1 ? pages[i + 1] : undefined,
-        previous: "previous",//i > 0 ? pages[i - 1] : undefined,
-      };
       return {
         component: "Static.svelte",
-        props: { app: config, content, page, path: "/" + pathname.slice("/docs/".length), sidebar, toc },
+        props: {
+          app: config,
+          content,
+          path: "/" + pathname.slice("/docs/".length),
+          sidebar,
+          toc,
+        },
       };
     } catch {
       return undefined;
@@ -160,7 +157,12 @@ export default class PrissModule extends Module {
   }
 
   async handle(request: RequestFacade, next: NextHandle) {
+    const app = this.app;
     const { cookies, headers, url: { pathname } } = request;
+
+    if (pathname.endsWith("/") && pathname !== "/") {
+      return redirect(pathname.slice(0, -1))(app, {}, request) as Response;
+    }
 
     const color_scheme = headers["color-scheme"];
 
@@ -178,7 +180,6 @@ export default class PrissModule extends Module {
     };
 
     const config = this.#config;
-    const app = this.app;
 
     if (this.#config.blog) {
       const handler = await this.#blog(pathname);

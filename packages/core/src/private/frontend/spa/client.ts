@@ -32,8 +32,7 @@ const handlers = {
     updater(await response.json());
   },
   [TEXT_PLAIN]: async (response: Response) => {
-    // exit
-    document.body.innerText = await response.text();
+    globalThis.location.href = response.url;
   },
 };
 
@@ -91,7 +90,10 @@ const go = async (href: string, updater: Updater<any>, event?: Event) => {
 
     // pathname differs
     if (current !== pathname) {
-      await goto(url, props => updater(props, () => scroll_hash(hash)), true);
+      await goto(url, props => updater(props, () => {
+        scroll_hash(hash);
+        globalThis.dispatchEvent(new Event("updated"));
+      }), true);
     }
     // different hash on same page, jump to hash
     if (hash !== global.location.hash) {

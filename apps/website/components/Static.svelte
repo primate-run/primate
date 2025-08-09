@@ -1,10 +1,16 @@
 <script>
   import Header from "#component/Header";
   import Sidebar from "#component/Sidebar";
-  import OnThisPage from "#component/OnThisPage";
 
-  export let content, toc, app, sidebar, page, path;
+  export let content, toc, app, sidebar, path;
 
+  let previous, next;
+  $: {
+    const flattened = sidebar.flatMap((item) => item.items);
+    const index = flattened.findIndex((item) => item.href === path);
+    previous = flattened[index - 1];
+    next = flattened[index + 1];
+  }
   const [{ text: title }] = toc;
 </script>
 
@@ -17,15 +23,15 @@
     {@html content}
     <div class="controls">
       <span class="prev">
-        {#if page.previous !== undefined}
+        {#if previous !== undefined}
           <div class="heading">Previous</div>
-          <a href={page.previous.link}>{page.previous.title}</a>
+          <a href={`/docs${previous.href}`}>{previous.title}</a>
         {/if}
       </span>
       <span class="next">
-        {#if page.next !== undefined}
+        {#if next !== undefined}
           <div class="heading">Next</div>
-          <a href={page.next.link}>{page.next.title}</a>
+          <a href={`/docs${next.href}`}>{next.title}</a>
         {/if}
       </span>
     </div>

@@ -10,9 +10,9 @@ const colorscheme = writable(localStorage.getItem(item) || preference());
 colorscheme.subscribe(async value => {
   localStorage.setItem(item, value);
   if (value === "dark") {
-    document.body.classList.add("dark");
+    document.documentElement.classList.add("dark");
   } else {
-    document.body.classList.remove("dark");
+    document.documentElement.classList.remove("dark");
   }
   await fetch("/", {
     headers: {

@@ -25,7 +25,7 @@ export default (depth: number) => {
 
       setContext(context_name, request.context);
 
-      afterUpdate(update);
+      afterUpdate(() => update());
     </script>
     ${body}
   `;

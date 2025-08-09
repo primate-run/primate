@@ -1,9 +1,8 @@
 <script>
   import Header from "#component/Header";
-  import OnThisPage from "#component/OnThisPage";
   import Icon from "#component/Icon";
 
-  export let content, toc, app, meta;
+  export let content, app, meta;
 
   const format = { day: "2-digit", month: "short", year: "numeric" };
   const date = (epoch) => new Date(epoch).toLocaleDateString("en-AU", format);
@@ -21,5 +20,4 @@
     </div>
     {@html content}
   </article>
-  <OnThisPage {toc} />
 </main>

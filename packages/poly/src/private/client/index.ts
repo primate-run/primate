@@ -13,7 +13,7 @@ type Data = ClientData<{
 }>;
 
 const make_props = (data: ClientData<Data>) => ({
-  components: data.components.map(name  => components[name]),
+  components: data.components.map(name => components[name]),
   props: data.props,
   request: {
     ...data.request,

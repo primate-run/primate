@@ -17,8 +17,12 @@
     globalThis.navigator.clipboard.writeText(text);
   };
 
-  onMount(async () => {
+  async function updated() {
     colorscheme = (await import("#static/localStorage.ts")).default;
+    colorscheme.subscribe((value) => {
+      updateThemeColor(value === "dark" ? "#161616" : "#ffffff");
+    });
+
     highlight = (link) =>
       part(link) === part(globalThis.window.location.pathname) ? "active" : "";
 
@@ -65,6 +69,19 @@
         });
       });
     });
+  }
+
+  function updateThemeColor(color) {
+    let meta = document.querySelector("meta[name='theme-color']");
+    if (meta) {
+      meta.setAttribute("content", color);
+    }
+  }
+
+  onMount(() => {
+    updated();
+    globalThis.addEventListener("updated", updated);
+    return () => globalThis.removeEventListener("updated", updated);
   });
 </script>
 
