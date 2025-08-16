@@ -1,12 +1,16 @@
 import expected from "#expected";
-import ValidatedKey from "#ValidatedKey";
-import type ValidationIssue from "#ValidationIssue";
-import type Options from "#ValidationOptions";
+import ParsedKey from "#ParsedKey";
+import type ParseIssue from "#ParseIssue";
+import type ParseOptions from "#ParseOptions";
 
-export default function error(name: string, x: unknown, options?: Options): [ValidationIssue] {
+export default function error(
+  name: string,
+  x: unknown,
+  options?: ParseOptions,
+): [ParseIssue] {
   return [{
     input: x,
-    key: options?.[ValidatedKey],
+    key: options?.[ParsedKey],
     message: expected(name, x),
   }];
 };

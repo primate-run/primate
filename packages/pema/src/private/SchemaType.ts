@@ -1,3 +1,4 @@
+import CoercedType from "#CoercedType";
 import DefaultType from "#DefaultType";
 import expect from "#expect";
 import GenericType from "#GenericType";
@@ -6,11 +7,11 @@ import type Infer from "#Infer";
 import type InferInputSchema from "#InferInputSchema";
 import type InferSchema from "#InferSchema";
 import OptionalType from "#OptionalType";
+import Parsed from "#Parsed";
+import ParsedKey from "#ParsedKey";
+import ParseError from "#ParseError";
+import type ParseOptions from "#ParseOptions";
 import type Schema from "#Schema";
-import Validated from "#Validated";
-import ValidatedKey from "#ValidatedKey";
-import ValidationError from "#ValidationError";
-import type ValidationOptions from "#ValidationOptions";
 
 const all_optional = (s: object): boolean => Object.values(s).every(value => {
   if (value instanceof OptionalType || value instanceof DefaultType) {
@@ -43,11 +44,15 @@ export default class SchemaType<S extends Schema>
     return new OptionalType(this);
   }
 
-  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
+  get coerce() {
+    return new CoercedType(this);
+  }
+
+  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     const s = this.#schema;
 
-    if (s instanceof Validated) {
-      return s.validate(x, options) as Infer<this>;
+    if (s instanceof Parsed) {
+      return s.parse(x, options) as Infer<this>;
     }
 
     if (typeof s === "object" && s !== null) {
@@ -55,7 +60,7 @@ export default class SchemaType<S extends Schema>
       if (typeof _x !== "object" || _x === null) {
         // Allow undefined if all fields are optional or defaulted
         if (!all_optional(s)) {
-          throw new ValidationError([{
+          throw new ParseError([{
             input: x,
             message: expect("o", x),
           }]);
@@ -65,8 +70,8 @@ export default class SchemaType<S extends Schema>
       }
       const result: any = {};
       for (const k in s) {
-        const r = schema((s as any)[k]).validate((_x as any)[k], {
-          ...options, [ValidatedKey]: `.${k}`,
+        const r = schema((s as any)[k]).parse((_x as any)[k], {
+          ...options, [ParsedKey]: `.${k}`,
         });
         // exclude undefined (optionals)
         if (r !== undefined) {

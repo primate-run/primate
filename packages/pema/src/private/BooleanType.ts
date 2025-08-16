@@ -1,5 +1,7 @@
+import CoerceKey from "#CoerceKey";
 import PrimitiveType from "#PrimitiveType";
 import type Storeable from "#Storeable";
+import boolish from "@rcompat/is/boolish";
 
 export default class BooleanType
   extends PrimitiveType<boolean, "BooleanType">
@@ -13,7 +15,10 @@ export default class BooleanType
     return "boolean" as const;
   }
 
-  normalize(value: boolean) {
-    return value;
+  [CoerceKey](x: unknown) {
+    if (boolish(x)) {
+      return x === "true";
+    }
+    return x;
   }
 }

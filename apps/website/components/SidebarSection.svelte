@@ -13,7 +13,7 @@
     {#each _toc as tocitem}
       <li class={`depth-${tocitem.depth}`}>
         <a href={`/docs${path === "/" ? "" : path}#${tocitem.slug}`}
-          >{tocitem.text}</a
+          >{@html tocitem.text.replace(/`([^`]+)`/g, "<code>$1</code>")}</a
         >
       </li>
     {/each}

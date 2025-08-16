@@ -1,8 +1,8 @@
 import ConstructorType from "#ConstructorType";
-import type AbstractConstructor from "@rcompat/type/AbstractConstructor";
+import type AbstractNewable from "@rcompat/type/AbstractNewable";
 
 /**
  * Value is a constructed instance of the given class.
  */
-export default <const C extends AbstractConstructor>(constructor: C) =>
+export default <const C extends AbstractNewable>(constructor: C) =>
   new ConstructorType(constructor);

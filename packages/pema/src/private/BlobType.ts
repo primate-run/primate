@@ -12,8 +12,4 @@ export default class BlobType
   get datatype() {
     return "blob" as const;
   }
-
-  normalize(value: Blob) {
-    return value;
-  }
 }

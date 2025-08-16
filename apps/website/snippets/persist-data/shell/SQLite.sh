@@ -1,1 +1,1 @@
-npm install @primate/sqlite pema
+npm install pema @primate/sqlite

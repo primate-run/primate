@@ -101,7 +101,7 @@ export default config({
         hooks: {
           postprocess(html) {
             return html.replaceAll(/!!!\n(.*?)\n!!!/gus, (_, p1) =>
-              `<div class="box">${p1}</div>`).replaceAll(" -- ", " – ");
+              `<p class="box">${p1}</p>`).replaceAll(" -- ", " – ");
           },
           preprocess(html) {
             return html.replaceAll(/%%%(.*?)\n(.*?)%%%/gus, (_, p1, p2) => {
@@ -145,8 +145,10 @@ export default config({
             const level = token.depth;
             const text = token.text;
 
-            const name = token.text.toLowerCase().replaceAll(/[?{}%]/gu, "")
-              .replace(/[^\w]+/gu, "-");
+            const name = token.text.toLowerCase()
+              .replaceAll(/[?{}%`]/gu, "")
+              .replace(/[^\w]+/gu, "-")
+              ;
             const deeplink = `
               <a class="deeplink" id="${name}" href="#${name}">
                 <svg class="icon" width="16" height="16">
@@ -158,7 +160,7 @@ export default config({
             return `
               <h${level}>
                 <a name="${name}"></a>
-                ${text}
+                ${text.replace(/`([^`]+)`/g, "<code>$1</code>")}
                 ${level !== 1 ? deeplink : ""}
               </h${level}>
             `;
@@ -276,49 +278,24 @@ export default config({
           {
             items: [
               {
-                href: "/routes",
-                items: [
-                  {
-                    href: "/hierarchy",
-                    title: "Hierarchy",
-                  },
-                  {
-                    href: "/functions",
-                    title: "Functions",
-                  },
-                  {
-                    href: "/responses",
-                    title: "Responses",
-                  },
-                  {
-                    href: "/sessions",
-                    title: "Sessions",
-                  },
-                  {
-                    href: "/layouts",
-                    title: "Layouts",
-                  },
-                  {
-                    href: "/guards",
-                    title: "Guards",
-                  },
-                  {
-                    href: "/errors",
-                    title: "Errors",
-                  },
-                ],
-                title: "Routes",
+                href: "/routing",
+                title: "Routing",
+              },
+              {
+                href: "/requests",
+                title: "Requests",
+              },
+              {
+                href: "/responses",
+                title: "Responses",
               },
               {
                 href: "/components",
-                items: [
-                  /* ... */
-                  {
-                    href: "/i18n",
-                    title: "I18N",
-                  },
-                ],
                 title: "Components",
+              },
+              {
+                href: "/sessions",
+                title: "sessions",
               },
               {
                 href: "/validation",

@@ -1,1 +1,1 @@
-npm install @primate/surrealdb pema
+npm install pema @primate/surrealdb

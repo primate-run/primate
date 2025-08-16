@@ -23,10 +23,10 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.2.0",
+    "@rcompat/assert": "^0.3.0",
     "@rcompat/cli": "^0.10.0",
-    "@rcompat/fs": "^0.17.0",
-    "@rcompat/http": "^0.13.0"
+    "@rcompat/fs": "^0.18.0",
+    "@rcompat/http": "^0.14.2"
   },
   "peerDependencies": {
     "primate": "workspace:^"

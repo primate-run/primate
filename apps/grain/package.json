@@ -12,7 +12,7 @@
     "@primate/core": "workspace:^",
     "@primate/grain": "workspace:^",
     "@primate/html": "workspace:^",
-    "@rcompat/fs": "^0.17.0",
+    "@rcompat/fs": "^0.18.0",
     "primate": "workspace:^"
   }
 }

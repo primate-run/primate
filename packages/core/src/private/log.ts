@@ -20,7 +20,7 @@ type N = Levels[Level];
 
 const flag = "--log=";
 const n = args.find(arg => arg.startsWith(flag))?.slice(flag.length);
-const vn = union(...Object.keys(levels)).optional().validate(n) as Level;
+const vn = union(...Object.keys(levels)).optional().parse(n) as Level;
 
 class Log {
   #level: N;

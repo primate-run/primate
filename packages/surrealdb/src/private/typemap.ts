@@ -1,5 +1,5 @@
 import type ColumnTypes from "#ColumnTypes";
-import type TypeMap from "@primate/core/db/TypeMap";
+import type TypeMap from "@primate/core/database/TypeMap";
 import { RecordId } from "surrealdb";
 
 function identity<C extends keyof ColumnTypes>(column: C): {
@@ -124,6 +124,15 @@ const typemap: TypeMap<ColumnTypes> = {
     column: "INT",
     unbind(value) {
       return Number(value);
+    },
+  },
+  url: {
+    bind(value) {
+      return value.toString();
+    },
+    column: "STRING",
+    unbind(value) {
+      return new URL(value);
     },
   },
 };

@@ -1,7 +1,9 @@
+import CoerceKey from "#CoerceKey";
 import type FloatDataType from "#FloatDataType";
 import PrimitiveType from "#PrimitiveType";
 import type Storeable from "#Storeable";
 import type Validator from "#Validator";
+import numeric from "@rcompat/is/numeric";
 
 export default class NumberType<T extends FloatDataType = "f64">
   extends PrimitiveType<number, "NumberType">
@@ -17,7 +19,10 @@ export default class NumberType<T extends FloatDataType = "f64">
     return this.#datatype;
   }
 
-  normalize(value: number) {
-    return value;
+  [CoerceKey](x: unknown) {
+    if (numeric(x)) {
+      return Number(x);
+    }
+    return x;
   }
 }

@@ -1,10 +1,10 @@
 import DefaultType from "#DefaultType";
 import OptionalType from "#OptionalType";
-import Validated from "#Validated";
+import Parsed from "#Parsed";
 import type Printable from "@rcompat/type/Printable";
 
 export default abstract class Type<Type, Name extends string>
-  extends Validated<Type>
+  extends Parsed<Type>
   implements Printable {
 
   /**

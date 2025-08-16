@@ -1,5 +1,5 @@
 import type ColumnTypes from "#ColumnTypes";
-import type TypeMap from "@primate/core/db/TypeMap";
+import type TypeMap from "@primate/core/database/TypeMap";
 import type TypedArray from "@rcompat/type/TypedArray";
 import { Binary, Decimal128, ObjectId } from "mongodb";
 
@@ -83,6 +83,15 @@ const typemap: TypeMap<ColumnTypes> = {
   u32: identity("INT"),
   u64: decimal(),
   u8: identity("INT"),
+  url: {
+    bind(value) {
+      return value.toString();
+    },
+    column: "STRING",
+    unbind(value) {
+      return new URL(value);
+    },
+  },
 };
 
 export default typemap;

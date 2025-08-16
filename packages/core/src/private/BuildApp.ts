@@ -110,13 +110,15 @@ export default class BuildApp extends App {
         await target.directory.create({ recursive: true });
       }
 
-      if (!this.bindings[file.fullExtension]) {
+      const binder = this.binder(file);
+      if (binder === undefined) {
+        log.info("no binder found for {0}", file.path);
         continue;
       }
 
       // copy to build/stage/${directory}
       await file.copy(target);
-      await this.bindings[file.fullExtension]?.(target, {
+      await binder(target, {
         build: { id: this.id, stage: this.runpath("stage") },
         context,
       });

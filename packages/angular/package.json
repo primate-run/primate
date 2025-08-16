@@ -27,10 +27,10 @@
     "@angular/platform-server": "^20.1.6",
     "@angular/ssr": "^20.1.5",
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.2.0",
-    "@rcompat/build": "^0.13.0",
+    "@rcompat/assert": "^0.3.0",
+    "@rcompat/build": "^0.14.0",
     "@rcompat/crypto": "^0.10.0",
-    "@rcompat/fs": "^0.17.0",
+    "@rcompat/fs": "^0.18.0",
     "@rcompat/record": "^0.9.0",
     "zone.js": "^0.15.1"
   },

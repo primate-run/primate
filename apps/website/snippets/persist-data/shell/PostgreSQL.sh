@@ -1,1 +1,1 @@
-npm install @primate/postgresql pema
+npm install pema @primate/postgresql

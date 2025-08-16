@@ -4,5 +4,5 @@ import test from "@rcompat/test";
 
 test.case("pass", assert => {
   assert(unknown).type<UnknownType>();
-  assert(unknown.validate("test")).equals("test").type<unknown>();
+  assert(unknown.parse("test")).equals("test").type<unknown>();
 });

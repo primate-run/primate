@@ -1,17 +1,17 @@
 import error from "#error";
 import type Infer from "#Infer";
+import ParseError from "#ParseError";
+import type ParseOptions from "#ParseOptions";
 import PrimitiveType from "#PrimitiveType";
-import ValidationError from "#ValidationError";
-import type ValidationOptions from "#ValidationOptions";
 
 export default class NullType extends PrimitiveType<null, "NullType"> {
   constructor() {
     super("null");
   }
 
-  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
+  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     if (x !== null) {
-      throw new ValidationError(error(this.name, x, options));
+      throw new ParseError(error(this.name, x, options));
     }
 
     return x as never;

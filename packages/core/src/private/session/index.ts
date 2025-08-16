@@ -5,7 +5,7 @@ import s_config from "#symbol/config";
 export default <Data>(config: typeof schema.input = {}) => {
   const storage = local_storage<Data>();
   const session = () => storage.getStore()!;
-  const validated_config = schema.validate(config);
+  const parsedConfig = schema.parse(config);
 
   return {
     create(data: Data = {} as Data) {
@@ -24,7 +24,7 @@ export default <Data>(config: typeof schema.input = {}) => {
       return session().new;
     },
     get [s_config]() {
-      return validated_config;
+      return parsedConfig;
     },
   };
 };

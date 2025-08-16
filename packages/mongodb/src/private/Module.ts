@@ -1,5 +1,5 @@
 import Database from "#Database";
-import Module from "@primate/core/db/Module";
+import Module from "@primate/core/database/Module";
 import toQueryString from "@rcompat/record/toQueryString";
 import { MongoClient } from "mongodb";
 import pema from "pema";
@@ -16,14 +16,14 @@ const schema = pema({
 
 export default class MongoDBModule extends Module {
   #config: typeof schema.infer;
-  #db?: Database;
+  #database?: Database;
 
   static config: typeof schema.input;
 
   constructor(config?: typeof schema.input) {
     super();
 
-    this.#config = schema.validate(config);
+    this.#config = schema.parse(config);
   }
 
   async init() {
@@ -35,11 +35,11 @@ export default class MongoDBModule extends Module {
     const url = `mongodb://${host}:${port}?${toQueryString(params)}`;
     const client = new MongoClient(url);
     await client.connect();
-    this.#db = new Database(client, database);
-    return this.#db;
+    this.#database = new Database(client, database);
+    return this.#database;
   }
 
   deinit() {
-    this.#db?.close();
+    this.#database?.close();
   }
 }

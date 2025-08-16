@@ -13,7 +13,7 @@ import transform from "@rcompat/build/sync/transform";
 import type FileRef from "@rcompat/fs/FileRef";
 import entries from "@rcompat/record/entries";
 import get from "@rcompat/record/get";
-import type PartialDict from "@rcompat/type/PartialDict";
+import type Dict from "@rcompat/type/Dict";
 
 const ts_options = {
   loader: "ts",
@@ -30,7 +30,7 @@ const toContextString = (array: string[]) => array
   .map(member => member.endsWith("s") ? member.slice(0, -1) : member)
   .join(", ");
 
-const default_bindings: PartialDict<Binder> = {
+const default_bindings: Dict<Binder> = {
   ".js": async (file, { build, context }) => {
     const contexts = ["routes", "stores", "config", "components", "modules"];
     const error = `js: only ${toContextString(contexts)} are supported`;
@@ -69,7 +69,7 @@ export default class App {
   #kv = new Map<symbol, unknown>();
   #mode: Mode;
   #defaultErrorRoute: RouteFunction | undefined;
-  #bindings = { ...default_bindings };
+  #bindings: [string, Binder][] = Object.entries(default_bindings);
   #platform: PlatformManager;
 
   constructor(root: FileRef, config: Config, mode: Mode) {
@@ -128,8 +128,16 @@ export default class App {
     return this.#defaultErrorRoute;
   }
 
-  get bindings() {
-    return { ...this.#bindings };
+  get extensions() {
+    return this.#bindings.map(([extension]) => extension);
+  }
+
+  binder(file: FileRef) {
+    return this.#bindings
+      .toSorted(([a], [b]) => a.length > b.length ? -1 : 1)
+      .find(([extension]) => file.path.endsWith(extension))
+      ?.[1]
+      ;
   }
 
   get<T>(key: symbol) {
@@ -151,9 +159,9 @@ export default class App {
   // this is technically not necessary for serving, but it has to be used by
   // the init hook, which is shared between the build and serve app
   bind(extension: string, binder: Binder) {
-    if (this.#bindings[extension] !== undefined) {
+    if (this.extensions.includes(extension)) {
       throw new Error(`${extension} already bound`);
     }
-    this.#bindings[extension] = binder;
+    this.#bindings.push([extension, binder]);
   }
 }

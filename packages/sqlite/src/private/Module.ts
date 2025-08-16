@@ -1,5 +1,5 @@
 import Database from "#Database";
-import Module from "@primate/core/db/Module";
+import Module from "@primate/core/database/Module";
 import Client from "@rcompat/sqlite";
 import pema from "pema";
 import string from "pema/string";
@@ -16,7 +16,7 @@ export default class Sqlite extends Module {
   constructor(config?: typeof schema.input) {
     super();
 
-    this.#config = schema.validate(config);
+    this.#config = schema.parse(config);
   }
 
   init() {

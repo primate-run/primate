@@ -17,7 +17,7 @@ export default class Runtime extends Module {
   static input = Runtime.schema.input;
 
   constructor(init: typeof Runtime.input) {
-    const { extension, packages } = Runtime.schema.validate(init);
+    const { extension, packages } = Runtime.schema.parse(init);
 
     super({ extension });
 

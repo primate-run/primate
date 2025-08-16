@@ -36,8 +36,8 @@ Reside inside `config`. May be authored in Javascript or TypeScript.
 | | |
 |-|-|
 |[app.ts](/configuration#app-ts)|app options|
-|[session.ts](/configuration#session.ts)|session shape and options|
-|[db.ts](/configuration#db.ts)|database options|
+|[session.ts](/configuration#session-ts)|session shape and options|
+|[database.ts](/configuration#database-ts)|database options|
 
 ## Route files
 
@@ -47,13 +47,12 @@ routes, but every route must be uniquely handled by one backend.
 
 | | |
 |-|-|
-|`index.ts`|maps to `/`|
-|`path.ts`|maps to `/path`|
-|`path/index.ts`|maps to `/path`; may not coexist with `path.ts`|
-|[path/\[id\].ts](/routes#dynamic)|maps to `/path/*` — `*` is anything *except* a `/`|
-|[path/\[...id\].ts](/routes#catch-all)|maps to `/path/*` — `*` is anything *including* a `/`|
-|[path/\[\[id\]\].ts](/routes#optional)|maps to `/path` *and* `/path/*` — `*` is anything *except* a `/`|
-|[path/\[\[...id\]\].ts](/routes#optional-catch-all)|maps to `/path` *and* `/path/*` — `*` is anything *including* a `/`|
+|`index.ts`|matches `/`|
+|`user.ts`|matches `/user`|
+|[user/\[name\].ts](/routing#dynamic-routes)|matches `/user/*` — `*` is anything *except* a `/`|
+|[user/\[\[name\]\].ts](/routing#optional-routes)|matches `/path` *and* `/user/*` — `*` is anything *except* a `/`|
+|[user/\[...name\].ts](/routing#rest-routes)|matches `/user/*` — `*` is anything *including* a `/`|
+|[user/\[\[...name\]\].ts](/routing#optional-rest-routes)|matches `/user` *and* `/user/*` — `*` is anything *including* a `/`|
 |[+guard.ts](/routes#guards)|route guard for routes in same directory and below|
 |[+error.ts](/routes#error-files)|route error file for routes in same directory|
 |[+layout.ts](/routes#layouts)|route layouts for routes in same directory and below|

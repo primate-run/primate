@@ -1,3 +1,5 @@
+import coerce from "#coerce/int";
+import CoerceKey from "#CoerceKey";
 import type DataType from "#DataType";
 import PrimitiveType from "#PrimitiveType";
 import type Storeable from "#Storeable";
@@ -11,6 +13,7 @@ import values from "#validator/values";
 export default class UintType<T extends UintDataType = "u32">
   extends PrimitiveType<number, "UintType">
   implements Storeable<T> {
+  [CoerceKey] = coerce;
   #datatype: T;
 
   constructor(datatype: T, validators: Validator<DataType[T]>[] = []) {
@@ -20,10 +23,6 @@ export default class UintType<T extends UintDataType = "u32">
 
   get datatype() {
     return this.#datatype;
-  }
-
-  normalize(value: number) {
-    return value;
   }
 
   values(anyof: Record<string, number>) {

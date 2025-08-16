@@ -6,16 +6,16 @@ import type SessionManager from "#session/Manager";
 import storage from "#session/storage";
 
 type CookieOptions = {
-  http_only: "; HttpOnly" | "";
+  httpOnly: "; HttpOnly" | "";
   path: string;
-  same_site: "Lax" | "None" | "Strict";
+  sameSite: "Lax" | "None" | "Strict";
   secure: boolean;
 };
 
 type Cookie = (name: string, options: CookieOptions) => string;
 
-const cookie: Cookie = (value, { http_only, path, same_site, secure }) =>
-  `${value};${http_only};Path=${path};Secure=${secure};SameSite=${same_site}`;
+const cookie: Cookie = (value, { httpOnly, path, sameSite, secure }) =>
+  `${value};${httpOnly};Path=${path};Secure=${secure};SameSite=${sameSite}`;
 
 export default class SessionModule extends Module {
   name = "builtin/session";
@@ -55,7 +55,7 @@ export default class SessionModule extends Module {
     // if the session is in the pool and has a different id from the cookie, set
     const options: CookieOptions = {
       ...cookie_options,
-      http_only: cookie_options.http_only ? "; HttpOnly" : "",
+      httpOnly: cookie_options.httpOnly ? "; HttpOnly" : "",
       secure: this.#secure,
     };
 

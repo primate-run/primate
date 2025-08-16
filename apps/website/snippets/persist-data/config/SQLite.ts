@@ -1,7 +1,7 @@
 import sqlite from "@primate/sqlite";
-import db from "primate/config/db";
+import database from "primate/config/database";
 
-export default db({
+export default database({
   default: sqlite({
     database: "/tmp/app.db",
   }),

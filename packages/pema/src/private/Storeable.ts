@@ -1,10 +1,9 @@
 import type DataType from "#DataType";
-import type Infer from "#Infer";
-import Validated from "#Validated";
+import Parsed from "#Parsed";
 
-export default abstract class Storeable<T extends keyof DataType = keyof DataType>
-  extends Validated<unknown> {
+type DataKey = keyof DataType;
+
+export default abstract class Storeable<T extends DataKey = DataKey>
+  extends Parsed<unknown> {
   abstract get datatype(): T;
-
-  abstract normalize(value: Infer<this>): DataType[T];
 }

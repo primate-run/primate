@@ -1,0 +1,9 @@
+module Index
+
+from "primate/request" include Request
+
+use Request.{ type Request }
+
+provide let get = (request: Request) => "Hello from GET!";
+
+provide let post = (request: Request) => "Hello from POST!";

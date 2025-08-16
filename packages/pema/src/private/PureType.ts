@@ -1,14 +1,14 @@
 import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
-import Validated from "#Validated";
+import Parsed from "#Parsed";
 import type Printable from "@rcompat/type/Printable";
 
 export default class PureType<Type, Name extends string = "PureType">
-  extends Validated<Type>
+  extends Parsed<Type>
   implements Printable {
 
   get name() {
-    return "type";
+    return "pure-type";
   }
 
   get Name() {
@@ -22,8 +22,8 @@ export default class PureType<Type, Name extends string = "PureType">
     return new OptionalType(this);
   }
 
-  validate(x: unknown): Infer<this> {
-    // no validation of static types
+  parse(x: unknown): Infer<this> {
+    // no parsing of static types
     return x as Infer<this>;
   }
 }

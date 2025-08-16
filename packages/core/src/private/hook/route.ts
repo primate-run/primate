@@ -1,59 +1,28 @@
 import client_error from "#handler/error";
 import json from "#handler/json";
+import guard from "#hook/guard";
 import respond from "#hook/respond";
 import log from "#log";
-import type RequestHook from "#module/RequestHook";
 import type RequestFacade from "#RequestFacade";
 import type ResponseLike from "#ResponseLike";
 import type RouteFunction from "#RouteFunction";
 import type ServeApp from "#ServeApp";
 import Status from "@rcompat/http/Status";
 import type MaybePromise from "@rcompat/type/MaybePromise";
-import ValidationError from "pema/ValidationError";
+import ParseError from "pema/ParseError";
 
 type HookExec<I, O> = (i: I, next: (_: I) => MaybePromise<O>)
   => MaybePromise<O>;
 type RouteHook = HookExec<RequestFacade, ResponseLike>;
 
-const reducer = async (hooks: RouteHook[], request: RequestFacade): Promise<ResponseLike> => {
+async function reducer(hooks: RouteHook[], request: RequestFacade):
+  Promise<ResponseLike> {
   const [first, ...rest] = hooks;
 
   if (rest.length === 0) {
     return await first(request, _ => new Response());
   };
   return await first(request, _ => reducer(rest, _));
-};
-
-type GuardError = {
-  response: Exclude<ResponseLike, void>;
-  type: symbol;
-};
-
-const guard_error = Symbol("guard_error");
-
-const guard = (app: ServeApp, guards: RouteFunction[]): RequestHook => async (request, next) => {
-  // handle guards
-  try {
-    for (const guard of guards) {
-      const response = await guard(request);
-      // @ts-expect-error guard
-      if (response !== true) {
-        throw {
-          response,
-          type: guard_error,
-        } as GuardError;
-      }
-    }
-
-    return next(request);
-  } catch (error) {
-    const _error = error as GuardError;
-    if (_error.type === guard_error) {
-      return respond(_error.response)(app, {}, request) as Response;
-    }
-    // rethrow if not guard error
-    throw error;
-  }
 };
 
 const get_layouts = async (layouts: RouteFunction[], request: RequestFacade) => {
@@ -99,7 +68,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
     return await respond(response)(app, $layouts, request) as Response;
   } catch (error) {
     const request = partial_request;
-    if (error instanceof ValidationError) {
+    if (error instanceof ParseError) {
       return json({ error: error.toJSON() },
         { status: Status.BAD_REQUEST })(app) as Response;
     }

@@ -3,23 +3,23 @@ import expected from "#expected";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
+import type Parsed from "#Parsed";
+import ParsedKey from "#ParsedKey";
+import ParseError from "#ParseError";
+import type ParseOptions from "#ParseOptions";
 import type RecordTypeKey from "#RecordTypeKey";
-import type Validated from "#Validated";
-import ValidatedKey from "#ValidatedKey";
-import ValidationError from "#ValidationError";
-import type ValidationOptions from "#ValidationOptions";
 
-const nextOptions = (k: string, options?: ValidationOptions) => {
+const nextOptions = (k: string, options?: ParseOptions) => {
   return options === undefined
-    ? { [ValidatedKey]: `${k}` }
-    : { ...options, [ValidatedKey]: `${options[ValidatedKey] ?? ""}${k}` };
+    ? { [ParsedKey]: `${k}` }
+    : { ...options, [ParsedKey]: `${options[ParsedKey] ?? ""}${k}` };
 };
 
 const is_numeric = (string: string) => /^-?\d+(\.\d+)?$/.test(string);
 
 export default class RecordType<
   Key extends RecordTypeKey,
-  Value extends Validated<unknown>,
+  Value extends Parsed<unknown>,
 > extends
   GenericType<Value, Record<Infer<Key>, Infer<Value>>, "RecordType"> {
   #key: Key;
@@ -42,9 +42,9 @@ export default class RecordType<
     return "record";
   }
 
-  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
+  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     if (typeof x !== "object" || x === null) {
-      throw new ValidationError(error("object", x, options));
+      throw new ParseError(error("object", x, options));
     }
     const _options = { ...options };
 
@@ -55,7 +55,7 @@ export default class RecordType<
     if (key_name === "string" || key_name === "number") {
       // no key may be a symbol
       if (symbols.length > 0) {
-        throw new ValidationError([{
+        throw new ParseError([{
           input: x,
           message: expected(`${key_name} key`, symbols[0]),
         }]);
@@ -63,19 +63,19 @@ export default class RecordType<
 
       keys.forEach(k => {
         if (key_name === "string" && is_numeric(k)) {
-          throw new ValidationError([{
+          throw new ParseError([{
             input: x,
             message: expected("string key", +k),
           }]);
         }
         if (key_name === "number" && !is_numeric(k)) {
-          throw new ValidationError([{
+          throw new ParseError([{
             input: x,
             message: expected("number key", k),
           }]);
         }
 
-        this.#value.validate((x as Record<number | string, unknown>)[k],
+        this.#value.parse((x as Record<number | string, unknown>)[k],
           nextOptions(k, options));
       });
     }
@@ -83,13 +83,13 @@ export default class RecordType<
     if (key_name === "symbol") {
       // no key may not be a symbol
       if (keys.length > 0) {
-        throw new ValidationError([{
+        throw new ParseError([{
           input: x,
           message: expected("symbol key", keys[0]),
         }]);
       }
       symbols.forEach(k => {
-        this.#value.validate((x as Record<symbol, unknown>)[k],
+        this.#value.parse((x as Record<symbol, unknown>)[k],
           nextOptions(k.toString(), options));
       });
     }

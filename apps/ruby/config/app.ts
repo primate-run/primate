@@ -4,7 +4,7 @@ import config from "primate/config";
 
 export default config({
   http: {
-    port: 10014,
+    port: 10015,
   },
   modules: [ruby(), html()],
 });

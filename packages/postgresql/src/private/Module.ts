@@ -1,5 +1,5 @@
 import Database from "#Database";
-import Module from "@primate/core/db/Module";
+import Module from "@primate/core/database/Module";
 import pema from "pema";
 import string from "pema/string";
 import uint from "pema/uint";
@@ -16,26 +16,26 @@ const schema = pema({
 export default class PostgreSQLModule extends Module {
   static config: typeof schema.input;
   #config: typeof schema.infer;
-  #db?: Database;
+  #database?: Database;
 
   constructor(config?: typeof schema.input) {
     super();
 
-    this.#config = schema.validate(config);
+    this.#config = schema.parse(config);
   }
 
   deinit() {
-    this.#db?.close();
+    this.#database?.close();
   }
 
   init() {
-    this.#db = new Database(postgres({
+    this.#database = new Database(postgres({
       db: this.#config.database,
       host: this.#config.host,
       pass: this.#config.password,
       port: this.#config.port,
       user: this.#config.username,
     }));
-    return this.#db;
+    return this.#database;
   }
 }

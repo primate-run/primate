@@ -8,10 +8,10 @@ import union from "pema/union";
 
 export default pema({
   cookie: {
-    http_only: boolean.default(true),
+    httpOnly: boolean.default(true),
     name: string.default("session_id"),
     path: string.startsWith("/").default("/"),
-    same_site: union("Strict", "Lax", "None").default("Lax"),
+    sameSite: union("Strict", "Lax", "None").default("Lax"),
   },
   manager: constructor(SessionManager)
     .default(() => new InMemorySessionManager()),

@@ -10,11 +10,11 @@ import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import serve from "./serve.js";
 
-const directory  = "test";
+const directory = "test";
 
 type Check<T> = () => MaybePromise<[boolean, T, null | T]>;
 
-const fetch_options = { redirect: "manual" } as const;
+const fetch_options = { redirect: "manual" } as RequestInit;
 
 const first_error = (left: string, right: string) => {
   const length = left.length > right.length ? right.length : left.length;
@@ -37,7 +37,25 @@ export default async () => {
   await Promise.all(files.map(file => file.import()));
 
   for (const test of tests) {
-    const response = await fetch(`${app.url}${test.route}`, fetch_options);
+    let init: Request;
+    let path: string;
+    const route = test.route;
+
+    if (typeof route === "string") {
+      path = route;
+      init = new Request(`${app.url}${route}`);
+    } else {
+      path = route.url.replace(app.url, "");
+      init = new Request(route.url, {
+        body: route.body,
+        // @ts-expect-error nonsense
+        duplex: "half",
+        headers: route.headers,
+        method: route.method,
+      });
+    }
+
+    const response = await fetch(init, fetch_options);
 
     const checks: Check<Body | number>[] = [];
 
@@ -118,10 +136,10 @@ export default async () => {
       const expected = JSON.stringify(failed[1]);
       const actual = JSON.stringify(failed[2]);
       const n = first_error(expected, actual)!;
-      console.log(`expected: ${expected.slice(0, n)}${green(expected[n])}${expected.slice(n+1)}`);
-      console.log(`actual:   ${actual.slice(0, n)}${red(actual[n])}${actual.slice(n+1)}`);
+      console.log(`expected: ${expected.slice(0, n)}${green(expected[n])}${expected.slice(n + 1)}`);
+      console.log(`actual:   ${actual.slice(0, n)}${red(actual[n])}${actual.slice(n + 1)}`);
     } else {
-      console.log(green(`${verb} ${test.route}`));
+      console.log(green(`${verb} ${path}`));
     }
   }
 

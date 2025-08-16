@@ -21,10 +21,10 @@
   --prs-back-1: hsl(206, 20%, 80%);
   --sidebar-width: 25rem;
   --sidebar-border: rgba(60, 60, 67, 0.12);
-  --sidebar-active: #000;
+  --sidebar-active: var(--fg);
   --sidebar-link: var(--heading);
   --sidebar-link-hover: #111827;
-  --prs-text-xl: 4rem;
+  --prs-text-xl: 36px;
   --prs-text-l: 2.4rem;
   --prs-text-n: 2rem;
   --prs-text-m: 1.6rem;
@@ -44,7 +44,7 @@
   --a: var(--prs-link);
 
   --bg: #fff;
-  --fg: #000;
+  --fg: #1e1c21;
   --fg2: #454545;
   --primary: brown;
   --heading: #676779;
@@ -57,19 +57,18 @@
 }
 
 :root.dark {
-  --bg: #161616;
-  --fg: #fff;
+  --bg: #1B1B1B;
+  --fg: #e3e3e3;
   --fg2: #bababa;
   --primary: #A65B60;
   --heading: #969696;
-  --caption-bg: #2b2e35;
+  --caption-bg: #ffffff1a;
   --caption-fg: #ededed;
   --caption-hr: #36394b;
   --border: #5a5a5a;
   --tabbed: var(--bg);
   --scrollbar: rgba(255, 255, 255, .4);
   --sidebar-border: rgba(255, 255, 255, 0.12);
-  --sidebar-active: #fff;
   --sidebar-link: #B8C2D7;
   --sidebar-link-hover: #E1E7F6 color-scheme: dark;
 }
@@ -208,11 +207,10 @@ main {
   font-size: 14px;
 }
 
-.box {
+p.box {
   padding: 10px 15px;
   background: var(--caption-bg);
   border-radius: 5px;
-  border: 1px solid var(--border);
 }
 
 main.blog {
@@ -266,8 +264,10 @@ button {
 .home:hover {
   display: flex;
   align-items: center;
-  font-size: var(--prs-text-m);
+  font-size: 16px;
   letter-spacing: 0.08px;
+  color: var(--fg);
+  font-weight: bold;
 }
 
 .home img {
@@ -328,8 +328,8 @@ article tr {
   border-top: 1px solid var(--border);
 }
 
-article table a,
-article table code {
+article table a {
+  color: var(--primary);
   background: var(--caption-bg);
   padding: 3px;
   border-radius: 5px;
@@ -344,7 +344,6 @@ article :where(td:first-child) {
 
 article a {
   text-decoration: underline;
-  color: var(--primary);
 }
 
 article td {
@@ -352,8 +351,14 @@ article td {
   text-align: left;
 }
 
+h2 code,
+h3 code {
+  font-size: 20px;
+}
+
 article tbody td a,
-article tbody td code {
+article tbody td code,
+nav code {
   font-family: droid-sans-mono;
   font-size: 12px;
   text-decoration: none;
@@ -369,6 +374,8 @@ code {
 code {
   background-color: var(--caption-bg);
   color: var(--caption-fg);
+  padding: 3px;
+  border-radius: 5px;
 }
 
 pre code {
@@ -566,6 +573,10 @@ main.hero {
 
 .hero .buttons .prompt {
   color: var(--primary);
+}
+
+article .tabbed {
+  margin-bottom: 30px;
 }
 
 .tabbed .captionline {

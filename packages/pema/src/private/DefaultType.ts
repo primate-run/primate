@@ -1,15 +1,15 @@
 import type Infer from "#Infer";
-import type Validated from "#Validated";
-import type ValidationOptions from "#ValidationOptions";
+import type Parsed from "#Parsed";
+import type ParseOptions from "#ParseOptions";
 import VirtualType from "#VirtualType";
 import type UnknownFunction from "@rcompat/type/UnknownFunction";
 
-const is_default_function = (x: unknown): x is UnknownFunction => {
+function isDefaultFunction(x: unknown): x is UnknownFunction {
   return typeof x === "function";
 };
 
 export default class DefaultType<
-  S extends Validated<unknown>,
+  S extends Parsed<unknown>,
   D extends Infer<S>,
 > extends VirtualType<S, Infer<S>, "DefaultType"> {
   #schema: S;
@@ -33,15 +33,15 @@ export default class DefaultType<
     return undefined;
   }
 
-  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
+  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     // default fallback
     if (x === undefined) {
-      if (is_default_function(this.#default)) {
+      if (isDefaultFunction(this.#default)) {
         return this.#default() as Infer<this>;
       }
       return this.#default as Infer<this>;
     }
 
-    return this.#schema.validate(x, options) as Infer<this>;
+    return this.#schema.parse(x, options) as Infer<this>;
   }
 }

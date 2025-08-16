@@ -1,8 +1,8 @@
 import error from "#error";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
-import ValidationError from "#ValidationError";
-import type ValidationOptions from "#ValidationOptions";
+import ParseError from "#ParseError";
+import type ParseOptions from "#ParseOptions";
 
 type Literal = string;
 type InferLiteral<T extends Literal> = T;
@@ -20,9 +20,9 @@ export default class LiteralType<T extends Literal> extends
     return `literal '${this.#literal}'`;
   }
 
-  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
+  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     if (x !== this.#literal) {
-      throw new ValidationError(error(this.name, x, options));
+      throw new ParseError(error(this.name, x, options));
     }
     return x as never;
   }

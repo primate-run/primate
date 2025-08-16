@@ -69,7 +69,7 @@ export default abstract class FrontendModule<
   constructor(options?: typeof FrontendModule.schema.input) {
     super();
 
-    this.#options = FrontendModule.schema.validate(options);
+    this.#options = FrontendModule.schema.parse(options);
   }
 
   get extension() {

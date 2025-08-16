@@ -1,5 +1,5 @@
 import Database from "#Database";
-import Module from "@primate/core/db/Module";
+import Module from "@primate/core/database/Module";
 import mysql from "mysql2/promise";
 import pema from "pema";
 import string from "pema/string";
@@ -17,20 +17,20 @@ export default class MySQLModule extends Module {
   static config: typeof schema.input;
   #config: typeof schema.infer;
 
-  #db?: Database;
+  #database?: Database;
 
   constructor(config?: typeof schema.input) {
     super();
 
-    this.#config = schema.validate(config);
+    this.#config = schema.parse(config);
   }
 
   deinit() {
-    this.#db?.close();
+    this.#database?.close();
   }
 
   init() {
-    this.#db = new Database(mysql.createPool({
+    this.#database = new Database(mysql.createPool({
       bigNumberStrings: true,
       connectionLimit: 10,
       database: this.#config.database,
@@ -45,6 +45,6 @@ export default class MySQLModule extends Module {
       user: this.#config.username,
       waitForConnections: true,
     }));
-    return this.#db;
+    return this.#database;
   }
 }

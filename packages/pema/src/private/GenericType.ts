@@ -1,8 +1,8 @@
-import Validated from "#Validated";
+import Parsed from "#Parsed";
 import type PrintableGeneric from "@rcompat/type/PrintableGeneric";
 
 export default abstract class GenericType<Type, Inferred, Name extends string>
-  extends Validated<Inferred>
+  extends Parsed<Inferred>
   implements PrintableGeneric<Type> {
 
   get Name(): Name {

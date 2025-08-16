@@ -1,1 +1,0 @@
-export { default } from "#stage/config/app.js";

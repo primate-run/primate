@@ -6,8 +6,8 @@ test.case("strings", assert => {
   const foo = literal("foo");
 
   assert(foo).type<LiteralType<"foo">>();
-  assert(foo.validate("foo")).type<"foo">();
+  assert(foo.parse("foo")).type<"foo">();
 
   const error = "expected literal 'foo', got `true` (boolean)";
-  assert(() => foo.validate(true)).throws(error);
+  assert(() => foo.parse(true)).throws(error);
 });

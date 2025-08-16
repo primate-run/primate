@@ -1,7 +1,7 @@
 import postgresql from "@primate/postgresql";
-import db from "primate/config/db";
+import database from "primate/config/database";
 
-export default db({
+export default database({
   default: postgresql({
     database: "app",
   }),

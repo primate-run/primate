@@ -31,7 +31,7 @@ export default class NativeModule extends Module {
   constructor(config: typeof schema.input) {
     super();
 
-    this.#config = schema.validate(config);
+    this.#config = schema.parse(config);
   }
 
   init<T extends App>(app: T, next: Next<T>) {

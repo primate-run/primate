@@ -1,4 +1,4 @@
-import ValidationError from "#ValidationError";
+import ParseError from "#ParseError";
 import type Validator from "#Validator";
 
 export default <
@@ -6,9 +6,9 @@ export default <
   To extends From,
 >(from: From, to: To): Validator<From> => (x: From) => {
   if (x < from || x > to) {
-    throw new ValidationError([{
+    throw new ParseError([{
       input: x,
-      message: `${x} out of range`,
+      message: `${x} is out of range`,
     }]);
   }
 };

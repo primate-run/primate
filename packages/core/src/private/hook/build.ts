@@ -22,7 +22,7 @@ const pre = async (app: BuildApp) => {
   // this has to occur before post, so that layout depth is available for
   // compiling root components
   // bindings should have been registered during `init`
-  const router = await $router(app.path.routes, Object.keys(app.bindings));
+  const router = await $router(app.path.routes, app.extensions);
   app.set(s_layout_depth, router.depth("layout"));
 
   return app;
@@ -104,10 +104,10 @@ const post = async (app: BuildApp) => {
   `);
 
   await app.stage(app.path.stores, "stores", file =>
-    `import db from "#db";
+    `import database from "#database";
 import store from "#stage/store${file}";
 
-export default await db.wrap("${file.base}", store);`);
+export default await database.wrap("${file.base}", store);`);
 
   const configs = FileRef.join(dirname, "../../private/config/config");
 
@@ -193,7 +193,7 @@ export default await db.wrap("${file.base}", store);`);
     imports: {
       "#component/*": "./components/*.js",
       "#config": "./config/app.js",
-      "#db": "./config/db.js",
+      "#database": "./config/database.js",
       "#locale/*": "./locales/*.js",
       "#module/*": "./modules/*.js",
       "#route/*": "./routes/*.js",

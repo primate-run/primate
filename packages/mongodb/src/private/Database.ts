@@ -1,9 +1,9 @@
 import typemap from "#typemap";
-import type As from "@primate/core/db/As";
-import Database from "@primate/core/db/Database";
-import type DataDict from "@primate/core/db/DataDict";
-import type TypeMap from "@primate/core/db/TypeMap";
-import type Types from "@primate/core/db/Types";
+import Database from "@primate/core/Database";
+import type As from "@primate/core/database/As";
+import type DataDict from "@primate/core/database/DataDict";
+import type TypeMap from "@primate/core/database/TypeMap";
+import type Types from "@primate/core/database/Types";
 import maybe from "@rcompat/assert/maybe";
 import empty from "@rcompat/record/empty";
 import entries from "@rcompat/record/entries";

@@ -1,1 +1,1 @@
-export default () => "config/db.ts";
+export default () => "config/database.ts";

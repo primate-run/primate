@@ -1,1 +1,1 @@
-npm install @primate/mongodb pema
+npm install pema @primate/mongodb

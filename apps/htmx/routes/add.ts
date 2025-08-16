@@ -1,12 +1,12 @@
-import route from "primate/route";
 import pema from "pema";
 import string from "pema/string";
+import route from "primate/route";
 
 route.post(request => {
-  const { title, text } = pema({
-    title: string,
+  const { text, title } = request.body.fields(pema({
     text: string,
-  }).validate(request.body);
+    title: string,
+  }));
 
   return `<h2>Adding a post with:</h2>
     <div><strong>Title</strong> ${title}</div>

@@ -3,14 +3,14 @@ import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import member_error from "#member-error";
 import OptionalType from "#OptionalType";
-import type Validated from "#Validated";
-import ValidationError from "#ValidationError";
-import type ValidationOptions from "#ValidationOptions";
+import type Parsed from "#Parsed";
+import ParseError from "#ParseError";
+import type ParseOptions from "#ParseOptions";
 
 const is = <T>(x: unknown, validator: (t: unknown) => boolean): x is T =>
   validator(x);
 
-export default class ArrayType<T extends Validated<unknown>> extends
+export default class ArrayType<T extends Parsed<unknown>> extends
   GenericType<T, Infer<T>[], "ArrayType"> {
   #subtype: T;
 
@@ -30,28 +30,28 @@ export default class ArrayType<T extends Validated<unknown>> extends
     return new OptionalType(this);
   }
 
-  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
+  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     if (!is<T[]>(x, _ => !!x && Array.isArray(x))) {
-      throw new ValidationError(error("array", x, options));
+      throw new ParseError(error("array", x, options));
     }
 
     let last = 0;
     x.forEach((v, i) => {
       // sparse array check
       if (i > last) {
-        throw new ValidationError([{
+        throw new ParseError([{
           ...error(this.#subtype.name, undefined, options)[0],
           key: `${last}`,
         }]);
       }
       const validator = this.#subtype;
-      validator.validate(v, member_error(i, options));
+      validator.parse(v, member_error(i, options));
       last++;
     });
 
     // sparse array with end slots
     if (x.length > last) {
-      throw new ValidationError([{
+      throw new ParseError([{
         ...error(this.#subtype.name, undefined, options)[0],
         key: `${last}`,
       }]);

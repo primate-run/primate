@@ -15,7 +15,7 @@ export default abstract class BackendModule extends Module {
   constructor(options?: typeof BackendModule.schema.input) {
     super();
 
-    this.#options = BackendModule.schema.validate(options);
+    this.#options = BackendModule.schema.parse(options);
   }
 
   get extension() {

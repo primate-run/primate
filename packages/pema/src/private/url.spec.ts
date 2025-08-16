@@ -7,14 +7,14 @@ import test from "@rcompat/test";
 const address = "https://primate.run";
 
 test.case("fail", assert => {
-  assert(() => url.validate(address)).throws(expect("ur", address));
+  assert(() => url.parse(address)).throws(expect("ur", address));
 });
 
 test.case("pass", assert => {
   assert(url).type<"URLType">();
 
   const u = new URL(address);
-  assert(url.validate(u)).equals(u).type<URL>();
+  assert(url.parse(u)).equals(u).type<URL>();
 });
 
 test.case("default", assert => {
@@ -23,9 +23,9 @@ test.case("default", assert => {
 
   [url.default(u), url.default(() => u)].forEach(d => {
     assert(d).type<DefaultType<URLType, URL>>();
-    assert(d.validate(undefined)).equals(u).type<URL>();
-    assert(d.validate(u)).equals(u).type<URL>();
-    assert(d.validate(u1)).equals(u1).type<URL>();
-    assert(() => d.validate(1)).throws(expect("ur", 1));
+    assert(d.parse(undefined)).equals(u).type<URL>();
+    assert(d.parse(u)).equals(u).type<URL>();
+    assert(d.parse(u1)).equals(u1).type<URL>();
+    assert(() => d.parse(1)).throws(expect("ur", 1));
   });
 });

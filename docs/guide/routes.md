@@ -1,4 +1,4 @@
-# Routes
+# Routing
 
 Primate uses filesystem-based routes. Route files are files in the `routes`
 directory which requests map to. For example, the file at

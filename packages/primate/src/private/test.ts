@@ -1,7 +1,8 @@
 import verbs from "@primate/core/verbs";
 import type Dict from "@rcompat/type/Dict";
+import type JSONValue from "@rcompat/type/JSONValue";
 
-export type Body = Dict | Dict[] | string;
+export type Body = JSONValue;
 
 export type MockedResponse = {
   body: {
@@ -27,7 +28,7 @@ type Tester = (response: MockedResponse) => void;
 type Route = string;
 
 type Test = {
-  route: Route;
+  route: Request | Route;
   tester: Tester;
   verb: Verb;
 };
@@ -36,8 +37,8 @@ export const tests: Test[] = [];
 
 export default {
   ...Object.fromEntries(verbs.map(verb =>
-    [verb, (route: Route, tester: Tester) => {
+    [verb, (route: Request | Route, tester: Tester) => {
       tests.push({ route, tester, verb });
     }],
   )),
-} as { [K in Verb]: (path: Route, tester: Tester) => void };
+} as { [K in Verb]: (path: Request | Route, tester: Tester) => void };

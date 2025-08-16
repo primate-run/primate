@@ -2,11 +2,11 @@ import DefaultType from "#DefaultType";
 import error from "#error";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
-import ValidationError from "#ValidationError";
-import type ValidationOptions from "#ValidationOptions";
-import type AbstractConstructor from "@rcompat/type/AbstractConstructor";
+import ParseError from "#ParseError";
+import type ParseOptions from "#ParseOptions";
+import type AbstractNewable from "@rcompat/type/AbstractNewable";
 
-export default class ConstructorType<C extends AbstractConstructor>
+export default class ConstructorType<C extends AbstractNewable>
   extends GenericType<C, InstanceType<C>, "InstanceType"> {
   #type: C;
 
@@ -23,9 +23,9 @@ export default class ConstructorType<C extends AbstractConstructor>
     return new DefaultType(this, value);
   }
 
-  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
+  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     if (!(x instanceof this.#type)) {
-      throw new ValidationError(error(this.name, x, options));
+      throw new ParseError(error(this.name, x, options));
     }
 
     return x as never;

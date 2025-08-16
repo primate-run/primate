@@ -26,10 +26,10 @@ export default class Runtime extends Module {
   constructor(config: typeof Runtime.input = {}) {
     super({ extension: config.extension });
 
-    this.#config = schema.validate(config);
+    this.#config = schema.parse(config);
   }
 
   get config() {
-    return {...this.#config};
+    return { ...this.#config };
   }
 }

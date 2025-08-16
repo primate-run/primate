@@ -1,5 +1,3 @@
-import type Id from "#Id";
-
 type DataType = {
   blob: Blob;
   boolean: boolean;
@@ -19,6 +17,7 @@ type DataType = {
   u32: number;
   u64: bigint;
   u8: number;
+  url: URL;
 };
 
 export type { DataType as default };

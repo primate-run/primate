@@ -4,7 +4,7 @@ import type Asset from "#asset/Asset";
 import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
-import type Body from "#Body";
+import Body from "#Body";
 import DevModule from "#builtin/DevModule";
 import HandleModule from "#builtin/HandleModule";
 import SessionModule from "#builtin/SessionModule";
@@ -27,7 +27,6 @@ import is from "@rcompat/assert/is";
 import FileRef from "@rcompat/fs/FileRef";
 import FileRouter from "@rcompat/fs/FileRouter";
 import type Actions from "@rcompat/http/Actions";
-import BodyParser from "@rcompat/http/body";
 import type Conf from "@rcompat/http/Conf";
 import { html } from "@rcompat/http/mime";
 import serve from "@rcompat/http/serve";
@@ -54,14 +53,6 @@ const deroot = (pathname: string) => pathname.endsWith("/") && pathname !== "/"
 const deslash = (url: string) => url.replaceAll(/\/{2,}/gu, _ => "/");
 
 const normalize = (pathname: string) => deroot(deslash(pathname));
-
-const parse_body = async (request: Request, url: URL): Promise<Body> => {
-  try {
-    return await BodyParser.parse(request) as Body;
-  } catch (error) {
-    throw new AppError("{0}: error in request body: {1}", url.pathname, error);
-  }
-};
 
 const to_csp = (config_csp: Entry<CSP>[], assets: CSP, override: CSP) => config_csp
   // only csp entries in the config will be enriched
@@ -229,7 +220,7 @@ export default class ServeApp extends App {
     const { headers, status } = pema({
       headers: record(string, string),
       status: uint.values(Status).default(Status.OK),
-    }).validate(init);
+    }).parse(init);
 
     return new Response(body, {
       headers: {
@@ -331,8 +322,8 @@ export default class ServeApp extends App {
     }
 
     const verb = request.method.toLowerCase() as Verb;
-    const local_parse_body = /*route.file.body?.parse ?? */$request_body_parse;
-    const body = local_parse_body ? await parse_body(request, url) : null;
+    const parse_body = /*route.file.body?.parse ?? */$request_body_parse;
+    const body = parse_body ? await Body.parse(request, url) : Body.none();
     const { errors = [], guards = [], layouts = [] } = entries(route.specials)
       .map(([key, value]) => [`${key}s`, value ?? []])
       .map(([key, value]) => [key, value.map(v => {

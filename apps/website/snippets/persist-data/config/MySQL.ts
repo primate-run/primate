@@ -1,7 +1,7 @@
 import mysql from "@primate/mysql";
-import db from "primate/config/db";
+import database from "primate/config/database";
 
-export default db({
+export default database({
   default: mysql({
     database: "app",
   }),

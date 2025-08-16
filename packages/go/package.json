@@ -26,10 +26,10 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.2.0",
+    "@rcompat/assert": "^0.3.0",
     "@rcompat/cli": "^0.10.0",
     "@rcompat/env": "^0.9.0",
-    "@rcompat/fs": "^0.17.0",
+    "@rcompat/fs": "^0.18.0",
     "@rcompat/runtime": "^0.6.0",
     "@rcompat/stdio": "^0.11.0",
     "@rcompat/string": "^0.10.0"

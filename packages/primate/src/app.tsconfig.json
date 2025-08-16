@@ -19,7 +19,7 @@
       "#static/*": ["static/*", "static/*.ts"],
       "#app": ["config/app.ts", "config/app.js"],
       "#session": ["config/session.ts", "config/session.js"],
-      "#db": ["config/db.ts", "config/db.js"]
+      "#database": ["config/database.ts", "config/database.js"]
     }
   },
   "include": [

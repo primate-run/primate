@@ -12,8 +12,4 @@ export default class FileType
   get datatype() {
     return "blob" as const;
   }
-
-  normalize(value: File) {
-    return value;
-  }
 }

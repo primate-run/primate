@@ -20,10 +20,6 @@ export default class StringType
     return "string" as const;
   }
 
-  normalize(value: string) {
-    return value;
-  }
-
   isotime() {
     return new StringType([...this.validators, isotime]);
   }

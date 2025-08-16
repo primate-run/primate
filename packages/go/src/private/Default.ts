@@ -22,7 +22,7 @@ const env = {
 };
 
 const run = (wasm: FileRef, go: FileRef) =>
-  `${command} build -o ${wasm.name} ${go.name} request.go`;
+  `${command} build -o ${wasm.name} ${go.name} request.go body.go`;
 
 const verbs_string = verbs.map(upperfirst).join("|");
 const routes_re = new RegExp(`func (?<route>${verbs_string})`, "gu");
@@ -36,17 +36,18 @@ const add_setter = (route: string) => `
 `;
 
 const make_route = (route: string) => `
-route.${route.toLowerCase()}(request => {
+route.${route.toLowerCase()}(async request => {
+  const requested = await toRequest(request);
   const go = new globalThis.Go();
   return WebAssembly.instantiate(go_route, {...go.importObject}).then(result => {
     go.run(result.instance);
-    return to_response(globalThis.${route}(to_request(request)));
+    return to_response(globalThis.${route}(requested));
   });
 });`;
 
 const js_wrapper = (path: string, routes: string[]) => `
 import env from "@primate/go/env";
-import to_request from "@primate/go/to-request";
+import toRequest from "@primate/go/to-request";
 import to_response from "@primate/go/to-response";
 import session from "primate/config/session";
 import route from "primate/route";
@@ -124,6 +125,7 @@ const root = new FileRef(import.meta.url).up(1);
 
 const create_meta_files = async (directory: FileRef) => {
   const meta = {
+    body: "body.go",
     mod: "go.mod",
     request: "request.go",
     sum: "go.sum",
@@ -132,6 +134,9 @@ const create_meta_files = async (directory: FileRef) => {
   if (!await directory.join(meta.request).exists()) {
     // copy request.go file
     await directory.join(meta.request).write((await root.join(meta.request)
+      .text()),
+    );
+    await directory.join(meta.body).write((await root.join(meta.body)
       .text()),
     );
     await directory.join(meta.sum).write((await root.join(meta.sum).text()));

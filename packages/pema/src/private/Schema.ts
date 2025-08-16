@@ -1,13 +1,14 @@
-import type Validated from "#Validated";
-import type AbstractConstructor from "@rcompat/type/AbstractConstructor";
+import type Parsed from "#Parsed";
+import type AbstractNewable from "@rcompat/type/AbstractNewable";
 
 type Schema =
-  { [k: string]: Schema } |
-  AbstractConstructor |
-  null |
-  Schema[] |
-  string |
-  undefined |
-  Validated<unknown>;
+  | { [k: string]: Schema }
+  | AbstractNewable
+  | null
+  | Parsed<unknown>
+  | Schema[]
+  | string
+  | undefined
+  ;
 
 export type { Schema as default };

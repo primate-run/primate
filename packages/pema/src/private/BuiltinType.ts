@@ -1,16 +1,18 @@
+import CoercedType from "#CoercedType";
+import CoerceKey from "#CoerceKey";
 import error from "#error";
 import type Infer from "#Infer";
+import ParseError from "#ParseError";
+import type ParseOptions from "#ParseOptions";
 import Type from "#Type";
-import ValidationError from "#ValidationError";
-import type ValidationOptions from "#ValidationOptions";
-import type AbstractorController from "@rcompat/type/AbstractConstructor";
+import type AbstractNewable from "@rcompat/type/AbstractNewable";
 
 export default class BuiltinType<StaticType, Name extends string>
   extends Type<StaticType, Name> {
   #name: string;
-  #type: AbstractorController;
+  #type: AbstractNewable;
 
-  constructor(name: string, type: AbstractorController) {
+  constructor(name: string, type: AbstractNewable) {
     super();
     this.#name = name;
     this.#type = type;
@@ -20,11 +22,17 @@ export default class BuiltinType<StaticType, Name extends string>
     return this.#name;
   }
 
-  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
-    if (!(x instanceof this.#type)) {
-      throw new ValidationError(error(this.name, x, options));
+  get coerce() {
+    return new CoercedType(this);
+  }
+
+  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+    const $x = options.coerce === true ? this[CoerceKey](x) : x;
+
+    if (!($x instanceof this.#type)) {
+      throw new ParseError(error(this.name, $x, options));
     }
 
-    return x as never;
+    return $x as never;
   }
 }

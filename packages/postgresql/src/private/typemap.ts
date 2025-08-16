@@ -1,5 +1,5 @@
 import type ColumnTypes from "#ColumnTypes";
-import type TypeMap from "@primate/core/db/TypeMap";
+import type TypeMap from "@primate/core/database/TypeMap";
 
 function identity<C extends keyof ColumnTypes>(column: C): {
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];
@@ -104,6 +104,15 @@ const typemap: TypeMap<ColumnTypes> = {
     },
   },
   u8: number("SMALLINT"),
+  url: {
+    bind(value) {
+      return value.toString();
+    },
+    column: "TEXT",
+    unbind(value) {
+      return new URL(value);
+    },
+  },
 };
 
 export default typemap;

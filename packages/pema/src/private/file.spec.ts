@@ -5,17 +5,17 @@ import type FileType from "#FileType";
 import test from "@rcompat/test";
 
 test.case("fail", assert => {
-  assert(() => file.validate("1")).throws(expect("f", "1"));
+  assert(() => file.parse("1")).throws(expect("f", "1"));
 
   const b = new Blob();
-  assert(() => file.validate(b)).throws(expect("f", b));
+  assert(() => file.parse(b)).throws(expect("f", b));
 });
 
 test.case("pass", assert => {
   assert(file).type<"FileType">();
 
   const f = new File([""], "");
-  assert(file.validate(f)).equals(f).type<File>();
+  assert(file.parse(f)).equals(f).type<File>();
 });
 
 test.case("default", assert => {
@@ -24,9 +24,9 @@ test.case("default", assert => {
 
   [file.default(f), file.default(() => f)].forEach(d => {
     assert(d).type<DefaultType<FileType, File>>();
-    assert(d.validate(undefined)).equals(f).type<File>();
-    assert(d.validate(f)).equals(f).type<File>();
-    assert(d.validate(f1)).equals(f1).type<File>();
-    assert(() => d.validate(1)).throws(expect("f", 1));
+    assert(d.parse(undefined)).equals(f).type<File>();
+    assert(d.parse(f)).equals(f).type<File>();
+    assert(d.parse(f1)).equals(f1).type<File>();
+    assert(() => d.parse(1)).throws(expect("f", 1));
   });
 });

@@ -1,5 +1,5 @@
 import Database from "#Database";
-import Module from "@primate/core/db/Module";
+import Module from "@primate/core/database/Module";
 import { surrealdbNodeEngines } from "@surrealdb/node";
 import pema from "pema";
 import string from "pema/string";
@@ -18,14 +18,14 @@ const schema = pema({
 
 export default class SurrealDBModule extends Module {
   #config: typeof schema.infer;
-  #db?: Database;
+  #database?: Database;
 
   static config: typeof schema.input;
 
   constructor(config?: typeof schema.input) {
     super();
 
-    this.#config = schema.validate(config);
+    this.#config = schema.parse(config);
   }
 
   get #url() {
@@ -48,11 +48,11 @@ export default class SurrealDBModule extends Module {
       engines: surrealdbNodeEngines(),
     });
     await client.connect(this.#url, this.#options);
-    this.#db = new Database(client);
-    return this.#db;
+    this.#database = new Database(client);
+    return this.#database;
   }
 
   deinit() {
-    this.#db?.close();
+    this.#database?.close();
   }
 }

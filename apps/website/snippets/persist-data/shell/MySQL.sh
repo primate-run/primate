@@ -1,1 +1,1 @@
-npm install @primate/mysql pema
+npm install pema @primate/mysql

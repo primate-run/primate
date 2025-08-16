@@ -1,3 +1,4 @@
+import Body from "#Body";
 import type RequestFacade from "#RequestFacade";
 import pass from "#pass";
 import type PartialDict from "@rcompat/type/PartialDict";
@@ -9,7 +10,7 @@ export default (request: Request): RequestFacade => {
     PartialDict<string>;
 
   return {
-    body: null,
+    body: Body.none(),
     context: {},
     cookies: Object.fromEntries(headers.cookie?.split(";").map(cookie =>
       cookie.trim().split("=")) ?? []),

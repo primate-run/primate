@@ -30,45 +30,45 @@ const x = <T>(t: T, length = 2) => Array.from({ length }, _ => t).flat();
 
 test.case("empty", assert => {
   assert(b).type<ArrayType<BooleanType>>();
-  assert(b.validate([])).equals([]).type<boolean[]>();
+  assert(b.parse([])).equals([]).type<boolean[]>();
 
   assert(bi).type<ArrayType<BigIntType>>();
-  assert(bi.validate([])).equals([]).type<bigint[]>();
+  assert(bi.parse([])).equals([]).type<bigint[]>();
 
   assert(d).type<ArrayType<DateType>>();
-  assert(d.validate([])).equals([]).type<Date[]>();
+  assert(d.parse([])).equals([]).type<Date[]>();
 
   assert(n).type<ArrayType<NumberType>>();
-  assert(n.validate([])).equals([]).type<number[]>();
+  assert(n.parse([])).equals([]).type<number[]>();
 
   assert(s).type<ArrayType<StringType>>();
-  assert(s.validate([])).equals([]).type<string[]>();
+  assert(s.parse([])).equals([]).type<string[]>();
 });
 
 test.case("flat", assert => {
-  assert(b.validate(ab)).equals(ab).type<boolean[]>();
-  assert(bi.validate(abi)).equals(abi).type<bigint[]>();
-  assert(d.validate(ad)).equals(ad).type<Date[]>();
-  assert(n.validate(an)).equals(an).type<number[]>();
-  assert(s.validate(as)).equals(as).type<string[]>();
+  assert(b.parse(ab)).equals(ab).type<boolean[]>();
+  assert(bi.parse(abi)).equals(abi).type<bigint[]>();
+  assert(d.parse(ad)).equals(ad).type<Date[]>();
+  assert(n.parse(an)).equals(an).type<number[]>();
+  assert(s.parse(as)).equals(as).type<string[]>();
 
-  assert(b.validate(x(ab, 3))).equals(x(ab, 3));
-  assert(bi.validate(x(abi, 4))).equals(x(abi, 4));
-  assert(d.validate(x(ad, 5))).equals(x(ad, 5));
-  assert(n.validate(x(an, 6))).equals(x(an, 6));
-  assert(s.validate(x(as))).equals(x(as));
+  assert(b.parse(x(ab, 3))).equals(x(ab, 3));
+  assert(bi.parse(x(abi, 4))).equals(x(abi, 4));
+  assert(d.parse(x(ad, 5))).equals(x(ad, 5));
+  assert(n.parse(x(an, 6))).equals(x(an, 6));
+  assert(s.parse(x(as))).equals(x(as));
 
-  assert(() => b.validate(abi)).throws(expect("b", 0n, 0));
-  assert(() => bi.validate(ad)).throws(expect("bi", _d, 0));
-  assert(() => d.validate(an)).throws(expect("d", 0, 0));
-  assert(() => n.validate(as)).throws(expect("n", "0", 0));
-  assert(() => s.validate(ab)).throws(expect("s", false, 0));
+  assert(() => b.parse(abi)).throws(expect("b", 0n, 0));
+  assert(() => bi.parse(ad)).throws(expect("bi", _d, 0));
+  assert(() => d.parse(an)).throws(expect("d", 0, 0));
+  assert(() => n.parse(as)).throws(expect("n", "0", 0));
+  assert(() => s.parse(ab)).throws(expect("s", false, 0));
 
-  assert(() => b.validate([...ab, ...ad])).throws(expect("b", _d, 1));
-  assert(() => bi.validate([...abi, ...ad])).throws(expect("bi", _d, 1));
-  assert(() => d.validate([...ab, ...ad])).throws(expect("d", false, 0));
-  assert(() => n.validate([...as, ...an])).throws(expect("n", "0", 0));
-  assert(() => s.validate([...as, ...an])).throws(expect("s", 0, 1));
+  assert(() => b.parse([...ab, ...ad])).throws(expect("b", _d, 1));
+  assert(() => bi.parse([...abi, ...ad])).throws(expect("bi", _d, 1));
+  assert(() => d.parse([...ab, ...ad])).throws(expect("d", false, 0));
+  assert(() => n.parse([...as, ...an])).throws(expect("n", "0", 0));
+  assert(() => s.parse([...as, ...an])).throws(expect("s", 0, 1));
 });
 
 test.case("sparse", assert => {
@@ -77,18 +77,18 @@ test.case("sparse", assert => {
   const b2 = [, "f"];
   const b3 = ["f", "f", ,];
 
-  assert(() => s.validate(b0)).throws(expect("s", undefined, 1));
-  assert(() => s.validate(b1)).throws(expect("s", undefined, 1));
-  assert(() => s.validate(b2)).throws(expect("s", undefined, 0));
-  assert(() => s.validate(b3)).throws(expect("s", undefined, 2));
+  assert(() => s.parse(b0)).throws(expect("s", undefined, 1));
+  assert(() => s.parse(b1)).throws(expect("s", undefined, 1));
+  assert(() => s.parse(b2)).throws(expect("s", undefined, 0));
+  assert(() => s.parse(b3)).throws(expect("s", undefined, 2));
 });
 
 test.case("deep", assert => {
   const rc = array(array(string));
-  assert(rc.validate([as])).equals([as]).type<string[][]>();
+  assert(rc.parse([as])).equals([as]).type<string[][]>();
 
-  assert(() => rc.validate(as)).throws(expect("a", "0", 0));
-  assert(() => rc.validate([[0]])).throws();
+  assert(() => rc.parse(as)).throws(expect("a", "0", 0));
+  assert(() => rc.parse([[0]])).throws();
 });
 
 test.case("object", assert => {

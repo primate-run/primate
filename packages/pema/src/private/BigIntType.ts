@@ -1,4 +1,6 @@
 import type BigIntDataType from "#BigIntDataType";
+import coerce from "#coerce/bigint";
+import CoerceKey from "#CoerceKey";
 import PrimitiveType from "#PrimitiveType";
 import type Storeable from "#Storeable";
 import type Validator from "#Validator";
@@ -8,6 +10,7 @@ import values from "#validator/values";
 export default class BigIntType<T extends BigIntDataType = "i64">
   extends PrimitiveType<bigint, "BigIntType">
   implements Storeable<T> {
+  [CoerceKey] = coerce;
   #datatype: T;
 
   constructor(datatype: T, validators: Validator<bigint>[] = []) {
@@ -17,10 +20,6 @@ export default class BigIntType<T extends BigIntDataType = "i64">
 
   get datatype() {
     return this.#datatype;
-  }
-
-  normalize(value: bigint) {
-    return value;
   }
 
   values(anyof: Record<string, bigint>) {

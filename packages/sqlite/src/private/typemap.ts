@@ -1,6 +1,6 @@
 import type ColumnTypes from "#ColumnTypes";
-import type TypeMap from "@primate/core/db/TypeMap";
-import numeric from "@rcompat/assert/numeric";
+import type TypeMap from "@primate/core/database/TypeMap";
+import numeric from "@rcompat/is/numeric";
 
 function identity<C extends keyof ColumnTypes>(column: C): {
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];
@@ -112,6 +112,15 @@ const typemap: TypeMap<ColumnTypes> = {
     },
   },
   u8: number("INTEGER"),
+  url: {
+    bind(value) {
+      return value.toString();
+    },
+    column: "TEXT",
+    unbind(value) {
+      return new URL(value);
+    },
+  },
 };
 
 export default typemap;

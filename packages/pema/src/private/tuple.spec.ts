@@ -26,26 +26,26 @@ const x = <T>(t: T, length = 2) => Array.from({ length }, _ => t).flat();
 
 test.case("empty", assert => {
   assert(e).type<TupleType<[]>>();
-  assert(e.validate([])).equals([]).type<[]>();
+  assert(e.parse([])).equals([]).type<[]>();
 });
 
 test.case("flat", assert => {
   assert(s).type<TupleType<[StringType]>>();
-  assert(s.validate(f)).equals(f).type<[string]>();
+  assert(s.parse(f)).equals(f).type<[string]>();
 
   assert(s_s).type<TupleType<[StringType, StringType]>>();
-  assert(s_s.validate(x(f))).equals(x(f)).type<[string, string]>();
+  assert(s_s.parse(x(f))).equals(x(f)).type<[string, string]>();
 
   assert(s_n).type<TupleType<[StringType, NumberType]>>();
-  assert(s_n.validate(fb)).equals(fb).type<[string, number]>();
+  assert(s_n.parse(fb)).equals(fb).type<[string, number]>();
 
   assert(s_n_b).type<TupleType<[StringType, NumberType, BooleanType]>>();
-  assert(s_n_b.validate(fbb)).equals(fbb).type<[string, number, boolean]>();
+  assert(s_n_b.parse(fbb)).equals(fbb).type<[string, number, boolean]>();
 
-  assert(() => s.validate([])).throws(expect("s", undefined, 0));
-  assert(() => s_n.validate(f)).throws(expect("n", undefined, 1));
-  assert(() => s_n_b.validate(x(fb))).throws(expect("b", "bar", 2));
-  assert(() => s_n_b.validate(x(fbb))).throws(expect("u", "bar", 3));
+  assert(() => s.parse([])).throws(expect("s", undefined, 0));
+  assert(() => s_n.parse(f)).throws(expect("n", undefined, 1));
+  assert(() => s_n_b.parse(x(fb))).throws(expect("b", "bar", 2));
+  assert(() => s_n_b.parse(x(fbb))).throws(expect("u", "bar", 3));
 });
 
 test.case("deep", assert => {
@@ -53,21 +53,21 @@ test.case("deep", assert => {
   const rc = tuple(tuple(string));
 
   assert(rc).type<TupleType<[TupleType<[StringType]>]>>();
-  assert(rc.validate([["foo"]])).equals([["foo"]]).type<[[string]]>();
-  assert(() => rc.validate([])).throws();
+  assert(rc.parse([["foo"]])).equals([["foo"]]).type<[[string]]>();
+  assert(() => rc.parse([])).throws();
 });
 
 test.case("in array", assert => {
   const a = array(tuple(string));
 
   assert(a).type<ArrayType<TupleType<[StringType]>>>();
-  assert(a.validate([["foo"]])).equals([["foo"]]).type<[string][]>();
-  assert(a.validate([])).equals([]).type<[string][]>();
+  assert(a.parse([["foo"]])).equals([["foo"]]).type<[string][]>();
+  assert(a.parse([])).equals([]).type<[string][]>();
 
-  assert(() => a.validate(undef)).throws(expect("a", undefined));
-  assert(() => a.validate("foo")).throws(expect("a", "foo"));
-  assert(() => a.validate([[]])).throws(expect("s", undefined, "0.0"));
-  assert(() => a.validate([[false]])).throws(expect("s", false, "0.0"));
-  assert(() => a.validate([["false"], "false"])).throws(expect("a", "false",
+  assert(() => a.parse(undef)).throws(expect("a", undefined));
+  assert(() => a.parse("foo")).throws(expect("a", "foo"));
+  assert(() => a.parse([[]])).throws(expect("s", undefined, "0.0"));
+  assert(() => a.parse([[false]])).throws(expect("s", false, "0.0"));
+  assert(() => a.parse([["false"], "false"])).throws(expect("a", "false",
     1));
 });

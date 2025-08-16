@@ -1,3 +1,5 @@
+import coerce from "#coerce/int";
+import CoerceKey from "#CoerceKey";
 import type IntDataType from "#IntDataType";
 import PrimitiveType from "#PrimitiveType";
 import type Storeable from "#Storeable";
@@ -10,6 +12,7 @@ export default class IntType<T extends IntDataType = "i32">
   extends PrimitiveType<number, "IntType">
   implements Storeable<T> {
   #datatype: T;
+  [CoerceKey] = coerce;
 
   constructor(datatype: T, validators: Validator<number>[] = []) {
     super("number", [integer, ...validators]);
@@ -18,10 +21,6 @@ export default class IntType<T extends IntDataType = "i32">
 
   get datatype() {
     return this.#datatype;
-  }
-
-  normalize(value: number) {
-    return value;
   }
 
   values(anyof: Record<string, number>) {

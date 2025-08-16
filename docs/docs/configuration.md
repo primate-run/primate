@@ -8,9 +8,9 @@ Configuration files are located in `config`. Anything you configure will be
 merged into the defaults.
 
 ## app.ts
-[s=configuration/intro]
+[s=configuration/app-ts]
 
-### Options
+### App options
 
 |Option|Default|Description|
 |-|-|-|
@@ -98,4 +98,35 @@ will contain the untouched original request.
 
 ## session.ts
 
-## db.ts
+[s=configuration/session-ts]
+
+### Session options
+
+|Option|Default|Description|
+|-|-|-|
+|[cookie.httponly](#cookie-http-only)|`true`|esbuild options|
+|[cookie.name](#cookie-name)|`"session_id"`|name of the session cookie|
+|[cookie.path](#cookie-path)|`"/"`|cookie website path|
+|[cookie.samesite](#cookie-same-site)|`"Lax"`|cookie website path|
+|[manager](#manager)|`InMemorySessionManager`|the session manager class|
+
+### cookie.httpOnly
+Whether the session cookie should be set as and not be readable in JavaScript.
+
+### cookie.name
+The name of the session cookie.
+
+### cookie.path
+The session cookie path (paths on which the cookie is loaded).
+
+### cookie.sameSite
+The level of security to use in sending the session cookies when browsing
+between websites.
+
+### manager
+The session cookie manager. By default, we use an in-memory session manager
+that resets when the app restarts.
+
+## database.ts
+
+[s=configuration/database-ts]

@@ -1,9 +1,9 @@
 import type Infer from "#Infer";
-import type Validated from "#Validated";
-import type ValidationOptions from "#ValidationOptions";
+import type Parsed from "#Parsed";
+import type ParseOptions from "#ParseOptions";
 import VirtualType from "#VirtualType";
 
-export default class OptionalType<S extends Validated<unknown>>
+export default class OptionalType<S extends Parsed<unknown>>
   extends VirtualType<S | undefined, Infer<S> | undefined, "OptionalType"> {
   #schema: S;
 
@@ -20,7 +20,7 @@ export default class OptionalType<S extends Validated<unknown>>
     return this.#schema;
   }
 
-  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
+  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     const s = this.#schema;
 
     // optional
@@ -28,6 +28,6 @@ export default class OptionalType<S extends Validated<unknown>>
       return undefined as Infer<this>;
     }
 
-    return s.validate(x, options) as Infer<this>;
+    return s.parse(x, options) as Infer<this>;
   }
 }

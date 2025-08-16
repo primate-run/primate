@@ -4,11 +4,11 @@ import GenericType from "#GenericType";
 import schema from "#index";
 import type Infer from "#Infer";
 import type InferSchema from "#InferSchema";
-import is_validated_type from "#is_validated_type";
+import isParsedType from "#is-parsed-type";
 import OptionalType from "#OptionalType";
+import ParseError from "#ParseError";
+import type ParseOptions from "#ParseOptions";
 import type Schema from "#Schema";
-import ValidationError from "#ValidationError";
-import type ValidationOptions from "#ValidationOptions";
 import assert from "@rcompat/assert";
 import type TupleToUnion from "@rcompat/type/TupleToUnion";
 
@@ -20,9 +20,9 @@ type InferUnion<T extends Schema[]> = TupleToUnion<{
 }>;
 
 const print = (type: unknown) => {
-  const validated = is_validated_type(type);
+  const parsed = isParsedType(type);
 
-  if (validated) {
+  if (parsed) {
     return type.name;
   }
 
@@ -46,7 +46,7 @@ const print = (type: unknown) => {
 };
 
 const union_error = (types: Schema[]) =>
-  `\`${types.map(t => is_validated_type(t) ? t.name : print(t)).join(" | ")}\``;
+  `\`${types.map(t => isParsedType(t) ? t.name : print(t)).join(" | ")}\``;
 
 export default class UnionType<T extends Schema[]> extends
   GenericType<T, InferUnion<T>, "UnionType"> {
@@ -76,19 +76,19 @@ export default class UnionType<T extends Schema[]> extends
     return new DefaultType(this, value);
   }
 
-  validate(x: unknown, options: ValidationOptions = {}): Infer<this> {
-    // union validates when any of its members validates
-    const validated = this.#types.map(type => {
-      const validator = is_validated_type(type) ? type : schema(type);
+  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+    // union parses when any of its members parses
+    const parsed = this.#types.map(type => {
+      const validator = isParsedType(type) ? type : schema(type);
       try {
-        validator.validate(x, options);
+        validator.parse(x, options);
         return true;
       } catch (e) {
-        return e as ValidationError;
+        return e as ParseError;
       }
     });
-    if (!validated.some(r => r === true)) {
-      throw new ValidationError(error(union_error(this.#types), x, options));
+    if (!parsed.some(r => r === true)) {
+      throw new ParseError(error(union_error(this.#types), x, options));
     }
 
     return x as never;

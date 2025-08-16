@@ -34,17 +34,17 @@ test.case("flat", assert => {
   const bs = union(boolean, string);
 
   assert(bs).type<UnionType<[BooleanType, StringType]>>();
-  assert(bs.validate("foo")).equals("foo").type<boolean | string>();
-  assert(bs.validate(true)).equals(true).type<boolean | string>();
+  assert(bs.parse("foo")).equals("foo").type<boolean | string>();
+  assert(bs.parse(true)).equals(true).type<boolean | string>();
   const bs_e = "expected `boolean | string`, got `1` (number)";
-  assert(() => bs.validate(1)).throws(bs_e);
+  assert(() => bs.parse(1)).throws(bs_e);
 
   const fb = union("foo", "bar");
   assert(fb).type<UnionType<[LiteralType<"foo">, LiteralType<"bar">]>>();
-  assert(fb.validate("foo")).equals("foo").type<"bar" | "foo">();
-  assert(fb.validate("bar")).equals("bar").type<"bar" | "foo">();
+  assert(fb.parse("foo")).equals("foo").type<"bar" | "foo">();
+  assert(fb.parse("bar")).equals("bar").type<"bar" | "foo">();
   const fb_e = "expected `\"foo\" | \"bar\"`, got `1` (number)";
-  assert(() => fb.validate(1)).throws(fb_e);
+  assert(() => fb.parse(1)).throws(fb_e);
 });
 
 test.case("deep", assert => {
@@ -55,9 +55,9 @@ test.case("deep", assert => {
     bar: LiteralType<"baz">;
     foo: BigIntType;
   }]>>();
-  assert(u.validate("foo")).equals("foo")
+  assert(u.parse("foo")).equals("foo")
     .type<{ bar: "baz"; foo: bigint } | string>();
-  assert(() => u.validate(1)).throws(`expected \`${u_e}\`, got \`1\` (number)`);
+  assert(() => u.parse(1)).throws(`expected \`${u_e}\`, got \`1\` (number)`);
 });
 
 test.case("classes", assert => {
@@ -68,9 +68,9 @@ test.case("classes", assert => {
   const u_e = "string | class Class { }";
 
   assert(u).type<UnionType<[StringType, ConstructorType<typeof Class>]>>();
-  assert(u.validate("foo")).equals("foo").type<Class | string>();
-  assert(u.validate(c)).equals(c).type<Class | string>();
-  assert(() => u.validate(1)).throws(`expected \`${u_e}\`, got \`1\` (number)`);
+  assert(u.parse("foo")).equals("foo").type<Class | string>();
+  assert(u.parse(c)).equals(c).type<Class | string>();
+  assert(() => u.parse(1)).throws(`expected \`${u_e}\`, got \`1\` (number)`);
 });
 
 test.case("default", assert => {
@@ -86,8 +86,8 @@ test.case("default", assert => {
     >();
   });
 
-  assert(bs_def_s.validate(undefined)).equals("foo");
-  assert(bs_def_s1.validate(undefined)).equals("foo");
-  assert(bs_def_b.validate(undefined)).equals(true);
-  assert(bs_def_b1.validate(undefined)).equals(true);
+  assert(bs_def_s.parse(undefined)).equals("foo");
+  assert(bs_def_s1.parse(undefined)).equals("foo");
+  assert(bs_def_b.parse(undefined)).equals(true);
+  assert(bs_def_b1.parse(undefined)).equals(true);
 });
