@@ -1,4 +1,4 @@
-import type Verb from "@primate/core/Verb";
+import type Verb from "@primate/core/request/Verb";
 import route from "primate/route";
 import instantiate from "primate/wasm/instantiate";
 

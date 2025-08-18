@@ -1,4 +1,4 @@
-import type RequestFacade from "@primate/core/RequestFacade";
+import type RequestFacade from "@primate/core/request/RequestFacade";
 import type { PyodideAPI } from "pyodide";
 
 type ToPY = PyodideAPI["toPy"];

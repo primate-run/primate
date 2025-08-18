@@ -1,6 +1,6 @@
 import type Component from "@primate/markdown/Component";
+import view from "primate/response/view";
 import route from "primate/route";
-import view from "primate/view";
 
 route.get(request => {
   return async (app) => {

@@ -1,1 +1,1 @@
-export { default } from "@primate/core/router";
+export { default } from "@primate/core/route/router";

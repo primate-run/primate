@@ -7,5 +7,5 @@ from "json" include Json
 use Request.{ type Request }
 use Json.{ type Json }
 
-provide let get = (request: Request) => 
+provide let get = (request: Request) =>
   JsonObject([("message", JsonString("Hello, world!"))])

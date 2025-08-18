@@ -1,5 +1,5 @@
 import type Hook from "#module/Hook";
-import type RequestFacade from "#RequestFacade";
+import type RequestFacade from "#request/RequestFacade";
 
 type RequestHook = Hook<RequestFacade, Response>;
 

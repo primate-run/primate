@@ -1,4 +1,4 @@
-import type Verb from "#Verb";
+import type Verb from "#request/Verb";
 import type I32 from "#wasm/I32";
 import type Tagged from "#wasm/Tagged";
 

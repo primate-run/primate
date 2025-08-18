@@ -1,7 +1,7 @@
-import error from "#handler/error";
-import redirect from "#handler/redirect";
-import view from "#handler/view";
-import type ResponseFunction from "#ResponseFunction";
+import error from "#response/error";
+import redirect from "#response/redirect";
+import type ResponseFunction from "#response/ResponseFunction";
+import view from "#response/view";
 import decodeBytes from "#wasm/decode-bytes";
 import decodeJson from "#wasm/decode-json";
 import decodeOption from "#wasm/decode-option";
@@ -10,7 +10,7 @@ import type Instantiation from "#wasm/Instantiation";
 import openWebsocket from "#wasm/open-websocket";
 import assert from "@rcompat/assert";
 import type BufferView from "@rcompat/bufferview";
-import type { Known } from "@rcompat/http/Status";
+import type ValidStatus from "@rcompat/http/ValidStatus";
 import type Dict from "@rcompat/type/Dict";
 
 type MaybeRedirectionStatus = Parameters<typeof redirect>[1];
@@ -94,7 +94,7 @@ const decodeResponse = (source: BufferView): DecodedResponse | undefined => {
 
     case RESPONSE_ERROR: {
       const body = decodeOption(decodeString, source);
-      const status = source.readU32() as Known;
+      const status = source.readU32() as ValidStatus;
       const page = decodeOption(decodeString, source);
       return {
         type: "error",

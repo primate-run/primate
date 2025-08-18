@@ -1,7 +1,7 @@
 import location from "#location";
 import FileRef from "@rcompat/fs/FileRef";
 import Status from "@rcompat/http/Status";
-import { resolve } from "@rcompat/http/mime";
+import resolve from "@rcompat/http/mime/extension/resolve";
 import type Dict from "@rcompat/type/Dict";
 
 type Init = {

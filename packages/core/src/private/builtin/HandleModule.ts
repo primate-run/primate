@@ -1,6 +1,6 @@
-import route from "#hook/route";
+import route from "#request/route";
 import Module from "#Module";
-import type RequestFacade from "#RequestFacade";
+import type RequestFacade from "#request/RequestFacade";
 import type ServeApp from "#ServeApp";
 
 export default class HandleModule extends Module {

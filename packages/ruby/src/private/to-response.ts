@@ -1,9 +1,9 @@
 import HANDLER_PROPERTY from "#handler-property";
-import error from "@primate/core/handler/error";
-import redirect from "@primate/core/handler/redirect";
-import view from "@primate/core/handler/view";
-import type ResponseFunction from "@primate/core/ResponseFunction";
-import type ResponseLike from "@primate/core/ResponseLike";
+import type ResponseFunction from "@primate/core/response//ResponseFunction";
+import error from "@primate/core/response/error";
+import redirect from "@primate/core/response/redirect";
+import type ResponseLike from "@primate/core/response/ResponseLike";
+import view from "@primate/core/response/view";
 import type Dict from "@rcompat/type/Dict";
 
 const handlers = { error, redirect, view };

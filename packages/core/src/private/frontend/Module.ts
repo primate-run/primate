@@ -13,13 +13,13 @@ import Module from "#Module";
 import type Next from "#module/Next";
 import type NextBuild from "#module/NextBuild";
 import type NextServe from "#module/NextServe";
-import type RequestFacade from "#RequestFacade";
+import type RequestFacade from "#request/RequestFacade";
 import type ServeApp from "#ServeApp";
 import assert from "@rcompat/assert";
 import map from "@rcompat/async/map";
 import hash from "@rcompat/crypto/hash";
 import FileRef from "@rcompat/fs/FileRef";
-import { json } from "@rcompat/http/mime";
+import APPLICATION_JSON from "@rcompat/http/mime/application/json";
 import Status from "@rcompat/http/Status";
 import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
@@ -110,7 +110,7 @@ export default abstract class FrontendModule<
     const inlined = await inline(code, "module");
 
     const json_props = JSON.stringify({ frontend: this.name, ...client });
-    const hydrated = await inline(json_props, "application/json", "hydration");
+    const hydrated = await inline(json_props, APPLICATION_JSON, "hydration");
     const script_src = [inlined.integrity, hydrated.integrity];
 
     return {
@@ -124,7 +124,7 @@ export default abstract class FrontendModule<
     return normalize(name);
   }
 
-  handler: Frontend = (component, props = {}, options = {}) =>
+  frontend: Frontend = (component, props = {}, options = {}) =>
     async (app, { as_layout, layouts = [] } = {}, request) => {
       if (as_layout) {
         return this.#load(component, props, app);
@@ -136,10 +136,10 @@ export default abstract class FrontendModule<
 
       const $request = {
         context: request.context,
-        cookies: request.cookies,
-        headers: request.headers,
-        path: request.path,
-        query: request.query,
+        cookies: request.cookies.contents,
+        headers: request.headers.contents,
+        path: request.path.contents,
+        query: request.query.contents,
         url: request.url,
       };
       const $props = this.layouts
@@ -156,9 +156,9 @@ export default abstract class FrontendModule<
         ...$props,
       };
 
-      if (this.spa && request.headers.accept === json) {
+      if (this.spa && request.headers.get("Accept") === APPLICATION_JSON) {
         return new Response(JSON.stringify(client), {
-          headers: { ...app.headers(), "Content-Type": json },
+          headers: { ...app.headers(), "Content-Type": APPLICATION_JSON },
           status: options.status ?? Status.OK,
         });
       }
@@ -189,7 +189,7 @@ export default abstract class FrontendModule<
     };
 
   serve(app: ServeApp, next: NextServe) {
-    app.register(this.extension, this.handler);
+    app.register(this.extension, this.frontend);
 
     return next(app);
   }

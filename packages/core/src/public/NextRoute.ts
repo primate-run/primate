@@ -1,4 +1,4 @@
 // exposure
-export type { default as ResponseLike } from "#ResponseLike";
+export type { default as ResponseLike } from "#response/ResponseLike";
 
 export { default } from "#module/NextRoute";

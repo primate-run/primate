@@ -1,8 +1,8 @@
 import Runtime from "#Runtime";
 import type BuildApp from "@primate/core/BuildApp";
 import type NextBuild from "@primate/core/NextBuild";
+import verbs from "@primate/core/request/verbs";
 import wrap from "@primate/core/route/wrap";
-import verbs from "@primate/core/verbs";
 import assert from "@rcompat/assert";
 import type FileRef from "@rcompat/fs/FileRef";
 

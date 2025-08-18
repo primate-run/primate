@@ -7,5 +7,5 @@ export default class Runtime extends FrontendModule {
   defaultExtension = ".html";
   layouts = false;
   client = false;
-  handler: Frontend = handler(this);
+  frontend: Frontend = handler(this);
 }

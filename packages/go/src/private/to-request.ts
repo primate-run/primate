@@ -1,8 +1,8 @@
-import type Body from "@primate/core/Body";
-import type RequestFacade from "@primate/core/RequestFacade";
+import type RequestBody from "@primate/core/request/RequestBody";
+import type RequestFacade from "@primate/core/request/RequestFacade";
 import type Dict from "@rcompat/type/Dict";
 
-async function bridgeFields(body: Body) {
+async function bridgeFields(body: RequestBody) {
   const fields = body.fields();
 
   const meta: Dict = Object.create(null);
@@ -52,7 +52,7 @@ async function bridgeFields(body: Body) {
   };
 }
 
-async function bridgeBody(body: Body) {
+async function bridgeBody(body: RequestBody) {
   const type = body.type;
 
   switch (type) {
@@ -88,10 +88,10 @@ export default async function toRequest(request: RequestFacade) {
 
   return {
     body,
-    cookies: JSON.stringify(request.cookies),
-    headers: JSON.stringify(request.headers),
-    path: JSON.stringify(request.path),
-    query: JSON.stringify(request.query),
+    cookies: request.cookies.toJSON(),
+    headers: request.headers.toJSON(),
+    path: request.path.toJSON(),
+    query: request.query.toJSON(),
     url: request.url,
   };
 }

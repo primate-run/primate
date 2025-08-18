@@ -5,7 +5,6 @@ import type NextHandle from "@primate/core/NextHandle";
 import type NextServe from "@primate/core/NextServe";
 import type ServeApp from "@primate/core/ServeApp";
 import Status from "@rcompat/http/Status";
-import redirect from "primate/redirect";
 import type RequestFacade from "primate/RequestFacade";
 
 const cookie = (name: string, value: string, secure: boolean) =>
@@ -86,7 +85,7 @@ export default class PrissModule extends Module {
   async handle(request: RequestFacade, next: NextHandle) {
     const { cookies, headers } = request;
 
-    const color_scheme = headers["color-scheme"];
+    const color_scheme = headers.try("Color-scheme");
 
     if (color_scheme !== undefined) {
       return new Response(null, {
@@ -98,7 +97,7 @@ export default class PrissModule extends Module {
     }
 
     const placeholders = {
-      "color-scheme": cookies["color-scheme"] ?? "light",
+      "color-scheme": cookies.try("color-scheme") ?? "light",
     };
 
     return next({ ...request, config: this.#config, placeholders });

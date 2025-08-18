@@ -1,8 +1,8 @@
-import text from "#handler/text";
-import type RequestFacade from "#RequestFacade";
-import type ResponseLike from "#ResponseLike";
+import type RequestFacade from "#request/RequestFacade";
+import verbs from "#request/verbs";
+import type ResponseLike from "#response/ResponseLike";
+import text from "#response/text";
 import session from "#session/index";
-import verbs from "#verbs";
 import type API from "#wasm/API";
 import decodeJson from "#wasm/decode-json";
 import decodeResponse from "#wasm/decode-response";

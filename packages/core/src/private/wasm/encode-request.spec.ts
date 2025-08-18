@@ -1,4 +1,4 @@
-import type RequestFacade from "#RequestFacade";
+import type RequestFacade from "#request/RequestFacade";
 import encodeRequest from "#wasm/encode-request";
 import test from "@rcompat/test";
 

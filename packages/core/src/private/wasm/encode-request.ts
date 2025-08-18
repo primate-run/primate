@@ -1,4 +1,5 @@
-import type RequestFacade from "#RequestFacade";
+import type RequestBody from "#request/RequestBody";
+import type RequestFacade from "#request/RequestFacade";
 import encodeString from "#wasm/encode-string";
 import encodeStringMap from "#wasm/encode-string-map";
 import encodeURL from "#wasm/encode-url";
@@ -8,8 +9,6 @@ import stringsize from "#wasm/stringsize";
 import urlsize from "#wasm/urlsize";
 import BufferView from "@rcompat/bufferview";
 import type PartialDict from "@rcompat/type/PartialDict";
-
-type Body = RequestFacade["body"];
 
 const SECTION_HEADER_SIZE = I32_SIZE;
 
@@ -28,7 +27,7 @@ const BODY_KIND_MAP_VALUE_STRING = 0;
 const BODY_KIND_MAP_VALUE_BYTES = 1;
 
 const sizeOfUrlSection = (url: URL) => SECTION_HEADER_SIZE + urlsize(url);
-const sizeOfBodySection = (body: Body) => {
+const sizeOfBodySection = (body: RequestBody) => {
   if (body === null)
     return SECTION_HEADER_SIZE
       + I32_SIZE; // 0 kind null
@@ -174,18 +173,19 @@ const encodeSectionBody = async (body: Body, view: BufferView) => {
 
 const sizeOfRequest = (request: RequestFacade) => sizeOfUrlSection(request.url)
   + sizeOfBodySection(request.body)
-  + sizeOfMapSection(request.path)
-  + sizeOfMapSection(request.query)
-  + sizeOfMapSection(request.headers)
-  + sizeOfMapSection(request.cookies);
+  + sizeOfMapSection(request.path.contents)
+  + sizeOfMapSection(request.query.contents)
+  + sizeOfMapSection(request.headers.contents)
+  + sizeOfMapSection(request.cookies.contents);
 
 const encodeRequestInto = async (request: RequestFacade, view: BufferView) => {
   encodeSectionUrl(request.url, view);
+  // @ts-expect-error old
   await encodeSectionBody(request.body, view);
-  encodeMapSection(PATH_SECTION, request.path, view);
-  encodeMapSection(QUERY_SECTION, request.query, view);
-  encodeMapSection(HEADERS_SECTION, request.headers, view);
-  encodeMapSection(COOKIES_SECTION, request.cookies, view);
+  encodeMapSection(PATH_SECTION, request.path.contents, view);
+  encodeMapSection(QUERY_SECTION, request.query.contents, view);
+  encodeMapSection(HEADERS_SECTION, request.headers.contents, view);
+  encodeMapSection(COOKIES_SECTION, request.cookies.contents, view);
 };
 
 const encodeRequest = async (request: RequestFacade) => {

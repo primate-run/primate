@@ -1,4 +1,4 @@
-import verbs from "@primate/core/verbs";
+import verbs from "@primate/core/request/verbs";
 import type Dict from "@rcompat/type/Dict";
 import type JSONValue from "@rcompat/type/JSONValue";
 

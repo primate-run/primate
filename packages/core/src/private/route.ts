@@ -1,7 +1,7 @@
-import router from "#router";
-import type RouteFunction from "#RouteFunction";
-import type Verb from "#Verb";
-import verbs from "#verbs";
+import type Verb from "#request/Verb";
+import verbs from "#request/verbs";
+import type RouteFunction from "#route/RouteFunction";
+import router from "#route/router";
 
 type Route = {
   [key in Verb]: (route: RouteFunction) => void;

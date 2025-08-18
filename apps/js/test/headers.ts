@@ -1,7 +1,7 @@
 import test from "primate/test";
 
 test.get("/headers", response => {
-  response.body.equals({
+  response.body.equals(JSON.stringify({
     accept: "*/*",
     "accept-encoding": "gzip, deflate",
     "accept-language": "*",
@@ -9,6 +9,6 @@ test.get("/headers", response => {
     host: "localhost:10007",
     "sec-fetch-mode": "cors",
     "user-agent": "node",
-  });
+  }));
 });
 

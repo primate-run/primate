@@ -4,31 +4,32 @@ import type Asset from "#asset/Asset";
 import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
-import Body from "#Body";
 import DevModule from "#builtin/DevModule";
 import HandleModule from "#builtin/HandleModule";
-import SessionModule from "#builtin/SessionModule";
 import type CSP from "#CSP";
 import type Frontend from "#frontend/Frontend";
 import type FrontendOptions from "#frontend/Options";
 import type ServerComponent from "#frontend/ServerComponent";
 import hash from "#hash";
-import parse from "#hook/parse";
 import type Loader from "#Loader";
 import location from "#location";
 import log from "#log";
 import reducer from "#reducer";
-import type RequestFacade from "#RequestFacade";
-import router from "#router";
+import parse from "#request/parse";
+import RequestBag from "#request/RequestBag";
+import RequestBody from "#request/RequestBody";
+import type RequestFacade from "#request/RequestFacade";
+import type Verb from "#request/Verb";
+import router from "#route/router";
 import type ServeInit from "#ServeInit";
+import SessionModule from "#session/SessionModule";
 import tags from "#tags";
-import type Verb from "#Verb";
 import is from "@rcompat/assert/is";
 import FileRef from "@rcompat/fs/FileRef";
 import FileRouter from "@rcompat/fs/FileRouter";
 import type Actions from "@rcompat/http/Actions";
 import type Conf from "@rcompat/http/Conf";
-import { html } from "@rcompat/http/mime";
+import TEXT_HTML from "@rcompat/http/mime/text/html";
 import serve from "@rcompat/http/serve";
 import type Server from "@rcompat/http/Server";
 import Status from "@rcompat/http/Status";
@@ -224,7 +225,7 @@ export default class ServeApp extends App {
 
     return new Response(body, {
       headers: {
-        "Content-Type": html, ...this.headers(), ...headers,
+        "Content-Type": TEXT_HTML, ...this.headers(), ...headers,
       }, status: status as number,
     });
   };
@@ -323,36 +324,37 @@ export default class ServeApp extends App {
 
     const verb = request.method.toLowerCase() as Verb;
     const parse_body = /*route.file.body?.parse ?? */$request_body_parse;
-    const body = parse_body ? await Body.parse(request, url) : Body.none();
+    const body = parse_body ? await RequestBody.parse(request, url) : RequestBody.none();
     const { errors = [], guards = [], layouts = [] } = entries(route.specials)
       .map(([key, value]) => [`${key}s`, value ?? []])
       .map(([key, value]) => [key, value.map(v => {
         const verbs = router.get(v);
-        const handler = verbs[verb];
-        if (handler === undefined) {
+        const routeFunction = verbs[verb];
+        if (routeFunction === undefined) {
           throw new AppError("route {0} has no {1} verb", route.fullpath, verb);
         }
-        return handler;
+        return routeFunction;
       })])
       .get();
 
     const verbs = router.get(route.fullpath)!;
-    const handler = verbs[verb];
+    const routeFunction = verbs[verb];
 
-    if (handler === undefined) {
+    if (routeFunction === undefined) {
       throw new AppError("route {0} has no {1} verb", route.fullpath, verb);
     }
 
     return {
       errors,
       guards,
-      handler,
       layouts,
       request: {
         ...facade,
         body,
-        path: route.params as PartialDict<string>,
+        path: new RequestBag(route.params as PartialDict<string>, "path",
+          k => k.toLowerCase()),
       },
+      routeFunction,
     };
   }
 

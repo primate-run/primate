@@ -5,7 +5,7 @@ import Module from "@primate/core/Module";
 import type NextHandle from "@primate/core/NextHandle";
 import type NextRoute from "@primate/core/NextRoute";
 import type NextServe from "@primate/core/NextServe";
-import type RequestFacade from "@primate/core/RequestFacade";
+import type RequestFacade from "@primate/core/request/RequestFacade";
 import type ServeApp from "@primate/core/ServeApp";
 import is from "@rcompat/assert/is";
 import Status from "@rcompat/http/Status";
@@ -68,7 +68,7 @@ export default class Runtime extends Module {
       return next(request);
     }
 
-    const set_locale = request.headers[header.toLowerCase()];
+    const set_locale = request.headers.try(header);
 
     if (set_locale === undefined) {
       return next(request);
@@ -88,10 +88,10 @@ export default class Runtime extends Module {
     }
 
     const server_locales = Object.keys(this.manager.locales);
-    const client_locales = request.headers["accept-language"]
+    const client_locales = request.headers.try("Accept-Language")
       ?.split(";")[0]?.split(",") ?? [];
 
-    const locale = request.cookies[this.name]
+    const locale = request.cookies.try(this.name)
       ?? client_locales.find(c_locale => server_locales.includes(c_locale))
       ?? this.manager.locale;
 

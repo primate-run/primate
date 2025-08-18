@@ -1,6 +1,6 @@
 import type Component from "@primate/markdown/Component";
+import view from "primate/response/view";
 import route from "primate/route";
-import view from "primate/view";
 
 const base = "content/blog";
 
@@ -19,7 +19,7 @@ route.get(request => {
       } as Post))
       .toSorted((a, b) => a.epoch < b.epoch ? 1 : - 1);
     const config = request.config;
-    return view("Blog.svelte", { app: config, posts },{
+    return view("Blog.svelte", { app: config, posts }, {
       placeholders: request.placeholders,
     })(app, {}, request);
   };

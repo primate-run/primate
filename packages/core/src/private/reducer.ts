@@ -1,8 +1,8 @@
 import type App from "#App";
 import type BuildApp from "#BuildApp";
 import type Module from "#Module";
-import type RequestFacade from "#RequestFacade";
-import type ResponseLike from "#ResponseLike";
+import type RequestFacade from "#request/RequestFacade";
+import type ResponseLike from "#response/ResponseLike";
 import type ServeApp from "#ServeApp";
 
 type HookInput = {

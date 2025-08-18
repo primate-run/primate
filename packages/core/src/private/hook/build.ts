@@ -1,5 +1,5 @@
 import type BuildApp from "#BuildApp";
-import $router from "#hook/router";
+import $router from "#request/router";
 import location from "#location";
 import log from "#log";
 import reducer from "#reducer";

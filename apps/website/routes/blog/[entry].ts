@@ -1,6 +1,6 @@
 import type Component from "@primate/markdown/Component";
 import route from "primate/route";
-import view from "primate/view";
+import view from "primate/response/view";
 
 route.get(request => {
   const { entry } = request.path;

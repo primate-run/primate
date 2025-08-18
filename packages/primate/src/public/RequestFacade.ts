@@ -1,1 +1,1 @@
-export { default } from "@primate/core/RequestFacade";
+export { default } from "@primate/core/request/RequestFacade";

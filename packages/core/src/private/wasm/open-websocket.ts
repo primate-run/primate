@@ -1,4 +1,4 @@
-import websocket from "#handler/ws";
+import websocket from "#response/ws";
 import type Instantiation from "#wasm/Instantiation";
 import encodeWebsocketClose from "#wasm/encode-websocket-close";
 import encodeWebsocketMessage from "#wasm/encode-websocket-message";

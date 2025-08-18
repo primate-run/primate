@@ -1,5 +1,5 @@
 import type Next from "#module/Next";
-import type RequestFacade from "#RequestFacade";
+import type RequestFacade from "#request/RequestFacade";
 
 type NextHandle = Next<RequestFacade, Response>;
 

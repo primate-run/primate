@@ -3,8 +3,8 @@ import pema from "pema";
 import i8 from "pema/i8";
 import number from "pema/number";
 import string from "pema/string";
+import view from "primate/response/view";
 import route from "primate/route";
-import view from "primate/view";
 
 await Counter.schema.create();
 
@@ -20,7 +20,7 @@ route.get(async () => {
 
 route.post(async request => {
   // validate that an id was provided
-  const id = string.parse(request.query.id);
+  const id = string.parse(request.query.get("id"));
   // validate that a request body contains a number value
   const body = request.body.fields(pema({ value: number }).coerce);
 

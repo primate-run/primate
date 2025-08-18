@@ -3,8 +3,8 @@ import pema from "pema";
 import i8 from "pema/i8";
 import number from "pema/number";
 import string from "pema/string";
+import view from "primate/response/view";
 import route from "primate/route";
-import view from "primate/view";
 
 await Counter.schema.create();
 
