@@ -8,6 +8,7 @@ import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import PrimitiveType from "#PrimitiveType";
 import SchemaError from "#SchemaError";
+import type OptionalTrait from "#trait/Optional";
 import type Validator from "#Validator";
 import unique from "#validator/unique";
 import type Primitive from "@rcompat/type/Primitive";
@@ -19,8 +20,9 @@ function isPrimitive(x: Parsed<unknown>): x is PrimitiveType<unknown, string> {
 const is = <T>(x: unknown, validator: (t: unknown) => boolean): x is T =>
   validator(x);
 
-export default class ArrayType<T extends Parsed<unknown>> extends
-  GenericType<T, Infer<T>[], "ArrayType"> {
+export default class ArrayType<T extends Parsed<unknown>>
+  extends GenericType<T, Infer<T>[], "ArrayType">
+  implements OptionalTrait {
   #subtype: T;
   #validators: Validator<Array<Infer<T>>>[];
 

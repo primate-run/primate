@@ -1,11 +1,12 @@
 import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
 import Parsed from "#Parsed";
+import type OptionalTrait from "#trait/Optional";
 import type Printable from "@rcompat/type/Printable";
 
 export default class PureType<Type, Name extends string = "PureType">
   extends Parsed<Type>
-  implements Printable {
+  implements Printable, OptionalTrait {
 
   get name() {
     return "pure-type";

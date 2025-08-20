@@ -9,6 +9,8 @@ import OptionalType from "#OptionalType";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import type Schema from "#Schema";
+import type DefaultTrait from "#trait/Default";
+import type OptionalTrait from "#trait/Optional";
 import assert from "@rcompat/assert";
 import type TupleToUnion from "@rcompat/type/TupleToUnion";
 
@@ -48,37 +50,36 @@ const print = (type: unknown) => {
 const union_error = (types: Schema[]) =>
   `\`${types.map(t => isParsedType(t) ? t.name : print(t)).join(" | ")}\``;
 
-export default class UnionType<T extends Schema[]> extends
-  GenericType<T, InferUnion<T>, "UnionType"> {
-  #types: T;
+export default class UnionType<T extends Schema[]>
+  extends GenericType<T, InferUnion<T>, "UnionType">
+  implements OptionalTrait, DefaultTrait<InferUnion<T>> {
+  #schema: T;
 
-  constructor(types: T) {
-    assert(types.length > 1, "union type must have at least two members");
+  constructor(_schema: T) {
+    assert(_schema.length > 1, "union type must have at least two members");
     super();
-    this.#types = types;
+    this.#schema = _schema;
   }
 
   get name() {
     return "union";
   }
 
-  /**
-  * Value is optional.
-  */
+  get schema() {
+    return this.#schema;
+  }
+
   optional() {
     return new OptionalType(this);
   }
 
-  /**
-  * Use the given default if value is missing.
-  */
-  default(value: (() => Infer<this>) | Infer<this>) {
+  default(value: (() => InferUnion<T>) | InferUnion<T>) {
     return new DefaultType(this, value);
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     // union parses when any of its members parses
-    const parsed = this.#types.map(type => {
+    const parsed = this.#schema.map(type => {
       const validator = isParsedType(type) ? type : schema(type);
       try {
         validator.parse(x, options);
@@ -88,7 +89,7 @@ export default class UnionType<T extends Schema[]> extends
       }
     });
     if (!parsed.some(r => r === true)) {
-      throw new ParseError(error(union_error(this.#types), x, options));
+      throw new ParseError(error(union_error(this.#schema), x, options));
     }
 
     return x as never;

@@ -9,6 +9,7 @@ import OptionalType from "#OptionalType";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import type Schema from "#Schema";
+import type OptionalTrait from "#trait/Optional";
 
 type InferTuple<T extends Schema[]> = {
   [K in keyof T]:
@@ -18,7 +19,8 @@ type InferTuple<T extends Schema[]> = {
 };
 
 export default class TupleType<T extends Schema[]>
-  extends GenericType<T, InferTuple<T>, "TupleType"> {
+  extends GenericType<T, InferTuple<T>, "TupleType">
+  implements OptionalTrait {
   #members: T;
 
   constructor(members: T) {

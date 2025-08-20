@@ -34,14 +34,12 @@ export default class DefaultType<
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+    let $x = x;
     // default fallback
-    if (x === undefined) {
-      if (isDefaultFunction(this.#default)) {
-        return this.#default() as Infer<this>;
-      }
-      return this.#default as Infer<this>;
+    if ($x === undefined) {
+      $x = isDefaultFunction(this.#default) ? this.#default() : this.#default;
     }
 
-    return this.#schema.parse(x, options) as Infer<this>;
+    return this.#schema.parse($x, options);
   }
 }

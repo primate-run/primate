@@ -8,6 +8,7 @@ import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import type RecordTypeKey from "#RecordTypeKey";
+import type OptionalTrait from "#trait/Optional";
 
 const nextOptions = (k: string, options?: ParseOptions) => {
   return options === undefined
@@ -20,8 +21,8 @@ const is_numeric = (string: string) => /^-?\d+(\.\d+)?$/.test(string);
 export default class RecordType<
   Key extends RecordTypeKey,
   Value extends Parsed<unknown>,
-> extends
-  GenericType<Value, Record<Infer<Key>, Infer<Value>>, "RecordType"> {
+> extends GenericType<Value, Record<Infer<Key>, Infer<Value>>, "RecordType">
+  implements OptionalTrait {
   #key: Key;
   #value: Value;
 

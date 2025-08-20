@@ -52,5 +52,12 @@ export default <T extends UintDataType>(
       assert(() => d.parse(1.2)).throws("1.2 is not an integer");
       assert(() => d.parse(-1.2)).throws("-1.2 is not an integer");
     });
+
+    [i.default(-1), i.default(() => -1)].forEach(d => {
+      assert(d).type<DefaultType<UintType<T>, -1>>();
+      assert(() => d.parse(undefined)).throws("-1 is out of range");
+      assert(d.parse(1)).equals(1).type<number>();
+      assert(d.parse(0)).equals(0).type<number>();
+    });
   });
 };

@@ -12,6 +12,7 @@ import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import type Schema from "#Schema";
+import type OptionalTrait from "#trait/Optional";
 
 const all_optional = (s: object): boolean => Object.values(s).every(value => {
   if (value instanceof OptionalType || value instanceof DefaultType) {
@@ -24,7 +25,8 @@ const all_optional = (s: object): boolean => Object.values(s).every(value => {
 });
 
 export default class SchemaType<S extends Schema>
-  extends GenericType<S, InferSchema<S>, "SchemaType"> {
+  extends GenericType<S, InferSchema<S>, "SchemaType">
+  implements OptionalTrait {
   #schema: S;
 
   constructor(s: S) {
