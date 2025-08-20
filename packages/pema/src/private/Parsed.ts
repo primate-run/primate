@@ -17,5 +17,14 @@ export default abstract class Parsed<StaticType> {
 
   abstract get name(): string;
 
+  /**
+  * Parse the given value.
+  *
+  * @param x Value to parse.
+  *
+  * @throws `ParseError` if the value could not be parsed.
+  *
+  * @returns The parsed value, if successfully parsed.
+  */
   abstract parse(x: unknown, options?: ParseOptions): StaticType;
 }

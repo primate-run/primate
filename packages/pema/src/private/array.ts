@@ -2,6 +2,8 @@ import ArrayType from "#ArrayType";
 import type Parsed from "#Parsed";
 
 /**
-* Value is an array of the given type.
+* Value is an array of the given subtype.
 */
-export default <const T extends Parsed<unknown>>(t: T) => new ArrayType(t);
+export default function array<const T extends Parsed<unknown>>(subtype: T) {
+  return new ArrayType(subtype);
+}

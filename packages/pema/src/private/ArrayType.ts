@@ -6,6 +6,15 @@ import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
+import PrimitiveType from "#PrimitiveType";
+import SchemaError from "#SchemaError";
+import type Validator from "#Validator";
+import unique from "#validator/unique";
+import type Primitive from "@rcompat/type/Primitive";
+
+function isPrimitive(x: Parsed<unknown>): x is PrimitiveType<unknown, string> {
+  return x instanceof PrimitiveType;
+}
 
 const is = <T>(x: unknown, validator: (t: unknown) => boolean): x is T =>
   validator(x);
@@ -13,10 +22,12 @@ const is = <T>(x: unknown, validator: (t: unknown) => boolean): x is T =>
 export default class ArrayType<T extends Parsed<unknown>> extends
   GenericType<T, Infer<T>[], "ArrayType"> {
   #subtype: T;
+  #validators: Validator<Array<Infer<T>>>[];
 
-  constructor(subtype: T) {
+  constructor(subtype: T, validators: Validator<Array<Infer<T>>>[] = []) {
     super();
     this.#subtype = subtype;
+    this.#validators = validators;
   }
 
   get name() {
@@ -25,9 +36,28 @@ export default class ArrayType<T extends Parsed<unknown>> extends
 
   /**
   * Value is optional.
+  *
+  * @returns OptionalType<ArrayType<T>>
   */
   optional() {
     return new OptionalType(this);
+  }
+
+  /**
+   * Member values are unique — only for primitive subtypes.
+   *
+   * @throws `SchemaError` if the subtype is not a primitive.
+   * @returns ArrayType<T>
+   */
+  unique(
+    this: Infer<T> extends Primitive ? ArrayType<T> : never,
+  ): ArrayType<T> {
+    if (!isPrimitive(this.#subtype)) {
+      throw new SchemaError(
+        "array.unique: subtype {0} must be primitive", this.#subtype.name,
+      );
+    }
+    return new ArrayType<T>(this.#subtype, [...this.#validators, unique]);
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
@@ -56,6 +86,8 @@ export default class ArrayType<T extends Parsed<unknown>> extends
         key: `${last}`,
       }]);
     }
+
+    this.#validators.forEach(v => v(x));
 
     return x as never;
   }

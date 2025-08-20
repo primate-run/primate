@@ -11,6 +11,7 @@ import number from "#number";
 import type NumberType from "#NumberType";
 import string from "#string";
 import type StringType from "#StringType";
+import dim from "@rcompat/cli/color/dim";
 import test from "@rcompat/test";
 
 const b = array(boolean);
@@ -89,6 +90,28 @@ test.case("deep", assert => {
 
   assert(() => rc.parse(as)).throws(expect("a", "0", 0));
   assert(() => rc.parse([[0]])).throws();
+});
+
+test.case("unique", assert => {
+  const unique_s = array(string).unique();
+  const unique_n = array(number).unique();
+
+  // @ts-expect-error non-primitive subtype
+  assert(() => array(date).unique().parse())
+    .throws(`array.unique: subtype ${dim("date")} must be primitive`);
+
+  assert(unique_s).type<ArrayType<StringType>>();
+  assert(unique_n).type<ArrayType<NumberType>>();
+
+  assert(unique_s.parse(["a", "b"])).type<string[]>().equals(["a", "b"]);
+  assert(unique_s.parse(["b", "a"])).type<string[]>().equals(["b", "a"]);
+  assert(unique_n.parse([1, 2])).type<number[]>().equals([1, 2]);
+  assert(unique_n.parse([2, 1])).type<number[]>().equals([2, 1]);
+
+  const error = "duplicate value at index 2 (first seen at 0)";
+  assert(() => unique_s.parse(["a", "b", "a"])).throws(error);
+  assert(() => unique_n.parse([1, 2, 1])).throws(error);
+  dim("tes");
 });
 
 test.case("object", assert => {

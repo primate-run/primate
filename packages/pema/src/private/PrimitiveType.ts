@@ -37,7 +37,7 @@ export default class PrimitiveType<StaticType, Name extends string>
       throw new ParseError(error(this.name, $x, options));
     }
 
-    this.#validators.forEach(validator => validator($x as StaticType));
+    this.#validators.forEach(v => v($x as StaticType));
 
     return $x as never;
   }
