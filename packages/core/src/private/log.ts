@@ -1,10 +1,10 @@
 import AppError from "#AppError";
-import mark from "#mark";
 import args from "@rcompat/args";
 import blue from "@rcompat/cli/color/blue";
 import green from "@rcompat/cli/color/green";
 import red from "@rcompat/cli/color/red";
 import yellow from "@rcompat/cli/color/yellow";
+import mark from "@rcompat/cli/mark";
 import print from "@rcompat/cli/print";
 import union from "pema/union";
 

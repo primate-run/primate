@@ -13,6 +13,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "pnpm -r test",
+    "test:apps": "pnpm -r --filter='./apps/**' test",
     "sweep": "rm -rf node_modules pnpm-lock.yaml {app,package}s/*/node_modules",
     "knip": "knip"
   },

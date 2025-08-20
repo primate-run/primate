@@ -28,7 +28,7 @@
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.3.0",
     "@rcompat/async": "^0.9.0",
-    "@rcompat/is": "^0.1.1",
+    "@rcompat/is": "^0.1.3",
     "@rcompat/record": "^0.9.0",
     "@rcompat/sqlite": "^0.4.0"
   },

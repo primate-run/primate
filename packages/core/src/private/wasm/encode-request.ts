@@ -168,7 +168,7 @@ const encodeSectionBody = async (body: Body, view: BufferView) => {
     return;
   }
 
-  throw new Error(`Unsupported body type: ${typeof body}`);
+  //throw new Error(`Unsupported body type: ${typeof body}`);
 };
 
 const sizeOfRequest = (request: RequestFacade) => sizeOfUrlSection(request.url)

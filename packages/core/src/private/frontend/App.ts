@@ -3,10 +3,10 @@ import * as frontends from "#frontends";
 
 export default class App {
   start() {
-    const hydration = document.getElementById("hydration");
+    const hydration = document.getElementById("hydration")?.textContent;
 
-    if (hydration !== null && hydration.textContent !== null) {
-      const { component, frontend, ...data } = JSON.parse(hydration.textContent);
+    if (hydration !== undefined) {
+      const { component, frontend, ...data } = JSON.parse(hydration);
       frontends[frontend]?.mount(component, data);
     }
   }
