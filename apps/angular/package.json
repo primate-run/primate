@@ -9,8 +9,8 @@
     "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
-    "@angular/common": "^20.1.6",
-    "@angular/core": "^20.1.6",
+    "@angular/common": "^20.2.1",
+    "@angular/core": "^20.2.1",
     "@primate/angular": "workspace:^",
     "@primate/sqlite": "workspace:^",
     "@rcompat/fs": "^0.18.0",

@@ -22,10 +22,10 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@angular/compiler": "^20.1.6",
-    "@angular/platform-browser": "^20.1.6",
-    "@angular/platform-server": "^20.1.6",
-    "@angular/ssr": "^20.1.5",
+    "@angular/compiler": "^20.2.1",
+    "@angular/platform-browser": "^20.2.1",
+    "@angular/platform-server": "^20.2.1",
+    "@angular/ssr": "^20.2.0",
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.3.0",
     "@rcompat/build": "^0.14.0",

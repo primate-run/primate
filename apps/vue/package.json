@@ -9,10 +9,10 @@
     "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
-    "@primate/vue": "workspace:^",
     "@primate/sqlite": "workspace:^",
+    "@primate/vue": "workspace:^",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "vue": "^3.5.17"
+    "vue": "^3.5.19"
   }
 }

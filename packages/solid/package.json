@@ -25,12 +25,12 @@
     "@types/babel__core": "^7.20.5"
   },
   "dependencies": {
-    "@babel/core": "^7.28.0",
+    "@babel/core": "^7.28.3",
     "@primate/core": "workspace:^",
     "@rcompat/build": "^0.14.0",
     "@rcompat/fs": "^0.18.0",
     "@rcompat/runtime": "^0.6.0",
-    "babel-preset-solid": "^1.9.8"
+    "babel-preset-solid": "^1.9.9"
   },
   "peerDependencies": {
     "@primate/i18n": "workspace:^",

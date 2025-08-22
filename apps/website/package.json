@@ -17,11 +17,11 @@
     "@rcompat/string": "^0.10.0",
     "poly": "^0.7.2",
     "primate": "workspace:^",
-    "shiki": "^3.9.2"
+    "shiki": "^3.11.0"
   },
   "devDependencies": {
-    "@angular/common": "^20.1.6",
-    "@angular/core": "^20.1.6",
+    "@angular/common": "^20.2.1",
+    "@angular/core": "^20.2.1",
     "@primate/angular": "workspace:^",
     "@primate/go": "workspace:^",
     "@primate/grain": "workspace:^",
@@ -36,7 +36,7 @@
     "@primate/surrealdb": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@primate/vue": "workspace:^",
-    "marked": "^16.1.2",
+    "marked": "^16.2.0",
     "pema": "workspace:^"
   }
 }

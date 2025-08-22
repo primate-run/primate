@@ -19,6 +19,6 @@
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
-    "@types/react": "^19.1.9"
+    "@types/react": "^19.1.10"
   }
 }
