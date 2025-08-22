@@ -2,10 +2,15 @@ import type DefaultType from "#DefaultType";
 import expect from "#expect";
 import string from "#string";
 import type StringType from "#StringType";
+import messagesOf from "#test/messages-of";
+import pathsOf from "#test/paths-of";
+import throwsIssues from "#test/throws-issues";
 import test from "@rcompat/test";
 
 test.case("fail", assert => {
-  assert(() => string.parse(1)).throws(expect("s", 1));
+  const issues = throwsIssues(assert, () => string.parse(1));
+  assert(pathsOf(issues)).equals([""]);
+  assert(messagesOf(issues)).equals([expect("s", 1)]);
 });
 
 test.case("pass", assert => {
@@ -84,7 +89,20 @@ test.case("combined validators", assert => {
   assert(sew).type<StringType>();
   assert(sew.parse("/.")).equals("/.").type<string>();
   assert(sew.parse("/foo.")).equals("/foo.").type<string>();
-  assert(() => sew.parse("foo")).throws("\"foo\" does not start with \"/\"");
-  assert(() => sew.parse("foo.")).throws("\"foo.\" does not start with \"/\"");
-  assert(() => sew.parse("/foo")).throws("\"/foo\" does not end with \".\"");
+
+  {
+    const issues = throwsIssues(assert, () => sew.parse("foo"));
+    assert(pathsOf(issues)).equals([""]); // top-level string
+    assert(messagesOf(issues)).equals(["\"foo\" does not start with \"/\""]);
+  }
+  {
+    const issues = throwsIssues(assert, () => sew.parse("foo."));
+    assert(pathsOf(issues)).equals([""]);
+    assert(messagesOf(issues)).equals(["\"foo.\" does not start with \"/\""]);
+  }
+  {
+    const issues = throwsIssues(assert, () => sew.parse("/foo"));
+    assert(pathsOf(issues)).equals([""]);
+    assert(messagesOf(issues)).equals(["\"/foo\" does not end with \".\""]);
+  }
 });

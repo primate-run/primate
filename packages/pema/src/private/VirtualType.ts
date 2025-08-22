@@ -1,12 +1,11 @@
 import GenericType from "#GenericType";
-import type Parsed from "#Parsed";
 import type Storeable from "#Storeable";
 
-const storeable = (x: Parsed<unknown> | undefined): x is Storeable =>
-  !!x && "datatype" in x;
+const storeable = (x: unknown): x is Storeable =>
+  !!x && typeof x === "object" && "datatype" in x;
 
 export default abstract class VirtualType<
-  Type extends Parsed<unknown> | undefined,
+  Type,
   Inferred,
   Name extends string,
 > extends GenericType<Type, Inferred, Name> {

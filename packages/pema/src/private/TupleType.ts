@@ -4,10 +4,10 @@ import schema from "#index";
 import type Infer from "#Infer";
 import type InferSchema from "#InferSchema";
 import isParsedType from "#is-parsed-type";
-import member_error from "#member-error";
 import OptionalType from "#OptionalType";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
+import next from "#path/next";
 import type Schema from "#Schema";
 import type OptionalTrait from "#trait/Optional";
 
@@ -43,13 +43,13 @@ export default class TupleType<T extends Schema[]>
 
     this.#members.forEach((v, i) => {
       const validator = isParsedType(v) ? v : schema(v);
-      validator.parse(x[i], member_error(i, options));
+      validator.parse(x[i], next(i, options));
     });
 
     (x as unknown[]).forEach((v, i) => {
       const member = this.#members[i];
       const validator = isParsedType(member) ? member : schema(member);
-      validator.parse(v, member_error(i, options));
+      validator.parse(v, next(i, options));
     });
 
     return x as never;

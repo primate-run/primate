@@ -19,10 +19,10 @@ route.get(async () => {
 
 route.post(async request => {
   // validate that an id was provided
-  const id = string.validate(request.query.id);
+  const id = string.parse(request.query.get("id"));
 
-  // validate `body.value` as a number, coercing from string first
-  const body = pema({ value: number }).validate(request.body, { coerce: true });
+  // validate body as a number, coercing from string first
+  const body = request.body.fields(pema({ value: number }).coerce);
 
   // update the value in the database
   await Counter.update({ id }, { value: body.value });

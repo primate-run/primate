@@ -2,7 +2,7 @@ import type ValidateUpdater from "@primate/core/frontend/ValidateUpdater";
 import type ValidationError from "@primate/core/frontend/ValidationError";
 
 type Validated<T> = {
-  error: () => null | ValidationError<T>;
+  error: () => null | ValidationError;
   loading: () => boolean;
   update: (updater: ValidateUpdater<T>) => Promise<void>;
   value: () => T;

@@ -21,7 +21,7 @@ import type Validated from "@primate/angular/Validated";
 })
 export default class CounterComponent {
   @Input() id: string = "";
-  @Input("value") initial: number = 0;
+  @Input("counter") initial: number = 0;
 
   counter!: Validated<number>;
 
@@ -38,10 +38,8 @@ export default class CounterComponent {
   }
 
   ngOnInit() {
-    this.counter = validate<number>(this.initial).post(
-      `/counter?id=${this.id}`,
-      value => ({ value }),
-    );
+    this.counter = validate<number>(this.initial)
+      .post(`/counter?id=${this.id}`);
   }
 
   increment() {

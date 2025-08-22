@@ -3,7 +3,7 @@ import ws from "primate/response/ws";
 import route from "primate/route";
 
 route.get(request => {
-  const limit = uint.default(20).parse(+request.query.limit!);
+  const limit = uint.coerce.default(20).parse(request.query.get("limit"));
 
   let n = 1;
   return ws({

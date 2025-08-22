@@ -7,13 +7,15 @@ import type Parsed from "#Parsed";
 import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
+import join from "#path/join";
 import type RecordTypeKey from "#RecordTypeKey";
 import type OptionalTrait from "#trait/Optional";
 
 const nextOptions = (k: string, options?: ParseOptions) => {
+  const base = options?.[ParsedKey] ?? "";
   return options === undefined
-    ? { [ParsedKey]: `${k}` }
-    : { ...options, [ParsedKey]: `${options[ParsedKey] ?? ""}${k}` };
+    ? { [ParsedKey]: join("", k) }
+    : { ...options, [ParsedKey]: join(base, k) };
 };
 
 const is_numeric = (string: string) => /^-?\d+(\.\d+)?$/.test(string);
@@ -32,9 +34,6 @@ export default class RecordType<
     this.#value = v;
   }
 
-  /**
-  * Value is optional.
-  */
   optional() {
     return new OptionalType(this);
   }
@@ -47,11 +46,10 @@ export default class RecordType<
     if (typeof x !== "object" || x === null) {
       throw new ParseError(error("object", x, options));
     }
-    const _options = { ...options };
-
     const key_name = this.#key.name;
     const keys = Object.keys(x);
     const symbols = Object.getOwnPropertySymbols(x);
+    const base = options[ParsedKey] ?? "";
 
     if (key_name === "string" || key_name === "number") {
       // no key may be a symbol
@@ -59,6 +57,7 @@ export default class RecordType<
         throw new ParseError([{
           input: x,
           message: expected(`${key_name} key`, symbols[0]),
+          path: base,
         }]);
       }
 
@@ -67,12 +66,14 @@ export default class RecordType<
           throw new ParseError([{
             input: x,
             message: expected("string key", +k),
+            path: join(base, k),
           }]);
         }
         if (key_name === "number" && !is_numeric(k)) {
           throw new ParseError([{
             input: x,
             message: expected("number key", k),
+            path: join(base, k),
           }]);
         }
 
@@ -82,16 +83,16 @@ export default class RecordType<
     }
 
     if (key_name === "symbol") {
-      // no key may not be a symbol
+      // disallow any non-symbol keys
       if (keys.length > 0) {
         throw new ParseError([{
           input: x,
           message: expected("symbol key", keys[0]),
+          path: join(base, keys[0]),
         }]);
       }
       symbols.forEach(k => {
-        this.#value.parse((x as Record<symbol, unknown>)[k],
-          nextOptions(k.toString(), options));
+        this.#value.parse((x as Record<symbol, unknown>)[k], options);
       });
     }
 

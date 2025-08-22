@@ -1,4 +1,5 @@
 import ParseError from "#ParseError";
+import join from "#path/join";
 
 export default function unique<T>(array: Array<T>) {
   const seen = new Map<T, number>();
@@ -11,6 +12,7 @@ export default function unique<T>(array: Array<T>) {
       throw new ParseError([{
         input: array,
         message: `duplicate value at index ${i} (first seen at ${first})`,
+        path: join("", i),
       }]);
     }
     seen.set(v, i);

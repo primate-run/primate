@@ -3,6 +3,8 @@ import type Infer from "#Infer";
 import type InferStore from "#InferStore";
 import ParsedKey from "#ParsedKey";
 import type ParseOptions from "#ParseOptions";
+import PartialType from "#PartialType";
+import join from "#path/join";
 import type StoreSchema from "#StoreSchema";
 
 export default class StoreType<T extends StoreSchema>
@@ -18,6 +20,14 @@ export default class StoreType<T extends StoreSchema>
     return "store";
   }
 
+  get schema() {
+    return this.#spec;
+  }
+
+  partial() {
+    return new PartialType(this.#spec);
+  }
+
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     const spec = this.#spec;
 
@@ -27,7 +37,7 @@ export default class StoreType<T extends StoreSchema>
     const result: any = {};
     for (const k in spec) {
       const r = spec[k].parse((x as any)[k], {
-        ...options, [ParsedKey]: `.${k}`,
+        ...options, [ParsedKey]: join(options[ParsedKey] ?? "", String(k)),
       });
       // exclude undefined (optionals)
       if (r !== undefined) {

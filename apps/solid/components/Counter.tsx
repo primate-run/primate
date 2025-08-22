@@ -1,12 +1,10 @@
 import validate from "@primate/solid/validate";
 
-interface Props { id: string; value: number };
+interface Props { counter: number; id: string };
 
 export default function Counter(props: Props) {
-  const counter = validate<number>(props.value).post(
-    `/counter?id=${props.id}`,
-    value => ({ value }),
-  );
+  const counter = validate<number>(props.counter)
+    .post(`/counter?id=${props.id}`);
 
   return (
     <div style={{ "margin-top": "2rem", "text-align": "center" }}>

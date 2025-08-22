@@ -9,6 +9,7 @@ export default <
     throw new ParseError([{
       input: x,
       message: `${x} is out of range`,
+      path: "",
     }]);
   }
 };

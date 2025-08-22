@@ -52,7 +52,7 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
   }, { database, name: "post" });
 
   const User = new Store({
-    age: u8,
+    age: u8.optional(),
     id: primary,
     lastname: optional(string),
     name: string.default("Donald"),

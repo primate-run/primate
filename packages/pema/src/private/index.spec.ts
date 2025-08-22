@@ -13,6 +13,7 @@ import type LiteralType from "#LiteralType";
 import type NullType from "#NullType";
 import number from "#number";
 import type NumberType from "#NumberType";
+import partial from "#partial";
 import type SchemaType from "#SchemaType";
 import string from "#string";
 import type StringType from "#StringType";
@@ -185,6 +186,17 @@ test.case("null/undefined", assert => {
   assert(schema(undefined).parse(undefined)).equals(undefined)
     .type<undefined>();
   assert(() => schema(undefined).parse(null)).throws(expect("u", null));
+});
+
+test.case("partial", assert => {
+  const p = partial({ bar: number, foo: string });
+  assert(p.parse({})).equals({});
+  assert(p.parse({ foo: "foo" })).equals({ foo: "foo" });
+  assert(p.parse({ bar: 1 })).equals({ bar: 1 });
+  assert(p.parse({ bar: 1, foo: "foo" })).equals({ bar: 1, foo: "foo" });
+  assert(() => p.parse({ bar: "foo", foo: 1 })).throws(expect("n", "foo", "bar"));
+
+  //assert(p).type<PartialType<{ foo: StringType; bar: NumberType }>>();
 });
 
 test.case("coerce", assert => {

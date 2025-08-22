@@ -3,7 +3,7 @@ import type ValidateUpdater from "@primate/core/frontend/ValidateUpdater";
 import type ValidationError from "@primate/core/frontend/ValidationError";
 
 type Validated<T> = {
-  error: Signal<null | ValidationError<T>>;
+  error: Signal<null | ValidationError>;
   loading: Signal<boolean>;
   update: (updater: ValidateUpdater<T>) => Promise<void>;
   value: Signal<T>;

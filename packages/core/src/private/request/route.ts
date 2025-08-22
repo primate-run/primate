@@ -71,7 +71,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
   } catch (error) {
     const request = partial_request;
     if (error instanceof ParseError) {
-      return jsonResponse({ error: error.toJSON() },
+      return jsonResponse(error.toJSON(),
         { status: Status.BAD_REQUEST })(app) as Response;
     }
     log.error(error);

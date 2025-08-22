@@ -1,14 +1,7 @@
-type ValidationError<T> =
-  T extends object
-  ? {
-    [K in keyof T]?: {
-      message: string;
-      messages: string[];
-    };
-  }
-  : {
-    message: string;
-    messages: string[];
-  };
+import type Issue from "pema/Issue";
+
+type ValidationError = {
+  issues?: ReadonlyArray<Issue>;
+} & Error;
 
 export type { ValidationError as default };

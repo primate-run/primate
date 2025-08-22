@@ -11,6 +11,7 @@ import Parsed from "#Parsed";
 import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
+import join from "#path/join";
 import type Schema from "#Schema";
 import type OptionalTrait from "#trait/Optional";
 
@@ -42,6 +43,10 @@ export default class SchemaType<S extends Schema>
     return undefined as InferInputSchema<S>;
   }
 
+  get schema() {
+    return this.#schema;
+  }
+
   optional() {
     return new OptionalType(this);
   }
@@ -65,6 +70,7 @@ export default class SchemaType<S extends Schema>
           throw new ParseError([{
             input: x,
             message: expect("o", x),
+            path: "",
           }]);
         } else {
           _x = {};
@@ -73,7 +79,7 @@ export default class SchemaType<S extends Schema>
       const result: any = {};
       for (const k in s) {
         const r = schema((s as any)[k]).parse((_x as any)[k], {
-          ...options, [ParsedKey]: `.${k}`,
+          ...options, [ParsedKey]: join(options[ParsedKey] ?? "", String(k)),
         });
         // exclude undefined (optionals)
         if (r !== undefined) {

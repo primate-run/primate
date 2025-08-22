@@ -1,6 +1,6 @@
 import type Validated from "#client/Validated";
 import type ValidateState from "#client/ValidateState";
-import makeValidate from "@primate/core/frontend/makeValidate";
+import toValidated from "@primate/core/frontend/toValidated";
 import validate from "@primate/core/frontend/validate";
 import type ValidateInit from "@primate/core/frontend/ValidateInit";
 import type ValidateUpdater from "@primate/core/frontend/ValidateUpdater";
@@ -25,11 +25,12 @@ function useValidate<T>(init: ValidateInit<T>): Validated<T> {
       await validate(init, get({ subscribe }).value);
       update(s => ({ ...s, loading: false }));
     } catch (e) {
-      set({ error: e as ValidationError<T>, loading: false, value: previous! });
+      // rollback
+      set({ error: e as ValidationError, loading: false, value: previous! });
     }
   }
 
   return { subscribe, update: $update };
 }
 
-export default makeValidate(useValidate);
+export default toValidated(useValidate);

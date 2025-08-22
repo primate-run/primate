@@ -1,4 +1,5 @@
 import ParseError from "#ParseError";
+import join from "#path/join";
 
 function message(k: PropertyKey, i: number, first: number) {
   return `duplicate key "${String(k)}" at index ${i} (first ${first})`;
@@ -15,8 +16,8 @@ export default function uniqueBy<T, K extends PropertyKey>(
         const first = seen.get(k)!;
         throw new ParseError([{
           input: array,
-          key: `${i}`,
           message: message(k, i, first),
+          path: join("", i),
         }]);
       }
       seen.set(k, i);

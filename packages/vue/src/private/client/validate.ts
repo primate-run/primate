@@ -1,5 +1,5 @@
 import type Validated from "#client/Validated";
-import makeValidate from "@primate/core/frontend/makeValidate";
+import toValidated from "@primate/core/frontend/toValidated";
 import validate from "@primate/core/frontend/validate";
 import type ValidateInit from "@primate/core/frontend/ValidateInit";
 import type ValidateUpdater from "@primate/core/frontend/ValidateUpdater";
@@ -9,7 +9,7 @@ import { ref, type Ref } from "vue";
 function useValidate<T>(init: ValidateInit<T>): Validated<T> {
   const value: Ref<T> = ref(init.initial) as Ref<T>;
   const loading: Ref<boolean> = ref(false);
-  const error: Ref<null | ValidationError<T>> = ref(null);
+  const error: Ref<null | ValidationError> = ref(null);
 
   async function update(updater: ValidateUpdater<T>) {
     const previous = value.value;
@@ -24,7 +24,7 @@ function useValidate<T>(init: ValidateInit<T>): Validated<T> {
     } catch (e) {
       // rollback
       value.value = previous;
-      error.value = e as ValidationError<T>;
+      error.value = e as ValidationError;
     } finally {
       loading.value = false;
     }
@@ -33,4 +33,4 @@ function useValidate<T>(init: ValidateInit<T>): Validated<T> {
   return { error, loading, update, value };
 }
 
-export default makeValidate(useValidate);
+export default toValidated(useValidate);

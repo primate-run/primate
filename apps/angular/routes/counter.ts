@@ -1,6 +1,4 @@
 import Counter from "#store/Counter";
-import pema from "pema";
-import i8 from "pema/i8";
 import number from "pema/number";
 import string from "pema/string";
 import view from "primate/response/view";
@@ -12,7 +10,7 @@ route.get(async () => {
   const counters = await Counter.find({});
 
   const counter = counters.length === 0
-    ? await Counter.insert({ value: 10 })
+    ? await Counter.insert({ counter: 10 })
     : counters[0];
 
   return view("Counter.component.ts", counter);
@@ -20,14 +18,13 @@ route.get(async () => {
 
 route.post(async request => {
   // validate that an id was provided
-  const id = string.parse(request.query.id);
-  // validate that a request body contains a number value
-  const body = request.body.fields(pema({ value: number }).coerce);
+  const id = string.parse(request.query.get("id"));
 
-  i8.range(-20, 20).parse(body.value);
+  // validate that a request body contains a number value
+  const counter = request.body.json(number.coerce);
 
   // update the value in the database
-  await Counter.update({ id }, { value: body.value });
+  await Counter.update({ id }, { counter });
 
   // no response
   return null;

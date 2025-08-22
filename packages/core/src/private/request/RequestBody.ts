@@ -78,11 +78,16 @@ export default class RequestBody {
     return this.#parsed.value as T;
   }
 
+  #throw(expected: string) {
+    const message = "request body: expected {0}, got {1}";
+    throw new AppError(message, expected, this.type);
+  }
+
   json(): JSONValue;
   json<S extends Schema>(schema: S): ParseReturn<S>;
   json(schema?: { parse: (v: unknown) => unknown }) {
     if (this.type !== "json") {
-      throw new AppError("expected JSON, got {0}", this.type);
+      this.#throw("JSON");
     }
 
     const value = this.#value<JSONValue>();
@@ -93,7 +98,7 @@ export default class RequestBody {
   fields<S extends Schema>(schema: S): ParseReturn<S>;
   fields(schema?: { parse: (v: unknown) => unknown }) {
     if (this.type !== "fields") {
-      throw new AppError("expected form, got {0}", this.type);
+      this.#throw("form fields");
     }
 
     const value = this.#value<Fields>();
@@ -102,7 +107,7 @@ export default class RequestBody {
 
   text() {
     if (this.type !== "text") {
-      throw new AppError("expected plaintext, got {0}", this.type);
+      this.#throw("plaintext");
     }
 
     return this.#value<string>();
@@ -110,7 +115,7 @@ export default class RequestBody {
 
   binary() {
     if (this.type !== "bin") {
-      throw new AppError("expected binary, got {0}", this.type);
+      this.#throw("binary");
     }
     return this.#value<Blob>();
   }

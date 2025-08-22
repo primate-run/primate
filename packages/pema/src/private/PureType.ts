@@ -16,9 +16,6 @@ export default class PureType<Type, Name extends string = "PureType">
     return undefined as unknown as Name;
   }
 
-  /**
-  * Value is optional.
-  */
   optional() {
     return new OptionalType(this);
   }

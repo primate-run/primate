@@ -20,6 +20,10 @@ export default class OptionalType<S extends Parsed<unknown>>
     return this.#schema;
   }
 
+  get nullable() {
+    return true;
+  }
+
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     const s = this.#schema;
 

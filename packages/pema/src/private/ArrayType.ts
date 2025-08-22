@@ -1,11 +1,14 @@
 import error from "#error";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
-import member_error from "#member-error";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
+import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
+import join from "#path/join";
+import next from "#path/next";
+import rebase from "#path/rebase";
 import PrimitiveType from "#PrimitiveType";
 import SchemaError from "#SchemaError";
 import type OptionalTrait from "#trait/Optional";
@@ -36,11 +39,6 @@ export default class ArrayType<T extends Parsed<unknown>>
     return "array";
   }
 
-  /**
-  * Value is optional.
-  *
-  * @returns OptionalType<ArrayType<T>>
-  */
   optional() {
     return new OptionalType(this);
   }
@@ -67,17 +65,19 @@ export default class ArrayType<T extends Parsed<unknown>>
       throw new ParseError(error("array", x, options));
     }
 
+    const base = options[ParsedKey] ?? "";
+
     let last = 0;
     x.forEach((v, i) => {
       // sparse array check
       if (i > last) {
         throw new ParseError([{
           ...error(this.#subtype.name, undefined, options)[0],
-          key: `${last}`,
+          path: join(base, last),
         }]);
       }
       const validator = this.#subtype;
-      validator.parse(v, member_error(i, options));
+      validator.parse(v, next(i, options));
       last++;
     });
 
@@ -85,11 +85,22 @@ export default class ArrayType<T extends Parsed<unknown>>
     if (x.length > last) {
       throw new ParseError([{
         ...error(this.#subtype.name, undefined, options)[0],
-        key: `${last}`,
+        path: join(base, last),
       }]);
     }
 
-    this.#validators.forEach(v => v(x));
+    for (const v of this.#validators) {
+      try {
+        v(x);
+      } catch (e) {
+        if (e instanceof ParseError) {
+          const rebased = (e.issues ?? [])
+            .map(i => ({ ...i, path: rebase(base, i.path) }));
+          throw new ParseError(rebased);
+        }
+        throw e;
+      }
+    }
 
     return x as never;
   }

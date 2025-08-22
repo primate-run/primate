@@ -6,7 +6,7 @@ import type Validator from "#Validator";
 import numeric from "@rcompat/is/numeric";
 
 export default class NumberType<T extends FloatDataType = "f64">
-  extends PrimitiveType<number, "NumberType">
+  extends PrimitiveType<number, `NumberType<'${T}'>`>
   implements Storeable<T> {
   #datatype: T;
 

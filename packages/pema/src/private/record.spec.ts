@@ -8,6 +8,9 @@ import string from "#string";
 import type StringType from "#StringType";
 import symbol from "#symbol";
 import type SymbolType from "#SymbolType";
+import messagesOf from "#test/messages-of";
+import pathsOf from "#test/paths-of";
+import throwsIssues from "#test/throws-issues";
 import test from "@rcompat/test";
 
 const types = {
@@ -34,10 +37,25 @@ test.case("string key", assert => {
   assert(r).type<RecordType<StringType, StringType>>();
   assert(r.parse({ foo: "bar" })).type<Record<string, string>>()
     .equals({ foo: "bar" });
+
   // false key
   const foo = Symbol("foo");
-  assert(() => r.parse({ [foo]: "foo" })).throws(expect_key("s", foo));
-  assert(() => r.parse({ 0: "foo" })).throws(expect_key("s", 0));
+  {
+    // symbol key on record(string, string)
+    const issues = throwsIssues(assert, () => r.parse({ [foo]: "foo" }));
+    // JSON Pointer cannot address a symbol key → anchor at the record itself
+    assert(pathsOf(issues)).equals([""]);                   // root
+    // Keep your existing message helper for keys
+    assert(messagesOf(issues)).equals([expect_key("s", foo)]);
+  }
+
+  {
+    // number key on record(string, string) → property "0"
+    const issues = throwsIssues(assert, () => r.parse({ 0: "foo" }));
+    // This points at the offending key
+    assert(pathsOf(issues)).equals(["/0"]);
+    assert(messagesOf(issues)).equals([expect_key("s", 0)]);
+  }
 
   // false value
   try {
@@ -45,8 +63,8 @@ test.case("string key", assert => {
   } catch (error) {
     assert((error as ParseError).issues).equals([{
       input: 1,
-      key: "foo",
       message: "expected string, got `1` (number)",
+      path: "/foo",
     }]);
   }
 });
@@ -60,10 +78,31 @@ test.case("number key", assert => {
 
   // false key
   const foo = Symbol("foo");
-  assert(() => r.parse({ [foo]: "foo" })).throws(expect_key("n", foo));
-  assert(() => r.parse({ foo: "foo" })).throws(expect_key("n", "foo"));
+
+  {
+    // symbol key on record(number, string)
+    const issues = throwsIssues(assert, () => r.parse({ [foo]: "foo" }));
+    // JSON Pointer can't address symbol keys → anchor at the record (root)
+    assert(pathsOf(issues)).equals([""]);
+    assert(messagesOf(issues)).equals([expect_key("n", foo)]);
+  }
+
+  {
+    // string key on record(number, string)
+    const issues = throwsIssues(assert, () => r.parse({ foo: "foo" }));
+    // Point directly at the offending key
+    assert(pathsOf(issues)).equals(["/foo"]);
+    assert(messagesOf(issues)).equals([expect_key("n", "foo")]);
+  }
+
   // false value
-  assert(() => r.parse({ 1: 1 })).throws(expect("s", 1, 1));
+  {
+    // invalid value type at numeric key
+    const issues = throwsIssues(assert, () => r.parse({ 1: 1 }));
+    // Key "1" is valid; the value is wrong → path is that key
+    assert(pathsOf(issues)).equals(["/1"]);
+    assert(messagesOf(issues)).equals([expect("s", 1)]);
+  }
 });
 
 test.case("symbol key", assert => {
@@ -74,5 +113,9 @@ test.case("symbol key", assert => {
   assert(r.parse({ [foo]: "bar" })).type<Record<symbol, string>>()
     .equals({ [foo]: "bar" });
   // false value
-  assert(() => r.parse({ [foo]: 1 })).throws(expect("s", 1, "Symbol(foo)"));
+  {
+    const issues = throwsIssues(assert, () => r.parse({ [foo]: 1 }));
+    assert(pathsOf(issues)).equals([""]);
+    assert(messagesOf(issues)).equals([expect("s", 1)]);
+  }
 });

@@ -1,38 +1,33 @@
 <script lang="ts">
   import validate from "@primate/svelte/validate";
-  export let id, value;
+  export let id, counter;
 
-  const counter = validate<number>(value).post(
-    `/counter?id=${id}`,
-    (value) => ({
-      value,
-    }),
-  );
+  const _counter = validate<number>(counter).post(`/counter?id=${id}`);
 </script>
 
 <div style="margin-top: 2rem; text-align: center;">
   <h2>Counter Example</h2>
   <div>
     <button
-      on:click={() => counter.update((n) => n - 1)}
-      disabled={$counter.loading}
+      on:click={() => _counter.update((n) => n - 1)}
+      disabled={$_counter.loading}
     >
       -
     </button>
 
-    <span style="margin: 0 1rem;">{$counter.value}</span>
+    <span style="margin: 0 1rem;">{$_counter.value}</span>
 
     <button
-      on:click={() => counter.update((n) => n + 1)}
-      disabled={$counter.loading}
+      on:click={() => _counter.update((n) => n + 1)}
+      disabled={$_counter.loading}
     >
       +
     </button>
   </div>
 
-  {#if $counter.error}
+  {#if $_counter.error}
     <p style="color: red; margin-top: 1rem;">
-      {$counter.error.message}
+      {$_counter.error.message}
     </p>
   {/if}
 </div>

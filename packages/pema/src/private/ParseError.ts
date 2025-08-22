@@ -1,65 +1,65 @@
+import type JSONIssue from "#json/JSONIssue";
+import type JSONPayload from "#json/JSONPayload";
 import type ParseIssue from "#ParseIssue";
-import type Dict from "@rcompat/type/Dict";
+import type JSONPointer from "@rcompat/type/JSONPointer";
 
-function stringify(issue: ParseIssue) {
-  const key = issue.key;
-  if (key === undefined) {
-    return issue.message;
-  }
-  return `${key.startsWith(".") ? "" : "."}${key}: ${issue.message}`;
+function humanize(path: JSONPointer): string {
+  return path === ""
+    ? ""
+    : path
+      .slice(1)
+      .split("/")
+      .map(seg => seg.replace(/~1/g, "/").replace(/~0/g, "~"))
+      .map(seg => `.${seg}`)
+      .join("")
+    ;
 }
 
-type JSONIssue = {
-  message: string;
-  messages: string[];
-};
+function stringify(issue: ParseIssue) {
+  // For root (scalar) errors, keep just the message;
+  // otherwise prefix with humanized path
+  return issue.path === ""
+    ? issue.message
+    : `${humanize(issue.path)}: ${issue.message}`
+    ;
+}
 
 export default class ParseError extends Error {
   #issues?: ParseIssue[];
 
   constructor(issues: ParseIssue[]) {
-    super(typeof issues === "string" ? issues : stringify(issues[0]));
-
+    super(stringify(issues[0]));
     this.name = "ParseError";
-
-    if (typeof issues === "object") {
-      this.#issues = issues;
-    }
+    this.#issues = issues;
   }
 
   get issues() {
     return this.#issues;
   }
 
-  toJSON() {
-    if (!this.#issues || this.#issues.length === 0) {
+  toJSON(): JSONPayload {
+    const issues = this.#issues ?? [];
+
+    if (issues.length === 0) {
       return { message: "Parsing failed", messages: ["Parsing failed"] };
     }
 
-    const form = this.#issues.some(i => i.key);
+    const isForm = issues.some(i => i.path !== "");
 
-    if (!form) {
-      const messages = this.#issues.map(i => i.message);
-      return {
-        message: messages[0],
-        messages,
-      } as JSONIssue;
+    if (!isForm) {
+      const messages = issues.map(i => i.message);
+      return { message: messages[0], messages } as JSONIssue;
     }
 
-    return this.#issues
-      .filter(issue => issue.key !== undefined)
-      .reduce((issues, issue) => {
-        const key = issue.key!;
+    const dict: Partial<Record<JSONPointer, JSONIssue>> = {};
+    for (const i of issues) {
+      const key = i.path;
+      if (!dict[key]) dict[key] = { message: i.message, messages: [] };
+      dict[key].messages.push(i.message);
+      // Keep the first as the short message
+      if (dict[key].messages.length === 1) dict[key].message = i.message;
+    }
+    return dict as JSONPayload;
 
-        if (!(key in issues)) {
-          issues[key] = { message: issue.message, messages: [] };
-        }
-        issues[key].messages.push(issue.message);
-
-        if (issues[key].messages.length === 1) {
-          issues[key].message = issue.message;
-        }
-        return issues;
-      }, {} as Dict<JSONIssue>);
   }
 }

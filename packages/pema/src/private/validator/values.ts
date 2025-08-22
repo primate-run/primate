@@ -1,7 +1,17 @@
+import ParseError from "#ParseError";
 import type Validator from "#Validator";
+import type Dict from "@rcompat/type/Dict";
 
-export default <T>(values: Record<string, T>): Validator<T> => (x: T) => {
-  if (!Object.values(values).includes(x)) {
-    throw new Error(`"${x}" not in given list of values`);
-  }
-};
+export default function values<T>(input: Dict<T>): Validator<T> {
+  const allowed = Object.values(input).map(v => String(v)).join(", ");
+
+  return (x: T) => {
+    if (!Object.values(input).includes(x)) {
+      throw new ParseError([{
+        input: x,
+        message: `"${x}" not in given list of values (${allowed})`,
+        path: "",
+      }]);
+    }
+  };
+}

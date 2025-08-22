@@ -10,7 +10,7 @@ export default function error(
 ): [ParseIssue] {
   return [{
     input: x,
-    key: options?.[ParsedKey],
     message: expected(name, x),
+    path: options?.[ParsedKey] ?? "",
   }];
 };

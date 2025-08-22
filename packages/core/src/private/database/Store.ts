@@ -46,6 +46,7 @@ export default class Store<S extends StoreSchema> {
   #config: Config;
   #types: Types;
   #database: Database;
+  #nullables: Set<string>;
 
   constructor(schema: S, config?: Config) {
     this.#schema = schema;
@@ -54,6 +55,11 @@ export default class Store<S extends StoreSchema> {
     this.#types = Object.fromEntries(Object.entries(schema)
       .map(([key, value]) => [key, value.datatype]));
     this.#database = this.#config.database ?? new InMemoryDatabase();
+    this.#nullables = new Set(
+      Object.entries(this.#type.schema)
+        .filter(([, v]) => v.nullable)
+        .map(([k]) => k),
+    );
   }
 
   get #as() {
@@ -65,7 +71,7 @@ export default class Store<S extends StoreSchema> {
 
   get schema() {
     const database = this.database;
-    const name = this.#config.name!;
+    const name = this.name;
     const schema = this.#schema;
     return {
       create: () => database.schema.create(name, schema),
@@ -206,10 +212,31 @@ export default class Store<S extends StoreSchema> {
     changes: Changes<S>,
   ) {
     is(changes).object();
+    if ("id" in changes) {
+      throw new AppError("'.id' cannot be updated");
+    }
+
+    const changeEntries = Object.entries(changes);
+    for (const [k, v] of changeEntries) {
+      if (v === null && !this.#nullables.has(k)) {
+        throw new AppError(`.${k}: null not allowed (field is not nullable)`);
+      }
+    }
+    const toParse = Object.fromEntries(changeEntries
+      .filter(([key, value]) => value !== null || !this.#nullables.has(key)),
+    );
+    const nulls = Object.fromEntries(changeEntries
+      .filter(([key, value]) => value === null && this.#nullables.has(key)),
+    );
+    const parsed = {
+      // parse delta, without nullable nulls
+      ...this.#type.partial().parse(toParse),
+      ...nulls,
+    } as Changes<S>;
 
     return typeof criteria === "string"
-      ? this.#update_1(criteria, changes)
-      : this.#update_n(criteria, changes);
+      ? this.#update_1(criteria, parsed)
+      : this.#update_n(criteria, parsed);
   }
 
   async #update_1(id: Id, changes: Changes<S>) {

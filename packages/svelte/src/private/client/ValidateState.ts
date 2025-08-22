@@ -1,7 +1,7 @@
 import type ValidationError from "@primate/core/frontend/ValidationError";
 
 type ValidateState<T> = {
-  error: null | ValidationError<T>;
+  error: null | ValidationError;
   loading: boolean;
   value: T;
 };

@@ -1,4 +1,5 @@
 import ParseError from "#ParseError";
+import join from "#path/join";
 
 export default function uniqueWith<T>(equals: (a: T, b: T) => boolean) {
   return (array: Array<T>) => {
@@ -8,6 +9,7 @@ export default function uniqueWith<T>(equals: (a: T, b: T) => boolean) {
           throw new ParseError([{
             input: array,
             message: `items at ${j} and ${i} considered equal`,
+            path: join("", i),
           }]);
         }
       }

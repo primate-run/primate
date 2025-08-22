@@ -11,6 +11,9 @@ import number from "#number";
 import type NumberType from "#NumberType";
 import string from "#string";
 import type StringType from "#StringType";
+import messagesOf from "#test/messages-of";
+import pathsOf from "#test/paths-of";
+import throwsIssues from "#test/throws-issues";
 import dim from "@rcompat/cli/color/dim";
 import test from "@rcompat/test";
 
@@ -78,10 +81,27 @@ test.case("sparse", assert => {
   const b2 = [, "f"];
   const b3 = ["f", "f", ,];
 
-  assert(() => s.parse(b0)).throws(expect("s", undefined, 1));
-  assert(() => s.parse(b1)).throws(expect("s", undefined, 1));
-  assert(() => s.parse(b2)).throws(expect("s", undefined, 0));
-  assert(() => s.parse(b3)).throws(expect("s", undefined, 2));
+  {
+    const issues = throwsIssues(assert, () => s.parse(b0));
+    assert(pathsOf(issues)).equals(["/1"]);
+    assert(messagesOf(issues)).equals([expect("s", undefined)]);
+  }
+  {
+    const issues = throwsIssues(assert, () => s.parse(b1));
+    assert(pathsOf(issues)).equals(["/1"]);
+    assert(messagesOf(issues)).equals([expect("s", undefined)]);
+  }
+  {
+    const issues = throwsIssues(assert, () => s.parse(b2));
+    assert(pathsOf(issues)).equals(["/0"]);
+    assert(messagesOf(issues)).equals([expect("s", undefined)]);
+  }
+  {
+    const issues = throwsIssues(assert, () => s.parse(b3));
+    // current implementation points at the trailing hole index
+    assert(pathsOf(issues)).equals(["/2"]);
+    assert(messagesOf(issues)).equals([expect("s", undefined)]);
+  }
 });
 
 test.case("deep", assert => {
@@ -109,9 +129,16 @@ test.case("unique", assert => {
   assert(unique_n.parse([2, 1])).type<number[]>().equals([2, 1]);
 
   const error = "duplicate value at index 2 (first seen at 0)";
-  assert(() => unique_s.parse(["a", "b", "a"])).throws(error);
-  assert(() => unique_n.parse([1, 2, 1])).throws(error);
-  dim("tes");
+  {
+    const issues = throwsIssues(assert, () => unique_s.parse(["a", "b", "a"]));
+    assert(pathsOf(issues)).equals(["/2"]);
+    assert(messagesOf(issues)).equals([error]);
+  }
+  {
+    const issues = throwsIssues(assert, () => unique_n.parse([1, 2, 1]));
+    assert(pathsOf(issues)).equals(["/2"]);
+    assert(messagesOf(issues)).equals([error]);
+  }
 });
 
 test.case("object", assert => {

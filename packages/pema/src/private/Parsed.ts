@@ -11,6 +11,10 @@ export default abstract class Parsed<StaticType> {
     return undefined as StaticType;
   }
 
+  get nullable() {
+    return false;
+  }
+
   [CoerceKey](x: unknown) {
     return x;
   }
