@@ -44,12 +44,12 @@ export default (request: Request): RequestFacade => {
     context: {},
     cookies: bagCookies(request),
     headers: bagHeaders(request),
+    original: request,
     pass(to: string) {
       return pass(`${to}${url.pathname}${url.search}${url.hash}`, request);
     },
     path: new RequestBag(Object.fromEntries([]), "path"),
     query: bagQuery(url),
-    request,
     url,
   };
 };

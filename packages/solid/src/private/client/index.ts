@@ -1,5 +1,5 @@
-import type ClientData from "@primate/core/frontend/ClientData";
-import spa from "@primate/core/frontend/spa";
+import type ClientData from "@primate/core/client/Data";
+import spa from "@primate/core/client/spa";
 import SolidHead from "@primate/solid/Head";
 import type Dict from "@rcompat/type/Dict";
 import { hydrate, render } from "solid-js/web";
@@ -20,7 +20,7 @@ type Data = ClientData<{
 }>;
 
 const make_props = (data: ClientData<Data>) => ({
-  components: data.components.map(name  => components[name]),
+  components: data.components.map(name => components[name]),
   props: data.props,
   request: {
     ...data.request,

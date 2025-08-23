@@ -1,6 +1,6 @@
 import { type Signal } from "@angular/core";
-import type ValidateUpdater from "@primate/core/frontend/ValidateUpdater";
-import type ValidationError from "@primate/core/frontend/ValidationError";
+import type ValidateUpdater from "@primate/core/client/ValidateUpdater";
+import type ValidationError from "@primate/core/client/ValidationError";
 
 type Validated<T> = {
   error: Signal<null | ValidationError>;

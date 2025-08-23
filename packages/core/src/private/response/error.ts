@@ -17,9 +17,10 @@ type Options = {
  * @param options.page HTML page to use (default: config.pages.error)
  * @return ResponseFunction response function
  */
-export default (options?: Options): ResponseFunction =>
-  app => app.view({
+export default function error(options?: Options): ResponseFunction {
+  return app => app.view({
     body: options?.body ?? "Not Found",
     page: options?.page ?? location.error_html,
     status: options?.status ?? Status.NOT_FOUND,
   });
+}

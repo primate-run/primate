@@ -1,4 +1,5 @@
 import error from "#error";
+import schemafail from "#error/schemafail";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
@@ -10,11 +11,18 @@ import join from "#path/join";
 import next from "#path/next";
 import rebase from "#path/rebase";
 import PrimitiveType from "#PrimitiveType";
-import SchemaError from "#SchemaError";
 import type OptionalTrait from "#trait/Optional";
 import type Validator from "#Validator";
+import length from "#validator/length";
+import max from "#validator/max";
+import min from "#validator/min";
 import unique from "#validator/unique";
+import type Newable from "@rcompat/type/Newable";
 import type Primitive from "@rcompat/type/Primitive";
+
+type Next<T> = {
+  validators?: Validator<T>[];
+};
 
 function isPrimitive(x: Parsed<unknown>): x is PrimitiveType<unknown, string> {
   return x instanceof PrimitiveType;
@@ -43,6 +51,14 @@ export default class ArrayType<T extends Parsed<unknown>>
     return new OptionalType(this);
   }
 
+  derive(_next: Next<Array<Infer<T>>>): this {
+    const Constructor = this.constructor as Newable<this>;
+    return new Constructor(
+      this.#subtype,
+      [...this.#validators, ..._next.validators ?? []],
+    );
+  }
+
   /**
    * Member values are unique — only for primitive subtypes.
    *
@@ -53,11 +69,29 @@ export default class ArrayType<T extends Parsed<unknown>>
     this: Infer<T> extends Primitive ? ArrayType<T> : never,
   ): ArrayType<T> {
     if (!isPrimitive(this.#subtype)) {
-      throw new SchemaError(
-        "array.unique: subtype {0} must be primitive", this.#subtype.name,
+      throw schemafail(
+        "unique: subtype {0} must be primitive", this.#subtype.name,
       );
     }
-    return new ArrayType<T>(this.#subtype, [...this.#validators, unique]);
+    return this.derive({ validators: [unique] });
+  }
+
+  min(limit: number) {
+    if (limit < 0) {
+      throw schemafail("min: {0} must be positive", limit);
+    }
+    return this.derive({ validators: [min(limit)] });
+  }
+
+  max(limit: number) {
+    if (limit < 0) {
+      throw schemafail("max: {0} must be positive", limit);
+    }
+    return this.derive({ validators: [max(limit)] });
+  }
+
+  length(from: number, to: number) {
+    return this.derive({ validators: [length(from, to)] });
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {

@@ -26,7 +26,7 @@ export default class DevModule extends Module {
     const { pathname } = new URL(request.url);
 
     return this.#paths.includes(pathname as "/esbuild")
-      ? pass(`${this.#reload_url}${pathname}`, request.request)
+      ? pass(`${this.#reload_url}${pathname}`, request.original)
       : next(request);
   }
 }

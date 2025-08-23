@@ -5,8 +5,12 @@ export default class FileType
   extends BuiltinType<File, "FileType">
   implements Storeable<"blob"> {
 
-  constructor() {
-    super("file", File);
+  get Type() {
+    return File;
+  }
+
+  get name() {
+    return "file";
   }
 
   get datatype() {

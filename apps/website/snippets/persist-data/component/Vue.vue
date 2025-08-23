@@ -2,12 +2,11 @@
 import { computed } from "vue";
 import validate from "@primate/vue/validate";
 
-interface Props { id: string; value: number };
+interface Props { id: string; counter: number };
 
 const props = defineProps<Props>();
 const counter = validate<number>(props.value).post(
   `/counter?id=${props.id}`,
-  value => ({ value })
 );
 const loading = computed(() => counter.loading.value);
 const error = computed(() => counter.error.value?.message);

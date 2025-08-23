@@ -5,8 +5,12 @@ export default class BlobType
   extends BuiltinType<Blob, "BlobType">
   implements Storeable<"blob"> {
 
-  constructor() {
-    super("blob", Blob);
+  get Type() {
+    return Blob;
+  }
+
+  get name() {
+    return "blob";
   }
 
   get datatype() {

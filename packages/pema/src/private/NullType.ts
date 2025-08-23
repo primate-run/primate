@@ -5,8 +5,8 @@ import type ParseOptions from "#ParseOptions";
 import PrimitiveType from "#PrimitiveType";
 
 export default class NullType extends PrimitiveType<null, "NullType"> {
-  constructor() {
-    super("null");
+  get name() {
+    return "null";
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {

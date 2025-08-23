@@ -1,12 +1,12 @@
 import type App from "#App";
 import AppError from "#AppError";
 import type BuildApp from "#BuildApp";
-import type ClientData from "#frontend/ClientData";
+import type ClientData from "#client/Data";
 import type Component from "#frontend/Component";
-import type Frontend from "#frontend/Frontend";
 import type Render from "#frontend/Render";
 import type ServerComponent from "#frontend/ServerComponent";
 import type ServerData from "#frontend/ServerData";
+import type ViewResponse from "#frontend/ViewResponse";
 import inline from "#inline";
 import location from "#location";
 import Module from "#Module";
@@ -24,6 +24,7 @@ import Status from "@rcompat/http/Status";
 import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import pema from "pema";
+import array from "pema/array";
 import boolean from "pema/boolean";
 import string from "pema/string";
 
@@ -41,7 +42,7 @@ export default abstract class FrontendModule<
   abstract client: boolean;
   // Whether this frontend supports recursive layouts
   abstract layouts: boolean;
-  abstract defaultExtension: string;
+  abstract defaultExtensions: string[];
   #options: typeof FrontendModule.options;
   render: Render<S> = async (component, props) =>
     ({ body: await (component as ServerComponent)(props) });
@@ -58,7 +59,7 @@ export default abstract class FrontendModule<
   };
 
   static schema = pema({
-    extension: string.optional(),
+    fileExtensions: array(string).optional(),
     spa: boolean.default(true),
     ssr: boolean.default(true),
   });
@@ -72,8 +73,8 @@ export default abstract class FrontendModule<
     this.#options = FrontendModule.schema.parse(options);
   }
 
-  get extension() {
-    return this.#options.extension ?? this.defaultExtension;
+  get fileExtensions() {
+    return this.#options.fileExtensions ?? this.defaultExtensions;
   }
 
   get package() {
@@ -124,7 +125,7 @@ export default abstract class FrontendModule<
     return normalize(name);
   }
 
-  frontend: Frontend = (component, props = {}, options = {}) =>
+  respond: ViewResponse = (component, props = {}, options = {}) =>
     async (app, { as_layout, layouts = [] } = {}, request) => {
       if (as_layout) {
         return this.#load(component, props, app);
@@ -189,17 +190,17 @@ export default abstract class FrontendModule<
     };
 
   serve(app: ServeApp, next: NextServe) {
-    app.register(this.extension, this.frontend);
+    this.fileExtensions.forEach(fe => app.register(fe, this.respond));
 
     return next(app);
   }
 
   publish(app: BuildApp) {
     if (this.compile.client) {
-      const { compile, css, extension, name, root } = this;
+      const { compile, css, fileExtensions, name, root } = this;
 
       if (this.client) {
-        app.frontends.set(name, extension);
+        fileExtensions.forEach(fe => app.frontends.set(name, fe));
       }
 
       app.build.plugin({
@@ -240,7 +241,7 @@ export default abstract class FrontendModule<
           build.onLoad({ filter: components_filter }, async () => {
             const components = await app.root
               .join(location.components)
-              .collect(e => e.fullExtension === extension);
+              .collect(c => fileExtensions.includes(c.fullExtension));
             let contents = "";
             for (const component of components) {
               const { path } = component.debase(component.directory, "/");
@@ -250,7 +251,10 @@ export default abstract class FrontendModule<
             return { contents, resolveDir: app.root.path };
           });
 
-          build.onLoad({ filter: new RegExp(`${extension}$`) }, async args => {
+          const filter = new RegExp(`(${fileExtensions.map(e =>
+            e.replace(".", "\\.")).join("|")})$`);
+
+          build.onLoad({ filter }, async args => {
             const file = new FileRef(args.path);
             // Compile file to JavaScript and potentially CSS
             const compiled = await compile.client!(await file.text(), file
@@ -274,16 +278,17 @@ export default abstract class FrontendModule<
   }
 
   init<T extends App>(app: T, next: Next<T>) {
-    app.bind(this.extension, async (file, { context }) => {
-      assert(context === "components",
-        `${this.name}: only components supported`);
+    this.fileExtensions.forEach(e => {
+      app.bind(e, async (file, { context }) => {
+        assert(context === "components",
+          `${this.name}: only components supported`);
 
-      if (this.compile.server) {
-        // compile server component
-        const code = await this.compile.server(await file.text());
-        await file.append(".js")
-          .write(code.replaceAll(this.extension, `${this.extension}.js`));
-      }
+        if (this.compile.server) {
+          // compile server component
+          const code = await this.compile.server(await file.text());
+          await file.append(".js").write(code.replaceAll(e, `${e}.js`));
+        }
+      });
     });
     return next(app);
   }

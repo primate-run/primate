@@ -1,10 +1,10 @@
-import Module from "@primate/core/frontend/Module";
+import FrontendModule from "@primate/core/frontend/Module";
 import type Render from "@primate/core/frontend/Render";
 import runtime from "handlebars/runtime.js";
 
-export default class Runtime extends Module {
+export default class Runtime extends FrontendModule {
   name = "handlebars";
-  defaultExtension = ".hbs";
+  defaultExtensions = [".hbs"];
   layouts = false;
   client = false;
   render: Render = (component, props) =>

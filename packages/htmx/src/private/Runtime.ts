@@ -1,23 +1,25 @@
-import type Frontend from "@primate/core/frontend";
 import FrontendModule from "@primate/core/frontend/Module";
+import type ViewResponse from "@primate/core/frontend/ViewResponse";
 import inline from "@primate/core/inline";
-import frontend from "@primate/html/handler";
+import response from "@primate/html/response";
 
 export default class Runtime extends FrontendModule {
   name = "htmx";
-  defaultExtension = ".htmx";
+  defaultExtensions = [".htmx"];
   layouts = false;
   client = false;
-  frontend: Frontend = (name, props, options = {}) => async (app, _, request) => {
-    const code = "import { htmx } from \"app\";";
-    const { head, integrity } = await inline(code, "module");
-    const script_src = [integrity];
+  respond: ViewResponse = (name, props, options = {}) => {
+    return async (app, _, request) => {
+      const code = "import { htmx } from \"app\";";
+      const { head, integrity } = await inline(code, "module");
+      const script_src = [integrity];
 
-    return frontend(this)(name, props, {
-      csp: { script_src },
-      head,
-      partial: Boolean(request.headers.try("hx-request")),
-      ...options,
-    })(app, _, request);
+      return response(this)(name, props, {
+        csp: { script_src },
+        head,
+        partial: Boolean(request.headers.try("hx-request")),
+        ...options,
+      })(app, _, request);
+    };
   };
 }

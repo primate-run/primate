@@ -1,7 +1,7 @@
 import type Options from "#Options";
+import Runtime from "#Runtime";
 import type Template from "#Template";
 import type BuildApp from "@primate/core/BuildApp";
-import Runtime from "#Runtime";
 import empty from "@rcompat/record/empty";
 
 const htmx_esm = "htmx-esm";
@@ -24,7 +24,7 @@ export default class Default extends Runtime {
   };
 
   constructor(options: Options = {}) {
-    super({ extension: options.extension });
+    super({ fileExtensions: options.fileExtensions });
 
     this.#extensions = options.extensions ?? [];
     this.#templates = options.templates ?? [];

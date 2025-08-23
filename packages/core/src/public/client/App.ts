@@ -1,1 +1,1 @@
-export { default } from "#frontend/App";
+export { default } from "#client/App";

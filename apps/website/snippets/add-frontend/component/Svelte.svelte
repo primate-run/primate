@@ -1,13 +1,13 @@
 <script>
   export let start = 0;
-  let count = start;
+  let counter = start;
 
   function increment() {
-    count++;
+    counter++;
   }
 
   function decrement() {
-    count--;
+    counter--;
   }
 </script>
 
@@ -15,7 +15,7 @@
   <h2>Counter Example</h2>
   <div>
     <button on:click={decrement}>-</button>
-    <span style="margin: 0 1rem;">{count}</span>
+    <span style="margin: 0 1rem;">{counter}</span>
     <button on:click={increment}>+</button>
   </div>
 </div>

@@ -5,6 +5,7 @@ import type StringType from "#StringType";
 import messagesOf from "#test/messages-of";
 import pathsOf from "#test/paths-of";
 import throwsIssues from "#test/throws-issues";
+import dim from "@rcompat/cli/color/dim";
 import test from "@rcompat/test";
 
 test.case("fail", assert => {
@@ -28,7 +29,7 @@ test.case("default", assert => {
   });
 });
 
-test.case("startsWith", assert => {
+test.case("validator - startsWith", assert => {
   const sw = string.startsWith("/");
 
   assert(sw).type<StringType>();
@@ -37,7 +38,7 @@ test.case("startsWith", assert => {
   assert(() => sw.parse("foo")).throws("\"foo\" does not start with \"/\"");
 });
 
-test.case("endsWith", assert => {
+test.case("validator - endsWith", assert => {
   const ew = string.endsWith("/");
 
   assert(ew).type<StringType>();
@@ -46,7 +47,7 @@ test.case("endsWith", assert => {
   assert(() => ew.parse("foo")).throws("\"foo\" does not end with \"/\"");
 });
 
-test.case("email", assert => {
+test.case("validator - email", assert => {
   const email = string.email();
   assert(email).type<StringType>();
 
@@ -65,7 +66,7 @@ test.case("email", assert => {
 
 });
 
-test.case("uuid", assert => {
+test.case("validator - uuid", assert => {
   const uuid = string.uuid();
   assert(uuid).type<StringType>();
 
@@ -81,6 +82,38 @@ test.case("uuid", assert => {
   [pass, pass.toLowerCase(), pass.toUpperCase()].forEach(passing => {
     assert(uuid.parse(passing)).equals(passing);
   });
+});
+
+test.case("validator - min", assert => {
+  assert(() => string.min(-10))
+    .throws(`min: ${dim("-10")} must be positive`);
+  const min = string.min(5);
+  assert(min.parse("hello")).equals("hello").type<string>();
+  assert(min.parse("universe")).equals("universe").type<string>();
+  assert(() => min.parse("hi")).throws("min 5 characters");
+});
+
+test.case("validator - max", assert => {
+  assert(() => string.max(-10))
+    .throws(`max: ${dim("-10")} must be positive`);
+  const max = string.max(5);
+  assert(max.parse("hello")).equals("hello").type<string>();
+  assert(max.parse("hi")).equals("hi").type<string>();
+  assert(() => max.parse("universe")).throws("max 5 characters");
+});
+
+test.case("validator - length", assert => {
+  assert(() => string.length(-10, 10))
+    .throws(`length: ${dim("-10")} and ${dim("10")} must be positive`);
+  assert(() => string.length(10, -10))
+    .throws(`length: ${dim("10")} and ${dim("-10")} must be positive`);
+  assert(() => string.length(5, 3))
+    .throws(`length: ${dim("5")} must be lower than ${dim("3")}`);
+  const length = string.length(0, 5);
+  assert(length.parse("hello")).equals("hello").type<string>();
+  assert(length.parse("hi")).equals("hi").type<string>();
+  assert(length.parse("")).equals("").type<string>();
+  assert(() => length.parse("universe")).throws("length out of range");
 });
 
 test.case("combined validators", assert => {

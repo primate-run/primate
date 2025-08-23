@@ -1,4 +1,3 @@
-
 export default function Index({ posts }) {
   return <>
     <h1>All posts</h1>

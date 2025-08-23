@@ -1,5 +1,5 @@
-import type ClientData from "@primate/core/frontend/ClientData";
-import spa from "@primate/core/frontend/spa";
+import type ClientData from "@primate/core/client/Data";
+import spa from "@primate/core/client/spa";
 import type Dict from "@rcompat/type/Dict";
 
 // @ts-expect-error esbuild vfs

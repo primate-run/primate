@@ -1,4 +1,3 @@
-import CoercedType from "#CoercedType";
 import DefaultType from "#DefaultType";
 import expect from "#expect";
 import GenericType from "#GenericType";
@@ -14,6 +13,7 @@ import type ParseOptions from "#ParseOptions";
 import join from "#path/join";
 import type Schema from "#Schema";
 import type OptionalTrait from "#trait/Optional";
+import type Newable from "@rcompat/type/Newable";
 
 const all_optional = (s: object): boolean => Object.values(s).every(value => {
   if (value instanceof OptionalType || value instanceof DefaultType) {
@@ -29,10 +29,12 @@ export default class SchemaType<S extends Schema>
   extends GenericType<S, InferSchema<S>, "SchemaType">
   implements OptionalTrait {
   #schema: S;
+  #options: ParseOptions;
 
-  constructor(s: S) {
+  constructor(spec: S, options: ParseOptions = {}) {
     super();
-    this.#schema = s;
+    this.#schema = spec;
+    this.#options = options;
   }
 
   get name() {
@@ -51,15 +53,21 @@ export default class SchemaType<S extends Schema>
     return new OptionalType(this);
   }
 
+  #derive(next: ParseOptions): this {
+    const Constructor = this.constructor as Newable<this>;
+    return new Constructor(this.#schema, { ...this.#options, ...next });
+  }
+
   get coerce() {
-    return new CoercedType(this);
+    return this.#derive({ coerce: true });
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+    const $options = { ...this.#options, ...options };
     const s = this.#schema;
 
     if (s instanceof Parsed) {
-      return s.parse(x, options) as Infer<this>;
+      return s.parse(x, $options) as Infer<this>;
     }
 
     if (typeof s === "object" && s !== null) {
@@ -79,7 +87,7 @@ export default class SchemaType<S extends Schema>
       const result: any = {};
       for (const k in s) {
         const r = schema((s as any)[k]).parse((_x as any)[k], {
-          ...options, [ParsedKey]: join(options[ParsedKey] ?? "", String(k)),
+          ...$options, [ParsedKey]: join($options[ParsedKey] ?? "", String(k)),
         });
         // exclude undefined (optionals)
         if (r !== undefined) {

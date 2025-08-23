@@ -9,7 +9,7 @@ test.case("fail", assert => {
 });
 
 test.case("pass", assert => {
-  assert(blob).type<"BlobType">();
+  assert(blob).type<BlobType>();
 
   const b = new Blob();
   assert(blob.parse(b)).equals(b).type<Blob>();

@@ -1,5 +1,5 @@
 import AppError from "#AppError";
-import type Frontend from "#frontend/Frontend";
+import type ViewResponse from "#frontend/ViewResponse";
 import FileRef from "@rcompat/fs/FileRef";
 import type Dict from "@rcompat/type/Dict";
 
@@ -38,10 +38,12 @@ function no_frontend(component: string) {
  * @param options rendering options
  * @return Response rendering function
  */
-export default ((component, props, options) =>
-  (app, transfer, request) => extensions
+const view = (function viewResponse(component, props, options) {
+  return (app, transfer, request) => extensions
     .map(extension => app.frontends[new FileRef(component)[extension]])
     .find(extension => extension !== undefined)
     ?.(component, props, options)(app, transfer, request)
-    ?? no_frontend(component)
-) as Frontend;
+    ?? no_frontend(component);
+}) as ViewResponse;
+
+export default view;

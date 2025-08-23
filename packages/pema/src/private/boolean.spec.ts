@@ -1,6 +1,5 @@
 import boolean from "#boolean";
 import type BooleanType from "#BooleanType";
-import type CoercedType from "#CoercedType";
 import type DefaultType from "#DefaultType";
 import expect from "#expect";
 import test from "@rcompat/test";
@@ -19,7 +18,7 @@ test.case("pass", assert => {
 
 test.case("coerce", assert => {
   const coerced = boolean.coerce;
-  assert(coerced).type<CoercedType<BooleanType>>();
+  assert(coerced).type<BooleanType>();
   assert(coerced.parse(true)).equals(true).type<boolean>();
   assert(coerced.parse(false)).equals(false).type<boolean>();
   assert(coerced.parse("true")).equals(true).type<boolean>();

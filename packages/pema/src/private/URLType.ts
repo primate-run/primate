@@ -5,8 +5,12 @@ export default class URLType
   extends BuiltinType<URL, "URLType">
   implements Storeable<"url"> {
 
-  constructor() {
-    super("url", URL);
+  get Type() {
+    return URL;
+  }
+
+  get name() {
+    return "url";
   }
 
   get datatype() {

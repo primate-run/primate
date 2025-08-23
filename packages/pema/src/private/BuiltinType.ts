@@ -1,4 +1,3 @@
-import CoercedType from "#CoercedType";
 import CoerceKey from "#CoerceKey";
 import error from "#error";
 import type Infer from "#Infer";
@@ -6,31 +5,34 @@ import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import Type from "#Type";
 import type AbstractNewable from "@rcompat/type/AbstractNewable";
+import type Newable from "@rcompat/type/Newable";
 
-export default class BuiltinType<StaticType, Name extends string>
+export default abstract class BuiltinType<StaticType, Name extends string>
   extends Type<StaticType, Name> {
-  #name: string;
-  #type: AbstractNewable;
+  #options: ParseOptions;
 
-  constructor(name: string, type: AbstractNewable) {
+  abstract get Type(): AbstractNewable;
+
+  constructor(options: ParseOptions = {}) {
     super();
-    this.#name = name;
-    this.#type = type;
+    this.#options = options;
   }
 
-  get name() {
-    return this.#name;
+  #derive(next: ParseOptions): this {
+    const Constructor = this.constructor as Newable<this>;
+    return new Constructor({ ...this.#options, ...next });
   }
 
   get coerce() {
-    return new CoercedType(this);
+    return this.#derive({ coerce: true });
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    const $x = options.coerce === true ? this[CoerceKey](x) : x;
+    const $options = { ...this.#options, ...options };
+    const $x = $options.coerce === true ? this[CoerceKey](x) : x;
 
-    if (!($x instanceof this.#type)) {
-      throw new ParseError(error(this.name, $x, options));
+    if (!($x instanceof this.Type)) {
+      throw new ParseError(error(this.name, $x, $options));
     }
 
     return $x as never;

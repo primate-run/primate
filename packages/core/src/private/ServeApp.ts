@@ -7,9 +7,9 @@ import type Style from "#asset/Style";
 import DevModule from "#builtin/DevModule";
 import HandleModule from "#builtin/HandleModule";
 import type CSP from "#CSP";
-import type Frontend from "#frontend/Frontend";
-import type FrontendOptions from "#frontend/Options";
 import type ServerComponent from "#frontend/ServerComponent";
+import type ViewOptions from "#frontend/ViewOptions";
+import type ViewResponse from "#frontend/ViewResponse";
 import hash from "#hash";
 import type Loader from "#Loader";
 import location from "#location";
@@ -41,7 +41,7 @@ import record from "pema/record";
 import string from "pema/string";
 import uint from "pema/uint";
 
-interface ViewOptions extends FrontendOptions {
+interface FullViewOptions extends ViewOptions {
   body: string;
 }
 
@@ -98,7 +98,7 @@ export default class ServeApp extends App {
   #csp: CSP = {};
   #fonts: unknown[] = [];
   #assets: Asset[] = [];
-  #frontends: PartialDict<Frontend> = {};
+  #frontends: PartialDict<ViewResponse> = {};
   #router: FileRouter;
   #builtins: {
     dev?: DevModule;
@@ -198,7 +198,7 @@ export default class ServeApp extends App {
     };
   };
 
-  render(content: Omit<ViewOptions, keyof ResponseInit>) {
+  render(content: Omit<FullViewOptions, keyof ResponseInit>) {
     const { body, head, page, partial, placeholders = {} } = content;
     ["body", "head"].forEach(key => is(placeholders[key]).undefined());
 
@@ -230,7 +230,7 @@ export default class ServeApp extends App {
     });
   };
 
-  view(options: ViewOptions) {
+  view(options: FullViewOptions) {
     // split render and respond options
     const { headers = {}, status = Status.OK, statusText, ...rest } = options;
     return this.respond(this.render(rest), { headers, status });
@@ -267,11 +267,11 @@ export default class ServeApp extends App {
       );
   };
 
-  register(extension: string, frontend: Frontend) {
+  register(extension: string, viewFunction: ViewResponse) {
     if (this.#frontends[extension] !== undefined) {
       throw new AppError("double file extension {0}", extension);
     }
-    this.#frontends[extension] = frontend;
+    this.#frontends[extension] = viewFunction;
   };
 
   async start() {
@@ -311,20 +311,22 @@ export default class ServeApp extends App {
     return this.#server!.upgrade(request, actions);
   }
 
-  async route(facade: RequestFacade) {
-    const { request, url } = facade;
+  async route(request: RequestFacade) {
+    const { original, url } = request;
     const $request_body_parse = this.config("request.body.parse");
 
     const pathname = normalize(url.pathname);
-    const route = this.router.match(request);
+    const route = this.router.match(original);
     if (route === undefined) {
-      log.info("no {0} route to {1}", request.method, pathname);
+      log.info("no {0} route to {1}", original.method, pathname);
       return;
     }
 
-    const verb = request.method.toLowerCase() as Verb;
+    const verb = original.method.toLowerCase() as Verb;
     const parse_body = /*route.file.body?.parse ?? */$request_body_parse;
-    const body = parse_body ? await RequestBody.parse(request, url) : RequestBody.none();
+    const body = parse_body
+      ? await RequestBody.parse(original, url)
+      : RequestBody.none();
     const { errors = [], guards = [], layouts = [] } = entries(route.specials)
       .map(([key, value]) => [`${key}s`, value ?? []])
       .map(([key, value]) => [key, value.map(v => {
@@ -349,7 +351,7 @@ export default class ServeApp extends App {
       guards,
       layouts,
       request: {
-        ...facade,
+        ...request,
         body,
         path: new RequestBag(route.params as PartialDict<string>, "path",
           k => k.toLowerCase()),

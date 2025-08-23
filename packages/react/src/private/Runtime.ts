@@ -1,4 +1,4 @@
-import Module from "@primate/core/frontend/Module";
+import FrontendModule from "@primate/core/frontend/Module";
 import type Render from "@primate/core/frontend/Render";
 import type Dict from "@rcompat/type/Dict";
 import { createElement, type FunctionComponent } from "react";
@@ -6,9 +6,9 @@ import { renderToString } from "react-dom/server";
 
 type Component = FunctionComponent<Dict>;
 
-export default class Runtime extends Module<Component> {
+export default class Runtime extends FrontendModule<Component> {
   name = "react";
-  defaultExtension = ".jsx";
+  defaultExtensions = [".jsx", ".tsx"];
   client = true;
   layouts = true;
   render: Render<Component> = (component, props) => {

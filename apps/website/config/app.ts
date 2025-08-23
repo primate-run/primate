@@ -238,7 +238,7 @@ export default config({
         return replaced;
       },
     }),
-    poly({ extension: ".svelte" }),
+    poly(),
     new Priss({
       blog: true,
       description: "The universal web framework",

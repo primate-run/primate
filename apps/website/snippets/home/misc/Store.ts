@@ -1,4 +1,3 @@
-/* eslint @perfectionist/sort-objects: 0 */
 import date from "pema/date";
 import primary from "pema/primary";
 import string from "pema/string";

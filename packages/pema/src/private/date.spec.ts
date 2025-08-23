@@ -1,4 +1,3 @@
-import type CoercedType from "#CoercedType";
 import date from "#date";
 import type DateType from "#DateType";
 import type DefaultType from "#DefaultType";
@@ -18,7 +17,7 @@ test.case("pass", assert => {
 
 test.case("coerce", assert => {
   const coerced = date.coerce;
-  assert(coerced).type<CoercedType<DateType>>();
+  assert(coerced).type<DateType>();
 
   const d = new Date(1723718400000);
 

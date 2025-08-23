@@ -1,43 +1,45 @@
-import { AsyncPipe, NgIf } from "@angular/common";
+import { NgIf } from "@angular/common";
 import { Component, Input } from "@angular/core";
 import validate from "@primate/angular/validate";
+import type Validated from "@primate/angular/Validated";
 
 @Component({
-  imports: [AsyncPipe, NgIf],
-  selector: "app-counter",
-  standalone: true,
+  imports: [NgIf],
   template: `
     <div style="margin-top: 2rem; text-align: center;">
       <h2>Counter Example</h2>
       <div>
-        <button (click)="decrement()" [disabled]="loading | async">-</button>
-        <span style="margin: 0 1rem;">{{ current | async }}</span>
-        <button (click)="increment()" [disabled]="loading | async">+</button>
+        <button (click)="decrement()" [disabled]="loading">-</button>
+        <span style="margin: 0 1rem;">{{ value }}</span>
+        <button (click)="increment()" [disabled]="loading">+</button>
       </div>
-      <p *ngIf="(error | async) as e" style="color:red; margin-top: 1rem;">
-        {{ e.message }}
+      <p *ngIf="error" style="color:red; margin-top: 1rem;">
+        {{ error?.message }}
       </p>
     </div>
   `,
 })
 export default class CounterComponent {
-  @Input() id!: string;
-  @Input() value!: number;
+  @Input() id: string = "";
+  @Input("counter") initial: number = 0;
 
-  counter!: ReturnType<ReturnType<typeof validate<number>>["post"]>;
-  current!: typeof this.counter.value;
-  loading!: typeof this.counter.loading;
-  error!: typeof this.counter.error;
+  counter!: Validated<number>;
+
+  get value() {
+    return this.counter.value();
+  }
+
+  get loading() {
+    return this.counter.loading();
+  }
+
+  get error() {
+    return this.counter.error();
+  }
 
   ngOnInit() {
-    this.counter = validate<number>(this.value).post(
-      `/counter?id=${this.id}`,
-      value => ({ value }),
-    );
-
-    this.current = this.counter.value;
-    this.loading = this.counter.loading;
-    this.error = this.counter.error;
+    this.counter = validate<number>(this.initial)
+      .post(`/counter?id=${this.id}`);
   }
 
   increment() {

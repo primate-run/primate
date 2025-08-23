@@ -1,15 +1,9 @@
 import type Module from "@primate/core/Module";
 import type FileRef from "@rcompat/fs/FileRef";
+import type { BuildOptions } from "esbuild";
 
 interface Config {
-  base?: string; // "/"
-  build?: {
-    define?: Record<string, string>;
-    excludes?: string[];
-    includes?: string[];
-    name: string; // "app"
-    options?: Record<string, string>;
-  };
+  build?: BuildOptions;
   http?: {
     csp?: Record<string, string>;
     headers?: Record<string, string>;

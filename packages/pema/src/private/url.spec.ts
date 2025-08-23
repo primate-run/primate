@@ -11,7 +11,7 @@ test.case("fail", assert => {
 });
 
 test.case("pass", assert => {
-  assert(url).type<"URLType">();
+  assert(url).type<URLType>();
 
   const u = new URL(address);
   assert(url.parse(u)).equals(u).type<URL>();

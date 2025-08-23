@@ -1,28 +1,15 @@
 import CoerceKey from "#CoerceKey";
 import type FloatDataType from "#FloatDataType";
-import PrimitiveType from "#PrimitiveType";
+import NumericType from "#NumericType";
 import type Storeable from "#Storeable";
-import type Validator from "#Validator";
-import numeric from "@rcompat/is/numeric";
+import coerce from "#coerce/int";
 
 export default class NumberType<T extends FloatDataType = "f64">
-  extends PrimitiveType<number, `NumberType<'${T}'>`>
+  extends NumericType<T, number, "NumberType">
   implements Storeable<T> {
-  #datatype: T;
+  [CoerceKey] = coerce;
 
-  constructor(datatype: T = "f64" as T, validators: Validator<number>[] = []) {
-    super("number", validators);
-    this.#datatype = datatype;
-  }
-
-  get datatype() {
-    return this.#datatype;
-  }
-
-  [CoerceKey](x: unknown) {
-    if (numeric(x)) {
-      return Number(x);
-    }
-    return x;
+  get name() {
+    return "number";
   }
 }

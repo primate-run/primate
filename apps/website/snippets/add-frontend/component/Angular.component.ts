@@ -19,17 +19,17 @@ import { Component, Input } from "@angular/core";
 })
 export default class CounterComponent implements OnInit {
   @Input() start = 0;
-  count = 0;
+  counter = 0;
 
   ngOnInit() {
-    this.count = this.start;
+    this.counter = this.start;
   }
 
   increment() {
-    this.count++;
+    this.counter++;
   }
 
   decrement() {
-    this.count--;
+    this.counter--;
   }
 }

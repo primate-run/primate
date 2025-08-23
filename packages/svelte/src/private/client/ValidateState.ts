@@ -1,4 +1,4 @@
-import type ValidationError from "@primate/core/frontend/ValidationError";
+import type ValidationError from "@primate/core/client/ValidationError";
 
 type ValidateState<T> = {
   error: null | ValidationError;

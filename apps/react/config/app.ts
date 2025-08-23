@@ -6,5 +6,5 @@ export default config({
   http: {
     port: 10012,
   },
-  modules: [react({ extension: ".tsx" }), i18n()],
+  modules: [react(), i18n()],
 });

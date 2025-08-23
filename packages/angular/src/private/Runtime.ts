@@ -9,7 +9,7 @@ import type ServeApp from "@primate/core/ServeApp";
 
 export default class Runtime extends FrontendModule<ComponentDecorator> {
   name = "angular";
-  defaultExtension = ".component.ts";
+  defaultExtensions = [".component.ts"];
   layouts = false;
   render = render;
   // whether this package exports client code

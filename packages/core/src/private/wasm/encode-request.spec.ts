@@ -14,10 +14,10 @@ const simpleRequest: RequestFacade = {
   context: {},
   cookies: new RequestBag({}, "cookies"),
   headers: new RequestBag({}, "headers", v => v.toLowerCase()),
+  original: request,
   pass: async () => new Response(null),
   path: new RequestBag({}, "path", v => v.toLowerCase()),
   query: new RequestBag({}, "query", v => v.toLowerCase()),
-  request,
   url: new URL("https://primate.run/my/?webserver=forever"),
 };
 
@@ -88,5 +88,5 @@ const firstExpected = [
 const firstEncoded = await encodeRequest(simpleRequest);
 
 test.case("simple encode with string body", assert => {
-//  assert(Array.from(firstEncoded)).equals(firstExpected);
+  //  assert(Array.from(firstEncoded)).equals(firstExpected);
 });

@@ -1,11 +1,10 @@
 import validate from "@primate/react/validate";
 
-interface Props { id: string; value: number };
+interface Props { counter: number; id: string };
 
 export default function Counter(props: Props) {
-  const counter = validate<number>(props.value).post(
+  const counter = validate<number>(props.counter).post(
     `/counter?id=${props.id}`,
-    value => ({ value }),
   );
 
   return (

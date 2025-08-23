@@ -1,8 +1,8 @@
-import Module from "@primate/core/frontend/Module";
+import FrontendModule from "@primate/core/frontend/Module";
 
-export default class Runtime extends Module {
+export default class Runtime extends FrontendModule {
   name = "eta";
-  defaultExtension = ".eta";
+  defaultExtensions = [".eta"];
   layouts = false;
   client = false;
 }

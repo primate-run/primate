@@ -1,9 +1,9 @@
 import type Validated from "#client/Validated";
-import toValidated from "@primate/core/frontend/toValidated";
-import validate from "@primate/core/frontend/validate";
-import type ValidateInit from "@primate/core/frontend/ValidateInit";
-import type ValidateUpdater from "@primate/core/frontend/ValidateUpdater";
-import type ValidationError from "@primate/core/frontend/ValidationError";
+import toValidated from "@primate/core/client/toValidated";
+import validate from "@primate/core/client/validate";
+import type ValidateInit from "@primate/core/client/ValidateInit";
+import type ValidateUpdater from "@primate/core/client/ValidateUpdater";
+import type ValidationError from "@primate/core/client/ValidationError";
 import { useState } from "react";
 
 function useValidate<T>(init: ValidateInit<T>): Validated<T> {

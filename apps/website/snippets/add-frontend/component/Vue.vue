@@ -3,7 +3,7 @@
     <h2>Counter Example</h2>
     <div>
       <button @click="decrement">-</button>
-      <span style="margin: 0 1rem;">{{ count }}</span>
+      <span style="margin: 0 1rem;">{{ counter }}</span>
       <button @click="increment">+</button>
     </div>
   </div>
@@ -19,13 +19,13 @@ const props = defineProps({
   },
 });
 
-const count = ref(props.start);
+const counter = ref(props.start);
 
 function increment() {
-  count.value++;
+  counter.value++;
 }
 
 function decrement() {
-  count.value--;
+  counter.value--;
 }
 </script>

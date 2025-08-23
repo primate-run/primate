@@ -4,9 +4,6 @@
 
   const counter = validate<number>(value).post(
     `/counter?id=${id}`,
-    (value) => ({
-      value,
-    }),
   );
 </script>
 

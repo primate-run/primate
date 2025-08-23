@@ -1,5 +1,5 @@
 import route from "primate/route";
-import view from "primate/view";
+import view from "primate/response/view";
 
 const posts = [{
   id: 1,

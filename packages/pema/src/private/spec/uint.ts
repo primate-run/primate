@@ -60,4 +60,31 @@ export default <T extends UintDataType>(
       assert(d.parse(0)).equals(0).type<number>();
     });
   });
+
+  test.case("validator - range", assert => {
+    const r = i.range(0, 10);
+    assert(r.parse(0)).equals(0).type<number>();
+    assert(r.parse(10)).equals(10).type<number>();
+
+    assert(() => r.parse(-1)).throws("-1 is out of range");
+    assert(() => r.parse(-11)).throws("-11 is out of range");
+    assert(() => r.parse(11)).throws("11 is out of range");
+  });
+
+  test.case("validator - min", assert => {
+    const r = i.min(0);
+    assert(r.parse(0)).equals(0).type<number>();
+    assert(r.parse(10)).equals(10).type<number>();
+
+    assert(() => r.parse(-1)).throws("-1 is out of range");
+  });
+
+  test.case("validator - max", assert => {
+    const r = i.max(10);
+    assert(r.parse(0)).equals(0).type<number>();
+    assert(r.parse(10)).equals(10).type<number>();
+
+    assert(() => r.parse(-1)).throws("-1 is out of range");
+    assert(() => r.parse(11)).throws("11 is greater than max (10)");
+  });
 };

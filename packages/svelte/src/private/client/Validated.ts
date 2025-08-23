@@ -1,5 +1,5 @@
 import type ValidateState from "#client/ValidateState";
-import type ValidateUpdater from "@primate/core/frontend/ValidateUpdater";
+import type ValidateUpdater from "@primate/core/client/ValidateUpdater";
 import type { Readable } from "svelte/store";
 
 type Validated<T> = {

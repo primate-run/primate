@@ -9,8 +9,8 @@ export default class PrimaryType
   extends PrimitiveType<string | undefined, "PrimaryType">
   implements Storeable<"primary"> {
 
-  constructor() {
-    super("primary");
+  get name() {
+    return "primary";
   }
 
   get datatype() {

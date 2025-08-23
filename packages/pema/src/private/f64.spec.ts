@@ -1,4 +1,3 @@
-import type CoercedType from "#CoercedType";
 import type DefaultType from "#DefaultType";
 import expect from "#expect";
 import number from "#number";
@@ -17,7 +16,7 @@ test.case("pass", assert => {
 
 test.case("coerce", assert => {
   const coerced = number.coerce;
-  assert(coerced).type<CoercedType<NumberType>>();
+  assert(coerced).type<NumberType>();
   assert(coerced.parse(1)).equals(1).type<number>();
   assert(coerced.parse(-1)).equals(-1).type<number>();
 

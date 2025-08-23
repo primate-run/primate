@@ -7,10 +7,10 @@ type RequestFacade = {
   context: Dict;
   cookies: RequestBag;
   headers: RequestBag;
+  original: Request;
   pass(to: string): Promise<Response>;
   path: RequestBag;
   query: RequestBag;
-  request: Request;
   url: URL;
 } & Dict<Dict | unknown>;
 

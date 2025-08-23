@@ -1,9 +1,12 @@
+import schemafail from "#error/schemafail";
 import PrimitiveType from "#PrimitiveType";
 import type Storeable from "#Storeable";
-import type Validator from "#Validator";
 import email from "#validator/email";
 import ends_with from "#validator/ends-with";
 import isotime from "#validator/isotime";
+import length from "#validator/length";
+import max from "#validator/max";
+import min from "#validator/min";
 import regex from "#validator/regex";
 import starts_with from "#validator/starts-with";
 import uuid from "#validator/uuid";
@@ -12,8 +15,8 @@ export default class StringType
   extends PrimitiveType<string, "StringType">
   implements Storeable<"string"> {
 
-  constructor(validators?: Validator<string>[]) {
-    super("string", validators);
+  get name() {
+    return "string";
   }
 
   get datatype() {
@@ -21,26 +24,44 @@ export default class StringType
   }
 
   isotime() {
-    return new StringType([...this.validators, isotime]);
+    return this.derive({ validators: [isotime] });
   }
 
   regex(pattern: RegExp) {
-    return new StringType([...this.validators, regex(pattern)]);
+    return this.derive({ validators: [regex(pattern)] });
   }
 
   email() {
-    return new StringType([...this.validators, email]);
+    return this.derive({ validators: [email] });
   }
 
   uuid() {
-    return new StringType([...this.validators, uuid]);
+    return this.derive({ validators: [uuid] });
   }
 
   startsWith(prefix: string) {
-    return new StringType([...this.validators, starts_with(prefix)]);
+    return this.derive({ validators: [starts_with(prefix)] });
   }
 
   endsWith(suffix: string) {
-    return new StringType([...this.validators, ends_with(suffix)]);
+    return this.derive({ validators: [ends_with(suffix)] });
+  }
+
+  min(limit: number) {
+    if (limit < 0) {
+      throw schemafail("min: {0} must be positive", limit);
+    }
+    return this.derive({ validators: [min(limit)] });
+  }
+
+  max(limit: number) {
+    if (limit < 0) {
+      throw schemafail("max: {0} must be positive", limit);
+    }
+    return this.derive({ validators: [max(limit)] });
+  }
+
+  length(from: number, to: number) {
+    return this.derive({ validators: [length(from, to)] });
   }
 }

@@ -12,7 +12,7 @@ test.case("fail", assert => {
 });
 
 test.case("pass", assert => {
-  assert(file).type<"FileType">();
+  assert(file).type<FileType>();
 
   const f = new File([""], "");
   assert(file.parse(f)).equals(f).type<File>();

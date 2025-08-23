@@ -7,8 +7,8 @@ export default class BooleanType
   extends PrimitiveType<boolean, "BooleanType">
   implements Storeable<"boolean"> {
 
-  constructor() {
-    super("boolean");
+  get name() {
+    return "boolean";
   }
 
   get datatype() {
@@ -16,9 +16,6 @@ export default class BooleanType
   }
 
   [CoerceKey](x: unknown) {
-    if (boolish(x)) {
-      return x === "true";
-    }
-    return x;
+    return boolish(x) ? x === "true" : x;
   }
 }

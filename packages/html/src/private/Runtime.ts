@@ -1,11 +1,11 @@
-import handler from "#handler";
-import type Frontend from "@primate/core/Frontend";
+import response from "#response";
 import FrontendModule from "@primate/core/frontend/Module";
+import type ViewResponse from "@primate/core/frontend/ViewResponse";
 
 export default class Runtime extends FrontendModule {
   name = "html";
-  defaultExtension = ".html";
+  defaultExtensions = [".html"];
   layouts = false;
   client = false;
-  frontend: Frontend = handler(this);
+  respond: ViewResponse = response(this);
 }

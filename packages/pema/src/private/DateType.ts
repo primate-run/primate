@@ -8,8 +8,12 @@ export default class DateType
   implements Storeable<"datetime"> {
   [CoerceKey] = coerce;
 
-  constructor() {
-    super("date", Date);
+  get Type() {
+    return Date;
+  }
+
+  get name() {
+    return "date";
   }
 
   get datatype() {

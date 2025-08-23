@@ -1,8 +1,8 @@
 import type Template from "#Template";
 
 type Options = {
-  extension?: string;
   extensions?: string[];
+  fileExtensions?: [string];
   templates?: Template[];
 };
 

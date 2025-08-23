@@ -7,7 +7,7 @@ modules.
 Configuration files are located in `config`. Anything you configure will be
 merged into the defaults.
 
-## app.ts
+## `app.ts`
 [s=configuration/app-ts]
 
 ### App options
@@ -25,7 +25,7 @@ merged into the defaults.
 |[modules](#modules)|`[]`|extension modules|
 |[request.body.parse](#request-body-parse)|`true`|parse request body|
 
-### build
+### `build`
 
 Options to be passed to the esbuild builder. The following properties will be
 overridden.
@@ -36,8 +36,8 @@ overridden.
 |`stdin.resolveDir`|set to project root|
 |`tsconfigRaw`|preset|
 
-### http.csp
-The Content Security Policy (CSP) to be used.
+### `http.csp`
+The Content Security Policy (CSP) to use.
 
 Example of a restrictive policy.
 
@@ -58,34 +58,34 @@ Example of a restrictive policy.
 }
 
 ```
-### http.headers
-HTTP headers to be used when generating requests using the `view` handler.
+### `http.headers`
+HTTP headers to use when generating requests using the `view` handler.
 
-### http.host
-The HTTP host to be used. This value is directly passed to the runtime.
+### `http.host`
+The HTTP host to use. This value is directly passed to the runtime.
 
-### http.port
-The HTTP port to be used. This value is directly passed to the runtime.
+### `http.port`
+The HTTP port to use. This value is directly passed to the runtime.
 
-### http.ssl.cert
+### `http.ssl.cert`
 Path to SSL certificate. If this property and `http.ssl.key` are set and
 point to a valid key/certificate pair, Primate will use https instead of http.
 If specified as a relative path, will be relative to project root.
 
-### http.ssl.key
+### `http.ssl.key`
 Path to SSL key. If `http.ssl.cert` and this property are set and point to a
 valid key/certificate pair, Primate will use https instead of http. If
 specified as a relative path, will be relative to project root.
 
-### http.static.root
+### `http.static.root`
 The path at which to serve static assets (those located in the `static`
 directory). Static assets take precedence over routes. This option allows you
 to have all static assets served at a subpath, like `/public`.
 
-### modules
-Additional modules to activate at runtime.
+### `modules`
+Additional modules to load at runtime.
 
-### request.body.parse
+### `request.body.parse`
 Whether the request body should be parsed according to the content type.
 Turning thisoff is useful if you're using Primate as a programmable reverse
 proxy andforwarding the requests to another app. The headers, query string and
@@ -95,8 +95,7 @@ will contain the untouched original request.
 ### Reference
 [s=configuration/app]
 
-
-## session.ts
+## `session.ts`
 
 [s=configuration/session-ts]
 
@@ -110,23 +109,23 @@ will contain the untouched original request.
 |[cookie.samesite](#cookie-same-site)|`"Lax"`|cookie website path|
 |[manager](#manager)|`InMemorySessionManager`|the session manager class|
 
-### cookie.httpOnly
+### `cookie.httpOnly`
 Whether the session cookie should be set as and not be readable in JavaScript.
 
-### cookie.name
+### `cookie.name`
 The name of the session cookie.
 
-### cookie.path
+### `cookie.path`
 The session cookie path (paths on which the cookie is loaded).
 
-### cookie.sameSite
+### `cookie.sameSIte`
 The level of security to use in sending the session cookies when browsing
 between websites.
 
-### manager
+### `manager`
 The session cookie manager. By default, we use an in-memory session manager
 that resets when the app restarts.
 
-## database.ts
+## `database.ts`
 
 [s=configuration/database-ts]

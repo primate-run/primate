@@ -60,4 +60,32 @@ export default <T extends BigIntDataType>(
       assert(() => d.parse(-1.2)).throws(expect("bi", -1.2));
     });
   });
+
+  test.case("validator - range", assert => {
+    const r = i.range(-10n, 10n);
+    assert(r.parse(-10n)).equals(-10n).type<bigint>();
+    assert(r.parse(0n)).equals(0n).type<bigint>();
+    assert(r.parse(10n)).equals(10n).type<bigint>();
+
+    assert(() => r.parse(-11n)).throws("-11 is out of range");
+    assert(() => r.parse(11n)).throws("11 is out of range");
+  });
+
+  test.case("validator - min", assert => {
+    const r = i.min(-10n);
+    assert(r.parse(-10n)).equals(-10n).type<bigint>();
+    assert(r.parse(0n)).equals(0n).type<bigint>();
+    assert(r.parse(10n)).equals(10n).type<bigint>();
+
+    assert(() => r.parse(-11n)).throws("-11 is lower than min (-10)");
+  });
+
+  test.case("validator - max", assert => {
+    const r = i.max(10n);
+    assert(r.parse(-10n)).equals(-10n).type<bigint>();
+    assert(r.parse(0n)).equals(0n).type<bigint>();
+    assert(r.parse(10n)).equals(10n).type<bigint>();
+
+    assert(() => r.parse(11n)).throws("11 is greater than max (10)");
+  });
 };

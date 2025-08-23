@@ -1,5 +1,5 @@
-import type ClientData from "@primate/core/frontend/ClientData";
-import spa from "@primate/core/frontend/spa";
+import type ClientData from "@primate/core/client/Data";
+import spa from "@primate/core/client/spa";
 import ReactHead from "@primate/react/Head";
 import type Dict from "@rcompat/type/Dict";
 import { createElement, type ReactNode } from "react";
@@ -29,7 +29,7 @@ const make_root = {
 };
 
 const make_props = (data: ClientData<Data>) => ({
-  components: data.components.map(name  => components[name]),
+  components: data.components.map(name => components[name]),
   props: data.props,
   request: {
     ...data.request,

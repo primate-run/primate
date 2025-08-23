@@ -105,20 +105,20 @@ test.case("sparse", assert => {
 });
 
 test.case("deep", assert => {
-  const rc = array(array(string));
+  const rc = array(s);
   assert(rc.parse([as])).equals([as]).type<string[][]>();
 
   assert(() => rc.parse(as)).throws(expect("a", "0", 0));
   assert(() => rc.parse([[0]])).throws();
 });
 
-test.case("unique", assert => {
-  const unique_s = array(string).unique();
-  const unique_n = array(number).unique();
+test.case("validator - unique", assert => {
+  const unique_s = s.unique();
+  const unique_n = n.unique();
 
   // @ts-expect-error non-primitive subtype
-  assert(() => array(date).unique().parse())
-    .throws(`array.unique: subtype ${dim("date")} must be primitive`);
+  assert(() => d.unique().parse())
+    .throws(`unique: subtype ${dim("date")} must be primitive`);
 
   assert(unique_s).type<ArrayType<StringType>>();
   assert(unique_n).type<ArrayType<NumberType>>();
@@ -139,6 +139,34 @@ test.case("unique", assert => {
     assert(pathsOf(issues)).equals(["/2"]);
     assert(messagesOf(issues)).equals([error]);
   }
+});
+
+test.case("validator - min", assert => {
+  assert(() => s.min(-10)).throws(`min: ${dim("-10")} must be positive`);
+  const min = s.min(3);
+  assert(min.parse(["a", "b", "c"])).equals(["a", "b", "c"]).type<string[]>();
+  assert(() => min.parse(["a", "b"])).throws("min 3 items");
+});
+
+test.case("validator - max", assert => {
+  assert(() => s.max(-10)).throws(`max: ${dim("-10")} must be positive`);
+  const max = s.max(3);
+  assert(max.parse(["a", "b", "c"])).equals(["a", "b", "c"]).type<string[]>();
+  assert(() => max.parse(["a", "b", "c", "d"])).throws("max 3 items");
+});
+
+test.case("validator - length", assert => {
+  assert(() => s.length(-10, 10))
+    .throws(`length: ${dim("-10")} and ${dim("10")} must be positive`);
+  assert(() => s.length(10, -10))
+    .throws(`length: ${dim("10")} and ${dim("-10")} must be positive`);
+  assert(() => s.length(5, 3))
+    .throws(`length: ${dim("5")} must be lower than ${dim("3")}`);
+  const length = s.length(0, 2);
+  assert(length.parse(["a", "b"])).equals(["a", "b"]).type<string[]>();
+  assert(length.parse(["a"])).equals(["a"]).type<string[]>();
+  assert(length.parse([])).equals([]).type<string[]>();
+  assert(() => length.parse(["a", "b", "c"])).throws("length out of range");
 });
 
 test.case("object", assert => {

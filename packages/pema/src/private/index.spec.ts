@@ -4,7 +4,6 @@ import bigint from "#bigint";
 import blob from "#blob";
 import boolean from "#boolean";
 import type BooleanType from "#BooleanType";
-import type CoercedType from "#CoercedType";
 import date from "#date";
 import expect from "#expect";
 import file from "#file";
@@ -205,11 +204,11 @@ test.case("coerce", assert => {
     scores: number[];
     tupled: [string, boolean];
   };
-  type ExpectSchema = CoercedType<SchemaType<{
+  type ExpectSchema = SchemaType<{
     name: StringType;
     scores: ArrayType<NumberType>;
     tupled: TupleType<[StringType, BooleanType]>;
-  }>>;
+  }>;
 
   const coerced = schema({
     name: string,
