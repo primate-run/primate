@@ -1,7 +1,10 @@
 import type Verb from "#request/Verb";
-import type RouteFunction from "#route/RouteFunction";
-import type RoutePath from "#route/RoutePath";
+import type RouteHandler from "#route/Handler";
+import type RouteOptions from "#route/Options";
+import type RoutePath from "#route/Path";
 import assert from "@rcompat/assert";
+import is from "@rcompat/assert/is";
+import maybe from "@rcompat/assert/maybe";
 
 class Router {
   #routes: Record<string, RoutePath> = {};
@@ -19,8 +22,10 @@ class Router {
     return this.#stack.at(-1);
   }
 
-  add(verb: Verb, route: RouteFunction) {
+  add(verb: Verb, handler: RouteHandler, options: RouteOptions = {}) {
     assert(this.active !== undefined);
+    is(handler).function();
+    maybe(options).object();
 
     const active = this.active!;
     const routes = this.#routes;
@@ -29,7 +34,7 @@ class Router {
       routes[active] = {};
     }
 
-    routes[active][verb] = route;
+    routes[active][verb] = { handler, options };
   }
 
   get(path: string) {

@@ -211,6 +211,12 @@ p.box {
   padding: 10px 15px;
   background: var(--caption-bg);
   border-radius: 5px;
+  display: flex;
+  align-items: center;
+}
+
+p.box svg {
+  margin-right: 10px;
 }
 
 main.blog {
@@ -336,7 +342,7 @@ article table a {
 }
 
 article :where(td:first-child) {
-  width: 28%;
+  width: 27%;
   min-width: 160px;
   white-space: nowrap;
   color: var(--heading);
@@ -418,10 +424,6 @@ th {
 
 article :where(h2, h3, h4, h5, h6):hover a.deeplink {
   opacity: 1;
-}
-
-article :where(h2, h3, h4, h5, h6)[id] {
-  scroll-margin-top: calc(var(--height) + 16px);
 }
 
 article a.deeplink {

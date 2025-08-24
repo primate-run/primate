@@ -1,1 +1,3 @@
-export default (extension: string) => `config/app${extension}`;
+import type FileRef from "@rcompat/fs/FileRef";
+
+export default (file: FileRef) => `config/app${file.fullExtension}`;

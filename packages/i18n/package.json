@@ -25,7 +25,7 @@
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.3.0",
     "@rcompat/cli": "^0.10.2",
-    "@rcompat/fs": "^0.18.0",
+    "@rcompat/fs": "^0.20.0",
     "@rcompat/http": "^0.15.0"
   },
   "peerDependencies": {

@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@primate/htmx": "workspace:^",
-    "@rcompat/fs": "^0.18.0",
+    "@rcompat/fs": "^0.20.0",
     "htmx-esm": "^0.2.1910",
     "pema": "workspace:^",
     "primate": "workspace:^"

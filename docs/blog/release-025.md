@@ -168,11 +168,11 @@ This release marks only the introduction of the I18N module. In the future we
 plan to extend it with access to different translation backends and other
 features commonly expected in a modern I18N library.
 
-## Executing guards just before the route function
+## Executing guards just before the route handler
 
 The only breaking feature of this release is a change to the order of execution
 for guards. Previously guards were executed *after* a route was matched but
-before all route hook functions and the route function itself were executed.
+before all route hook functions and the route handler itself were executed.
 One of the most important route hook is the one used by `@primate/store` to
 start a transaction before the route runs and make all
 transactionalized data stores available to the route as `request.store`.
@@ -182,9 +182,9 @@ example, to check if a given API key is matched in the database), it would not
 be available.
 
 This release changes the order of execution such that guards are executed after
-all route hooks have finished running and right before the route function
+all route hooks have finished running and right before the route handler
 itself is executed. Guards thus have access to exactly the same `request`
-object that the route function would see, including stores.
+object that the route handler would see, including stores.
 
 ## Other changes
 

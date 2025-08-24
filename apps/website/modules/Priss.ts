@@ -85,7 +85,7 @@ export default class PrissModule extends Module {
   async handle(request: RequestFacade, next: NextHandle) {
     const { cookies, headers } = request;
 
-    const color_scheme = headers.try("Color-scheme");
+    const color_scheme = headers.try("Color-Scheme");
 
     if (color_scheme !== undefined) {
       return new Response(null, {
@@ -96,8 +96,11 @@ export default class PrissModule extends Module {
       });
     }
 
+    const scheme = cookies.try(cookie_name) ?? "light";
+
     const placeholders = {
-      "color-scheme": cookies.try("color-scheme") ?? "light",
+      "color-scheme": scheme,
+      "theme-color": scheme === "dark" ? "#1b1b1b" : "#ffffff",
     };
 
     return next({ ...request, config: this.#config, placeholders });

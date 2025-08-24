@@ -173,19 +173,19 @@ const encodeSectionBody = async (body: Body, view: BufferView) => {
 
 const sizeOfRequest = (request: RequestFacade) => sizeOfUrlSection(request.url)
   + sizeOfBodySection(request.body)
-  + sizeOfMapSection(request.path.contents)
-  + sizeOfMapSection(request.query.contents)
-  + sizeOfMapSection(request.headers.contents)
-  + sizeOfMapSection(request.cookies.contents);
+  + sizeOfMapSection(request.path.toJSON())
+  + sizeOfMapSection(request.query.toJSON())
+  + sizeOfMapSection(request.headers.toJSON())
+  + sizeOfMapSection(request.cookies.toJSON());
 
 const encodeRequestInto = async (request: RequestFacade, view: BufferView) => {
   encodeSectionUrl(request.url, view);
   // @ts-expect-error old
   await encodeSectionBody(request.body, view);
-  encodeMapSection(PATH_SECTION, request.path.contents, view);
-  encodeMapSection(QUERY_SECTION, request.query.contents, view);
-  encodeMapSection(HEADERS_SECTION, request.headers.contents, view);
-  encodeMapSection(COOKIES_SECTION, request.cookies.contents, view);
+  encodeMapSection(PATH_SECTION, request.path.toJSON(), view);
+  encodeMapSection(QUERY_SECTION, request.query.toJSON(), view);
+  encodeMapSection(HEADERS_SECTION, request.headers.toJSON(), view);
+  encodeMapSection(COOKIES_SECTION, request.cookies.toJSON(), view);
 };
 
 const encodeRequest = async (request: RequestFacade) => {

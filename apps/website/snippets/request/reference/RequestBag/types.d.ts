@@ -3,5 +3,5 @@ interface RequestBag {
   try(key: string): string | undefined;
   has(key: string): boolean;
   as<T>(schema: { parse(x: unknown): T }): T;
-  toJSON(): string;
+  toJSON(): Record<string, string>;
 }

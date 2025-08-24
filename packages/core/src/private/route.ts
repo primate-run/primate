@@ -1,13 +1,14 @@
 import type Verb from "#request/Verb";
 import verbs from "#request/verbs";
-import type RouteFunction from "#route/RouteFunction";
+import type RouteHandler from "#route/Handler";
+import type RouteOptions from "#route/Options";
 import router from "#route/router";
 
 type Route = {
-  [key in Verb]: (route: RouteFunction) => void;
+  [key in Verb]: (handler: RouteHandler, options?: RouteOptions) => void;
 };
 
 export default Object.fromEntries(verbs.map(verb =>
-  [verb, (route: RouteFunction) => {
-    router.add(verb, route);
+  [verb, (handler: RouteHandler, options?: RouteOptions) => {
+    router.add(verb, handler, options);
   }])) as Route;

@@ -10,12 +10,12 @@ type Options = {
 };
 
 /**
- * Render an error page
- * @param options rendering options
- * @param options.body HTML %body% replacement (default: "Not Found")
- * @param options.status Request status (default: 404 Not Found)
- * @param options.page HTML page to use (default: config.pages.error)
- * @return ResponseFunction response function
+ * Render an error page.
+ *
+ * @param options.body HTML `%body%` replacement (default: `"Not Found"`).
+ * @param options.status Request status (default: `404 Not Found`).
+ * @param options.page HTML page to use (default: `error.html`).
+ * @return Response function.
  */
 export default function error(options?: Options): ResponseFunction {
   return app => app.view({

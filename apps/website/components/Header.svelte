@@ -87,7 +87,7 @@
 
 <svelte:head>
   <title>Primate — {title}</title>
-  <meta name="description" content={title} />
+  <meta name="description" content={`The universal web framework — ${title}`} />
 </svelte:head>
 <Icons />
 <header>

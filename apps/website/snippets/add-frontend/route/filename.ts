@@ -1,1 +1,1 @@
-export default () => "route/index.ts";
+export default () => "routes/index.ts";

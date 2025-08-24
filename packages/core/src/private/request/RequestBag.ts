@@ -30,10 +30,6 @@ export default class RequestBag {
     this.#contents = contents;
   }
 
-  get contents() {
-    return this.#contents;
-  }
-
   /**
    * Get a value by key.
    * @param key - key to look up (pre-normalization).
@@ -86,6 +82,6 @@ export default class RequestBag {
   }
 
   toJSON() {
-    return JSON.stringify(this.#contents);
+    return Object.assign(Object.create(null), this.#contents);
   }
 }

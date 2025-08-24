@@ -100,8 +100,15 @@ export default config({
       marked: {
         hooks: {
           postprocess(html) {
-            return html.replaceAll(/!!!\n(.*?)\n!!!/gus, (_, p1) =>
-              `<p class="box">${p1}</p>`).replaceAll(" -- ", " – ");
+            return html.replaceAll(
+              /!!!\s*([a-zA-Z0-9_-]+)?\n([\s\S]*?)\n!!!/g,
+              (_, icon, content) => {
+                const iconHtml = icon
+                  ? `<svg class="icon" width="16" height="16"><use href="#${icon}"></use></svg> `
+                  : "";
+                return `<p class="box">${iconHtml}${content.trim()}</p>`;
+              },
+            ).replaceAll(" -- ", " – ");
           },
           preprocess(html) {
             return html.replaceAll(/%%%(.*?)\n(.*?)%%%/gus, (_, p1, p2) => {
@@ -150,7 +157,7 @@ export default config({
               .replace(/[^\w]+/gu, "-")
               ;
             const deeplink = `
-              <a class="deeplink" id="${name}" href="#${name}">
+              <a class="deeplink" href="#${name}">
                 <svg class="icon" width="16" height="16">
                   <use href="#hash" />
                 </svg>
@@ -158,8 +165,7 @@ export default config({
             `;
 
             return `
-              <h${level}>
-                <a name="${name}"></a>
+              <h${level} id="${name}">
                 ${text.replace(/`([^`]+)`/g, "<code>$1</code>")}
                 ${level !== 1 ? deeplink : ""}
               </h${level}>
@@ -214,7 +220,7 @@ export default config({
             replacement += snippets
               .map(file =>
                 trim(file.name.slice(0, -file.fullExtension.length))
-                + (has_filename ? `:${to_filename(file.fullExtension, file)}` : ""),
+                + (has_filename ? `:${to_filename(file)}` : ""),
               ).join(", ");
             replacement += "\n\n";
           }
@@ -295,7 +301,7 @@ export default config({
               },
               {
                 href: "/sessions",
-                title: "sessions",
+                title: "Sessions",
               },
               {
                 href: "/validation",

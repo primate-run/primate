@@ -16,7 +16,7 @@ get an idea of the framework.
 
 Primate is one of the first frameworks to offer writing backend logic in
 different languages. In addition to its native support of JavaScript, you can
-now write your route functions in Go, using a nearly identical API. This gives
+now write your route handlers in Go, using a nearly identical API. This gives
 you access to Go's standard library, but also the entire Go ecosystem when
 writing backend logic.
 

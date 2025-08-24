@@ -1,4 +1,4 @@
-import Status from "primate/http/Status";
+import Status from "primate/response/Status";
 import redirect from "primate/response/redirect";
 import route from "primate/route";
 

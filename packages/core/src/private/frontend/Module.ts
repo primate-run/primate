@@ -137,10 +137,10 @@ export default abstract class FrontendModule<
 
       const $request = {
         context: request.context,
-        cookies: request.cookies.contents,
-        headers: request.headers.contents,
-        path: request.path.contents,
-        query: request.query.contents,
+        cookies: request.cookies.toJSON(),
+        headers: request.headers.toJSON(),
+        path: request.path.toJSON(),
+        query: request.query.toJSON(),
         url: request.url,
       };
       const $props = this.layouts

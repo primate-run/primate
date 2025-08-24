@@ -12,7 +12,7 @@ requests. For example, a request to `primate.run` matches `index.ts`, while a
 request to `primate.run/docs` matches `docs.ts`.
 
 Route files may contain path parameters denoted with brackets. Resolved
-parameters are passed to the [route function](#route-functions) as
+parameters are passed to the [route handler](#route-handlers) as
 `request.path`.
 
 |Request path|Route file|`*` matches|
@@ -92,20 +92,20 @@ Parameters match any value *including* a slash and may be empty.
 |`user`|✓ yes -- `request.path.name` will be `undefined`|
 |`user/john/adams`|✓ yes -- `request.path.name` will be `"john/adams"`|
 
-## Route functions
-Route files may contain one or more route functions that match the request's
-HTTP verb. Those functions map requests to responses.
+## Route handlers
+Route files may contain one or more route handlers that match the request's
+HTTP verb. Those handlers map requests to responses.
 
-[s=routing/route-functions]
+[s=routing/route-handlers]
 
 ### Disable body parsing
 
-Route functions are mappers from requests to responses. The passed-in request
+Route handlers are mappers from requests to responses. The passed-in request
 facade contains a parsed version of the request body, depending on the given
 content type. If you wish to have access to the unparsed request body, pass `{
 parseBody: false }` to the options parameter.
 
-[s=routing/route-functions-unparsed-body]
+[s=routing/route-handlers-unparsed-body]
 
 This allows you to write routes that can pass their requests wholesale to
 another backend.

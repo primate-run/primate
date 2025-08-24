@@ -10,7 +10,7 @@ import type JSONValue from "@rcompat/type/JSONValue";
 type Fields = Dict<FormDataEntryValue>;
 
 type Parsed =
-  | { type: "bin"; value: Blob }
+  | { type: "binary"; value: Blob }
   | { type: "fields"; value: Fields }
   | { type: "json"; value: JSONValue }
   | { type: "none"; value: null }
@@ -43,7 +43,7 @@ export default class RequestBody {
     try {
       switch (type) {
         case binary:
-          return new RequestBody({ type: "bin", value: await request.blob() });
+          return new RequestBody({ type: "binary", value: await request.blob() });
         case form:
         case formData:
           return new RequestBody({ type: "fields", value: await fromForm(request) });
@@ -114,9 +114,16 @@ export default class RequestBody {
   }
 
   binary() {
-    if (this.type !== "bin") {
+    if (this.type !== "binary") {
       this.#throw("binary");
     }
     return this.#value<Blob>();
+  }
+
+  none() {
+    if (this.type !== "none") {
+      this.#throw("none");
+    }
+    return null;
   }
 }

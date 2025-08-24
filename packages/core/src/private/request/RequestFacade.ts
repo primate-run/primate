@@ -6,9 +6,9 @@ type RequestFacade = {
   body: RequestBody;
   context: Dict;
   cookies: RequestBag;
+  forward(to: string, headers?: Dict<string>): Promise<Response>;
   headers: RequestBag;
   original: Request;
-  pass(to: string): Promise<Response>;
   path: RequestBag;
   query: RequestBag;
   url: URL;

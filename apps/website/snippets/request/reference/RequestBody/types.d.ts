@@ -1,7 +1,7 @@
 import type JSONValue from "@rcompat/type/JSONValue";
 
 interface RequestBody {
-  type: "text" | "json" | "fields" | "bin" | "none";
+  type: "text" | "json" | "fields" | "binary" | "none";
 
   text(): string;
 
@@ -12,4 +12,6 @@ interface RequestBody {
   fields<S>(schema: { parse(x: unknown): S }): S;
 
   binary(): Blob;
+
+  none(): null;
 }

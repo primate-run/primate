@@ -41,7 +41,7 @@ export default {
 ### Use
 
 When writing routes, you can do everything you can do in JavaScript routes, in
-TypeScript. To have your editor properly type your route functions, simply
+TypeScript. To have your editor properly type your route handlers, simply
 import `Route` from Primate and add `satisfies Route` to your exported route
 object.
 
@@ -254,7 +254,7 @@ well as commonly used features in other frontends such as SSR and hydration.
 
 This release introduces support for uploading files in HTML forms using
 `enctype="multipart/form-data"`. Files uploaded this way will be available as
-`Blob` properties of the route function's `request.body`.
+`Blob` properties of the route handlers's `request.body`.
 
 ```html caption=components/file-upload.html
 <form enctype="multipart/form-data" action="post">

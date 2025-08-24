@@ -68,15 +68,22 @@ const to_csp = (config_csp: Entry<CSP>[], assets: CSP, override: CSP) => config_
   .map(([key, directives]) => `${key} ${directives.join(" ")}`)
   .join(";");
 
-const render_head = (assets: Asset[], fonts: unknown[], head?: string) =>
-  assets.toSorted(({ type }) => -1 * Number(type === "importmap"))
+const render_head = (assets: Asset[], head?: string) => {
+  const fonts = assets.filter(asset => asset.src?.endsWith(".woff2"));
+  const rest = assets.filter(asset =>
+    !asset.src?.endsWith(".woff2")
+    && asset.type !== "js",
+  );
+
+  return rest.toSorted(({ type }) => -1 * Number(type === "importmap"))
     .map(({ code, inline, integrity, src, type }) =>
       type === "style"
         ? tags.style({ code, href: src, inline } as Style)
         : tags.script({ code, inline, integrity, src, type } as Script),
-    ).join("\n").concat("\n", head ?? "").concat("\n", fonts.map(href =>
-      tags.font({ href, type: "font/woff2" } as Font),
+    ).join("\n").concat("\n", head ?? "").concat("\n", fonts.map(font =>
+      tags.font({ href: font.src, type: "font/woff2" } as Font),
     ).join("\n"));
+};
 
 const s_http = Symbol("s_http");
 
@@ -96,7 +103,6 @@ export default class ServeApp extends App {
   #server?: Server;
   #components: PartialDict<Import>;
   #csp: CSP = {};
-  #fonts: unknown[] = [];
   #assets: Asset[] = [];
   #frontends: PartialDict<ViewResponse> = {};
   #router: FileRouter;
@@ -210,7 +216,7 @@ export default class ServeApp extends App {
       .replaceAll(/(?<keep>%(?:head|body)%)|%.*?%/gus, "$1")
       // replace body and head
       .replace("%body%", body)
-      .replace("%head%", render_head(this.#assets, this.#fonts, head));
+      .replace("%head%", render_head(this.#assets, head));
   }
 
   page(page?: string) {
@@ -313,7 +319,6 @@ export default class ServeApp extends App {
 
   async route(request: RequestFacade) {
     const { original, url } = request;
-    const $request_body_parse = this.config("request.body.parse");
 
     const pathname = normalize(url.pathname);
     const route = this.router.match(original);
@@ -323,32 +328,34 @@ export default class ServeApp extends App {
     }
 
     const verb = original.method.toLowerCase() as Verb;
-    const parse_body = /*route.file.body?.parse ?? */$request_body_parse;
-    const body = parse_body
-      ? await RequestBody.parse(original, url)
-      : RequestBody.none();
     const { errors = [], guards = [], layouts = [] } = entries(route.specials)
       .map(([key, value]) => [`${key}s`, value ?? []])
       .map(([key, value]) => [key, value.map(v => {
         const verbs = router.get(v);
-        const routeFunction = verbs[verb];
-        if (routeFunction === undefined) {
+        const routeHandler = verbs[verb];
+        if (routeHandler === undefined) {
           throw new AppError("route {0} has no {1} verb", route.fullpath, verb);
         }
-        return routeFunction;
+        return routeHandler.handler;
       })])
       .get();
 
     const verbs = router.get(route.fullpath)!;
-    const routeFunction = verbs[verb];
+    const routePath = verbs[verb];
 
-    if (routeFunction === undefined) {
+    if (routePath === undefined) {
       throw new AppError("route {0} has no {1} verb", route.fullpath, verb);
     }
+
+    const parseBody = routePath.options.parseBody;
+    const body = parseBody ?? this.config("request.body.parse")
+      ? await RequestBody.parse(original, url)
+      : RequestBody.none();
 
     return {
       errors,
       guards,
+      handler: routePath.handler,
       layouts,
       request: {
         ...request,
@@ -356,7 +363,6 @@ export default class ServeApp extends App {
         path: new RequestBag(route.params as PartialDict<string>, "path",
           k => k.toLowerCase()),
       },
-      routeFunction,
     };
   }
 

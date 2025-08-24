@@ -1,7 +1,7 @@
-import pass from "#pass";
 import RequestBag from "#request/RequestBag";
 import RequestBody from "#request/RequestBody";
 import type RequestFacade from "#request/RequestFacade";
+import type Dict from "@rcompat/type/Dict";
 
 function decode(s: string) {
   try {
@@ -43,11 +43,19 @@ export default (request: Request): RequestFacade => {
     body: RequestBody.none(),
     context: {},
     cookies: bagCookies(request),
+    forward(to: string, headers?: Dict<string>) {
+      return fetch(to, {
+        body: request.body,
+        duplex: "half",
+        headers: {
+          ...headers,
+          "Content-Type": request.headers.get("Content-Type"),
+        },
+        method: request.method,
+      } as RequestInit);
+    },
     headers: bagHeaders(request),
     original: request,
-    pass(to: string) {
-      return pass(`${to}${url.pathname}${url.search}${url.hash}`, request);
-    },
     path: new RequestBag(Object.fromEntries([]), "path"),
     query: bagQuery(url),
     url,

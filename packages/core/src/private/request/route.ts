@@ -5,7 +5,7 @@ import jsonResponse from "#response/json";
 import respond from "#response/respond";
 import type ResponseLike from "#response/ResponseLike";
 import guard from "#route/guard";
-import type RouteFunction from "#route/RouteFunction";
+import type RouteHandler from "#route/Handler";
 import type ServeApp from "#ServeApp";
 import Status from "@rcompat/http/Status";
 import type MaybePromise from "@rcompat/type/MaybePromise";
@@ -25,16 +25,16 @@ async function reducer(hooks: RouteHook[], request: RequestFacade):
   return await first(request, _ => reducer(rest, _));
 };
 
-async function getLayouts(layouts: RouteFunction[], request: RequestFacade) {
+async function getLayouts(layouts: RouteHandler[], request: RequestFacade) {
   //  const stop_at = layouts.findIndex(({ recursive }) => recursive === false);
   return Promise.all(layouts
     //   .slice(stop_at === -1 ? 0 : stop_at)
     .map(layout => layout(request)));
 };
 // last, preserve final request form
-function last(routeFunction: RouteFunction) {
+function last(handler: RouteHandler) {
   return async (request: RequestFacade) => {
-    const response = await routeFunction(request);
+    const response = await handler(request);
     return {
       request,
       response: response as ResponseLike,
@@ -53,12 +53,12 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
       return errorResponse()(app, {}, partial_request) as Response;
     }
 
-    const { errors, guards, layouts, routeFunction } = route;
+    const { errors, guards, handler, layouts } = route;
 
     errorRoute = errors.at(-1);
 
     const route_hooks = app.modules.map(module => module.route.bind(module));
-    const hooks = [...route_hooks, guard(app, guards), last(routeFunction)];
+    const hooks = [...route_hooks, guard(app, guards), last(handler)];
 
     // handle request
     const { request, response } = await reducer(hooks, route.request) as {

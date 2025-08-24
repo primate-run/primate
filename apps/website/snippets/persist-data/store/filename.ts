@@ -1,1 +1,3 @@
-export default (extension: string) => `stores/Counter${extension}`;
+import type FileRef from "@rcompat/fs/FileRef";
+
+export default (file: FileRef) => `stores/Counter${file.fullExtension}`;

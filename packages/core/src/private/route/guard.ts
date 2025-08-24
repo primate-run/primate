@@ -1,7 +1,7 @@
 import type RequestHook from "#module/RequestHook";
 import respond from "#response/respond";
 import type ResponseLike from "#response/ResponseLike";
-import type RouteFunction from "#route/RouteFunction";
+import type RouteHandler from "#route/Handler";
 import type ServeApp from "#ServeApp";
 
 type GuardError = {
@@ -11,7 +11,7 @@ type GuardError = {
 
 const sError = Symbol("guard_error");
 
-export default function(app: ServeApp, guards: RouteFunction[]): RequestHook {
+export default function(app: ServeApp, guards: RouteHandler[]): RequestHook {
   return async (request, next) => {
     // handle guards
     try {
