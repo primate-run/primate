@@ -1,0 +1,3 @@
+---
+name: Show errors
+---

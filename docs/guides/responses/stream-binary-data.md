@@ -1,0 +1,3 @@
+---
+name: Stream binary data
+---

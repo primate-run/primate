@@ -3,6 +3,7 @@ import Runtime from "#Runtime";
 import type Template from "#Template";
 import type BuildApp from "@primate/core/BuildApp";
 import empty from "@rcompat/record/empty";
+import dedent from "@rcompat/string/dedent";
 
 const htmx_esm = "htmx-esm";
 const _export = `export * from "${htmx_esm}`;
@@ -11,16 +12,10 @@ export default class Default extends Runtime {
   #extensions: string[];
   #templates: Template[];
   compile = {
-    server: (text: string) => `
-    import escape from "@primate/htmx/escape";
+    server: (text: string) => dedent`
+      import render from "@primate/htmx/render";
 
-    export default (props = {}, options) => {
-      const encoded = JSON.parse(escape(JSON.stringify(props)));
-      const keys = Object.keys(encoded);
-      const values = Object.values(encoded);
-      const text = ${JSON.stringify(text)};
-      return new Function(...keys, \`return \\\`\${text}\\\`;\`)(...values);
-    }`,
+      export default props => render(${JSON.stringify(text)}, props);`,
   };
 
   constructor(options: Options = {}) {

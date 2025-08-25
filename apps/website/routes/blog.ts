@@ -5,9 +5,11 @@ import route from "primate/route";
 const base = "content/blog";
 
 type Post = {
-  epoch: number;
-  href: string;
-};
+  meta: {
+    epoch: number;
+    href: string;
+  };
+} & Component;
 
 route.get(request => {
   return async app => {
@@ -15,9 +17,9 @@ route.get(request => {
     const posts = (await directory.collect())
       .map(post => ({
         href: post.base,
-        ...app.component<Component>(`${base}/${post.base}.md`).meta,
-      } as Post))
-      .toSorted((a, b) => a.epoch < b.epoch ? 1 : - 1);
+        ...app.component<Post>(`${base}/${post.base}.md`),
+      }))
+      .toSorted((a, b) => a.meta.epoch < b.meta.epoch ? 1 : - 1);
     const config = request.config;
     return view("Blog.svelte", { app: config, posts }, {
       placeholders: request.placeholders,

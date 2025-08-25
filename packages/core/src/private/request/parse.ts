@@ -11,12 +11,14 @@ function decode(s: string) {
   }
 };
 
-const toLower = (k: string) => k.toLowerCase();
+const normalize = (k: string) => k.toLowerCase();
 
 function bagHeaders(request: Request) {
   const headers = Object.fromEntries([...request.headers].map(([k, v]) =>
     [k.toLowerCase(), v] as const));
-  return new RequestBag(headers, "headers", toLower);
+  return new RequestBag(headers, "headers", {
+    normalize,
+  });
 }
 
 function bagCookies(request: Request) {
@@ -29,11 +31,22 @@ function bagCookies(request: Request) {
       return [decode(key), decode(value)] as const;
     })
     : []);
-  return new RequestBag(entries, "cookies");
+  return new RequestBag(entries, "cookies", {
+    raw: header ?? "",
+  });
 }
 
 function bagQuery(url: URL) {
-  return new RequestBag(Object.fromEntries(url.searchParams), "query", toLower);
+  return new RequestBag(Object.fromEntries(url.searchParams), "query", {
+    normalize,
+    raw: url.search,
+  });
+}
+
+function bagPath(url: URL) {
+  return new RequestBag(Object.create(null), "path", {
+    raw: url.pathname,
+  });
 }
 
 export default (request: Request): RequestFacade => {
@@ -56,8 +69,9 @@ export default (request: Request): RequestFacade => {
     },
     headers: bagHeaders(request),
     original: request,
-    path: new RequestBag(Object.fromEntries([]), "path"),
+    path: bagPath(url),
     query: bagQuery(url),
+    target: url.pathname + url.search,
     url,
   };
 };

@@ -106,7 +106,7 @@ export default config({
                 const iconHtml = icon
                   ? `<svg class="icon" width="16" height="16"><use href="#${icon}"></use></svg> `
                   : "";
-                return `<p class="box">${iconHtml}${content.trim()}</p>`;
+                return `<div class="box">${iconHtml}${content.trim()}</div>`;
               },
             ).replaceAll(" -- ", " – ");
           },
@@ -310,7 +310,6 @@ export default config({
               {
                 href: "/stores",
                 items: [
-                  /* ... */
                   {
                     href: "/database",
                     title: "Database stores",

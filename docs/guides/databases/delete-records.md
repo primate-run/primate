@@ -1,0 +1,3 @@
+---
+name: Delete records
+---

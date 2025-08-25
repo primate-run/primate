@@ -1,10 +1,12 @@
 <script>
   import Header from "#component/Header";
   import ExampleLink from "#component/ExampleLink";
+  import Footer from "#component/Footer";
 
   export let app;
   export let title = "The Universal Web Framework";
   export let examples = { frontend: "", backend: "", runtime: "", i18n: "" };
+  export let guides;
 
   const initCmd = "npx primate init";
   let copied = false;
@@ -33,15 +35,13 @@
       </div>
 
       <div class="hero__actions">
-        <a class="btn btn--primary" href="/docs">Get started</a>
-        <button class="btn btn--ghost" on:click={copyInit}>
+        <a class="button primary" href="/docs">Get started</a>
+        <button class="button button--ghost" on:click={copyInit}>
           <span class="prompt">$ {initCmd}</span>
           <span class="pill">{copied ? "Copied" : "Copy"}</span>
         </button>
       </div>
     </div>
-
-    <div class="section-sep"></div>
   </section>
 
   <section class="bento">
@@ -82,8 +82,6 @@
         <span class="bento__cta">See examples →</span>
       </a>
     </div>
-
-    <div class="section-sep"></div>
   </section>
 
   <section id="frontend" class="feature">
@@ -93,15 +91,14 @@
         <p class="feature__lead">
           Primate supports every major frontend and many more lesser-known ones.
           Build different parts of your app in different frontends. Missing
-          anything? Tell us and we’ll add it.
+          anything? Tell us and we'll add it.
         </p>
         <div class="feature__actions">
-          <a class="btn" href="/docs/frontend">Read docs</a>
+          <a class="button" href="/docs/frontend">Read docs</a>
         </div>
       </div>
       <div class="feature__demo">{@html examples.frontend}</div>
     </div>
-    <div class="section-sep"></div>
   </section>
 
   <section id="backend" class="feature feature--alt">
@@ -113,12 +110,11 @@
           all at the same time. New backends are added according to demand.
         </p>
         <div class="feature__actions">
-          <a class="btn" href="/docs/backend">Read docs</a>
+          <a class="button" href="/docs/backend">Read docs</a>
         </div>
       </div>
       <div class="feature__demo">{@html examples.backend}</div>
     </div>
-    <div class="section-sep"></div>
   </section>
 
   <section id="runtime" class="feature">
@@ -131,12 +127,11 @@
           boilerplate.
         </p>
         <div class="feature__actions">
-          <a class="btn" href="/docs/runtime">Read docs</a>
+          <a class="button" href="/docs/runtime">Read docs</a>
         </div>
       </div>
       <div class="feature__demo">{@html examples.runtime}</div>
     </div>
-    <div class="section-sep"></div>
   </section>
 
   <section id="ecosystem" class="feature feature--alt">
@@ -149,15 +144,14 @@
           modules.
         </p>
         <div class="feature__actions">
-          <a class="btn" href="/docs/databases">Databases</a>
-          <a class="btn" href="/docs/i18n">I18N</a>
-          <a class="btn" href="/docs/sessions">Sessions</a>
-          <a class="btn" href="/docs/native">Native apps</a>
+          <a class="button" href="/docs/databases">Databases</a>
+          <a class="button" href="/docs/i18n">I18N</a>
+          <a class="button" href="/docs/sessions">Sessions</a>
+          <a class="button" href="/docs/native">Native apps</a>
         </div>
       </div>
       <div class="feature__demo">{@html examples.i18n}</div>
     </div>
-    <div class="section-sep"></div>
   </section>
 
   <section id="learn" class="examples">
@@ -171,99 +165,31 @@
         </p>
         <a class="examples__all" href="/guides">Browse all guides →</a>
       </div>
-
-      <div class="example-group">
-        <h3 class="example-group__title">Components</h3>
-        <ul class="example-list">
-          <li><ExampleLink title="Serve component from route" /></li>
-          <li><ExampleLink title="Serve a layout component" /></li>
-          <li><ExampleLink title="Write Angular components" /></li>
-          <li><ExampleLink title="Write React components" /></li>
-          <li><ExampleLink title="Write Svelte components" /></li>
-          <li><ExampleLink title="Write Solid components" /></li>
-          <li><ExampleLink title="Write Vue components" /></li>
-          <li><ExampleLink title="Write Eta components" /></li>
-          <li><ExampleLink title="Write Marko components" /></li>
-          <li><ExampleLink title="Write HTML components" /></li>
-          <li><ExampleLink title="Write HTMX components" /></li>
-          <li><ExampleLink title="Write Handlebars compnents" /></li>
-          <li><ExampleLink title="Write Voby components" /></li>
-          <li><ExampleLink title="Write Web Components" /></li>
-          <li><ExampleLink title="Serve Markdown files" /></li>
-        </ul>
-      </div>
-
-      <div class="example-group">
-        <h3 class="example-group__title">Routes</h3>
-        <ul class="example-list">
-          <li><ExampleLink title="Use different verbs in routes" /></li>
-          <li><ExampleLink title="Add a route layout" /></li>
-          <li><ExampleLink title="Add a route guard" /></li>
-          <li><ExampleLink title="Add a route error page" /></li>
-          <li><ExampleLink title="Add routes programmtically" /></li>
-          <li><ExampleLink title="Write Golang routes" /></li>
-          <li><ExampleLink title="Write Python routes" /></li>
-          <li><ExampleLink title="Write Ruby routes" /></li>
-          <li><ExampleLink title="Write Grain routes" /></li>
-          <li><ExampleLink title="Disable body parsing" /></li>
-        </ul>
-      </div>
-
-      <div class="example-group">
-        <h3 class="example-group__title">Databases</h3>
-        <ul class="example-list">
-          <li><ExampleLink title="Add a store" /></li>
-          <li><ExampleLink title="Use store in route" /></li>
-          <li><ExampleLink title="Database lifecycle" /></li>
-          <li><ExampleLink title="Retrieve records" /></li>
-          <li><ExampleLink title="Create and update records" /></li>
-          <li><ExampleLink title="Delete records" /></li>
-          <li><ExampleLink title="Use SQLite" /></li>
-          <li><ExampleLink title="Use PostgreSQL" /></li>
-          <li><ExampleLink title="Use MySQL" /></li>
-          <li><ExampleLink title="Use SurrealDB" /></li>
-          <li><ExampleLink title="Use MongoDB" /></li>
-        </ul>
-      </div>
-
-      <div class="example-group">
-        <h3 class="example-group__title">Validation</h3>
-        <ul class="example-list">
-          <li><ExampleLink title="Runtime validation with Pema" /></li>
-          <li><ExampleLink title="Web validation" /></li>
-          <li><ExampleLink title="Validate body input" /></li>
-          <li><ExampleLink title="Validate query string" /></li>
-        </ul>
-      </div>
-
-      <div class="example-group">
-        <h3 class="example-group__title">I18N</h3>
-        <p class="examples__soon">TODO.</p>
-      </div>
+      {#each guides as category}
+        <div class="example-group">
+          <h3 class="example-group__title">{category[0]}</h3>
+          <ul class="example-list">
+            {#each category[1] as guide}
+              <li>
+                <ExampleLink
+                  title={guide.name}
+                  url={`${category[0]}/${guide.path}`}
+                />
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {/each}
     </div>
-
-    <div class="section-sep"></div>
   </section>
 
-  <footer class="home-footer">
-    <nav class="home-footer__links">
-      <a href="/docs">Docs</a>
-      <a href="/guides">Guides</a>
-      <a href="/blog">Blog</a>
-      <a href="/chat">Community</a>
-      <a href="https://x.com/primate_run">X</a>
-      <a href="https://github.com/primate-run/primate">Source</a>
-      <span class="license"
-        >Primate is released under the <a
-          href="https://github.com/primate-run/primate/blob/master/LICENSE"
-          >MIT license</a
-        >.
-      </span>
-    </nav>
-  </footer>
+  <Footer />
 </main>
 
 <style>
+  section {
+    border-bottom: 1px solid var(--border);
+  }
   .emphasis {
     font-weight: bold;
     color: var(--fg);
@@ -304,32 +230,32 @@
     justify-content: center;
     align-items: center;
   }
-  .btn {
+  .button {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
     padding: 0.95rem 1.6rem;
     border-radius: 8px;
     border: 1px solid var(--border);
     background: var(--bg);
     color: var(--fg);
   }
-  .btn--primary {
+  .button.primary {
     background: var(--primary);
     color: #fff;
     border-color: var(--primary);
     font-size: 14px;
     padding: 7.5px 15px;
   }
-  .btn--ghost {
+  .button--ghost {
     font-family: droid-sans-mono;
   }
-  .btn .pill {
-    font-size: 1.2rem;
+  .button .pill {
+    font-size: 12px;
     background: color-mix(in srgb, var(--fg) 10%, transparent);
     border-radius: 999px;
     padding: 0.2rem 0.6rem;
     font-family: inter;
+    margin-left: 7.5px;
   }
 
   .hero__bg {
@@ -361,16 +287,6 @@
         var(--grid) 0 1px,
         transparent 1px 32px
       );
-  }
-
-  .section-sep {
-    height: 1px;
-    width: 100vw;
-    background: var(--border);
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 0;
   }
 
   .bento {
@@ -472,10 +388,6 @@
     gap: 0.6rem;
     flex-wrap: wrap;
   }
-  .feature__actions .btn {
-    padding: 0.6rem 1rem;
-    font-size: 13.5px;
-  }
 
   .feature__demo {
     grid-area: demo;
@@ -487,34 +399,6 @@
     box-shadow:
       0 1px 0 color-mix(in srgb, var(--fg) 8%, transparent),
       0 12px 30px color-mix(in srgb, var(--fg) 6%, transparent);
-  }
-
-  .home-footer {
-    padding: 2.5rem 0 4rem;
-  }
-  .home-footer__links {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 var(--prs-page-padding-side);
-    display: flex;
-    gap: 1.4rem;
-    flex-wrap: wrap;
-    color: var(--heading);
-  }
-  .home-footer__links a {
-    color: var(--heading);
-    text-decoration: none;
-    border-bottom: 1px dashed transparent;
-  }
-  .home-footer__links a:hover {
-    border-bottom-color: var(--primary);
-  }
-  .home-footer .license {
-    flex-grow: 1;
-    text-align: right;
-  }
-  .home-footer .license a {
-    color: var(--fg);
   }
 
   @media (max-width: 900px) {

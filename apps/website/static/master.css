@@ -207,20 +207,23 @@ main {
   font-size: 14px;
 }
 
-p.box {
+.box {
   padding: 10px 15px;
   background: var(--caption-bg);
   border-radius: 5px;
-  display: flex;
-  align-items: center;
 }
 
-p.box svg {
+.box svg {
   margin-right: 10px;
 }
 
-main.blog {
+main.blog,
+main.guide {
   grid-template-columns: 0 minmax(0, 1fr);
+}
+
+.guide h3 {
+  margin-top: 10px;
 }
 
 .edit-this-page,
@@ -249,10 +252,9 @@ button {
   color: var(--fg);
 }
 
-header a,
-header button,
-nav a {
-  /*  color: var(--fg2);*/
+a.button {
+  font-size: 14px;
+  padding: 7.5px 15px;
 }
 
 a:hover,
@@ -260,10 +262,17 @@ button:hover {
   cursor: pointer;
 }
 
-button {
+header button {
+  padding: 0;
+}
+
+button,
+a.button {
   padding: 0;
   background: none;
   border: 0;
+  height: 38px;
+  box-sizing: border-box;
 }
 
 .home,
@@ -312,6 +321,11 @@ button {
   display: none;
 }
 
+.guide article,
+.blog article {
+  width: 1160px;
+}
+
 article {
   grid-column: 2;
   /* middle/content track */
@@ -355,6 +369,10 @@ article a {
 article td {
   font-size: 14px;
   text-align: left;
+}
+
+.guide h1 code {
+  font-size: 30px;
 }
 
 h2 code,

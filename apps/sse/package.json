@@ -1,0 +1,13 @@
+{
+  "name": "@primate/app/chat",
+  "type": "module",
+  "scripts": {
+    "start": "npx primate",
+    "build": "npx primate build"
+  },
+  "dependencies": {
+    "@primate/html": "workspace:^",
+    "pema": "workspace:^",
+    "primate": "workspace:^"
+  }
+}

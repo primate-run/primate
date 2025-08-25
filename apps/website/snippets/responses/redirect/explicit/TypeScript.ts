@@ -6,4 +6,4 @@ import route from "primate/route";
 route.get(() => redirect("https://primate.run", Status.SEE_OTHER));
 
 // local redirect
-route.get(request => redirect(`/login?next=${request.query.toString()}`));
+route.post(request => redirect(`/login?next=${request.target}`));

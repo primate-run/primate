@@ -3,6 +3,10 @@
 
   export let app, posts;
 
+  function toExcerpt(post) {
+    const end = post.html.indexOf("</p>");
+    return post.html.slice(0, end + "</p>".length);
+  }
   const format = { day: "2-digit", month: "short", year: "numeric" };
   const date = (epoch) => new Date(epoch).toLocaleDateString("en-AU", format);
   const iso = (epoch) => new Date(epoch).toISOString().slice(0, 10);
@@ -18,16 +22,14 @@
       {#each posts as post}
         <li class="entry">
           <a href={"/blog/" + post.href}>
-            <h2 class="entry__title">{post.title}</h2>
+            <h2 class="entry__title">{post.meta.title}</h2>
 
-            <p class="entry__excerpt">
-              {post.excerpt ||
-                "Short description goes here — one sentence that summarizes the post. You can include inline code like `primate init` or `routes/index.ts` and it will render as a chip."}
-            </p>
+            <p class="entry__excerpt">{@html toExcerpt(post)}</p>
 
             <div class="entry__meta">
-              {post.author} ·
-              <time datetime={iso(post.epoch)}>{date(post.epoch)}</time>
+              <time datetime={iso(post.meta.epoch)}
+                >{date(post.meta.epoch)}</time
+              >
             </div>
           </a>
         </li>
@@ -70,25 +72,11 @@
     line-height: 1.25;
     letter-spacing: -0.01em;
   }
-  .entry__title a,
-  .entry__title a:hover {
-    color: var(--fg1);
-    text-decoration: none;
-  }
 
   .entry__excerpt {
     margin: 0;
     color: var(--fg2);
     line-height: 1.6;
-  }
-  /* inline code chips in excerpts (Bun-like) */
-  .entry__excerpt code {
-    font-family: droid-sans-mono, ui-monospace, SFMono-Regular, Menlo, monospace;
-    background: color-mix(in srgb, var(--fg) 6%, transparent);
-    border: 1px solid var(--border);
-    padding: 0.08rem 0.4rem;
-    border-radius: 6px;
-    font-size: 0.92em;
   }
 
   .entry__meta {

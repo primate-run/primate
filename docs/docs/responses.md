@@ -63,8 +63,8 @@ Use the explicit `redirect` handler to vary the status or for local redirects.
 [s=responses/redirect/explicit]
 
 ## View
-Use the `view` handler to render and serve a [component](/components) from
-the `components` directory as `text/html`.
+Render and serve [components](/components) from the `components` directory as
+`text/html`.
 
 [s=responses/view/simple]
 
@@ -74,105 +74,73 @@ Populate the component with initial props.
 [s=responses/view/props]
 
 ### Page
-
 Components are embedded into your app's main HTML page at `pages/app.html`,
 with the component code replacing the `%body%` placeholder. If the app page
 doesn't exist, Primate will fall back to its standard one.
 
 [s=responses/view/page]
 
-Pass a different `page` under options to use another HTML page.
+Pass a different `page` option to use another HTML page.
 
 [s=responses/view/other-page]
 
 ### Placeholders
-
 You can use placeholders in your HTML pages.
 
 [s=responses/view/placeholders/page]
 
-Populate them from your routes.
+Populate them in your routes.
 
 [s=responses/view/placeholders/route]
 
-!!! info
-Consider writing a [Module](/module) to set certain placeholders for every
+!!!
+Consider writing a [Module](/modules) to set certain placeholders for every
 route.
 !!!
 
 ### Partial
-Pass `partial: true` as options to render the component without the enclosing
+Pass a `partial: true` option to render the component without the enclosing
 HTML page.
 
 [s=responses/view/partial]
 
-This is useful for replacing parts of the page while reusing the HTML page.
+This is useful for replacing parts of the page whilst retaining the HTML page.
 
 ## Error
+Serve a `404 Not Found` error page as `text/html`.
+[s=responses/error/simple]
 
-Render an error page. Defaults to **404 Not Found**.
+This handler will use the HTML file at `pages/error.html` or fall back to a
+standard one provided by Primate.
 
-```ts
-import error from "primate/response/error";
+[s=responses/error/page]
 
-export default () => error("Not Found");
-```
+You can pass a custom status to this handler.
 
-Set a custom status (e.g., **500**):
+[s=responses/error/custom]
 
-```ts
-import error from "primate/response/error";
-import { Status } from "@rcompat/http/Status";
+As with `view`, you can pass a different `page` option to use another HTML page.
 
-export default () => error("Boom", { status: Status.INTERNAL_SERVER_ERROR });
-```
+[s=responses/error/other-page]
 
 ## WebSocket
 
-Upgrade the request to `ws:` and handle `open`, `message`, and `close`.
+Upgrade a `GET` request to `ws:` and handle `open`, `message`, and `close`
+events.
 
-```ts
-import ws from "primate/response/ws";
-
-export default () => ws({
-  open(socket) {
-    socket.send("hello");
-  },
-  message(socket, message) {
-    // echo
-    socket.send(String(message));
-  },
-  close() {
-    // cleanup
-  },
-});
-```
+[s=responses/ws]
 
 ## Server‑sent events
 
-Return `text/event-stream` and push events.
+Push out events to the client as `text/event-stream`.
 
-```ts
-import sse from "primate/response/sse";
+[s=responses/sse]
 
-export default () => sse(({ send }) => {
-  const timer = setInterval(() => send("tick", Date.now()), 1000);
-  return () => clearInterval(timer); // cleanup on disconnect
-});
-```
+## Response
 
-## `Response`
+Return a custom `Response`.
 
-Return any WHATWG `Response` yourself.
-
-```ts
-import { Status } from "@rcompat/http/Status";
-
-export default () => new Response("custom", {
-  status: Status.ACCEPTED,
-  headers: { "X-Custom": "1" },
-});
-```
+[s=responses/Response]
 
 ## `ResponseLike` reference
 

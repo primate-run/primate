@@ -1,0 +1,3 @@
+---
+name: Serve plain text
+---

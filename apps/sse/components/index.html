@@ -1,0 +1,6 @@
+<script>
+  new EventSource("/sse").addEventListener("passed", event => {
+    const seconds = Number(event.data);
+    console.log(`${seconds} seconds since connection opened`);
+  });
+</script>

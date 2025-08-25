@@ -1,0 +1,18 @@
+import sse from "primate/response/sse";
+import route from "primate/route";
+
+route.get(() => {
+  let timer: ReturnType<typeof setInterval>;
+  const start = Date.now();
+
+  return sse({
+    open(source) {
+      timer = setInterval(() => {
+        source.send("passed", Math.floor((Date.now() - start) / 1000));
+      }, 5000); // every 5s
+    },
+    close() {
+      clearInterval(timer);
+    },
+  });
+});

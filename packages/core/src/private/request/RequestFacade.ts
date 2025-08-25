@@ -11,6 +11,10 @@ type RequestFacade = {
   original: Request;
   path: RequestBag;
   query: RequestBag;
+  /**
+   * The request's pathname + querystring.
+   */
+  target: string;
   url: URL;
 } & Dict<Dict | unknown>;
 

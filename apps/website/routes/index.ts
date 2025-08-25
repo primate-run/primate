@@ -10,7 +10,8 @@ route.get(request => {
       .map(section => [
         section,
         app.component<Component>(`content/home/${section}.md`).html]));
-    const props = { app: request.config, examples };
+    const guides = await app.root.join("guides.json").json();
+    const props = { app: request.config, examples, guides };
     const options = { placeholders: request.placeholders };
 
     return view("Index.svelte", props, options)(app, ...args);
