@@ -68,7 +68,7 @@ async function bridgeBody(body: RequestBody) {
     case "fields": {
       return await bridgeFields(body);
     }
-    case "bin": {
+    case "binary": {
       const blob: Blob = body.binary();
       const buf = new Uint8Array(await blob.arrayBuffer()); // precompute bytes
       const mime = blob.type || "application/octet-stream";

@@ -1,18 +1,17 @@
-import Status from "primate/http/Status";
 import test from "primate/test";
 
-test.get("/optional", response => {
+test.get("/optional-rest", response => {
   response.body.equals("index");
 });
 
-test.get("/optional/1", response => {
+test.get("/optional-rest/1", response => {
   response.body.equals("1");
 });
 
-test.get("/optional/foo", response => {
+test.get("/optional-rest/foo", response => {
   response.body.equals("foo");
 });
 
-test.get("/optional/foo/bar", response => {
-  response.status.equals(Status.NOT_FOUND);
+test.get("/optional-rest/foo/bar", response => {
+  response.body.equals("foo/bar");
 });

@@ -211,6 +211,7 @@ main {
   padding: 10px 15px;
   background: var(--caption-bg);
   border-radius: 5px;
+  line-height: 30px;
 }
 
 .box svg {
@@ -237,7 +238,10 @@ main.guide {
   margin-bottom: 20px;
 }
 
-.edit-this-page .icon,
+svg.icon {
+  vertical-align: middle;
+}
+
 .blog-metadata .icon {
   margin-right: 0.5rem;
 }
@@ -493,6 +497,11 @@ article a.deeplink {
 
 .sidebar li:hover:not(.heading) {
   border-left: 1px solid var(--sidebar-active);
+}
+
+article li {
+  margin: 8px 0;
+  list-style-type: square;
 }
 
 header a:hover {

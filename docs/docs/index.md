@@ -6,7 +6,7 @@ Unlike other frameworks, it doesn't lock you into one particular stack,
 and instead allows you to freely combine frontends, backends, databases and
 runtimes into a mix that works best for you.
 
-It's the *last* web framework you'll ever need.
+It's the **last** web framework you'll ever need.
 
 ## Universal framework
 

@@ -144,19 +144,4 @@ Return a custom `Response`.
 
 ## `ResponseLike` reference
 
-`ResponseLike` is what route handlers may return. In essence:
-
-```ts
-type ResponseLike =
-  | Response                      // a WHATWG Response you construct
-  | import("primate/response/ResponseFunction").default // function receiving `app`
-  | string                        // → text/plain
-  | URL                           // → redirect
-  | Blob | ReadableStream         // → application/octet-stream
-  | Record<string, unknown>       // → application/json
-  | Array<Record<string, unknown>>// → application/json
-  | null                          // → 204 No Content
-  | Promise<ResponseLike>;        // anything above, asynchronously
-```
-
-Auto‑detection lives in `src/private/response/respond.ts` and applies the same mapping used by the explicit helpers.
+[s=responses/reference/ResponseLike]

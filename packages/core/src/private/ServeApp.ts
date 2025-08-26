@@ -132,7 +132,7 @@ export default class ServeApp extends App {
     this.#router = FileRouter.init({
       extensions: [".js"],
       specials: {
-        error: { recursive: true },
+        error: { recursive: false },
         guard: { recursive: true },
         layout: { recursive: true },
       },
@@ -334,17 +334,17 @@ export default class ServeApp extends App {
         const verbs = router.get(v);
         const routeHandler = verbs[verb];
         if (routeHandler === undefined) {
-          throw new AppError("route {0} has no {1} verb", route.fullpath, verb);
+          throw new AppError("route {0} has no {1} verb", route.path, verb);
         }
         return routeHandler.handler;
       })])
       .get();
 
-    const verbs = router.get(route.fullpath)!;
+    const verbs = router.get(route.path)!;
     const routePath = verbs[verb];
 
     if (routePath === undefined) {
-      throw new AppError("route {0} has no {1} verb", route.fullpath, verb);
+      throw new AppError("route {0} has no {1} verb", route.path, verb);
     }
 
     const parseBody = routePath.options.parseBody;

@@ -1,6 +1,7 @@
 <script>
   import Header from "#component/Header";
   import Footer from "#component/Footer";
+  import Icon from "#component/Icon";
 
   export let content, meta, app, category;
 
@@ -36,7 +37,8 @@
 <main class="guide">
   <article>
     <span class="breadcrumbs">
-      <a href="/guides">Guides</a> >
+      <a href="/guides">Guides</a>
+      <Icon name="chevron-right" />
       <a href={`/guides/${category}`}>
         {`${category.charAt(0).toUpperCase()}${category.slice(1)}`}
       </a>
@@ -66,8 +68,14 @@
 <Footer />
 
 <style>
+  .breadcrumbs {
+    font-size: 14px;
+  }
   .guide .breadcrumbs a {
     text-decoration: none;
+  }
+  .guide .breadcrumbs a:hover {
+    color: var(--primary);
   }
   .guide h1 {
     margin-bottom: 10px;

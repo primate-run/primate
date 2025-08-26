@@ -18,6 +18,7 @@ const simpleRequest: RequestFacade = {
   original: request,
   path: new RequestBag({}, "path", { normalize: v => v.toLowerCase() }),
   query: new RequestBag({}, "query", { normalize: v => v.toLowerCase() }),
+  target: "/my/?webserver=forever",
   url: new URL("https://primate.run/my/?webserver=forever"),
 };
 

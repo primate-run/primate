@@ -29,17 +29,17 @@ export default async (directory: FileRef, extensions: string[]) => {
       },
     });
     router.all().map(route => {
-      const { fullpath, path } = route;
+      const { path, segment } = route;
 
-      if (!allowed.re.test(path)) {
+      if (!allowed.re.test(segment)) {
         const message = `route {0} may only contain ${allowed.text}`;
-        throw new AppError(message, fullpath, ...allowed.replacements);
+        throw new AppError(message, path, ...allowed.replacements);
       }
-      if (path.startsWith("+") && !specials.includes(path.slice(1))) {
-        throw new AppError("route {0} is not a valid special file", fullpath);
+      if (segment.startsWith("+") && !specials.includes(segment.slice(1))) {
+        throw new AppError("route {0} is not a valid special file", path);
       }
-      if (!p.test(path)) {
-        throw new AppError("route {0} has an invalid parameter", fullpath);
+      if (!p.test(segment)) {
+        throw new AppError("route {0} has an invalid parameter", path);
       }
     });
     return router;

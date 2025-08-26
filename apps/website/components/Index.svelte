@@ -2,6 +2,7 @@
   import Header from "#component/Header";
   import ExampleLink from "#component/ExampleLink";
   import Footer from "#component/Footer";
+  import Icon from "#component/Icon";
 
   export let app;
   export let title = "The Universal Web Framework";
@@ -52,7 +53,9 @@
           Mix React, Svelte, Vue, Angular — in one app. If it compiles to the
           web, we support it.
         </p>
-        <span class="bento__cta">See examples →</span>
+        <span class="bento__cta">
+          See examples <Icon name="chevron-right" />
+        </span>
       </a>
 
       <a class="bento__card" href="#backend">
@@ -61,7 +64,9 @@
           Courtesy of Wasm: write routes in JS/TS, Go, Ruby, Python. Use one —
           or all together.
         </p>
-        <span class="bento__cta">See examples →</span>
+        <span class="bento__cta">
+          See examples <Icon name="chevron-right" />
+        </span>
       </a>
 
       <a class="bento__card" href="#runtime">
@@ -70,7 +75,9 @@
           Node, Deno, Bun and emerging runtimes with consistent APIs and fast
           native paths.
         </p>
-        <span class="bento__cta">See examples →</span>
+        <span class="bento__cta">
+          See examples <Icon name="chevron-right" />
+        </span>
       </a>
 
       <a class="bento__card" href="#ecosystem">
@@ -79,7 +86,9 @@
           Databases, ORM, sessions, auth, i18n, native builds — official modules
           that keep growing.
         </p>
-        <span class="bento__cta">See examples →</span>
+        <span class="bento__cta">
+          See examples <Icon name="chevron-right" />
+        </span>
       </a>
     </div>
   </section>
@@ -163,7 +172,9 @@
           Short, focused guides to common tasks. Browse the topics and jump into
           the docs.
         </p>
-        <a class="examples__all" href="/guides">Browse all guides →</a>
+        <a class="examples__all" href="/guides">
+          Browse all guides <Icon name="chevron-right" />
+        </a>
       </div>
       {#each guides as category}
         <div class="example-group">

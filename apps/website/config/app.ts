@@ -89,6 +89,9 @@ function make_captions(captionline: string) {
     }</span>${filename_block}</span>`;
 }
 
+const toIcon = (id: string) =>
+  `<svg class="icon" width="16" height="16"><use href="#${id}"></use></svg>`;
+
 export default config({
   build: {
     loader: {
@@ -104,11 +107,15 @@ export default config({
               /!!!\s*([a-zA-Z0-9_-]+)?\n([\s\S]*?)\n!!!/g,
               (_, icon, content) => {
                 const iconHtml = icon
-                  ? `<svg class="icon" width="16" height="16"><use href="#${icon}"></use></svg> `
+                  ? toIcon(icon)
                   : "";
                 return `<div class="box">${iconHtml}${content.trim()}</div>`;
               },
-            ).replaceAll(" -- ", " – ");
+            )
+              .replaceAll(" -- ", " – ")
+              .replaceAll("✓", toIcon("check"))
+              .replaceAll("✗", toIcon("x2"))
+              ;
           },
           preprocess(html) {
             return html.replaceAll(/%%%(.*?)\n(.*?)%%%/gus, (_, p1, p2) => {
