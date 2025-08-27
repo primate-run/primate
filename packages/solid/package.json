@@ -28,7 +28,7 @@
     "@babel/core": "^7.28.3",
     "@primate/core": "workspace:^",
     "@rcompat/build": "^0.14.0",
-    "@rcompat/fs": "^0.21.0",
+    "@rcompat/fs": "^0.21.1",
     "@rcompat/runtime": "^0.6.0",
     "babel-preset-solid": "^1.9.9"
   },

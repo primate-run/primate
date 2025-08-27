@@ -1,4 +1,4 @@
-import Status from "primate/http/Status";
+import Status from "primate/response/Status";
 import test from "primate/test";
 
 test.get("/handler/error", response => {
@@ -21,7 +21,7 @@ test.get("/handler/redirect-status", response => {
 });
 
 test.get("/handler/view", response => {
-  response.body.includes(`<h1>View</h1>Hello, world.`);
+  response.body.includes("<h1>View</h1>Hello, world.");
 });
 
 test.get("/handler/view-options", response => {

@@ -9,7 +9,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.3.0",
-    "@rcompat/fs": "^0.21.0",
+    "@rcompat/fs": "^0.21.1",
     "@rcompat/stdio": "^0.11.0",
     "pema": "workspace:^"
   },

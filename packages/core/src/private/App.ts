@@ -6,7 +6,6 @@ import type Mode from "#Mode";
 import type Module from "#Module";
 import PlatformManager from "#platform/Manager";
 import reducer from "#reducer";
-import type RouteHandler from "#route/Handler";
 import wrap from "#route/wrap";
 import assert from "@rcompat/assert";
 import transform from "@rcompat/build/sync/transform";
@@ -68,7 +67,6 @@ export default class App {
   #modules: Module[];
   #kv = new Map<symbol, unknown>();
   #mode: Mode;
-  #defaultErrorHandler: RouteHandler | undefined;
   #bindings: [string, Binder][] = Object.entries(default_bindings);
   #platform: PlatformManager;
 
@@ -82,12 +80,6 @@ export default class App {
   }
 
   async init(platform: string) {
-    const error = this.#path.routes.join("+error.js");
-
-    this.#defaultErrorHandler = await error.exists()
-      ? await error.import("default") as RouteHandler
-      : undefined;
-
     const names = this.#modules.map(({ name }) => name);
     if (new Set(names).size !== this.#modules.length) {
       throw new AppError("module {0} loaded twice", doubled(names));
@@ -122,10 +114,6 @@ export default class App {
 
   get modules() {
     return [...this.#modules];
-  }
-
-  get defaultErrorRoute() {
-    return this.#defaultErrorHandler;
   }
 
   get extensions() {

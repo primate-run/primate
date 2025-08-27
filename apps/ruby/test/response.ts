@@ -1,4 +1,4 @@
-import Status from "primate/http/Status";
+import Status from "primate/response/Status";
 import test from "primate/test";
 
 test.get("/response/error", response => {

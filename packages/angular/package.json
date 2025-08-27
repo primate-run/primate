@@ -30,7 +30,7 @@
     "@rcompat/assert": "^0.3.0",
     "@rcompat/build": "^0.14.0",
     "@rcompat/crypto": "^0.10.0",
-    "@rcompat/fs": "^0.21.0",
+    "@rcompat/fs": "^0.21.1",
     "@rcompat/record": "^0.9.1",
     "zone.js": "^0.15.1"
   },

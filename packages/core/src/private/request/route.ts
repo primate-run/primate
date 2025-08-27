@@ -25,12 +25,6 @@ async function reducer(hooks: RouteHook[], request: RequestFacade):
   return await first(request, _ => reducer(rest, _));
 };
 
-async function getLayouts(layouts: RouteHandler[], request: RequestFacade) {
-  //  const stop_at = layouts.findIndex(({ recursive }) => recursive === false);
-  return Promise.all(layouts
-    //   .slice(stop_at === -1 ? 0 : stop_at)
-    .map(layout => layout(request)));
-};
 // last, preserve final request form
 function last(handler: RouteHandler) {
   return async (request: RequestFacade) => {
@@ -43,8 +37,7 @@ function last(handler: RouteHandler) {
 };
 
 export default async function(app: ServeApp, partial_request: RequestFacade) {
-  // if tryreturn throws, this will default
-  let errorRoute = app.defaultErrorRoute;
+  let errorRoute: RouteHandler | undefined;
 
   try {
     const route = await app.route(partial_request);
@@ -55,7 +48,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
 
     const { errors, guards, handler, layouts } = route;
 
-    errorRoute = errors.at(-1);
+    errorRoute = errors[0];
 
     const route_hooks = app.modules.map(module => module.route.bind(module));
     const hooks = [...route_hooks, guard(app, guards), last(handler)];
@@ -66,8 +59,9 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
       response: ResponseLike;
     };
 
-    const $layouts = { layouts: await getLayouts(layouts, request) };
-    return await respond(response)(app, $layouts, request) as Response;
+    return await respond(response)(app, {
+      layouts: await Promise.all(layouts.map(layout => layout(request))),
+    }, request) as Response;
   } catch (error) {
     const request = partial_request;
     if (error instanceof ParseError) {
