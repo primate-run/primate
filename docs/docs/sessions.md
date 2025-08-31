@@ -1,82 +1,253 @@
 # Sessions
 
-Primate has built-in session support via cookies.
+Sessions let you persist state across requests: authentication, user
+preferences, shopping carts, or any other server-side data you want tied to a
+client. Primate manages session cookies, validates session data, and ensures
+changes are committed only if your route succeeds.
 
-Primate creates and sends a session cookie with the response using the
-`Set-Cookie` header. If the client issues a request with a cookie that
-identifies an existing session id, no new cookie is created or sent.
+## Configuration
 
-The session is available using the `primate/session` import.
+Sessions are configured in `config/session.ts`. By default, Primate uses an
+in-memory manager and a secure HTTP-only cookie named `session_id`.
 
-```js caption=routes/index.js
-import session from "primate/session";
+### Session options
 
-export default {
-  get() {
-    // send a 200 OK, plain text with the cookie's id as body
-    return session.id;
+|Option|Default|Description|
+|-|-|-|
+|[cookie.httpOnly](#cookie-httponly)|`true`|mark cookie as `HttpOnly`|
+|[cookie.name](#cookie-name)|`"session_id"`|name of the session cookie|
+|[cookie.path](#cookie-path)|`"/"`|path for which the cookie is valid|
+|[cookie.sameSite](#cookie-samesite)|`"Lax"`|`SameSite` cookie policy|
+|[manager](#manager)|`InMemorySessionManager`|session manager instance|
+|[schema](#schema)|`undefined`|validation schema for session data|
+
+### `cookie.httpOnly`
+
+Whether the session cookie should be marked `HttpOnly` (hidden from client-side
+JavaScript).
+
+### `cookie.name`
+
+The name of the session cookie.
+
+### `cookie.path`
+
+The path for which the cookie is valid.
+
+### `cookie.sameSite`
+
+The `SameSite` cookie policy: `"Strict"`, `"Lax"`, or `"None"`.
+
+### `manager`
+
+The session manager. By default Primate uses an in-memory session manager that
+resets on server restart. You can provide any custom manager that extends
+`SessionManager`.
+
+### `schema`
+
+Optional schema to validate session data at runtime. Any schema with a
+`parse(input: unknown): T` method works. Primate recommends its own validation
+library, Pema.
+
+### Example
+
+```ts
+import pema from "pema";
+import date from "pema/date";
+import uint from "pema/uint";
+import session from "primate/config/session";
+
+// shape of session data
+const SessionData = pema({
+  userId: uint,
+  lastActivity: date.default(() => new Date()),
+});
+
+// export configuration
+export default session({
+  cookie: {
+    name: "sid",
+    sameSite: "Strict",
   },
-};
+  schema: SessionData,
+});
 ```
 
-Here, a client requesting `GET /` will see its own session id.
+## Session facade
 
-## Use in stores
+The session facade is the API you use in routes to interact with session state.
+It hides cookie handling and persistence details, exposing a simple interface
+to create, read, update, and destroy sessions.
 
-Like, to use the current session in a store file, import it from
-`primate/session`.
+| method / property | description |
+| ----------------- | ----------- |
+| `id`              | current session ID, if one exists |
+| `exists`          | whether a session is active |
+| `create(initial)` | start a session with initial data; generates a new ID |
+| `get()`           | return current session data; throws if none |
+| `try()`           | return data if a session exists, otherwise `undefined` |
+| `set(data)`        | replace session data or derive from the previous state |
+| `destroy()`       | end the session and clear the cookie |
 
-```js
-import session from "@primate/session";
+### Usage in routes
 
-export const actions = driver => {
-  return {
-    custom_action() {
-      // assumes you have initialized your session with { user_id: USER_ID }
-      const { user_id } = session.data;
+Import the session facade via `#session`. It is bound to the session data type
+you declared in `config/session.ts`.
 
-      // use current user_id in query
-    },
-  };
-};
+```ts
+import session from "#session";
+import route from "primate/route";
+
+route.get(() => {
+  if (!session.exists) {
+    session.create({ userId: 42 });
+  }
+
+  const data = session.get();
+  return `User ${data.userId} last active at ${data.lastActivity.toISOString()}`;
+});
 ```
 
-## Configuration options
 
-### name
+### `SessionFacade` reference
 
-Default `"session_id"`
+```ts
+interface SessionFacade<T> {
+  readonly id: string | undefined;
+  readonly exists: boolean;
 
-The session cookie's name.
+  create(initial?: T): void;
+  get(): Readonly<T>;
+  try(): Readonly<T> | undefined;
 
-### sameSite
+  set(next: ((previous: Readonly<T>) => T) | T): void;
 
-Default `"Strict"`
+  destroy(): void;
+}
+```
 
-The cookie's `SameSite` attribute.
+## Managers
 
-### path
+A **session manager** is responsible for storing and retrieving session data.
+The default is in-memory and resets when the server restarts.
 
-Default `"/"`
+Primate leaves persistence to the manager. This contract defines the minimum
+required methods:
 
-The cookie's `Path` attribute.
+```ts
+export default abstract class SessionManager<Data> {
+  init(): void | Promise<void> { }
 
-### manager
+  abstract load(id: string): Data | undefined | Promise<Data | undefined>;
+  abstract create(id: string, data: Data): void | Promise<void>;
+  abstract save(id: string, data: Data): void | Promise<void>;
+  abstract destroy(id: string): void | Promise<void>;
+}
+```
 
-Default [in-memory session manager][inMemorySessionManager]
+Any manager that implements this interface can be plugged in through
+`config/session.ts`.
 
-The session manager. When called, it returns a function that is given an id
-identifying a session and returns a session object to be set on `request`. The
-return object must contain a `id` property. If the given id and the returned
-`session.id` differ, a `Set-Cookie` header is added to the response.
+!!!
+The contract isn't just type-based. The manager must extend `SessionManager`;
+this is validated during start-up.
+!!!
 
-Unless set, a default in-memory manager will be used, such that sessions do not
-survive an app restart.
+### Example: file-based manager
 
-## Security
+```ts
+import is from "@rcompat/assert/is";
+import FileRef from "@rcompat/fs/FileRef";
+import type JSONValue from "@rcompat/type/JSONValue";
+import SessionManager from "primate/session/Manager";
 
-**Protocol downgrade attacks** cookies are sent with the `Secure` attribute if
-Primate [is running on https](/guide/configuration#http-ssl-key-cert)
+export default class FileSessionManager extends SessionManager<unknown> {
+  #directory: FileRef;
 
-**Cross-site scripting attacks** cookies are always sent with the `HttpOnly`
-attribute
+  constructor(directory: string = "/tmp/sessions") {
+    is(directory).string();
+
+    super();
+    this.#directory = new FileRef(directory);
+  }
+
+  async init() {
+    await this.#directory.create({ recursive: true });
+  }
+
+  async load(id: string) {
+    is(id).uuid("invalid session id");
+
+    try {
+      return await this.#directory.join(id).json();
+    } catch {
+      return undefined;
+    }
+  }
+
+  async create(id: string, data: JSONValue) {
+    is(id).uuid("invalid session id");
+
+    await this.#directory.join(id).writeJSON(data);
+  }
+
+  async save(id: string, data: JSONValue) {
+    await this.create(id, data);
+  }
+
+  async destroy(id: string) {
+    is(id).uuid("invalid session id");
+
+    await this.#directory.join(id).remove();
+  }
+}
+```
+
+!!!
+This manager validates IDs as UUIDs to prevent path traversal attacks, making
+it safe for use as an example. For production, you'll likely want Redis or a
+DB-backed manager.
+!!!
+
+Then configure:
+
+```ts
+import session from "primate/config/session";
+import FileSessionManager from "./FileSessionManager.ts";
+
+export default session({
+  manager: new FileSessionManager(),
+});
+```
+
+!!!
+While the session manager can be asynchronous (save to filesystem or database),
+all session facade operations are sync — changes are committed once the route
+has run successfully, and are rolled back upon error.
+!!!
+
+## Validation
+
+When you provide a schema, Primate validates data passed to `create` and `set`:
+
+```ts
+import pema from "pema";
+import string from "pema/string";
+import session from "#session";
+import route from "primate/route";
+
+const Data = pema({ token: string.min(10) });
+
+route.post(() => {
+  // Throws if token is shorter than 10 characters
+  session.set({ token: "abc" });
+});
+```
+
+!!!
+Other operations like `get`, `try` or `destroy` don't take input and do not
+trigger validation.
+!!!
+
+This ensures your session store never contains malformed data.

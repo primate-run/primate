@@ -1,77 +1,74 @@
 # What is Primate?
 
-Primate is the universal web framework for building full-stack applications.
+Primate is a *universal web framework* for building full-stack applications.
 
-Unlike other frameworks, it doesn't lock you into one particular stack,
-and instead allows you to freely combine frontends, backends, databases and
-runtimes into a mix that works best for you.
-
-It's the **last** web framework you'll ever need.
+It doesn't tie you to a single stack — it lets you freely combine frontends,
+backends, databases, and runtimes into the mix that works best for you.
 
 ## Universal framework
 
 [s=intro/frontend]
 
-As a web developer, you're *beset* with frameworks. There is a reason framework
-fatique is an actual term. And offering you *yet another* framework is not
-making it any better.
+Web development today is fragmented. For almost every frontend framework,
+there's a corresponding *meta-framework*: React has Next, Vue has Nuxt,
+Svelte has SvelteKit. Angular tries to be both.
 
-But to the extent that you're tired of everyone making a framework, Primate is
-a gust of fresh air. Because its goal is no less than making other full-stack
-web frameworks obsolete, by design.
+Once you commit, you're locked in — backend code built for one meta-framework
+won't easily move to another.
 
-For almost every frontend out there, some very smart people thought it necessary
-to create a full-stack framework to accompany it. For React, you have NextJS.
-For Vue, Nuxt. Svelte has Sveltekit. And Angular is somehow both a frontend and
-a full-stack framework at the same time. No one knows why.
+Primate avoids this trap. You can use your favorite frontend with a backend that
+works the same way across all of them. You can even combine different frontends
+in one project, or migrate gradually without rewriting your server.
 
-Those full-stack frameworks, also often called meta-frameworks, are similar in
-some aspects, and differ in others. It seems that for whatever frontend you've
-chosen to use, you're bound to be vendor-locked into a full-stack monstrosity.
-And if some day, you've decided you want to move on to another frontend -- well,
-tough luck, because your backend code is only good for one thing.
-
-Primate puts an end to this. You can use your [favorite frontend](/frontend)
-with a backend that's *universal* and works the same way with every frontend. You can
-even combine different frontends -- writing different parts of your application
-in different frameworks, or slowly migrating your code to another frontend.
-
-## The power of Wasm
+## The power of WebAssembly
 
 [s=intro/backend]
 
-Primate not only allows you to freely exchange
--- and combine -- frontends, it does the same on the backend, with the kind
-help of Web Assembly.
+On the backend, Primate offers the same flexibility — thanks to WebAssembly.
 
-You can write backend code in different languages, not just TypeScript or
-JavaScript. And this code will be compiled to a specialized binary format called
-Web Assembly (Wasm), and in runtime power your backend. This means that if
-you're a developer coming from a different background than JavaScript, and you
-*still* want to enjoy access to all those frontends and keep authoring
-backends in your favourite language, you now can.
+You can write backend code in TypeScript, JavaScript, or other languages that
+compile to WebAssembly (Wasm). At runtime, Primate runs the compiled binary, not
+plain JS source. This lets you bring your language of choice — Go, Python and
+others — into a project while keeping full access to modern frontends.
 
-You're not forced to work with JavaScript on the backend just because virtually
-all modern frontend frameworks are written in JavaScript. And here too, you're
-free to combine between the [different backends](/backend) in your application.
+You're not forced to use JavaScript simply because your frontend does.
 
 ## Runtime agnostic
 
 [s=intro/runtime]
 
-Primate is not only frontend and backend agnostic, it also works on every major
-runtime -- Node, Deno and Bun. And by working, we don't just mean that you can
-use Bun's or Deno's Node compatibility layer to run your code. We mean that
-whatever runtime you use, Primate will leverage its *native*, *fastest*
-[execution paths](/runtime) to give you the best experience.
+Primate runs natively on Node, Deno, and Bun. It doesn't rely on generic
+compatibility layers — it uses each runtime's native execution paths, through
+Primate's own compatibility layer.
 
-Due to the way it is written, Primate is designed to quickly support and work
-on future, emergent runtimes as well. Code that you write now will be
-forward-compatible with future runtimes, as they arise.
+Because of its design, Primate is forward-compatible: code you write today will
+work on future runtimes as they emerge.
 
-## Full baggage
+## Batteries included
 
-Which is another way to say, *batteries included*. Primate comes with a set of
-packages -- all under the `@primate` namespace -- that extend the core
-framework. Database with ORMs, session management, I18N, and even the ability
-to build your app natively -- for desktop, are officially supported.
+Primate extends beyond core HTTP handling into common full-stack needs. It
+ships with official packages under the `@primate` namespace. These extend the
+core with common capabilities:
+
+* [Databases and ORMs](/docs/stores)
+* [Session management](/docs/sessions)
+* [Internationalization (i18n)](/docs/i18n)
+* [Native app builds (desktop)](/docs/desktop)
+
+Everything you need to build real apps is supported out of the box.
+
+## How Primate compares
+
+| Feature        | Meta-frameworks (Next, Nuxt, SvelteKit) | Primate                         |
+| ---------------| ----------------------------------------| --------------------------------|
+| Frontend       | Tied to one (React, Vue, Svelte)        | Any frontend, mix & match       |
+| Backend        | JavaScript / TypeScript only            | JS/TS plus Wasm backends |
+| Runtime        | Node, others (emulated)                 | Node, Deno, Bun — native paths  |
+| Vendor lock-in | High                                    | None                            |
+
+## Why it matters
+
+Frameworks shift. Runtimes change. Primate stays stable through that churn.
+Instead of tying your application to a single ecosystem, it gives you a
+foundation that outlasts frontend fads and runtime shifts — so your stack
+evolves on your terms.

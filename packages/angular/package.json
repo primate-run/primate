@@ -27,7 +27,7 @@
     "@angular/platform-server": "^20.2.1",
     "@angular/ssr": "^20.2.0",
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.3.0",
+    "@rcompat/assert": "^0.3.1",
     "@rcompat/build": "^0.14.0",
     "@rcompat/crypto": "^0.10.0",
     "@rcompat/fs": "^0.21.1",

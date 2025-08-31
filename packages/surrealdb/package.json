@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.3.0",
+    "@rcompat/assert": "^0.3.1",
     "@rcompat/record": "^0.9.1",
     "@surrealdb/node": "1.0.0-beta.3",
     "pema": "workspace:^",

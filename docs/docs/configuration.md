@@ -4,8 +4,8 @@ Primate works out of the box with zero configuration. In some cases, you may
 wish to change the defaults. The most common use case is activating additional
 modules.
 
-Configuration files are located in `config`. Anything you configure will be
-merged into the defaults.
+Configuration files are located in `config`. Anything you configure is merged
+into the defaults.
 
 ## `app.ts`
 [s=configuration/app-ts]
@@ -27,7 +27,7 @@ merged into the defaults.
 
 ### `build`
 
-Options to be passed to the esbuild builder. The following properties will be
+Options to be passed to the esbuild builder. The following properties are
 overridden.
 
 | | |
@@ -69,13 +69,11 @@ The HTTP port to use. This value is directly passed to the runtime.
 
 ### `http.ssl.cert`
 Path to SSL certificate. If this property and `http.ssl.key` are set and
-point to a valid key/certificate pair, Primate will use https instead of http.
-If specified as a relative path, will be relative to project root.
+point to a valid key/certificate pair, Primate uses https instead of http.
 
 ### `http.ssl.key`
 Path to SSL key. If `http.ssl.cert` and this property are set and point to a
-valid key/certificate pair, Primate will use https instead of http. If
-specified as a relative path, will be relative to project root.
+valid key/certificate pair, Primate uses https instead of http.
 
 ### `http.static.root`
 The path at which to serve static assets (those located in the `static`
@@ -87,10 +85,12 @@ Additional modules to load at runtime.
 
 ### `request.body.parse`
 Whether the request body should be parsed according to the content type.
-Turning thisoff is useful if you're using Primate as a programmable reverse
-proxy andforwarding the requests to another app. The headers, query string and
-cookies will be still parsed and available to `request`, and `request.original`
-will contain the untouched original request.
+Turning this off is useful if you're using Primate as a programmable reverse
+proxy and forwarding the requests to another app.
+
+Even if this is turned off, headers, query string and cookies are still parsed
+and available to `request`, and `request.original` then contains the untouched
+original request.
 
 ### Reference
 [s=configuration/app]

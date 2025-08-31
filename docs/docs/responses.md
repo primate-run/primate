@@ -4,8 +4,6 @@ WHATWG `Response`. You can return simple values ("implicit" responses) or use
 explicit handlers from `primate/response/*` when you need to control all
 aspects of the response.
 
-## Summary
-
 |Return value|Handler|Response|Notes|
 |-|-|-|-|
 |`string`|[text](#text)|`200 text/plain`|Serve plain text|
@@ -44,8 +42,8 @@ ReadableStream }` to serve `application/octet-stream` (binary data).
 
 [s=responses/binary/implicit]
 
-Primate will attempt to read the source's name and MIME type if available.
-Use the explicit `binary` handler for more options.
+Primate attempts to read the source's name and MIME type if available. Use the
+explicit `binary` handler for more options.
 
 [s=responses/binary/explicit]
 
@@ -76,7 +74,7 @@ Populate the component with initial props.
 ### Page
 Components are embedded into your app's main HTML page at `pages/app.html`,
 with the component code replacing the `%body%` placeholder. If the app page
-doesn't exist, Primate will fall back to its standard one.
+doesn't exist, Primate falls back to its standard one.
 
 [s=responses/view/page]
 
@@ -110,8 +108,8 @@ This is useful for replacing parts of the page whilst retaining the HTML page.
 Serve a `404 Not Found` error page as `text/html`.
 [s=responses/error/simple]
 
-This handler will use the HTML file at `pages/error.html` or fall back to a
-standard one provided by Primate.
+This handler uses the HTML file at `pages/error.html` or fall back to a standard
+one provided by Primate.
 
 [s=responses/error/page]
 

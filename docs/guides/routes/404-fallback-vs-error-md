@@ -2,7 +2,7 @@
 name: 404 fallback vs. `+error.ts`
 ---
 
-Use a **catch-all route** for “not found” pages. Use **`+error.ts`** to handle errors thrown
+Use a **rest route** for "not found" pages. Use **`+error.ts`** to handle errors thrown
 by matched routes. Only the **nearest** `+error.ts` runs; error handlers don’t compose.
 
 !!!

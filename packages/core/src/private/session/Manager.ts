@@ -1,17 +1,13 @@
-import type Session from "#session/Session";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 
-export default abstract class SessionManager<Id extends string, Data> {
-  // init the session manager, potentially loading previously-saved data
-  init(): void {
-    // noop by default
-  };
+export default abstract class SessionManager<Data> {
+  init?(): MaybePromise<void> { }
 
-  abstract get(id: Id): Session<Id, Data>;
+  abstract load(id: string): MaybePromise<Data | undefined>;
 
-  abstract create(session: Session<Id, Data>): void;
+  abstract create(id: string, data: Data): MaybePromise<void>;
 
-  abstract destroy(session: Session<Id, Data>): void;
+  abstract save(id: string, data: Data): MaybePromise<void>;
 
-  abstract commit(): MaybePromise<void>;
-};
+  abstract destroy(id: string): MaybePromise<void>;
+}

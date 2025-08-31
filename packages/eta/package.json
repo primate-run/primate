@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.3.0",
+    "@rcompat/assert": "^0.3.1",
     "eta": "^3.5.0"
   },
   "peerDependencies": {

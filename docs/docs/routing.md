@@ -230,7 +230,7 @@ error.
 if **every** applicable guard passes.
 !!!
 
-## Error files
+### Error files
 Error files live in `+error.ts`. An error handler applies to its directory
 **and all subdirectories**, but handlers do **not** compose: when an error is
 thrown, the **nearest** `+error.ts` up the directory tree handles it. Only one

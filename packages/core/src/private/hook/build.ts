@@ -1,8 +1,8 @@
 import type BuildApp from "#BuildApp";
-import $router from "#request/router";
 import location from "#location";
 import log from "#log";
 import reducer from "#reducer";
+import $router from "#request/router";
 import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
 import json from "@rcompat/package/json";
@@ -191,9 +191,10 @@ export default await database.wrap("${file.base}", store);`);
   const manifest_data = {
     ...await (await json()).json() as Dict,
     imports: {
-      "#component/*": "./components/*.js",
       "#config": "./config/app.js",
       "#database": "./config/database.js",
+      "#component/*": "./components/*.js",
+      "#config/*": "./config/*.js",
       "#locale/*": "./locales/*.js",
       "#module/*": "./modules/*.js",
       "#route/*": "./routes/*.js",

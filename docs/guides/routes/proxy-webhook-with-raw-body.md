@@ -3,7 +3,7 @@ name: Proxy webhook with raw body (no parsing)
 ---
 
 Forward inbound webhooks **unchanged** to an upstream service by disabling body parsing
-and using `request.pass`.
+and using `request.forward`.
 
 !!!
 With `{ parseBody: false }`, `request.body` is `null` and the original stream is forwarded as-is.

@@ -1,5 +1,5 @@
 ---
-name: Respond to OPTIONS (CORS preflight)
+name: Respond to `OPTIONS` (CORS preflight)
 ---
 
 APIs under `/api/*` should answer CORS preflights. Reply with 204 and the appropriate

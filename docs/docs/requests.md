@@ -8,14 +8,14 @@ to access and validate it.
 |property|type|description|
 |-|-|-|
 |[body](#body)|[RequestBody](#requestbody-reference)|parsed request body|
-|[path](#path)|[RequestBag](#requestbag-reference)|path parameters (from bracketed segments)|
+|[path](#path)|[RequestBag](#requestbag-reference)|path parameters|
 |[query](#query)|[RequestBag](#requestbag-reference)|query parameters|
 |[headers](#headers)|[RequestBag](#requestbag-reference)|request headers|
 |[cookies](#cookies)|[RequestBag](#requestbag-reference)|request cookies (case-sensitive)|
 |[context](#context)|`Record<string, unknown>`|initial context for the client|
 |[original](#original)|`Request`|original WHATWG `Request` object|
 |[url](#url)|`URL`|original request URL|
-|[forward](#forward)|`(to: string) => Promise<Response>`|forward the request as-is to another address|
+|[forward](#forward)|`(to: string) => Promise<Response>`|forward the request|
 
 ## Body
 
@@ -28,15 +28,15 @@ on a mismatch.
 [s=request/body]
 
 If a client sends a `POST` request to `/identify` using the content type
-`application/json` and `{"name": "John"}` as payload, this route will respond
-with `200 OK` and the body `Hello, John`.
+`application/json` and `{"name": "John"}` as payload, this route responds with
+`200 OK` and the body `Hello, John`.
 
 |Content type|Method|
 |-|-|
 |`text/plain`|`text()`|
 |`application/json`|`json()`|
 |`application/x-www-form-urlencoded`|`fields()`|
-|`multipart/form-data`|`fields()` -- values are `FormDataEntryValue` (`string` or `File`)|
+|`multipart/form-data`|`fields()` — values are `FormDataEntryValue` (`string` or `File`)|
 |`application/octet-stream`|`binary()`|
 |no body|`none()`|
 
@@ -116,8 +116,8 @@ Use `context` as a small, serializable key–value store for data you want on
 initial render.
 
 !!!
-The client will see the context under `props.request.context`. To avoid
-polluting the props object, this API may change in the future.
+The client sees the context under `props.request.context`. To avoid polluting
+the props object, this API may change in the future.
 !!!
 
 ## Original
@@ -134,16 +134,16 @@ relative URLs, accessing the `searchParams` directly, etc.
 [s=request/URL]
 
 ## Forward
-Forwards the *original WHATWG* `Request`. The method lives on `RequestFacade`,
+Forwards the **original WHATWG** `Request`. The method lives on `RequestFacade`,
 but what's forwarded is the underlying original request.
 
 If your handler will pass the request upstream and you don't need to read the
-disable body parsing on the route. Primate can't know whether you'll call
+body, disable body parsing on the route. Primate can't know whether you'll call
 `request.forward()` inside the handler, so you must explicitly **opt out** of
 body parsing on the route.
 
-All other aspects of the original request are preserved. By default only the
-`Content-Type` header is forwarded to match the body -- you can specify
+Most other aspects of the original request are preserved. By default only the
+`Content-Type` header is forwarded to match the body — you can specify
 additional headers to forward.
 
 [s=request/forward]

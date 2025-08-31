@@ -1,36 +1,30 @@
-import type SessionData from "#session/Data";
 import SessionManager from "#session/Manager";
-import Session from "#session/Session";
+import assert from "@rcompat/assert";
 
-const generate_id = () => crypto.randomUUID();
+export default class InMemorySessionManager<Data> extends SessionManager<Data> {
+  // id -> JSON
+  #sessions = new Map<string, string>();
 
-type Id = ReturnType<typeof generate_id>;
+  load(id: string): Data | undefined {
+    const raw = this.#sessions.get(id);
 
-class InMemorySessionManager<Data extends SessionData>
-  extends SessionManager<Id, Data> {
-  #sessions = new Map<Id, Session<Id, Data>>();
-
-  get(id: Id) {
-    const session = this.#sessions.get(id);
-
-    if (session === undefined) {
-      // creates a non-commited session
-      return new Session<Id, Data>(this, generate_id());
-    }
-
-    return session;
+    return raw === undefined ? undefined : JSON.parse(raw) as Data;
   }
 
-  create(session: Session<Id, Data>) {
-    this.#sessions.set(session.id, session);
+  create(id: string, data: Data): void {
+    assert(!this.#sessions.has(id), `session already exists: ${id}`);
+
+    this.#sessions.set(id, JSON.stringify(data));
   }
 
-  destroy(session: Session<Id, Data>) {
-    this.#sessions.delete(session.id);
+  save(id: string, data: Data): void {
+    assert(this.#sessions.has(id), `session not found: ${id}`);
+
+    this.#sessions.set(id, JSON.stringify(data));
   }
 
-  // noop
-  commit() {}
+  // idempotent
+  destroy(id: string): void {
+    this.#sessions.delete(id);
+  }
 }
-
-export default InMemorySessionManager;

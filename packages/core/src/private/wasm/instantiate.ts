@@ -65,9 +65,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
      * function.
      */
     getSession() {
-      const currentSession = session();
-      const encodedSession = encodeSession(currentSession);
-      payload = encodedSession;
+      payload = encodeSession(session());
     },
 
     /**
@@ -82,8 +80,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
     newSession() {
       const data = decodeJson.from(received);
       session().create(data);
-      const newSession = session();
-      payload = encodeSession(newSession);
+      payload = encodeSession(session());
     },
 
     /**

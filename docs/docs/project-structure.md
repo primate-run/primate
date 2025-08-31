@@ -41,28 +41,34 @@ Reside inside `config`. May be authored in Javascript or TypeScript.
 
 ## Route files
 
-Files inside the `routes` directory registered to a [backend](/backend) based
-on their extension. You may use different backends in your app for different
-routes, but every route must be uniquely handled by one backend.
+Files inside the `routes` directory registered to a [backend](/docs/backend)
+based on their extension. You may use different backends in your app for
+different routes, but every route must be uniquely handled by one backend.
 
 | | |
 |-|-|
 |`index.ts`|matches `/`|
 |`user.ts`|matches `/user`|
-|[user/\[name\].ts](/routing#dynamic-routes)|matches `/user/*` — `*` is anything *except* a `/`|
-|[user/\[\[name\]\].ts](/routing#optional-routes)|matches `/path` *and* `/user/*` — `*` is anything *except* a `/`|
-|[user/\[...name\].ts](/routing#rest-routes)|matches `/user/*` — `*` is anything *including* a `/`|
-|[user/\[\[...name\]\].ts](/routing#optional-rest-routes)|matches `/user` *and* `/user/*` — `*` is anything *including* a `/`|
-|[+guard.ts](/routes#guards)|route guard for routes in same directory and below|
-|[+error.ts](/routes#error-files)|route error file for routes in same directory|
+|[user/\[name\].ts]|matches `/user/*` — `*` is anything *except* a `/`|
+|[user/\[\[name\]\].ts]matches `/user` *and* `/user/*` — `*` is anything *except* a `/`|
+|[user/\[...name\].ts]|matches `/user/*` — `*` is anything *including* a `/`|
+|[user/\[\[...name\]\].ts]|matches `/user` *and* `/user/*` — `*` is anything *including* a `/`|
+|[+guard.ts](/routing#guards)|route guard for routes in same directory and below|
+|[+error.ts](/routing#error-files)|route error file for routes in same directory|
 |[+layout.ts](/routes#layouts)|route layouts for routes in same directory and below|
+
+
+|[user/\[name\].ts]: /docs/routing#dynamic-routes
+|[user/\[\[name\]\].ts]: /docs/routing#optional-routes
+|[user/\[...name\].ts]: /docs/routing#rest-routes
+|[user/\[\[...name\]\].ts]: /docs/routing#optional-rest-routes)
 
 ## Component files
 
-Files inside the `components` directory registered to a [frontend](/frontend)
-based on their full extensions. You may use different frontends in your app for
-different components, but every component must be uniquely handled by one
-frontend.
+Files inside the `components` directory registered to a
+[frontend](/docs/frontend) based on their full extensions. You may use
+different frontends in your app for different components, but every component
+must be uniquely handled by one frontend.
 
 | | |
 |-|-|
@@ -90,8 +96,8 @@ be authored in JavaScript or TypeScript.
 
 ## Locale files
 
-Files inside the `locales` directory, for [I18N](/i18n). Currently only JSON
-locales are supported.
+Files inside the `locales` directory, for [I18N](/docs/i18n). Currently only
+JSONlocales are supported.
 
 | | |
 |-|-|

@@ -3,8 +3,11 @@ import SessionManager from "#session/Manager";
 import pema from "pema";
 import boolean from "pema/boolean";
 import constructor from "pema/constructor";
+import pure from "pema/pure";
 import string from "pema/string";
 import union from "pema/union";
+
+export interface Schema<T> { parse(input: unknown): T }
 
 export default pema({
   cookie: {
@@ -15,4 +18,5 @@ export default pema({
   },
   manager: constructor(SessionManager)
     .default(() => new InMemorySessionManager()),
+  schema: pure<Schema<unknown>>().optional(),
 });

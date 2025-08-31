@@ -24,7 +24,7 @@
     "test": "npm run build && npx proby"
   },
   "dependencies": {
-    "@rcompat/assert": "^0.3.0",
+    "@rcompat/assert": "^0.3.1",
     "@rcompat/cli": "^0.10.2",
     "@rcompat/is": "^0.1.4",
     "@rcompat/record": "^0.9.1"

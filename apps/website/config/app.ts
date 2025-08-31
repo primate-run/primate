@@ -14,9 +14,9 @@ const sorting = [
   "Bun",
   // frontend
   "React",
-  "Svelte",
-  "Vue",
   "Angular",
+  "Vue",
+  "Svelte",
   "Solid",
   // backend
   "TypeScript",
@@ -112,7 +112,6 @@ export default config({
                 return `<div class="box">${iconHtml}${content.trim()}</div>`;
               },
             )
-              .replaceAll(" -- ", " – ")
               .replaceAll("✓", toIcon("check"))
               .replaceAll("✗", toIcon("x2"))
               ;
@@ -178,11 +177,6 @@ export default config({
               </h${level}>
             `;
           },
-          link(token) {
-            const href = token.href;
-            const url = href.startsWith("/") ? `/docs${href}` : href;
-            return `<a href="${url}">${token.text}</a>`;
-          },
         },
       },
       async pretransform(text: string) {
@@ -220,8 +214,7 @@ export default config({
           const snippets = files
             .filter(file => file.name !== "filename.ts")
             .toSorted((a, b) =>
-              sorting.indexOf(a.base) < sorting.indexOf(b.base) ? -1 : 1)
-            ;
+              sorting.indexOf(a.core) < sorting.indexOf(b.core) ? -1 : 1);
 
           if (has_tabs) {
             replacement += snippets
@@ -303,16 +296,12 @@ export default config({
                 title: "Responses",
               },
               {
-                href: "/components",
-                title: "Components",
+                href: "/validation",
+                title: "Validation",
               },
               {
                 href: "/sessions",
                 title: "Sessions",
-              },
-              {
-                href: "/validation",
-                title: "Validation",
               },
               {
                 href: "/stores",

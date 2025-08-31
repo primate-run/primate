@@ -2,8 +2,11 @@ import session from "#session";
 import route from "primate/route";
 
 route.get(() => {
-  if (session.new) {
+  if (!session.exists) {
     return "no session";
   }
-  return `session (${session.id})`;
+  return {
+    id: session.id,
+    ...session.get(),
+  };
 });

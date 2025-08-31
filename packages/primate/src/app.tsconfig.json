@@ -10,6 +10,7 @@
     "customConditions": ["apekit"],
     "erasableSyntaxOnly": true,
     "exactOptionalPropertyTypes": true,
+    "allowImportingTsExtensions": true,
     "paths": {
       "#route/*": ["routes/*"],
       "#component/*": ["components/*", "components/*.svelte"],

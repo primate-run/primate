@@ -29,14 +29,14 @@
     <div class="hero__inner">
       <h1 class="hero__title">{title}</h1>
       <div class="hero__lead" style="line-height: 1.8em; margin-bottom: 7rem;">
-        Frontend, backend, runtime — Primate lets you choose the tools that you
-        love <br />and
+        Frontend, backend, runtime — Primate lets you pick the tools you love
+        and
         <span class="emphasis">combine them however you like</span>, without
-        lock-ins or rewrites
+        lock-ins or rewrites.
       </div>
 
       <div class="hero__actions">
-        <a class="button primary" href="/docs">Get started</a>
+        <a class="button primary" href="/docs/quickstart">Get started</a>
         <button class="button button--ghost" on:click={copyInit}>
           <span class="prompt">$ {initCmd}</span>
           <span class="pill">{copied ? "Copied" : "Copy"}</span>
@@ -49,45 +49,37 @@
     <div class="bento__inner">
       <a class="bento__card" href="#frontend">
         <h3 class="bento__title">Frontends</h3>
-        <p class="bento__lead">
-          Mix React, Svelte, Vue, Angular — in one app. If it compiles to the
-          web, we support it.
-        </p>
+        <p class="bento__lead">React, Angular, Vue, Svelte — side by side</p>
         <span class="bento__cta">
-          See examples <Icon name="chevron-right" />
+          Examples <Icon name="chevron-right" />
         </span>
       </a>
 
       <a class="bento__card" href="#backend">
         <h3 class="bento__title">Backends</h3>
         <p class="bento__lead">
-          Courtesy of Wasm: write routes in JS/TS, Go, Ruby, Python. Use one —
-          or all together.
+          JavaScript/TypeScript routes, plus WebAssembly backends
         </p>
         <span class="bento__cta">
-          See examples <Icon name="chevron-right" />
+          Examples <Icon name="chevron-right" />
         </span>
       </a>
 
       <a class="bento__card" href="#runtime">
         <h3 class="bento__title">Runtimes</h3>
         <p class="bento__lead">
-          Node, Deno, Bun and emerging runtimes with consistent APIs and fast
-          native paths.
+          Node, Deno, Bun — consistent APIs, native execution paths
         </p>
         <span class="bento__cta">
-          See examples <Icon name="chevron-right" />
+          Examples <Icon name="chevron-right" />
         </span>
       </a>
 
       <a class="bento__card" href="#ecosystem">
         <h3 class="bento__title">Ecosystem</h3>
-        <p class="bento__lead">
-          Databases, ORM, sessions, auth, i18n, native builds — official modules
-          that keep growing.
-        </p>
+        <p class="bento__lead">Databases, sessions, auth, i18n, native apps</p>
         <span class="bento__cta">
-          See examples <Icon name="chevron-right" />
+          Examples <Icon name="chevron-right" />
         </span>
       </a>
     </div>
@@ -98,12 +90,11 @@
       <div class="feature__head">
         <h2 class="feature__title">Use any frontend.</h2>
         <p class="feature__lead">
-          Primate supports every major frontend and many more lesser-known ones.
-          Build different parts of your app in different frontends. Missing
-          anything? Tell us and we'll add it.
+          Primate supports every major frontend. Split your app across
+          frameworks, or migrate gradually without rewrites.
         </p>
         <div class="feature__actions">
-          <a class="button" href="/docs/frontend">Read docs</a>
+          <a class="button" href="/docs/frontend">Docs</a>
         </div>
       </div>
       <div class="feature__demo">{@html examples.frontend}</div>
@@ -115,11 +106,11 @@
       <div class="feature__head">
         <h2 class="feature__title">Combine many backends.</h2>
         <p class="feature__lead">
-          Using Web Assembly, compose your backend in several languages — one or
-          all at the same time. New backends are added according to demand.
+          Write routes in JS/TS by default. Extend with WebAssembly backends and
+          mix them freely. New backends are added based on demand.
         </p>
         <div class="feature__actions">
-          <a class="button" href="/docs/backend">Read docs</a>
+          <a class="button" href="/docs/backend">Docs</a>
         </div>
       </div>
       <div class="feature__demo">{@html examples.backend}</div>
@@ -131,12 +122,11 @@
       <div class="feature__head">
         <h2 class="feature__title">Choose your runtime.</h2>
         <p class="feature__lead">
-          Consistent, nearly-universal support for Node, Deno, Bun and emergent
-          runtimes. Fast native API paths under the hood — no runtime-specific
-          boilerplate.
+          Consistent APIs on Node, Deno, and Bun — native execution paths under
+          the hood, no runtime boilerplate.
         </p>
         <div class="feature__actions">
-          <a class="button" href="/docs/runtime">Read docs</a>
+          <a class="button" href="/docs/runtime">Docs</a>
         </div>
       </div>
       <div class="feature__demo">{@html examples.runtime}</div>
@@ -148,15 +138,14 @@
       <div class="feature__head">
         <h2 class="feature__title">Extensive ecosystem.</h2>
         <p class="feature__lead">
-          Official modules for what apps actually need — databases & ORM,
-          sessions & auth, i18n, API clients, and more. We keep adding new
-          modules.
+          Official modules for real apps: databases, sessions, auth, i18n,
+          native builds — with more coming.
         </p>
         <div class="feature__actions">
           <a class="button" href="/docs/databases">Databases</a>
-          <a class="button" href="/docs/i18n">I18N</a>
+          <a class="button" href="/docs/i18n">i18n</a>
           <a class="button" href="/docs/sessions">Sessions</a>
-          <a class="button" href="/docs/native">Native apps</a>
+          <a class="button" href="/docs/native">Native</a>
         </div>
       </div>
       <div class="feature__demo">{@html examples.i18n}</div>
@@ -169,11 +158,10 @@
       <div class="examples__head">
         <h2 class="examples__title">Get productive.</h2>
         <p class="examples__lead">
-          Short, focused guides to common tasks. Browse the topics and jump into
-          the docs.
+          Short guides for common tasks. Browse topics and jump into the docs.
         </p>
         <a class="examples__all" href="/guides">
-          Browse all guides <Icon name="chevron-right" />
+          All guides <Icon name="chevron-right" />
         </a>
       </div>
       {#each guides as category}
@@ -230,7 +218,7 @@
     margin: 5rem 0;
   }
   .hero__lead {
-    max-width: 70ch;
+    max-width: 58ch;
     margin: 0 auto 2.4rem;
     color: var(--fg2);
     font-size: 1.9rem;
@@ -517,10 +505,5 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 0.8rem;
-  }
-  .examples__soon {
-    margin: 0.6rem 0 0;
-    color: var(--fg2);
-    font-style: italic;
   }
 </style>

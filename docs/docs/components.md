@@ -1,7 +1,6 @@
 # Components
-
-App frontend views are placed in `components`. To use components, install and
-activate one or many of Primate's [frontend modules](/modules/frontend).
+Frontend component are placed in `components`. To use components, add a
+[frontend modules](/docs/frontend).
 
 ## Serving views
 

@@ -163,6 +163,11 @@ export default class ServeApp extends App {
     return this.#assets;
   }
 
+  get modules() {
+    const session = this.#builtins.session;
+    return [session, ...super.modules];
+  }
+
   get url() {
     const { host, port } = this.config("http");
     return `http${this.secure ? "s" : ""}://${host}:${port}`;

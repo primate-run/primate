@@ -9,13 +9,14 @@ const error_entries = Object.entries({
 });
 
 const allowed = {
-  re: /^[a-z0-9\-_+[\].]+$/,
-  replacements: ["a-z", "0-9", "-", "_", "+", "[", "]", "."],
-  text: "lowercase letters ({1}), digits ({2}), {3}, {4}, {5}, {6}, {7}",
+  re: /^[a-zA-Z0-9\-_+[\].]+$/,
+  replacements: ["a-Z", "0-9", "-", "_", "+", "[", "]", "."],
+  text: "letters ({1}), digits ({2}), {3}, {4}, {5}, {6}, {7}",
 };
 const specials = ["guard", "error", "layout"];
+const _ = allowed.re.source.slice(1, -1);
 
-const p = /^(?:[^[\]]+|\[(?:\.{3})?[a-z0-9_]+\]|\[\[(?:\.{3})?[a-z0-9_]+\]\])$/;
+const p = /^(?:[^[\]]+|\[(?:\.{3})?[a-zA-Z0-9_]+\]|\[\[(?:\.{3})?[a-zA-Z0-9_]+\]\])$/;
 
 export default async (directory: FileRef, extensions: string[]) => {
   try {
