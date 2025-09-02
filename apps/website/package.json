@@ -36,6 +36,7 @@
     "@primate/surrealdb": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@primate/vue": "workspace:^",
+    "@primate/i18n": "workspace:^",
     "marked": "^16.2.0",
     "pema": "workspace:^"
   }

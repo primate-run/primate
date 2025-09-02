@@ -12,6 +12,11 @@ const sorting = [
   "Node",
   "Deno",
   "Bun",
+  // package managers
+  "npm",
+  "pnpm",
+  "Bun",
+  "Yarn",
   // frontend
   "React",
   "Angular",
