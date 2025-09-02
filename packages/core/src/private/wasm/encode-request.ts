@@ -34,7 +34,7 @@ const sizeOfUrlSection = (url: URL) => SECTION_HEADER_SIZE + urlSize(url);
 const sizeOfBodySection = (body: RequestBody) => {
   let size = SECTION_HEADER_SIZE + I32_SIZE;
 
-  if (body === null || body.type === "none")
+  if (body.type === "none")
     return size; // 0 kind null
 
   if (body.type === "text")
@@ -205,7 +205,7 @@ const encodeSectionBody = async (body: RequestBody, view: BufferView) => {
     view.writeU32(BODY_KIND_JSON);
     const jsonText = JSON.stringify(body.json());
     encodeString(jsonText, view);
-  } else if (body === null || body === void 0 || body.type === "none") {
+  } else if (body.type === "none") {
     view.writeU32(BODY_KIND_NULL);
   } else {
     throw new Error(`Unsupported body type: ${body?.type ?? typeof body}`);

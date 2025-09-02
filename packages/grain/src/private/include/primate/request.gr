@@ -142,7 +142,10 @@ let rec getSectionMap = (id: Uint32, offset: Number, payload: Bytes) => {
   use Uint32.{ (+) as (+.), (<), toNumber }
 
   let (offset, header) = readUint32(offset, payload)
-  if (header != id) throw InvalidRequestHeader
+
+  if (header != id) {
+    throw InvalidRequestHeader
+  }
 
   let (offset, count) = readUint32(offset, payload)
   
@@ -159,7 +162,7 @@ let rec getSectionMap = (id: Uint32, offset: Number, payload: Bytes) => {
   }
 }
 
-let rec getBody = (offset: Number, payload: Bytes) => {
+let rec getBodyElement = (offset: Number, payload: Bytes) => {
   let (offset, bodyKind) = readUint32(offset, payload)
 
   match (bodyKind) {
@@ -219,8 +222,7 @@ provide let make = () => {
   // Section 2
   let (offset, header1) = readUint32(offset, payload)
   if (header1 != _BODY_SECTION) throw InvalidRequestEncoding
-
-  let (offset, body) = getBody(offset, payload)
+  let (offset, body) = getBodyElement(offset, payload)
 
   let (offset, path) = getSectionMap(_PATH_SECTION, offset, payload)
   let (offset, query) = getSectionMap(_QUERY_SECTION, offset, payload)
