@@ -4,11 +4,24 @@ import type As from "@primate/core/database/As";
 import type DataDict from "@primate/core/database/DataDict";
 import type TypeMap from "@primate/core/database/TypeMap";
 import type Types from "@primate/core/database/Types";
+import assert from "@rcompat/assert";
 import maybe from "@rcompat/assert/maybe";
 import empty from "@rcompat/record/empty";
 import entries from "@rcompat/record/entries";
+import toQueryString from "@rcompat/record/toQueryString";
 import type Dict from "@rcompat/type/Dict";
-import type { MongoClient } from "mongodb";
+import { MongoClient } from "mongodb";
+import pema from "pema";
+import string from "pema/string";
+import uint from "pema/uint";
+
+const schema = pema({
+  database: string,
+  host: string.default("localhost"),
+  password: string.optional(),
+  port: uint.port().default(27017),
+  username: string.optional(),
+});
 
 function make_limit(limit?: number) {
   maybe(limit).usize();
@@ -28,18 +41,32 @@ const null_to_set_unset = (changes: DataDict) => {
   return { $set, $unset };
 };
 
-export default class MongoDBDatabase extends Database {
-  #client: MongoClient;
-  #name: string;
+const url_params = { directConnection: "true", replicaSet: "rs0" };
 
-  constructor(client: MongoClient, name: string) {
+export default class MongoDBDatabase extends Database {
+  static config: typeof schema.input;
+  #factory: () => Promise<MongoClient>;
+  #name: string;
+  #client?: MongoClient;
+
+  constructor(config?: typeof schema.input) {
     super();
 
-    this.#client = client;
-    this.#name = name;
+    const { database, host, port } = schema.parse(config);
+    const url = `mongodb://${host}:${port}?${toQueryString(url_params)}`;
+    const client = new MongoClient(url);
+
+    this.#name = database;
+    this.#factory = async () => {
+      await client.connect();
+      return client;
+    };
   }
 
-  #with(collection: string) {
+  async #get(collection: string) {
+    if (this.#client === undefined) {
+      this.#client = await this.#factory();
+    }
     return this.#client.db(this.#name).collection(collection);
   }
 
@@ -48,11 +75,11 @@ export default class MongoDBDatabase extends Database {
   }
 
   async close() {
-    await this.#client.close();
+    await this.#client!.close();
   }
 
   async #drop(name: string) {
-    await this.#with(name).drop();
+    await (await this.#get(name)).drop();
   }
 
   get schema() {
@@ -64,7 +91,7 @@ export default class MongoDBDatabase extends Database {
   }
 
   async #bind(object: DataDict, types: Types) {
-    const { id, ...rest } = await this.bind(object, types);
+    const { id, ...rest } = await this.bind(types, object);
 
     return id === undefined
       ? rest
@@ -74,17 +101,15 @@ export default class MongoDBDatabase extends Database {
   #unbind(object: Dict, types: Types) {
     const { _id: id, ...rest } = object;
 
-    return this.unbind(id === undefined
-      ? rest
-      : { id, ...rest }, types);
+    return this.unbind(types, id === undefined ? rest : { id, ...rest });
   }
 
   async create<O extends Dict>(as: As, args: { record: DataDict }) {
     const binds = await this.#bind(args.record, as.types);
 
-    const { insertedId: _id } = await this.#with(as.name).insertOne(binds);
+    const { insertedId } = await (await this.#get(as.name)).insertOne(binds);
 
-    return this.#unbind({ ...args.record, _id }, as.types) as O;
+    return this.#unbind({ ...args.record, _id: insertedId }, as.types) as O;
   }
 
   read(as: As, args: {
@@ -104,27 +129,37 @@ export default class MongoDBDatabase extends Database {
     limit?: number;
     sort?: Dict<"asc" | "desc">;
   }) {
+    this.toSelect(as.types, args.fields);
+    this.toSort(as.types, args.sort);
+
     const binds = await this.#bind(args.criteria, as.types);
     if (args.count === true) {
-      return this.#with(as.name).countDocuments(binds);
+      return (await this.#get(as.name)).countDocuments(binds);
     }
 
     const fields = args.fields ?? [];
+    const mapped = fields.map(f => f === "id" ? "_id" : f);
+
     const sort = args.sort === undefined || empty(args.sort!)
       ? {}
       : { sort: args.sort };
-    const select = fields.length === 0
+    const select = mapped.length === 0
       ? {}
       : {
-        projection: {
-          // erase _id unless explicit in projection
-          _id: 0,
-          ...Object.fromEntries(fields.map(field => [field, 1])),
-        },
+        projection: (() => {
+          const out: Dict<0 | 1> = {};
+          if (!mapped.includes("_id")) {
+            out._id = 0;
+          }
+          for (const field of mapped) {
+            out[field] = 1;
+          }
+          return out;
+        })(),
       };
 
     const options = { ...select, ...sort, useBigInt64: true };
-    const records = await this.#with(as.name)
+    const records = await (await this.#get(as.name))
       .find(binds, options)
       .limit(make_limit(args.limit))
       .toArray();
@@ -132,23 +167,23 @@ export default class MongoDBDatabase extends Database {
     return records.map(record => this.#unbind(record, as.types));
   }
 
-  async update(as: As, args: {
-    changes: DataDict;
-    criteria: DataDict;
-    limit?: number;
-    sort?: Dict<"asc" | "desc">;
-  }) {
-    const criteria_binds = await this.#bind(args.criteria, as.types);
-    const changes_binds = await this.#bind(args.changes, as.types);
+  async update(as: As, args: { changes: DataDict; criteria: DataDict }) {
+    assert(Object.keys(args.criteria).length > 0, "update: no criteria");
 
-    return (await this.#with(as.name)
+    const criteria_binds = await this.#bind(args.criteria, as.types);
+    const changes_binds = await this.#bind(args.changes, as.types) as DataDict;
+    const collection = await this.#get(as.name);
+
+    return (await collection
       .updateMany(criteria_binds, null_to_set_unset(changes_binds)))
       .modifiedCount;
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
+    assert(Object.keys(args.criteria).length > 0, "delete: no criteria");
+
     const binds = await this.#bind(args.criteria, as.types);
 
-    return (await this.#with(as.name).deleteMany(binds)).deletedCount;
+    return (await ((await this.#get(as.name)).deleteMany(binds))).deletedCount;
   }
 }

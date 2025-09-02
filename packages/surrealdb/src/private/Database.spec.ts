@@ -1,9 +1,4 @@
-import Module from "#Module";
+import Database from "#Database";
 import test from "@primate/core/database/test";
 
-const m = new Module({
-  database: "primate",
-  host: "mem",
-  namespace: "primate",
-});
-test(await m.init(), () => m.deinit());
+test(new Database({ database: "primate", host: "mem", namespace: "primate" }));

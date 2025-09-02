@@ -10,7 +10,7 @@ Use **Pema** schemas to validate inputs. When validation fails, Pema throws a
 
 ### Default behavior
 
-If you don’t catch the error, Primate responds with a specific JSON format
+If you don't catch the error, Primate responds with a specific JSON format
 describing what failed.
 
 !!!

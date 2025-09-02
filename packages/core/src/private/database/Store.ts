@@ -2,12 +2,12 @@ import AppError from "#AppError";
 import type Changes from "#database/Changes";
 import type Database from "#database/Database";
 import type DataRecord from "#database/DataRecord";
-import InMemoryDatabase from "#database/InMemoryDatabase";
-import derive from "#database/symbol/derive";
+import wrap from "#database/symbol/wrap";
 import type Types from "#database/Types";
 import assert from "@rcompat/assert";
 import is from "@rcompat/assert/is";
 import maybe from "@rcompat/assert/maybe";
+import type Dict from "@rcompat/type/Dict";
 import type Id from "pema/Id";
 import type InferStore from "pema/InferStore";
 import type StoreId from "pema/StoreId";
@@ -17,7 +17,12 @@ import StoreType from "pema/StoreType";
 type X<T> = {
   [K in keyof T]: T[K]
 } & {};
-type Criteria<T extends StoreSchema> = X<Partial<InferStore<T>>>;
+type Criteria<T extends StoreSchema> = X<{
+  // any criterion key can be omitted; if present, it can be a value or null
+  [K in keyof Omit<InferStore<T>, "id">]?: InferStore<T>[K] | null
+} & {
+  id?: StoreId<T> | null;
+}>;
 
 type Select<T> = {
   [K in keyof T]?: true;
@@ -27,7 +32,7 @@ type Sort<T> = {
 };
 
 type Insertable<T extends StoreSchema> =
-  { id?: StoreId<T> } & Omit<DataRecord<T>, "id">;
+  Omit<InferStore<T>, "id"> & { id?: StoreId<T> };
 
 type Filter<A, B = undefined> = B extends undefined ? A : {
   [K in keyof A as K extends keyof B
@@ -40,26 +45,38 @@ type Config = {
   name?: string;
 };
 
-export default class Store<S extends StoreSchema> {
+/**
+ * Database-backed Store for Primate.
+ *
+ * A `DatabaseStore` exposes a typed, validated interface over a relational or
+ * document database table/collection. It pairs a Pema schema with a uniform
+ * CRUD/query API.
+ *
+ */
+export default class DatabaseStore<S extends StoreSchema> {
   #schema: S;
   #type: StoreType<S>;
-  #config: Config;
   #types: Types;
-  #database: Database;
   #nullables: Set<string>;
+  #database?: Database;
+  #name?: string;
 
-  constructor(schema: S, config?: Config) {
+  constructor(schema: S, config: Config = {}) {
     this.#schema = schema;
     this.#type = new StoreType(schema);
-    this.#config = config ?? {};
     this.#types = Object.fromEntries(Object.entries(schema)
       .map(([key, value]) => [key, value.datatype]));
-    this.#database = this.#config.database ?? new InMemoryDatabase();
+    this.#name = config.name;
+    this.#database = config.database;
     this.#nullables = new Set(
       Object.entries(this.#type.schema)
         .filter(([, v]) => v.nullable)
         .map(([k]) => k),
     );
+  }
+
+  static new<S extends StoreSchema>(schema: S, config: Config = {}) {
+    return new DatabaseStore<S>(schema, config);
   }
 
   get #as() {
@@ -83,22 +100,17 @@ export default class Store<S extends StoreSchema> {
     return undefined as unknown as InferStore<S>;
   }
 
-  derive(name: string, database: Database) {
-    const _name = this.#config.name;
-
-    return new Store(this.#schema, { database: database, name: _name ?? name });
-  }
-
-  [derive](name: string, database: Database) {
-    const _name = this.#config.name;
-
-    return new Store(this.#schema, {
-      database: this.#config.database ?? database,
-      name: this.#config.name ?? name,
+  [wrap](name: string, database: Database) {
+    return new DatabaseStore(this.#schema, {
+      database: this.#database ?? database,
+      name: this.#name ?? name,
     });
   }
 
   get database() {
+    if (this.#database === undefined) {
+      throw new AppError("store missing database");
+    }
     return this.#database;
   }
 
@@ -107,22 +119,19 @@ export default class Store<S extends StoreSchema> {
   }
 
   get name() {
-    if (this.#config.name === undefined) {
+    if (this.#name === undefined) {
       throw new AppError("store missing name");
     }
-    return this.#config.name;
-  }
-
-  static new<S extends StoreSchema>(schema: S, config?: Config) {
-    return new Store<S>(schema, config);
+    return this.#name;
   }
 
   /**
-   * *Count records.*
-   * @param criteria criteria to limit records by
-   * @returns the number of records if given criteria, otherwise all
+   * Count records.
+   *
+   * @param criteria Criteria to limit which records are counted.
+   * @returns Number of matching records (or total if no criteria given).
    */
-  async count(criteria?: Criteria<S>) {
+  async count(criteria?: Criteria<S> | { id: StoreId<S> }) {
     maybe(criteria).object();
 
     return (await this.database.read(this.#as, {
@@ -132,22 +141,26 @@ export default class Store<S extends StoreSchema> {
   }
 
   /**
-   * *Check whether a record with the given id exists.*
-   * @param id the record id
-   * @returns *true* if a record with the given id exists
+   * Check whether a record with the given id exists.
+   *
+   * @param id Record id.
+   * @returns `true` if a record with the given id exists, otherwise `false`.
    */
-  async exists(id: Id) {
+  async has(id: StoreId<S>) {
     is(id).string();
 
-    // @ts-expect-error type
+    // Invariant: ids are primary keys and must be unique.
+    // If the driver ever returns more than one record, assert will fail.
+    // Public contract remains just "true if it exists, false otherwise".
     return (await this.count({ id })) === 1;
   }
 
   /**
-   * *Get a single record with the given id.*
-   * @param id the record id
-   * @throws if a record with given id does not exist
-   * @returns the record for the given id
+   * Get a record by id.
+   *
+   * @param id Record id.
+   * @throws If no record with the given id exists.
+   * @returns The record for the given id.
    */
   async get(id: Id): Promise<DataRecord<S>> {
     is(id).string();
@@ -163,15 +176,32 @@ export default class Store<S extends StoreSchema> {
       throw new AppError("no record with id {0}", id);
     }
 
-    return this.#type.parse(records[0]);
+    return this.#type.parse(records[0]) as DataRecord<S>;
   }
 
   /**
-   * *Insert a single record.*
+   * Try to get a record by id.
    *
-   * @param record the record to insert, will generate id if missing
-   * @throws if the record id exists in the store
-   * @returns the inserted record
+   * @param id Record id.
+   * @returns The record if found, otherwise `undefined`.
+   */
+  async try(id: Id): Promise<DataRecord<S> | undefined> {
+    try {
+      return await this.get(id);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Insert a single record.
+   *
+   * If `id` is omitted, the driver generates one. Input is validated
+   * according to the store schema.
+   *
+   * @param record Record to insert (id optional).
+   * @throws If a record with the same id already exists or validation fails.
+   * @returns The inserted record with id.
    */
   async insert(record: Insertable<S>): Promise<DataRecord<S>> {
     is(record).object();
@@ -180,38 +210,42 @@ export default class Store<S extends StoreSchema> {
   }
 
   /**
-   * *Update a single record.*
+   * Update a single record.
    *
-   * When updating a record, any field in the *changes* parameter that is
-   * - **undefined** or missing, is unaffected
-   * - **null**, is unset
-   * - present but not **null** or **undefined**, is set
+   * Change semantics:
+   * - missing / undefined -> leave field unchanged
+   * - null -> unset field (only for nullable fields, otherwise throw)
+   * - value -> set field to value
    *
-   * @param id the record id
-   * @param changes changes to the record, see above
-   * @throws if the given id does not exist in the store
+   * Change input is validated according to the store schema.
+   *
+   * @param id Record id.
+   * @param changes Partial changes per the rules above.
+   * @throws If the id is missing, `.id` is present in `changes`, attempting to
+   * unset a non-nullable field, validation fails, or no record is updated.
    */
   update(id: Id, changes: Changes<S>): Promise<void>;
 
   /**
-   * *Update multiple records.*
+   * Update multiple records.
    *
-   * When updating records, any field in the *changes* parameter that is
-   * - **undefined** or missing, is unaffected
-   * - **null**, is unset
-   * - present but not **null** or **undefined**, is set
+   * Same change semantics as when updating a single record.
    *
-   * @param criteria criteria for updating record
-   * @param changes changes to the record, see above
-   * @returns the number of updated records
+   * @param criteria Criteria selecting which records to update.
+   * @param changes Partial changes per the rules above.
+   * @returns Number of updated records (may be 0).
    */
-  update(criteria: Criteria<S>, changes: Changes<S>): Promise<number>;
+  update(
+    criteria: Criteria<S>,
+    changes: Changes<S>,
+  ): Promise<number>;
 
   async update(
     criteria: Criteria<S> | Id,
     changes: Changes<S>,
   ) {
     is(changes).object();
+
     if ("id" in changes) {
       throw new AppError("'.id' cannot be updated");
     }
@@ -242,13 +276,12 @@ export default class Store<S extends StoreSchema> {
   async #update_1(id: Id, changes: Changes<S>) {
     is(id).string();
 
-    const count = await this.database.update(this.#as, {
+    const n = await this.database.update(this.#as, {
       changes,
       criteria: { id },
-      limit: 1,
     });
 
-    assert(count === 1);
+    assert(n === 1, `${n} records updated instead of 1`);
   }
 
   async #update_n(criteria: Criteria<S>, changes: Changes<S>) {
@@ -263,18 +296,18 @@ export default class Store<S extends StoreSchema> {
   }
 
   /**
-   * *Delete a single record.*
+   * Delete a single record.
    *
-   * @param id the record id
-   * @throws if the given id does not exist in the store
+   * @param id Record id.
+   * @throws If no records with the given id exists.
    */
   delete(id: Id): Promise<void>;
 
   /**
-   * *Delete multiple records.*
+   * Delete multiple records.
    *
-   * @param criteria criteria for updating records
-   * @returns the number of deleted records
+   * @param criteria Criteria selecting which records to delete.
+   * @returns Number of records deleted (may be 0).
    */
   delete(criteria: Criteria<S>): Promise<number>;
 
@@ -289,9 +322,7 @@ export default class Store<S extends StoreSchema> {
 
     const n = await this.database.delete(this.#as, { criteria: { id } });
 
-    if (n !== 1) {
-      new AppError(`${n} records deleted instead of 1`);
-    }
+    assert(n === 1, `${n} records deleted instead of 1`);
   }
 
   async #delete_n(criteria: Criteria<S>) {
@@ -301,12 +332,11 @@ export default class Store<S extends StoreSchema> {
   }
 
   /**
-   * *Find matching records.*
+   * Find matching records.
    *
-   * @param criteria the search criteria
-   * @param fields the selected fields
-   *
-   * @returns any record matching the criteria with its selected fields
+   * @param criteria Criteria to match records by.
+   * @param options Query options.
+   * @returns Matching records, possibly projected/limited/sorted.
    */
   find(criteria: Criteria<S>): Promise<Filter<DataRecord<S>>[]>;
   find(
@@ -334,16 +364,16 @@ export default class Store<S extends StoreSchema> {
     },
   ) {
     is(criteria).object();
-    maybe(options).object();
+    maybe(options).record();
     maybe(options?.select).object();
-    maybe(options?.sort).object();
+    maybe(options?.sort).record();
     maybe(options?.limit).usize();
 
     const result = await this.database.read(this.#as, {
       criteria,
-      fields: Object.keys(options?.select ?? {}),
+      fields: options?.select ? Object.keys(options.select) : undefined,
       limit: options?.limit,
-      sort: options?.sort,
+      sort: options?.sort as Dict<"asc" | "desc">,
     });
 
     return result as Filter<DataRecord<S>, F>[];

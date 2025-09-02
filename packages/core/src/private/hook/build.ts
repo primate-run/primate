@@ -1,3 +1,4 @@
+import AppError from "#AppError";
 import type BuildApp from "#BuildApp";
 import location from "#location";
 import log from "#log";
@@ -27,6 +28,40 @@ const pre = async (app: BuildApp) => {
 
   return app;
 };
+
+async function indexDatabase(base: FileRef) {
+  const export_from = "export { default } from";
+
+  // app/config/database does not exist
+  if (!await base.exists()) return `${export_from} "primate/database/default";`;
+
+  const databases = await base.list();
+  const n = databases.length;
+
+  // none in app/config/database -> fallback
+  if (n === 0) return `${export_from} "primate/database/default";`;
+
+  // index database file found, will be overwritten in next step
+  if (databases.some(d => d.base === "index")) return "";
+
+  const names = databases.map(d => d.name);
+
+  // app/config/database/default.ts -> use
+  const ts = names.includes("default.ts");
+  if (ts) return `${export_from} "#stage/config/database/default.ts";`;
+
+  // app/config/database/default.js -> use
+  const js = names.includes("default.js");
+  if (js) return `${export_from} "#stage/config/database/default.js";`;
+
+  // one in app/config/database -> default
+  if (n === 1) return `${export_from} "#stage/config/database/${names[0]}";`;
+
+  throw new AppError(
+    "Multiple database drivers; add index or default.(ts|js). Found: {0}",
+    names.join(", "),
+  );
+}
 
 const js_re = /^.*.js$/;
 const write_directories = async (build_directory: FileRef, app: BuildApp) => {
@@ -97,25 +132,32 @@ export default app;
 
 const post = async (app: BuildApp) => {
   const defaults = FileRef.join(import.meta.url, "../../defaults");
-  //.push("${file.path.slice(1, -file.extension.length)}");
 
   await app.stage(app.path.routes, "routes", file => dedent`
     export * from "#stage/route${file}";
   `);
 
-  await app.stage(app.path.stores, "stores", file =>
-    `import database from "#database";
-import store from "#stage/store${file}";
+  await app.stage(app.path.stores, "stores", file => dedent`
+    import database from "#database";
+    import store from "#stage/store${file}";
+    import wrap from "primate/database/wrap";
 
-export default await database.wrap("${file.base}", store);`);
+    export default await wrap("${file.base}", store, database);
+  `);
 
   const configs = FileRef.join(dirname, "../../private/config/config");
+  const database_base = app.path.config.join("database");
 
-  await app.stage(configs, "config", file =>
-    `export { default } from "#stage/config${file}";`);
+  await app.stage(configs, "config", async file => {
+    if (file.path === "/database/index.js") return indexDatabase(database_base);
 
+    return `export { default } from "#stage/config${file}";`;
+  });
+
+  // build/config/database/index.ts will be overwritten if user has created one
   await app.stage(app.path.config, "config", file =>
-    `export { default } from "#stage/config${file}";`);
+    `export { default } from "#stage/config${file}";`,
+  );
 
   await app.stage(app.path.modules, "modules", file =>
     `export { default } from "#stage/module${file}";`);
@@ -192,13 +234,14 @@ export default await database.wrap("${file.base}", store);`);
     ...await (await json()).json() as Dict,
     imports: {
       "#config": "./config/app.js",
-      "#database": "./config/database.js",
-      "#component/*": "./components/*.js",
       "#config/*": "./config/*.js",
+      "#database": "./config/database/index.js",
+      "#database/*": "./config/database/*.js",
+      "#session": "./config/session.js",
+      "#component/*": "./components/*.js",
       "#locale/*": "./locales/*.js",
       "#module/*": "./modules/*.js",
       "#route/*": "./routes/*.js",
-      "#session": "./config/session.js",
       "#stage/component/*": "./stage/components/*.js",
       "#stage/config/*": "./stage/config/*.js",
       "#stage/module/*": "./stage/modules/*.js",

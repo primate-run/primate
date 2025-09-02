@@ -1,5 +1,4 @@
-import Module from "#Module";
+import Database from "#Database";
 import test from "@primate/core/database/test";
 
-const m = new Module();
-test(m.init(), () => m.deinit());
+test(new Database());

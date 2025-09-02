@@ -3,74 +3,61 @@ import Database from "@primate/core/Database";
 import type As from "@primate/core/database/As";
 import type DataDict from "@primate/core/database/DataDict";
 import type TypeMap from "@primate/core/database/TypeMap";
-import is from "@rcompat/assert/is";
-import maybe from "@rcompat/assert/maybe";
-import entries from "@rcompat/record/entries";
-import type Client from "@rcompat/sqlite";
+import assert from "@rcompat/assert";
+import Client from "@rcompat/sqlite";
+import type Param from "@rcompat/sqlite/Param";
 import type Dict from "@rcompat/type/Dict";
+import pema from "pema";
 import type StoreSchema from "pema/StoreSchema";
+import string from "pema/string";
 
-function make_sort(sort: Dict<"asc" | "desc">) {
-  is(sort).object();
+type Binds = Param | undefined;
 
-  const sorting = Object.entries(sort)
-    .map(([field, direction]) => `${field} ${direction}`);
+const schema = pema({
+  database: string.default(":memory:"),
+});
 
-  return sorting.length === 0 ? "" : ` ORDER BY ${sorting.join(",")}`;
-};
+const options = { safeIntegers: true };
 
-function make_limit(limit?: number) {
-  maybe(limit).usize();
+export default class SQLiteDatabase extends Database {
+  #factory: () => Client;
+  #client?: Client;
 
-  if (limit === undefined) {
-    return "";
-  }
-  return ` LIMIT ${limit}`;
-};
+  static config: typeof schema.input;
 
-function make_where(binds: Dict) {
-  const keys = Object.keys(binds).map(key => key.slice(1));
-
-  if (keys.length === 0) {
-    return "";
-  }
-  return `WHERE ${keys.map(key => `${key}=$${key}`).join(" AND ")}`;
-};
-
-const change = (changes: Dict) => {
-  const keys = Object.keys(changes).map(key => key.slice(1));
-
-  const set = keys.map(field => `${field}=$s_${field}`).join(",");
-  return {
-    binds: entries(changes).keymap(([key]) => `$s_${key.slice(1)}`).get(),
-    set: `SET ${set}`,
-  };
-};
-
-export default class SqliteDatabase extends Database {
-  #client: Client;
-
-  constructor(client: Client) {
+  constructor(config?: typeof schema.input) {
     super("$");
+    const parsed = schema.parse(config);
+    this.#factory = () => new Client(parsed.database, options);
+  }
 
-    this.#client = client;
+  #get() {
+    if (this.#client === undefined) {
+      this.#client = this.#factory();
+    }
+    return this.#client;
+  }
+
+  close() {
+    this.#get().close();
   }
 
   get typemap() {
     return typemap as unknown as TypeMap<Dict>;
   }
 
-  #new(name: string, schema: StoreSchema) {
-    const body = Object.entries(schema)
-      .map(([key, value]) => `\`${key}\` ${this.column(value.datatype)}`)
+  #new(name: string, store: StoreSchema) {
+    const body = Object.entries(store)
+      .map(([key, value]) =>
+        `${this.ident(key)} ${this.column(value.datatype)}`)
       .join(",");
-    const query = `CREATE TABLE IF NOT EXISTS \`${name}\` (${body})`;
-    this.#client.prepare(query).run();
+    const query = `CREATE TABLE IF NOT EXISTS ${this.ident(name)} (${body})`;
+    this.#get().prepare(query).run();
   }
 
   #drop(name: string) {
-    const query = `DROP TABLE IF EXISTS ${name}`;
-    this.#client.prepare(query).run();
+    const query = `DROP TABLE IF EXISTS ${this.ident(name)}`;
+    this.#get().prepare(query).run();
   }
 
   get schema() {
@@ -82,18 +69,18 @@ export default class SqliteDatabase extends Database {
 
   async create<O extends Dict>(as: As, args: { record: DataDict }) {
     const keys = Object.keys(args.record);
-    const columns = keys.map(key => `"${key}"`);
+    const columns = keys.map(k => this.ident(k));
     const values = keys.map(key => `$${key}`).join(",");
     const payload = columns.length > 0
       ? `(${columns.join(",")}) VALUES (${values})`
       : "DEFAULT VALUES";
-    const query = `INSERT INTO ${as.name} ${payload} RETURNING ID;`;
-    const binds = await this.bind(args.record, as.types);
-    const statement = this.#client.prepare(query);
+    const query = `INSERT INTO ${this.table(as)} ${payload} RETURNING id;`;
+    const binds = await this.bind(as.types, args.record) as Binds;
+    const statement = this.#get().prepare(query);
     const changes = statement.run(binds);
     const id = BigInt(changes.lastInsertRowid);
 
-    return this.unbind({ ...args.record, id }, as.types) as O;
+    return this.unbind(as.types, { ...args.record, id }) as O;
   }
 
   read(as: As, args: {
@@ -113,58 +100,54 @@ export default class SqliteDatabase extends Database {
     limit?: number;
     sort?: Dict<"asc" | "desc">;
   }) {
-    const binds = await this.bind(args.criteria, as.types);
-    const where = make_where(binds);
+    const where = this.toWhere(as.types, args.criteria);
+    const binds = await this.bindCriteria(as.types, args.criteria) as Binds;
 
     if (args.count === true) {
-      const query = `SELECT COUNT(*) AS n FROM ${as.name} ${where};`;
-      const statement = this.#client.prepare(query);
-      const [{ n }] = statement.all(binds);
+      const query = `SELECT COUNT(*) AS n FROM ${this.table(as)} ${where};`;
+      const [{ n }] = this.#get().prepare(query).all(binds);
       return Number(n);
     }
 
-    const fields = args.fields ?? [];
-    const sort = make_sort(args.sort ?? {});
-    const limit = make_limit(args.limit);
-    const select = fields.length === 0 ? "*" : fields.join(", ");
-    const query = `SELECT ${select} FROM ${as.name} ${where}${sort}${limit};`;
-    const records = this.#client.prepare(query).all(binds);
+    const select = this.toSelect(as.types, args.fields);
+    const sort = this.toSort(as.types, args.sort);
+    const limit = this.toLimit(args.limit);
 
-    return records.map(record => this.unbind(record, as.types));
+    const query = `SELECT
+      ${select} FROM ${this.table(as)} ${where}${sort}${limit};`;
+    const records = this.#get().prepare(query).all(binds);
+
+    return records.map(record => this.unbind(as.types, record));
   }
 
-  async update(as: As, args: {
-    changes: DataDict;
-    criteria: DataDict;
-    limit?: number;
-    sort?: Dict<"asc" | "desc">;
-  }) {
-    const criteria_binds = await this.bind(args.criteria, as.types);
-    const changes = await this.bind(args.changes, as.types);
-    const where = make_where(criteria_binds);
-    const { binds: changes_binds, set } = change(changes);
-    const binds = { ...criteria_binds, ...changes_binds };
-    const sort = make_sort(args.sort ?? {});
+  async update(as: As, args: { changes: DataDict; criteria: DataDict }) {
+    assert(Object.keys(args.criteria).length > 0, "update: no criteria");
+
+    const where = this.toWhere(as.types, args.criteria);
+    const criteria = await this.bindCriteria(as.types, args.criteria);
+    const { set, binds: set_binds } = await this.toSet(as.types, args.changes);
+    const binds = { ...criteria, ...set_binds } as Binds;
 
     const query = `
       WITH to_update AS (
-        SELECT id FROM ${as.name}
+        SELECT id FROM ${this.table(as)}
         ${where}
-        ${sort}
       )
-      UPDATE ${as.name}
+      UPDATE ${this.table(as)}
       ${set}
       WHERE id IN (SELECT id FROM to_update)
     `;
 
-    return Number(this.#client.prepare(`${query};`).run(binds).changes);
+    return Number(this.#get().prepare(`${query};`).run(binds).changes);
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
-    const binds = await this.bind(args.criteria, as.types);
-    const where = make_where(binds);
-    const query = `DELETE FROM ${as.name} ${where}`;
+    assert(Object.keys(args.criteria).length > 0, "delete: no criteria");
 
-    return Number(this.#client.prepare(query).run(binds).changes);
-  };
+    const where = this.toWhere(as.types, args.criteria);
+    const binds = await this.bindCriteria(as.types, args.criteria) as Binds;
+    const query = `DELETE FROM ${this.table(as)} ${where}`;
+
+    return Number(this.#get().prepare(query).run(binds).changes);
+  }
 }

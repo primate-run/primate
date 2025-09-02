@@ -19,20 +19,26 @@ export default {
     return redirect(location, status);
   },
   session: {
-    create(data: PyProxy) {
-      session().create(borrow(data));
-    },
-    get data() {
-      return session().data;
-    },
-    destroy() {
-      session().destroy();
-    },
     get id() {
       return session().id;
     },
-    get new() {
-      return session().new;
+    get exists() {
+      return session().exists;
+    },
+    create(initial: PyProxy) {
+      session().create(borrow(initial));
+    },
+    get() {
+      return session().get();
+    },
+    try() {
+      return session().get();
+    },
+    set(data: PyProxy) {
+      session().set(borrow(data));
+    },
+    destroy() {
+      session().destroy();
     },
   },
   view(name: ViewParams[0], props?: PyProxy, options?: PyProxy): ViewReturn {

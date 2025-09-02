@@ -2,22 +2,27 @@ import AppError from "#AppError";
 import type As from "#database/As";
 import type ColumnTypes from "#database/ColumnTypes";
 import Database from "#database/Database";
+import type DataDict from "#database/DataDict";
+import type Sort from "#database/Sort";
 import type TypeMap from "#database/TypeMap";
+import assert from "@rcompat/assert";
 import entries from "@rcompat/record/entries";
 import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import type PartialDict from "@rcompat/type/PartialDict";
 
-const match = (record: Dict, criteria: Dict) =>
-  Object.entries(criteria).every(([key, value]) =>
-    record[key] === value);
+function match(record: Dict, criteria: Dict) {
+  return Object.entries(criteria).every(([k, v]) =>
+    record[k] === v || v === null && !Object.hasOwn(record, k));
+}
 
-const filter = (record: Dict, fields: string[]) =>
-  Object.fromEntries(Object.entries(record)
+function filter(record: Dict, fields: string[]) {
+  return Object.fromEntries(Object.entries(record)
     .filter(([key]) => fields.includes(key)));
+}
 
-const to_sorted = <T extends Dict>(d1: T, d2: T, sort: Dict<"asc" | "desc">) =>
-  [...entries(sort).valmap(([, value]) => value === "asc" ? 1 : -1)]
+function toSorted<T extends Dict>(d1: T, d2: T, sort: Sort) {
+  return [...entries(sort).valmap(([, value]) => value === "asc" ? 1 : -1)]
     .reduce((sorting, [field, direction]) => {
       const left = d1[field] as T[keyof T];
       const right = d2[field] as typeof left;
@@ -37,6 +42,7 @@ const to_sorted = <T extends Dict>(d1: T, d2: T, sort: Dict<"asc" | "desc">) =>
 
       return direction;
     }, 0);
+}
 
 function ident<C extends keyof ColumnTypes>(column: C): {
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];
@@ -107,6 +113,9 @@ export default class InMemoryDatabase extends Database {
     };
   }
 
+  // noop
+  close() { }
+
   create<O extends Dict>(as: As, args: { record: Dict }) {
     const collection = this.#use(as.name);
     const record = { ...args.record };
@@ -126,73 +135,77 @@ export default class InMemoryDatabase extends Database {
 
   read(as: As, args: {
     count: true;
-    criteria: Dict;
+    criteria: DataDict;
   }): number;
   read(as: As, args: {
-    criteria: Dict;
+    criteria: DataDict;
     fields?: string[];
     limit?: number;
-    sort?: Dict<"asc" | "desc">;
+    sort?: Sort;
   }): Dict[];
   read(as: As, args: {
     count?: true;
-    criteria: Dict;
+    criteria: DataDict;
     fields?: string[];
     limit?: number;
-    sort?: Dict<"asc" | "desc">;
+    sort?: Sort;
   }): Dict[] | number {
+    this.toWhere(as.types, args.criteria);
+    if (args.fields !== undefined) this.toSelect(as.types, args.fields);
+    if (args.sort !== undefined) this.toSort(as.types, args.sort);
+
     const collection = this.#use(as.name);
-    const matches = collection
-      .filter(record => match(record, args.criteria));
+    const matches = collection.filter(r => match(r, args.criteria));
 
     if (args.count === true) {
       return matches.length;
     }
 
-    const fields = args.fields ?? [];
     const sort = args.sort ?? {};
-
     const sorted = Object.keys(sort).length === 0
       ? matches
-      : matches.toSorted((a, b) => to_sorted(a, b, sort));
+      : matches.toSorted((a, b) => toSorted(a, b, sort));
+
     const limit = args.limit ?? sorted.length;
+
+    const fields = args.fields ?? [];
 
     return (fields.length === 0
       ? sorted
       : sorted.map(s => filter(s, fields))).slice(0, limit);
   }
 
-  update(as: As, args: {
-    changes: Dict;
-    criteria: Dict;
-    limit?: number;
-    sort?: Dict<"asc" | "desc">;
-  }): MaybePromise<number> {
+  async update(as: As, args: { changes: DataDict; criteria: DataDict }) {
+    assert(Object.keys(args.criteria).length > 0, "update: no criteria");
+
+    this.toWhere(as.types, args.criteria);
+    await this.toSet(as.types, args.changes);
+
     const collection = this.#use(as.name);
-    const { criteria } = args;
+    const matched = collection.filter(record => match(record, args.criteria));
 
-    const matched = collection.filter(record => match(record, criteria));
-    const limit = args.limit ?? matched.length;
-
-    const updated = matched.slice(0, limit).map(record => {
+    return matched.map(record => {
       const changed = entries({ ...record, ...args.changes })
         .filter(([, value]) => value !== null)
         .get();
       const index = collection.findIndex(stored => stored.id === record.id);
       collection.splice(index, 1, changed);
       return changed;
-    });
-
-    return updated.length;
+    }).length;
   }
 
-  delete(as: As, args: { criteria: Dict }) {
+  delete(as: As, args: { criteria: DataDict }) {
+    if (Object.keys(args.criteria).length === 0) {
+      throw new AppError("delete: no criteria");
+    }
+    this.toWhere(as.types, args.criteria);
+
     const collection = this.#use(as.name);
-    const size_before = Object.keys(collection).length;
+    const size_before = collection.length;
 
     this.#collections[as.name] = collection
       .filter(record => !match(record, args.criteria));
 
-    return size_before - Object.keys(this.#use(as.name)).length;
+    return size_before - this.#use(as.name).length;
   }
 }

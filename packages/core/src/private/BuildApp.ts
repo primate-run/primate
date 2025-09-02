@@ -7,6 +7,7 @@ import s_layout_depth from "#symbol/layout-depth";
 import Build from "@rcompat/build";
 import type FileRef from "@rcompat/fs/FileRef";
 import cache from "@rcompat/kv/cache";
+import type MaybePromise from "@rcompat/type/MaybePromise";
 import type PartialDict from "@rcompat/type/PartialDict";
 
 const s = Symbol("primate.Build");
@@ -89,7 +90,7 @@ export default class BuildApp extends App {
   }
 
   async stage(directory: FileRef, context: BindingContext,
-    importer: (file: FileRef) => string) {
+    importer: (file: FileRef) => MaybePromise<string>) {
     if (!await directory.exists()) {
       return;
     }
@@ -126,7 +127,7 @@ export default class BuildApp extends App {
       // actual
       const runtime_file = build_directory.join(debased.bare(".js"));
       await runtime_file.directory.create();
-      runtime_file.write(importer(debased));
+      runtime_file.write(await importer(debased));
     }
   }
 

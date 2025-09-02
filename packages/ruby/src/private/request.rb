@@ -53,21 +53,29 @@ class Session
     @session["id"]
   end
 
-  def new
-    @session["new"]
-  end
-
-  def data
-    wrap(@session["data"], @helpers)
+  def exists
+    @session["exists"]
   end
 
   def create(data)
     @session.call("create", data)
   end
 
+  def get()
+    @session.call("get")
+  end
+
+  def try()
+    @session.call("try")
+  end
+
+  def set(data)
+    @session.call("set", data)
+  end
+
   def destroy(foo)
     @session.call("destroy", foo)
-  end 
+  end
 end
 
 class Primate

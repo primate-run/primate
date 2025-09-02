@@ -3,7 +3,6 @@ import Store from "#database/Store";
 import test from "@rcompat/test";
 import any from "@rcompat/test/any";
 import type Dict from "@rcompat/type/Dict";
-import type MaybePromise from "@rcompat/type/MaybePromise";
 import boolean from "pema/boolean";
 import date from "pema/date";
 import f32 from "pema/f32";
@@ -40,16 +39,16 @@ const users = {
 } as const;
 type User = keyof typeof users;
 
-export default <D extends Database>(database: D, end?: () => MaybePromise<void>) => {
-  if (end !== undefined) {
-    test.ended(end);
-  }
+export default <D extends Database>(database: D) => {
+  test.ended(() => database.close());
 
   const _Post = new Store({
     id: primary,
     title: string,
     user_id: uint,
   }, { database, name: "post" });
+
+  _Post.update;
 
   const User = new Store({
     age: u8.optional(),
@@ -96,11 +95,11 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
     await User.schema.create();
 
     const donald = await User.insert({ age: 30, name: "Donald" });
-    assert(await User.exists(donald.id!)).true();
+    assert(await User.has(donald.id)).true();
 
     const ryan = await User.insert({ age: 40, name: "Ryan" });
-    assert(await User.exists(donald.id!)).true();
-    assert(await User.exists(ryan.id!)).true();
+    assert(await User.has(donald.id)).true();
+    assert(await User.has(ryan.id)).true();
 
     await User.schema.delete();
   });
@@ -176,15 +175,31 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
     });
   });
 
+  test.case("find - null criteria uses IS NULL semantics", async assert => {
+    await bootstrap(async () => {
+      // Inserted fixtures include Jeremy without a lastname (NULL in DB).
+      // Querying with { lastname: null } should find him.
+      const rows = await User.find({ lastname: null }, {
+        select: { name: true, lastname: true },
+        sort: { name: "asc" },
+      });
+      assert(rows.length).equals(1);
+
+      if (rows.length > 0) {
+        assert(rows[0].name).equals("Just Jeremy");
+      }
+    });
+  });
+
   test.case("update - single record", async assert => {
     await bootstrap(async () => {
       const [donald] = (await User.find({ name: "Donald" }));
 
-      await User.update(donald.id!, { age: 35 });
+      await User.update(donald.id, { age: 35 });
 
       const [updated] = (await User.find({ name: "Donald" }));
       assert(updated.age).equals(35);
-      assert(updated).equals({ ...users.donald, age: 35, id: donald.id! });
+      assert(updated).equals({ ...users.donald, age: 35, id: donald.id });
     });
   });
 
@@ -193,13 +208,13 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
       const [donald] = (await User.find({ name: "Donald" }));
 
       assert(donald.age).equals(30);
-      await User.update(donald.id!, { age: null });
+      await User.update(donald.id, { age: null });
 
       const [updated] = (await User.find({ name: "Donald" }));
       assert(updated.age).undefined();
 
       const [paul] = (await User.find({ name: "Paul" }));
-      await User.update(paul.id!, { age: null, lastname: null });
+      await User.update(paul.id, { age: null, lastname: null });
 
       const [updated_pual] = (await User.find({ name: "Paul" }));
       assert(updated_pual).equals({ id: updated_pual.id, name: "Paul" });
@@ -218,10 +233,37 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
     });
   });
 
+  test.case("update - criteria and changes share a column", async assert => {
+    await bootstrap(async () => {
+      // Donald has age 30; update age using criteria on the same column.
+      const n = await User.update({ age: 30 }, { age: 31 });
+      assert(n).equals(1);
+
+      assert(await User.count({ age: 30 })).equals(0);
+      assert(await User.count({ age: 31 })).equals(1);
+
+      const [donald] = await User.find({ name: "Donald" });
+      assert(donald.age).equals(31);
+    });
+  });
+
+  test.case("security - update: reject missing criteria", async assert => {
+    await bootstrap(async () => {
+      let error: unknown;
+      try {
+        // should be rejected; otherwise updates all rows.
+        await User.update({} as any, { age: 99 });
+      } catch (e) { error = e; }
+      const msg = error instanceof Error ? error.message : String(error);
+      assert(!!error).true();
+      assert(msg.includes("update: no criteria")).true();
+    });
+  });
+
   test.case("delete - single record", async assert => {
     await bootstrap(async () => {
       const [donald] = await User.find({ name: "Donald" });
-      await User.delete(donald.id!);
+      await User.delete(donald.id);
 
       const deleted = await User.find({ name: "Donald" });
       assert(deleted.length).equals(0);
@@ -249,13 +291,13 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
     });
   });
 
-  test.case("exists", async assert => {
+  test.case("has", async assert => {
     await bootstrap(async () => {
       const [donald] = await User.find({ name: "Donald" });
 
-      assert(await User.exists(donald.id!)).true();
-      await User.delete(donald.id!);
-      assert(await User.exists(donald.id!)).false();
+      assert(await User.has(donald.id)).true();
+      await User.delete(donald.id);
+      assert(await User.has(donald.id)).false();
     });
   });
 
@@ -263,10 +305,10 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
     await typestrap(async () => {
       const t = await Type.insert({ boolean: true });
       assert(t.boolean).equals(true);
-      assert((await Type.get(t.id!)).boolean).equals(true);
+      assert((await Type.get(t.id)).boolean).equals(true);
 
-      await Type.update(t.id!, { boolean: false });
-      assert((await Type.get(t.id!)).boolean).equals(false);
+      await Type.update(t.id, { boolean: false });
+      assert((await Type.get(t.id)).boolean).equals(false);
     });
   });
 
@@ -274,10 +316,10 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
     await typestrap(async () => {
       const t = await Type.insert({ string: "foo" });
       assert(t.string).equals("foo");
-      assert((await Type.get(t.id!)).string).equals("foo");
+      assert((await Type.get(t.id)).string).equals("foo");
 
-      await Type.update(t.id!, { string: "bar" });
-      assert((await Type.get(t.id!)).string).equals("bar");
+      await Type.update(t.id, { string: "bar" });
+      assert((await Type.get(t.id)).string).equals("bar");
     });
   });
 
@@ -286,12 +328,12 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
       const now = new Date();
       const t = await Type.insert({ date: now });
       assert(t.date).equals(now);
-      assert((await Type.get(t.id!)).date).equals(now);
+      assert((await Type.get(t.id)).date).equals(now);
 
       const next = new Date();
 
-      await Type.update(t.id!, { date: next });
-      assert((await Type.get(t.id!)).date).equals(next);
+      await Type.update(t.id, { date: next });
+      assert((await Type.get(t.id)).date).equals(next);
     });
   });
 
@@ -299,10 +341,10 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
     await typestrap(async () => {
       const t = await Type.insert({ f32: 1.5 });
       assert(t.f32).equals(1.5);
-      assert((await Type.get(t.id!)).f32).equals(1.5);
+      assert((await Type.get(t.id)).f32).equals(1.5);
 
-      await Type.update(t.id!, { f32: 123456.75 });
-      assert((await Type.get(t.id!)).f32).equals(123456.75);
+      await Type.update(t.id, { f32: 123456.75 });
+      assert((await Type.get(t.id)).f32).equals(123456.75);
     });
   });
 
@@ -311,10 +353,10 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
       const f1 = 123456.78901;
       const t = await Type.insert({ f64: f1 });
       assert(t.f64).equals(f1);
-      assert((await Type.get(t.id!)).f64).equals(f1);
+      assert((await Type.get(t.id)).f64).equals(f1);
 
-      await Type.update(t.id!, { f32: 1.5 });
-      assert((await Type.get(t.id!)).f32).equals(1.5);
+      await Type.update(t.id, { f32: 1.5 });
+      assert((await Type.get(t.id)).f32).equals(1.5);
     });
   });
 
@@ -327,12 +369,12 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
         const lb = -(2 ** (n - 1));
         const t = await Type.insert({ [key]: lb });
         assert(t[any(key)]).equals(lb);
-        assert((await Type.get(t.id!))[any(key)]).equals(lb);
+        assert((await Type.get(t.id))[any(key)]).equals(lb);
 
         // upper bound
         const ub = 2 ** (n - 1) - 1;
-        await Type.update(t.id!, { [key]: ub });
-        assert((await Type.get(t.id!))[any(key)]).equals(ub);
+        await Type.update(t.id, { [key]: ub });
+        assert((await Type.get(t.id))[any(key)]).equals(ub);
       });
     });
 
@@ -344,12 +386,12 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
         const lb = 0;
         const t = await Type.insert({ [key]: lb });
         assert(t[any(key)]).equals(lb);
-        assert((await Type.get(t.id!))[any(key)]).equals(lb);
+        assert((await Type.get(t.id))[any(key)]).equals(lb);
 
         // upper bound
         const ub = 2 ** n - 1;
-        await Type.update(t.id!, { [key]: ub });
-        assert((await Type.get(t.id!))[any(key)]).equals(ub);
+        await Type.update(t.id, { [key]: ub });
+        assert((await Type.get(t.id))[any(key)]).equals(ub);
       });
     });
   });
@@ -363,13 +405,13 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
         const lb = -(2n ** (i - 1n));
         const t = await Type.insert({ [key]: lb });
         assert(t[any(key)]).equals(lb);
-        assert((await Type.get(t.id!))[any(key)]).equals(lb);
+        assert((await Type.get(t.id))[any(key)]).equals(lb);
 
         // upper bound
         const ub = 2n ** (i - 1n) - 1n;
         const tu = await Type.insert({ [key]: ub });
         assert(tu[any(key)]).equals(ub);
-        assert((await Type.get(tu.id!))[any(key)]).equals(ub);
+        assert((await Type.get(tu.id))[any(key)]).equals(ub);
       });
     });
 
@@ -381,14 +423,209 @@ export default <D extends Database>(database: D, end?: () => MaybePromise<void>)
         const lb = 0n;
         const t = await Type.insert({ [key]: lb });
         assert(t[any(key)]).equals(lb);
-        assert((await Type.get(t.id!))[any(key)]).equals(lb);
+        assert((await Type.get(t.id))[any(key)]).equals(lb);
 
         // upper bound
         const ub = 2n ** i - 1n;
         const tu = await Type.insert({ [key]: ub });
         assert(tu[any(key)]).equals(ub);
-        assert((await Type.get(tu.id!))[any(key)]).equals(ub);
+        assert((await Type.get(tu.id))[any(key)]).equals(ub);
       });
     });
+  });
+
+  test.case("security - find: reject unknown criteria column", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        await User.find({ nope: "x" } as any);
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
+  test.case("security - find: reject empty select", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        await User.find({}, { select: {} as any });
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
+  test.case("security - find: reject unknown select column", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        await User.find({}, { select: { nope: true } as any });
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
+  test.case("security - find: reject empty sort", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        await User.find({}, { sort: {} as any });
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
+  test.case("security - find: reject unknown sort column", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        await User.find({}, { sort: { nope: "asc" } as any });
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
+  test.case("security - find: projection limits fields", async assert => {
+    await bootstrap(async () => {
+      const records = await User.find({}, { select: { id: true, name: true } });
+      assert(records.length).equals(5);
+      for (const r of records) {
+        // only id + name must be present
+        assert(Object.keys(r).toSorted()).equals(["id", "name"].toSorted());
+      }
+    });
+  });
+
+  test.case("security - update: reject unknown change column", async assert => {
+    await bootstrap(async () => {
+      const [donald] = await User.find({ name: "Donald" });
+      let threw = false;
+      try {
+        await User.update(donald.id, { nope: 1 } as any);
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
+  test.case("security - update: reject empty changes object", async assert => {
+    await bootstrap(async () => {
+      const [donald] = await User.find({ name: "Donald" });
+      let threw = false;
+      try {
+        await User.update(donald.id, {} as any);
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
+  test.case("security - delete: reject missing criteria", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        await User.delete({} as any);
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
+  test.case("security - inject invalid identifier (criteria)", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        // attempted injection via bogus key
+        await User.find({ "name; DROP TABLE user;": "x" } as any);
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
+  test.case("security - inject invalid identifier (select)", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        const options = { select: { "name; DROP TABLE user;": true } as any };
+        await User.find({}, options);
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
+  test.case("security - update respects unset rules and binding map", async assert => {
+    await bootstrap(async () => {
+      const [paul] = await User.find({ name: "Paul" });
+      // allowed, lastname is optional
+      await User.update(paul.id, { lastname: null });
+      const [after] = await User.find({ id: paul.id }, {
+        select: { id: true, name: true, lastname: true },
+      });
+      assert(after.lastname).undefined();
+    });
+  });
+
+  test.case("security - count: reject unknown criteria column", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        await User.count({ nope: 1 } as any);
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
+  test.case("security - sort: reject invalid direction", async assert => {
+    await bootstrap(async () => {
+      let error: unknown;
+      try {
+        // intentionally wrong: should be "asc" | "desc"
+        await User.find({}, { sort: { age: "ascending" as any } });
+      } catch (e) { error = e; }
+      // We expect our own validation error, not a SQLite syntax error.
+      const message = error instanceof Error ? error.message : String(error);
+      assert(!!error).true();
+      assert(message.includes("invalid sort direction")).true();
+    });
+  });
+
+  test.case("security - sort: reject undefined direction", async assert => {
+    await bootstrap(async () => {
+      let error: unknown;
+      try {
+        await User.find({}, { sort: { age: undefined as any } });
+      } catch (e) { error = e; }
+      const message = error instanceof Error ? error.message : String(error);
+      assert(!!error).true();
+      assert(message.includes("invalid sort direction")).true();
+    });
+  });
+
+  test.case("quote safety - reserved table & column names", async assert => {
+    // This stresses identifier quoting in CREATE/INSERT/SELECT/UPDATE/DELETE.
+    const Reserved = new Store({
+      id: primary,
+      // deliberately reserved-looking column name
+      order: u8.optional(),
+      name: string,
+    }, { database, name: "select" }); // deliberately reserved-looking table name
+
+    await Reserved.schema.create();
+
+    const a = await Reserved.insert({ name: "alpha", order: 1 });
+    const b = await Reserved.insert({ name: "beta", order: 2 });
+
+    const got = await Reserved.find({ name: "alpha" });
+    assert(got.length).equals(1);
+    assert(got[0]).equals({ id: a.id, name: "alpha", order: 1 });
+
+    // update using the reserved column
+    const n = await Reserved.update({ name: "beta" }, { order: 9 });
+    assert(n).equals(1);
+
+    const [after] = await Reserved.find({ id: b.id });
+    assert(after.order).equals(9);
+
+    // and delete to complete the cycle
+    const d = await Reserved.delete({ id: a.id });
+    assert(d).equals(1);
+
+    await Reserved.schema.delete();
   });
 };

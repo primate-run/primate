@@ -1,3 +1,3 @@
-import Module from "#Module";
+import Database from "#Database";
 
-export default (config: typeof Module.config) => new Module(config);
+export default (config: typeof Database.config) => new Database(config);

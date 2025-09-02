@@ -49,21 +49,27 @@ const js_wrapper = (path: string, routes: string[]) => `
 import env from "@primate/go/env";
 import toRequest from "@primate/go/to-request";
 import to_response from "@primate/go/to-response";
-import session from "primate/config/session";
+import session from "#session";
 import route from "primate/route";
 
 globalThis.PRMT_SESSION = {
-  get new() {
-    return session().new;
+  get exists() {
+    return session().exists;
   },
   get id() {
     return session().id;
   },
-  get data() {
-    return JSON.stringify(session().data);
-  },
   create(data) {
     session().create(JSON.parse(data));
+  },
+  get() {
+    return JSON.stringify(session().get());
+  },
+  try() {
+    return JSON.stringify(session().try());
+  }
+  set(data) {
+    session().set(JSON.parse(set));
   },
   destroy() {
     session().destroy();

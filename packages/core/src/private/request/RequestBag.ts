@@ -76,7 +76,7 @@ export default class RequestBag {
   }
 
   /**
-   * Get a value by key (strict).
+   * Get a value by key.
    *
    * @param key - Key to look up (pre-normalization).
    * @returns The defined value.
@@ -94,7 +94,7 @@ export default class RequestBag {
   }
 
   /**
-   * Try to get a value by key (lenient).
+   * Try to get a value by key.
    *
    * @param key - Key to look up (pre-normalization).
    * @returns The value, or `undefined` if absent/undefined.

@@ -7,7 +7,7 @@ route.get(async () => {
 
   const { id } = await User.insert({ age: 30, name: "Donald" });
 
-  await User.delete(id!);
+  await User.delete(id);
 
   return "deleted";
 });

@@ -2,72 +2,73 @@ import typemap from "#typemap";
 import Database from "@primate/core/Database";
 import type As from "@primate/core/database/As";
 import type DataDict from "@primate/core/database/DataDict";
+import type Sort from "@primate/core/database/Sort";
 import type TypeMap from "@primate/core/database/TypeMap";
-import is from "@rcompat/assert/is";
-import maybe from "@rcompat/assert/maybe";
-import entries from "@rcompat/record/entries";
+import type Types from "@primate/core/database/Types";
+import assert from "@rcompat/assert";
 import type Dict from "@rcompat/type/Dict";
+import { surrealdbNodeEngines } from "@surrealdb/node";
+import pema from "pema";
 import type StoreSchema from "pema/StoreSchema";
-import type Surreal from "surrealdb";
+import string from "pema/string";
+import uint from "pema/uint";
 import type { QueryParameters } from "surrealdb";
+import Surreal from "surrealdb";
 
-function null_to_undefined(changes: Dict) {
-  return entries(changes)
-    .valmap(([, value]) => value === null ? undefined : value)
-    .get();
-}
+type Count = { count: number }[];
 
-function make_limit(limit?: number) {
-  maybe(limit).usize();
-
-  if (limit === undefined) {
-    return "";
-  }
-  return `LIMIT ${limit}`;
-};
-
-function make_sort(sort: Dict<"asc" | "desc">) {
-  is(sort).object();
-
-  const sorting = Object.entries(sort)
-    .map(([field, direction]) => `${field} ${direction}`);
-
-  return sorting.length === 0 ? "" : `ORDER BY ${sorting.join(", ")}`;
-};
-
-const change = (changes: Dict) => {
-  const keys = Object.keys(changes);
-
-  const set = keys.map(field => `${field}=$s_${field}`).join(", ");
-  return {
-    binds: entries(changes).keymap(([key]) => `s_${key}`).get(),
-    set: `SET ${set}`,
-  };
-};
-
-function make_where(binds: Dict) {
-  const keys = Object.keys(binds);
-
-  if (keys.length === 0) {
-    return "";
-  }
-
-  return `WHERE ${keys.map(key =>
-    `${key}=${key === "id" ? "<record>" : ""}$${key}`,
-  ).join(" AND ")}`;
-};
+const schema = pema({
+  database: string,
+  host: string.default("http://localhost"),
+  namespace: string.optional(),
+  password: string.optional(),
+  path: string.default("/rpc"),
+  port: uint.port().default(8000),
+  username: string.optional(),
+});
 
 export default class SurrealDBDatabase extends Database {
-  #client: Surreal;
+  #factory: () => Promise<Surreal>;
+  #client?: Surreal;
 
-  constructor(client: Surreal) {
-    super();
+  static config: typeof schema.input;
 
-    this.#client = client;
+  constructor(config?: typeof schema.input) {
+    super("$");
+    const {
+      host, port, path,
+      database, namespace, password, username,
+    } = schema.parse(config);
+
+    const url = `${host}:${port}/${path}`;
+    const client = new Surreal({
+      engines: surrealdbNodeEngines(),
+    });
+    const auth = username !== undefined && password !== undefined
+      ? { password, username }
+      : undefined;
+
+    this.#factory = async () => {
+      await client.connect(url, { auth, database, namespace });
+      return client;
+    };
   }
 
-  #query<T extends unknown[]>(...args: QueryParameters) {
-    return this.#client.query_raw<T>(...args);
+  async #get() {
+    if (this.#client === undefined) {
+      this.#client = await this.#factory();
+    }
+    return this.#client;
+  }
+
+  formatBinds(binds: Dict): Dict {
+    return Object.fromEntries(
+      Object.entries(binds).map(([k, v]) => [k.replace(/^[:$]/, ""), v]),
+    );
+  }
+
+  async #query<T extends unknown[]>(...args: QueryParameters) {
+    return (await this.#get()).query_raw<T>(...args);
   }
 
   get typemap() {
@@ -75,124 +76,148 @@ export default class SurrealDBDatabase extends Database {
   }
 
   async close() {
-    await this.#client.close();
+    await (await this.#get()).close();
   }
 
-  async #new(name: string, schema: StoreSchema) {
-    const body = Object.entries(schema)
-      .map(([key, value]) => [key, this.column(value.datatype)])
-      // id column implicitly created
-      .filter(([key]) => key !== "id")
-      .map(([key, value]) =>
-        `DEFINE FIELD ${key} ON ${name} TYPE option<${value}>;`)
+  toWhere(types: Types, criteria: Dict) {
+    const base = super.toWhere(types, criteria);
+    if (!base) return base;
+
+    return Object.entries(criteria).reduce((where, [k, v]) => {
+      if (v !== null) {
+        return where;
+      }
+      const column = this.ident(k);
+      return where.replace(
+        `${column} IS NULL`,
+        `(${column} IS NULL OR ${column}=none)`);
+    }, base.replace("`id`=$id", "`id`=<record>$id"));
+  }
+
+  async #new(name: string, store: StoreSchema) {
+    const t = this.ident(name);
+    const fields = Object.entries(store)
+      // surreal auto-creates `id`
+      .filter(([k]) => k !== "id")
+      .map(([k, v]) => {
+        const column = this.ident(k);
+        const type = this.column(v.datatype);
+        return `DEFINE FIELD ${column} ON TABLE ${t} TYPE option<${type}>;`;
+      })
       .join("\n");
-    const query = `
-      DEFINE TABLE ${name} SCHEMALESS;
-      ${body}
-    `;
+
+    const query = `DEFINE TABLE ${t} SCHEMALESS; ${fields}`;
     await this.#query(query);
   }
 
   async #drop(name: string) {
-    await this.#query(`REMOVE TABLE ${name}`);
+    await this.#query(`REMOVE TABLE ${this.ident(name)}`);
   }
 
   get schema() {
     return {
-      // noop
       create: this.#new.bind(this),
       delete: this.#drop.bind(this),
     };
   }
 
   async create<O extends Dict>(as: As, args: { record: DataDict }) {
+    const table = this.table(as);
     const columns = Object.keys(args.record);
-    const values = columns.map(column => `$${column}`).join(",");
+    const binds = await this.bind(as.types, args.record);
     const payload = columns.length > 0
-      ? `(${columns.join(",")}) VALUES (${values})`
-      : "{}";
-    const query = `INSERT INTO ${as.name} ${payload}`;
-    const binds = await this.bind(args.record, as.types);
-
+      ? `(${columns.map(c => this.ident(c)).join(", ")}) VALUES
+         (${columns.map(c => `$${c}`).join(", ")})`
+      : " {}";
+    const query = `INSERT INTO ${table} ${payload}`;
     const [{ result }] = await this.#query<[{ id: string }][]>(query, binds);
-
-    const [created] = result as { id: string }[];
+    const [created] = result as unknown as { id: string }[];
     const { id } = created;
-    return this.unbind({ ...args.record, id }, as.types) as O;
+
+    return this.unbind(as.types, { ...args.record, id }) as O;
   }
 
-  read(as: As, args: {
-    count: true;
-    criteria: DataDict;
-  }): Promise<number>;
+  read(as: As, args: { count: true; criteria: DataDict }): Promise<number>;
   read(as: As, args: {
     criteria: DataDict;
     fields?: string[];
     limit?: number;
-    sort?: Dict<"asc" | "desc">;
+    sort?: Sort;
   }): Promise<Dict[]>;
   async read(as: As, args: {
     count?: true;
     criteria: DataDict;
     fields?: string[];
     limit?: number;
-    sort?: Dict<"asc" | "desc">;
+    sort?: Sort;
   }) {
-    const binds = await this.bind(args.criteria, as.types);
-    const where = make_where(binds);
+    const table = this.table(as);
+    const binds = await this.bindCriteria(as.types, args.criteria);
+    const where = this.toWhere(as.types, args.criteria);
 
     if (args.count === true) {
-      const query = `SELECT COUNT() FROM ${as.name} ${where}`;
-
-      const [{ result }] = await this.#query<unknown[][]>(query, binds);
-
-      return result.length;
+      const query = `SELECT count() AS count FROM ${table} ${where} GROUP ALL`;
+      const [{ result }] = await this.#query<Count[]>(query, binds);
+      const rows = result as Count;
+      return rows[0]?.count ?? 0;
     }
 
-    const fields = args.fields ?? ["*"];
-    const sort = make_sort(args.sort ?? {});
-    const select = fields.length === 0 ? "*" : fields.join(", ");
-    const limit = make_limit(args.limit);
+    const sortKeys = Object.keys(args.sort ?? {});
+    this.toSelect(as.types, args.fields);
+    const projection = args.fields ?? [];
+    const fields = projection.length === 0
+      ? undefined
+      : Array.from(new Set([...projection, ...sortKeys]));
 
-    const subselect = (fields.length === 0
-      ? ["*"]
-      : [...new Set(fields.concat(Object.keys(args.sort ?? {})))]).join(", ");
+    const select = this.toSelect(as.types, fields);
+    const sort = this.toSort(as.types, args.sort);
+    const limit = this.toLimit(args.limit);
 
-    const query = `SELECT ${select} FROM
-      (SELECT ${subselect} FROM ${as.name} ${where} ${sort} ${limit})`;
+    const query = `SELECT ${select} FROM ${table} ${where}${sort}${limit}`;
+
     const [{ result }] = await this.#query<Dict[][]>(query, binds);
+    const records = (result as Dict[]).map(r => this.unbind(as.types, r));
 
-    const records = result as Dict[];
-    return records.map(record => this.unbind(record, as.types));
+    // strip sort keys back out
+    if (projection.length > 0) {
+      const want = new Set(projection);
+      return records.map(r =>
+        Object.fromEntries(Object.entries(r).filter(([k]) => want.has(k))),
+      ) as Dict[];
+    }
+
+    return records;
   }
 
-  async update(as: As, args: {
-    changes: DataDict;
-    criteria: DataDict;
-    limit?: number;
-    sort?: Dict<"asc" | "desc">;
-  }) {
-    const criteria_binds = await this.bind(args.criteria, as.types);
-    const changes = await this.bind(args.changes, as.types);
-    const { binds: changes_binds, set } = change(null_to_undefined(changes));
-    const where = make_where(criteria_binds);
-    const binds = { ...criteria_binds, ...changes_binds };
+  async update(as: As, args: { changes: DataDict; criteria: DataDict }) {
+    assert(Object.keys(args.criteria).length > 0, "update: no criteria");
 
-    const query = `UPDATE ${as.name} ${set} ${where}`;
+    const table = this.table(as);
+    const where = this.toWhere(as.types, args.criteria);
+    const criteria = await this.bindCriteria(as.types, args.criteria);
+    const { set, binds } = await this.toSet(as.types, args.changes);
+    const set_binds = Object.fromEntries(
+      Object.entries(binds).map(([k, v]) => [k, v === null ? undefined : v]),
+    );
 
-    const [{ result }] = await this.#query<unknown[][]>(query, binds);
+    const query = `UPDATE ${table} ${set} ${where}`;
+
+    const [{ result }] = await this.#query<unknown[][]>(query,
+      { ...criteria, ...set_binds });
 
     return result.length;
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
-    const binds = await this.bind(args.criteria, as.types);
-    const where = make_where(binds);
+    assert(Object.keys(args.criteria).length > 0, "delete: no criteria");
 
-    const query = `DELETE FROM ${as.name} ${where} RETURN diff`;
+    const table = this.table(as);
+    const where = this.toWhere(as.types, args.criteria);
+    const binds = await this.bindCriteria(as.types, args.criteria);
 
+    const query = `DELETE FROM ${table} ${where} RETURN diff`;
     const [{ result }] = await this.#query<unknown[][]>(query, binds);
 
-    return result.length;
+    return (result as unknown[]).length;
   }
 }

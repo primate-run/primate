@@ -5,5 +5,5 @@ import FileSessionManager from "#config/FileSessionManager";
 
 export default session({
   schema: pema({ foo: string }),
-  //  manager: new FileSessionManager(),
+  manager: new FileSessionManager(),
 });

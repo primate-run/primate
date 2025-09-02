@@ -6,6 +6,7 @@ import formData from "@rcompat/http/mime/multipart/form-data";
 import text from "@rcompat/http/mime/text/plain";
 import type Dict from "@rcompat/type/Dict";
 import type JSONValue from "@rcompat/type/JSONValue";
+import type Schema from "@rcompat/type/Schema";
 
 type Fields = Dict<FormDataEntryValue>;
 
@@ -16,8 +17,6 @@ type Parsed =
   | { type: "none"; value: null }
   | { type: "text"; value: string }
   ;
-
-type Schema = { parse: (v: unknown) => unknown };
 
 type ParseReturn<S> =
   S extends { parse: (v: unknown) => infer R } ? R : never;
@@ -84,8 +83,8 @@ export default class RequestBody {
   }
 
   json(): JSONValue;
-  json<S extends Schema>(schema: S): ParseReturn<S>;
-  json(schema?: { parse: (v: unknown) => unknown }) {
+  json<S extends Schema<unknown>>(schema: S): ParseReturn<S>;
+  json(schema?: Schema<unknown>) {
     if (this.type !== "json") {
       this.#throw("JSON");
     }
@@ -95,8 +94,8 @@ export default class RequestBody {
   }
 
   fields(): Fields;
-  fields<S extends Schema>(schema: S): ParseReturn<S>;
-  fields(schema?: { parse: (v: unknown) => unknown }) {
+  fields<S extends Schema<unknown>>(schema: S): ParseReturn<S>;
+  fields(schema?: Schema<unknown>) {
     if (this.type !== "fields") {
       this.#throw("form fields");
     }

@@ -4,5 +4,5 @@ import route from "primate/route";
 route.get(() => {
   session.create({ foo: "bar" });
 
-  return session.data;
+  return session.get();
 });

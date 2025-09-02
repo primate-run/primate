@@ -18,9 +18,15 @@
       "#module/*": ["modules/*"],
       "#config/*": ["config/*"],
       "#static/*": ["static/*", "static/*.ts"],
+      "#database/*": ["config/database/*"],
       "#app": ["config/app.ts", "config/app.js"],
       "#session": ["config/session.ts", "config/session.js"],
-      "#database": ["config/database.ts", "config/database.js"]
+      "#database": [
+        "config/database/index.ts",
+        "config/database/index.js",
+        "config/database/default.js",
+        "config/database/default.ts"
+      ]
     }
   },
   "include": [

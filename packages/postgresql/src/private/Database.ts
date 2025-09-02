@@ -3,37 +3,67 @@ import Database from "@primate/core/Database";
 import type As from "@primate/core/database/As";
 import type DataDict from "@primate/core/database/DataDict";
 import type TypeMap from "@primate/core/database/TypeMap";
-import is from "@rcompat/assert/is";
+import type Types from "@primate/core/database/Types";
+import assert from "@rcompat/assert";
 import maybe from "@rcompat/assert/maybe";
 import type Dict from "@rcompat/type/Dict";
+import pema from "pema";
 import type StoreSchema from "pema/StoreSchema";
-import type { Sql } from "postgres";
+import string from "pema/string";
+import uint from "pema/uint";
+import postgres, { type Sql } from "postgres";
 
-function make_sort(sort: Dict<"asc" | "desc">) {
-  is(sort).object();
-
-  const sorting = Object.entries(sort)
-    .map(([field, direction]) => `${field} ${direction}`);
-
-  return sorting.length === 0 ? "" : ` ORDER BY ${sorting.join(",")}`;
-};
-
-function make_limit(limit?: number) {
-  maybe(limit).usize();
-
-  if (limit === undefined) {
-    return "";
-  }
-  return ` LIMIT ${limit}`;
-};
+const schema = pema({
+  database: string,
+  host: string.default("localhost"),
+  password: string.optional(),
+  port: uint.port().default(5432),
+  username: string.optional(),
+});
 
 export default class PostgreSQLDatabase extends Database {
-  #client: Sql;
+  static config: typeof schema.input;
+  #factory: () => Sql;
+  #client?: Sql;
 
-  constructor(client: Sql) {
+  constructor(config?: typeof schema.input) {
     super();
+    const parsed = schema.parse(config);
+    this.#factory = () => postgres({
+      db: parsed.database,
+      host: parsed.host,
+      pass: parsed.password,
+      port: parsed.port,
+      user: parsed.username,
+    });
+  }
 
-    this.#client = client;
+  #sql() {
+    if (this.#client === undefined) {
+      this.#client = this.#factory();
+    }
+    return this.#client as any;
+  }
+
+  #join(parts: ReturnType<Sql>[], sep: ReturnType<Sql>): ReturnType<Sql> {
+    const sql = this.#sql();
+    if (parts.length === 0) return sql``;
+    return parts.slice(1).reduce((acc, p) => sql`${acc}${sep}${p}`, parts[0]);
+  }
+
+  async #new(name: string, store: StoreSchema) {
+    const sql = this.#sql();
+    const table = sql(name);
+    const body = Object.entries(store).map(
+      ([k, v]) => sql`${sql(k)} ${sql.unsafe(this.column(v.datatype))}`,
+    );
+    await sql`CREATE TABLE IF NOT EXISTS ${table}
+      (${this.#join(body, sql`, `)})`;
+  }
+
+  async #drop(name: string) {
+    const sql = this.#sql();
+    await sql`DROP TABLE IF EXISTS ${sql(name)};`;
   }
 
   get typemap() {
@@ -41,22 +71,7 @@ export default class PostgreSQLDatabase extends Database {
   }
 
   async close() {
-    await this.#client.end();
-  }
-
-  async #new(name: string, schema: StoreSchema) {
-    const body = Object.entries(schema)
-      .map(([key, value]) => `"${key}" ${this.column(value.datatype)}`)
-      .join(",");
-    const client = this.#client;
-    await client`CREATE TABLE IF NOT EXISTS
-      ${client(name)} (${client.unsafe(body)})
-    `;
-  }
-
-  async #drop(name: string) {
-    const client = this.#client;
-    await client`DROP TABLE IF EXISTS ${client(name)};`;
+    await this.#sql().end();
   }
 
   get schema() {
@@ -67,18 +82,70 @@ export default class PostgreSQLDatabase extends Database {
   }
 
   async create<O extends Dict>(as: As, args: { record: DataDict }) {
-    const client = this.#client;
-
+    const sql = this.#sql();
     const columns = Object.keys(args.record);
-    const binds = await this.bind(args.record, as.types);
-    const [result] = await client`INSERT INTO
-      ${client(as.name)}
+    const binds = await this.bind(as.types, args.record);
+    const [result] = await sql`INSERT INTO
+      ${sql(as.name)}
       ${columns.length > 0
-        ? client`(${client(columns)}) VALUES ${client(binds)}`
-        : client.unsafe("DEFAULT VALUES")}
+        ? sql`(${sql(columns)}) VALUES ${sql(binds)}`
+        : sql.unsafe("DEFAULT VALUES")}
       RETURNING id;
     `;
-    return this.unbind({ ...args.record, id: result.id }, as.types) as O;
+
+    return this.unbind(as.types, { ...args.record, id: result.id }) as O;
+  }
+
+  #sort(types: Types, sort?: Dict<"asc" | "desc">) {
+    maybe(sort).object();
+    // validate
+    this.toSort(types, sort);
+
+    const sql = this.#sql();
+    if (!sort) return sql``;
+
+    const entries = Object.entries(sort);
+    if (entries.length === 0) return sql``;
+
+    const items = entries.map(([field, direction]) =>
+      sql`${sql(field)} ${sql.unsafe(direction.toUpperCase())}`,
+    );
+
+    return sql` ORDER BY ${this.#join(items, sql`, `)}`;
+  }
+
+  #select(types: Types, fields?: string[]) {
+    // validate
+    this.toSelect(types, fields);
+
+    const sql = this.#sql();
+
+    if (fields === undefined) return sql.unsafe("*");
+
+    return sql(fields);
+  }
+
+  #limit(limit?: number) {
+    maybe(limit).usize();
+
+    const sql = this.#sql();
+
+    return limit === undefined ? sql`` : sql` LIMIT ${limit}`;
+  }
+
+  #where(types: Types, criteria: Dict, nonnull: Dict) {
+    this.toWhere(types, criteria); // validate
+
+    const sql = this.#sql();
+    const entries = Object.entries(criteria);
+    if (entries.length === 0) return sql``;
+
+    const clauses = entries.map(([key, raw]) => raw === null
+      ? sql`${sql(key)} IS NULL`
+      : sql`${sql(key)} = ${nonnull[key]}`,
+    );
+
+    return sql`WHERE ${this.#join(clauses, sql` AND `)}`;
   }
 
   read(as: As, args: {
@@ -98,66 +165,52 @@ export default class PostgreSQLDatabase extends Database {
     limit?: number;
     sort?: Dict<"asc" | "desc">;
   }) {
-    const binds = await this.bind(args.criteria, as.types);
-    const client = this.#client;
+    const sql = this.#sql();
+    const table = sql(as.name);
+    const criteria = await this.bindCriteria(as.types, args.criteria);
+    const where = this.#where(as.types, args.criteria, criteria);
 
     if (args.count === true) {
-      const [{ n }] = await client`
-        SELECT COUNT(*) AS n
-        FROM ${client(as.name)}
-        WHERE ${Object.entries(binds).reduce((acc, [key, value]) =>
-        (client as any)`${acc} AND ${client(key)} = ${value}`, client`TRUE`)}
-      `;
+      const [{ n }] = await sql`SELECT COUNT(*) AS n FROM ${table} ${where}`;
       return Number(n);
     }
 
-    const fields = args.fields ?? [];
-    const sort = make_sort(args.sort ?? {});
-    const limit = make_limit(args.limit);
-    const select = fields.length === 0 ? "*" : fields.join(", ");
+    const sort = this.#sort(as.types, args.sort);
+    const limit = this.#limit(args.limit);
+    const select = this.#select(as.types, args.fields);
 
-    const records = (await client`
-      SELECT ${client.unsafe(select)}
-      FROM ${client(as.name)}
-      WHERE ${Object.entries(binds).reduce((acc, [key, value]) =>
-      (client as any)`${acc} AND ${client(key)} = ${value}`, client`TRUE`)}
-      ${client.unsafe(sort)}
-      ${client.unsafe(limit)}
-  `);
+    const records = await sql`
+      SELECT ${select}
+      FROM ${table}
+      ${where}
+      ${sort}
+      ${limit}
+    ` as DataDict[];
 
-    return records.map(record => this.unbind(record, as.types));
+    return records.map(record => this.unbind(as.types, record));
   }
 
-  async update(as: As, args: {
-    changes: DataDict;
-    criteria: DataDict;
-    limit?: number;
-    sort?: Dict<"asc" | "desc">;
-  }) {
-    const client = this.#client;
+  async update(as: As, args: { changes: DataDict; criteria: DataDict }) {
+    assert(Object.keys(args.criteria).length > 0, "update: no criteria");
 
-    const criteria_binds = await this.bind(args.criteria, as.types);
-    const changes_binds = await this.bind(args.changes, as.types);
+    const sql = this.#sql();
+    const table = sql(as.name);
+    const criteria = await this.bindCriteria(as.types, args.criteria);
+    const set_binds = await this.bind(as.types, args.changes);
+    const where = this.#where(as.types, args.criteria, criteria);
+    const set = sql({ ...set_binds });
 
-    return (await client`
-      UPDATE ${client(as.name)}
-      SET ${client({ ...changes_binds })}
-      WHERE ${Object.entries(criteria_binds).reduce((acc, [key, value]) =>
-      (client as any)`${acc} AND ${client(key)} = ${value}`, client`TRUE`)}
-      RETURNING 1;
-    `).length;
+    return (await sql`UPDATE ${table} SET ${set} ${where} RETURNING 1;`).length;
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
-    const client = this.#client;
+    assert(Object.keys(args.criteria).length > 0, "delete: no criteria");
 
-    const binds = await this.bind(args.criteria, as.types);
+    const sql = this.#sql();
+    const criteria = await this.bindCriteria(as.types, args.criteria);
+    const where = this.#where(as.types, args.criteria, criteria);
+    const table = sql(as.name);
 
-    return (await client`
-      DELETE FROM ${client(as.name)}
-      WHERE ${Object.entries(binds).reduce((acc, [key, value]) =>
-      (client as any)`${acc} AND ${client(key)} = ${value}`, client`TRUE`)}
-      RETURNING 1;
-    `).length;
+    return (await sql`DELETE FROM ${table} ${where} RETURNING 1;`).length;
   };
 }

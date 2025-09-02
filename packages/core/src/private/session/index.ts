@@ -1,26 +1,26 @@
-import type Config from "#session/Config";
 import configSchema from "#session/schema";
 import type SessionFacade from "#session/SessionFacade";
 import local_storage from "#session/storage";
 import s_config from "#symbol/config";
+import type Schema from "@rcompat/type/Schema";
 
-interface Schema<T> { parse(input: unknown): T }
+type ConfigInput = typeof configSchema.input;
 
 type InferSchema<S> = S extends
   { parse(input: unknown): infer T } ? T : unknown;
 
 // schema provided: infer T
 export default function session<S extends Schema<any>>(
-  config: { schema: S } & Partial<Config>
+  config: { schema: S } & Partial<ConfigInput>
 ): SessionFacade<InferSchema<S>>;
 
 // Schema omitted: T = unknown
 export default function session(
-  config?: Omit<Partial<Config>, "schema">
+  config?: Omit<Partial<ConfigInput>, "schema">
 ): SessionFacade<unknown>;
 
 export default function session<T>(
-  config?: Partial<Config> & { schema?: Schema<T> },
+  config?: Partial<ConfigInput> & { schema?: Schema<T> },
 ): SessionFacade<T> {
   const parsed = configSchema.parse(config ?? {});
   const schema: Schema<T> | undefined = config?.schema;

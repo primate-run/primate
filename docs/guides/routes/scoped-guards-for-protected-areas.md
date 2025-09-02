@@ -2,11 +2,12 @@
 name: Scoped guards for protected areas
 ---
 
-Use `+guard.ts` to enforce auth globally or per-section. A guard **passes only** when it
-**returns `null`**; any non-null return short-circuits the route (e.g., redirect).
+Use `+guard.ts` to enforce auth globally or per-section. A guard
+**passes only** when it **returns `null`**; any non-null return short-circuits
+the route (e.g., redirect).
 
 !!!
-Execution order is top-down: parent guard → child guard → route.
+Execution order is top-down: parent guard -> child guard -> route.
 !!!
 
 ---
@@ -23,7 +24,8 @@ route.get(req => {
   if (!ok) {
     return redirect(`/login?next=${encodeURIComponent(req.target)}`);
   }
-  return null; // explicit pass
+  // explicit pass
+  return null;
 });
 ```
 

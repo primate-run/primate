@@ -1,8 +1,7 @@
 import kSerialize from "#session/k-serialize";
 import assert from "@rcompat/assert";
 import maybe from "@rcompat/assert/maybe";
-
-interface Schema<T> { parse(input: unknown): T }
+import type Schema from "@rcompat/type/Schema";
 
 export default class SessionHandle<Data> {
   #id?: string;

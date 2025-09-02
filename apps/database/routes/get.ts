@@ -7,7 +7,7 @@ route.get(async () => {
 
   const { id } = await User.insert({ age: 30, name: "Donald" });
 
-  const { id: _id, ...donald } = await User.get(id!);
+  const { id: _id, ...donald } = await User.get(id);
 
   return donald;
 });

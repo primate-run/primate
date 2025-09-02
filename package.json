@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@rcompat/test": "^0.5.0",
-    "@rcompat/type": "^0.5.2",
+    "@rcompat/type": "^0.5.3",
     "@types/deno": "^2.3.0",
     "@types/node": "^24.3.0",
     "apekit": "^0.0.37",

@@ -1,5 +1,5 @@
 import type DataRecord from "#database/DataRecord";
-import type InferStore from "pema/InferStore";
+import type InferStoreOut from "pema/InferStoreOut";
 import type StoreSchema from "pema/StoreSchema";
 
 type X<T> = {
@@ -13,5 +13,5 @@ export default abstract class QueryBuilder<
 > {
   abstract where(criteria: any): QueryBuilder<T>;
   abstract select<K extends P>(...fields: K[]): QueryBuilder<T, K>;
-  abstract run(): Promise<Filter<InferStore<T>, P>>;
+  abstract run(): Promise<Filter<InferStoreOut<T>, P>>;
 }

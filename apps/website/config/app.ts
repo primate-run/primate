@@ -161,7 +161,9 @@ export default config({
             const name = token.text.toLowerCase()
               .replaceAll(/[?{}%`]/gu, "")
               .replace(/[^\w]+/gu, "-")
+              .replace(/^-+|-+$/g, "")
               ;
+
             const deeplink = `
               <a class="deeplink" href="#${name}">
                 <svg class="icon" width="16" height="16">
