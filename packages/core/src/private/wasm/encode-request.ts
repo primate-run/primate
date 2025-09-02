@@ -120,7 +120,6 @@ type FileLike = {
 const encodeBlob = async (file: BlobLike, view: BufferView) => {
   const type = file.type;
   const bytes = await file.bytes();
-
   encodeString(type, view);
   view.writeU32(bytes.byteLength);
   view.writeBytes(bytes);
@@ -182,7 +181,7 @@ const encodeSectionBody = async (body: RequestBody, view: BufferView) => {
     encodeString(text, view);
   } else if (body.type === "fields") {
     const fields = body.fields();
-    const entries = Object.entries(body);
+    const entries = Object.entries(body.fields());
     const entryCount = entries.length;
 
     view.writeU32(BODY_KIND_FIELDS);

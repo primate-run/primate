@@ -30,12 +30,8 @@ provide let post = (request: Request) => {
   let greeting = Option.expect("Expected property greeting", Map.get("greeting", fields))
   let { name, mimeType, bytes } = BodyFieldsElement.expectFileLike(greeting)
   let byteLength = Bytes.length(bytes)
-  let mut content = [];
 
-  for (let mut i = byteLength - 1; i >= 0; i -= 1) {
-    let value = Uint8.toNumber(Bytes.getUint8(i, bytes))
-    content = [JsonNumber(value), ...content]
-  }
+  let content = Bytes.toString(bytes) 
 
   JsonObject([
     ("baz", JsonNumber(bazValue)),
@@ -44,7 +40,7 @@ provide let post = (request: Request) => {
       ("name", JsonString(name)),
       ("size", JsonNumber(byteLength)),
       ("type", JsonString(mimeType)),
-      ("content", JsonArray(content))
+      ("content", JsonString(content))
     ]))
   ])
 }

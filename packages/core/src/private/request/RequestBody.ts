@@ -41,7 +41,7 @@ export default class RequestBody {
 
     try {
       switch (type) {
-        case binary:
+        case binary: 
           return new RequestBody({ type: "binary", value: await request.blob() });
         case form:
         case formData:

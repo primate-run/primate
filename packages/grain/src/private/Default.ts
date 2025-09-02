@@ -10,7 +10,6 @@ import execute from "@rcompat/stdio/execute";
 const dirname = import.meta.dirname;
 const postlude_file = FileRef.join(dirname, "bootstrap", "postlude.gr");
 const bootstrap_file = FileRef.join(dirname, "bootstrap", "index.js");
-
 export default class Default extends Runtime {
   #command(wasm: FileRef, grain: FileRef, mode: Mode) {
     const config = this.config;
@@ -25,7 +24,6 @@ export default class Default extends Runtime {
       grain.name,
       "-I", [...includeDirs].join(","),
     ];
-
     if (config.stdlib) {
       sections.push("-S", config.stdlib);
     }
@@ -44,13 +42,12 @@ export default class Default extends Runtime {
       sections.push("--strict-sequence");
     }
 
-    return ""; // sections.join(" ");
+    return sections.join(" ");
   }
 
   build(app: BuildApp, next: NextBuild) {
     app.bind(this.extension, async (route, { build, context }) => {
       assert(context === "routes", "grain: only route files are supported");
-
       const text = await route.text();
       const postlude = await postlude_file.text();
       await route.write(`${text}\n${postlude}`);
@@ -58,7 +55,7 @@ export default class Default extends Runtime {
       const command = this.#command(wasm, route, app.mode);
       await execute(command, { cwd: `${route.directory}` });
 
-      const code = (await bootstrap_file.text()).replace("__FILENAME__",
+      const code = (await bootstrap_file.text()).replaceAll("__FILENAME__",
         wasm.path);
       await route.bare(".gr.js").write(wrap(code, route, build));
     });
