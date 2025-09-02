@@ -1,0 +1,95 @@
+module MultipartFile
+
+from "primate/request" include Request
+from "map" include Map
+from "option" include Option
+from "json" include Json
+from "result" include Result
+from "number" include Number
+from "bytes" include Bytes
+from "uint8" include Uint8
+
+// package main
+
+// import (
+//   "strconv"
+// )
+use Request.{ type Request, module BodyFieldsElement, module Body, type BlobLike, type FileLike }
+use Json.{ type Json }
+
+provide let post = (request: Request) => {
+  let fields = Body.expectFields(request)
+
+  let baz = Option.expect("Expected property baz", Map.get("baz", fields))
+  let bazString = BodyFieldsElement.expectString(baz)
+  let bazValue = Result.expect("Expected parsable integer", Number.parseInt(bazString, 10))
+
+  let foo = Option.expect("Expected property foo", Map.get("foo", fields))
+  let fooString = BodyFieldsElement.expectString(foo)
+
+  let greeting = Option.expect("Expected property greeting", Map.get("greeting", fields))
+  let { name, mimeType, bytes } = BodyFieldsElement.expectFileLike(greeting)
+  let byteLength = Bytes.length(bytes)
+
+  let content = Bytes.toString(bytes) 
+
+  JsonObject([
+    ("baz", JsonNumber(bazValue)),
+    ("foo", JsonString(fooString)),
+    ("greeting", JsonObject([
+      ("name", JsonString(name)),
+      ("size", JsonNumber(byteLength)),
+      ("type", JsonString(mimeType)),
+      ("content", JsonString(content))
+    ]))
+  ])
+}
+
+// func Post(request Request) any {
+//   // 1) Plain fields (baz, foo, greeting meta already in fields JSON)
+//   var fields map[string]any
+//   if err := request.Body.Fields(&fields); err != nil {
+//     return map[string]any{"error": err.Error()}
+//   }
+
+//   // baz: "1" -> 1 (match TS pema u8 coercion)
+//   var baz int64
+//   if s, ok := fields["baz"].(string); ok {
+//     if v, err := strconv.ParseInt(s, 10, 64); err == nil {
+//       baz = v
+//     }
+//   }
+
+//   // foo stays string
+//   foo, _ := fields["foo"].(string)
+
+//   // 2) File bytes (from filesSync)
+//   files, err := request.Body.Files()
+//   if err != nil {
+//     return map[string]any{"error": err.Error()}
+//   }
+
+//   // Find the "greeting" file
+//   var name, typ, content string
+//   var size int64
+//   for _, f := range files {
+//     if f.Field == "greeting" {
+//       name = f.Name
+//       typ = f.Type
+//       size = f.Size
+//       content = string(f.Bytes) // UTF-8 text file for this test
+//       break
+//     }
+//   }
+
+//   return map[string]any{
+//     "baz": baz,
+//     "foo": foo,
+//     "greeting": map[string]any{
+//       "name":    name,
+//       "size":    size,
+//       "type":    typ,
+//       "content": content,
+//     },
+//   }
+// }

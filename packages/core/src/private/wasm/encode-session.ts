@@ -1,13 +1,13 @@
 import type SessionFacade from "#session/SessionFacade";
 import encodeString from "#wasm/encode-string";
 import I32_SIZE from "#wasm/I32_SIZE";
-import stringsize from "#wasm/stringsize";
+import stringSize from "#wasm/stringsize";
 import BufferView from "@rcompat/bufferview";
 
 export default function encodeSession(session: SessionFacade<unknown>) {
   const data = JSON.stringify(session.get());
-  const dataSize = stringsize(data);
-  const idSize = stringsize(session.id ?? "");
+  const dataSize = stringSize(data);
+  const idSize = stringSize(session.id ?? "");
 
   const size = dataSize // data payload
     + I32_SIZE // new flat

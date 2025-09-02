@@ -5,7 +5,13 @@ import boolean from "pema/boolean";
 import string from "pema/string";
 import which from "@rcompat/stdio/which";
 
-const default_grain = await which("grain");
+let default_grain: string;
+try {
+  default_grain = await which("grain");
+} catch (_) {
+  console.error("!! Could not find a grain executable on path");
+  default_grain = "";
+}
 
 const schema = pema({
   command: string.default(default_grain),

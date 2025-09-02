@@ -1,0 +1,6 @@
+module JsonRoute
+
+from "primate/request" include Request
+use Request.{ type Request, module Body }
+
+provide let post = (request: Request) => Body.expectJson(request)

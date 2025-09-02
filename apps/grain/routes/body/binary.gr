@@ -1,0 +1,31 @@
+module Binary
+
+from "primate/request" include Request
+from "primate/response" include Response
+from "bytes" include Bytes
+from "uint8" include Uint8
+from "json" include Json
+
+
+use Request.{ type Request, module Body, type BlobLike, type FileLike }
+use Json.{ type Json }
+
+
+provide let post = (request: Request) => {
+  let { mimeType, bytes }: BlobLike = Body.expectBlobLike(request)
+
+  let byteLength = Bytes.length(bytes)
+  let mut values = []
+
+  for (let mut i = byteLength - 1; i >= 0; i -= 1) {
+    print(("i", i));
+    let value = JsonNumber(Uint8.toNumber(Bytes.getUint8(i, bytes)))
+    values = [value, ...values]
+  }
+
+  JsonObject([
+    ("type", JsonString(mimeType)),
+    ("size", JsonNumber(byteLength)),
+    ("head", JsonArray(values)),
+  ])
+}

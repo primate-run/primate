@@ -1,5 +1,5 @@
-import stringsize from "#wasm/stringsize";
+import stringSize from "#wasm/stringsize";
 
 export default function urlsize(url: URL) {
-  return stringsize(url.toString());
+  return stringSize(url.toString());
 }
