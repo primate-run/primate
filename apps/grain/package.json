@@ -9,6 +9,7 @@
     "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
+    "@rcompat/type": "^0.5.0",
     "@primate/core": "workspace:^",
     "@primate/grain": "workspace:^",
     "@primate/html": "workspace:^",

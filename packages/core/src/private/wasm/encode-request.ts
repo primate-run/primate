@@ -5,10 +5,12 @@ import encodeStringMap from "#wasm/encode-string-map";
 import encodeURL from "#wasm/encode-url";
 import filesize from "#wasm/filesize";
 import I32_SIZE from "#wasm/I32_SIZE";
-import stringsize from "#wasm/stringsize";
-import urlsize from "#wasm/urlsize";
+import stringSize from "#wasm/stringsize";
+import urlSize from "#wasm/urlsize";
 import BufferView from "@rcompat/bufferview";
 import type PartialDict from "@rcompat/type/PartialDict";
+import encodeBuffer from "./encode-buffer.js";
+import MaybePromise from "@rcompat/type/MaybePromise";
 
 const SECTION_HEADER_SIZE = I32_SIZE;
 
@@ -20,39 +22,53 @@ const HEADERS_SECTION = 4;
 const COOKIES_SECTION = 5;
 
 const BODY_KIND_NULL = 0;
-const BODY_KIND_STRING = 1;
-const BODY_KIND_MAP = 2;
+const BODY_KIND_TEXT = 1;
+const BODY_KIND_FIELDS = 2;
+const BODY_KIND_BINARY = 3;
+const BODY_KIND_JSON = 4;
 
 const BODY_KIND_MAP_VALUE_STRING = 0;
-const BODY_KIND_MAP_VALUE_BYTES = 1;
+const BODY_KIND_MAP_VALUE_BLOB = 1;
 
-const sizeOfUrlSection = (url: URL) => SECTION_HEADER_SIZE + urlsize(url);
+const sizeOfUrlSection = (url: URL) => SECTION_HEADER_SIZE + urlSize(url);
 const sizeOfBodySection = (body: RequestBody) => {
-  if (body === null)
-    return SECTION_HEADER_SIZE
-      + I32_SIZE; // 0 kind null
+  let size = SECTION_HEADER_SIZE + I32_SIZE;
 
-  if (typeof body === "string")
-    return SECTION_HEADER_SIZE
-      + I32_SIZE // 1 kind string
-      + stringsize(body);
+  if (body === null || body.type === "none")
+    return size; // 0 kind null
 
-  if (typeof body === "object") {
-    let size = SECTION_HEADER_SIZE
-      + I32_SIZE // 2 kind map
-      + I32_SIZE // entry count
-      ;
+  if (body.type === "text")
+    return size + stringSize(body.text());
 
-    for (const [key, value] of Object.entries(body)) {
-      size += stringsize(key);
+  if (body.type === "fields") {
+    size += I32_SIZE; // entry count
+
+    const fields = body.fields();
+
+    for (const [key, value] of Object.entries(fields)) {
+      size += stringSize(key);
       size += I32_SIZE // value kind
         + (
           typeof value === "string"
-            ? stringsize(value)
+            ? stringSize(value)
             : filesize(value)
         );
     }
 
+    return size;
+  }
+
+  if (body.type === "binary") {
+    const bin = body.binary();
+    size += stringSize(bin.type);
+    size += I32_SIZE + bin.size;
+
+    return size;
+  }
+
+  if (body.type === "json") {
+    const json = body.json();
+    size += stringSize(JSON.stringify(json));
     return size;
   }
 
@@ -64,7 +80,7 @@ const sizeOfMapSection = (map: PartialDict<string>) => {
 
   for (const [key, value] of Object.entries(map)) {
     if (value) {
-      size += stringsize(key) + stringsize(value);
+      size += stringSize(key) + stringSize(value);
     }
   }
 
@@ -90,11 +106,34 @@ const encodeMapSection = (header: number, map: PartialDict<string>, view: Buffer
   return encodeStringMap(map, view);
 };
 
-const encodeFile = async (file: File, view: BufferView) => {
-  const byteLength = file.size;
-  view.writeU32(byteLength);
+type BlobLike = {
+  type: string;
+  bytes(): MaybePromise<Uint8Array>;
+}
 
+type FileLike = {
+  name: string;
+  type: string;
+  bytes(): MaybePromise<Uint8Array>;
+}
+
+const encodeBlob = async (file: BlobLike, view: BufferView) => {
+  const type = file.type;
   const bytes = await file.bytes();
+
+  encodeString(type, view);
+  view.writeU32(bytes.byteLength);
+  view.writeBytes(bytes);
+};
+
+const encodeFile = async (file: FileLike, view: BufferView) => {
+  const name = file.name;
+  const type = file.type;
+  const bytes = await file.bytes();
+
+  encodeString(name, view);
+  encodeString(type, view);
+  view.writeU32(bytes.byteLength);
   view.writeBytes(bytes);
 };
 
@@ -134,41 +173,44 @@ const encodeSectionUrl = (url: URL, view: BufferView) => {
  *             - [I32: value kind = 1] 4 bytes
  *             - [I32: file_descriptor] 4 bytes
  */
-const encodeSectionBody = async (body: Body, view: BufferView) => {
+const encodeSectionBody = async (body: RequestBody, view: BufferView) => {
   view.writeU32(BODY_SECTION);
-
-  if (typeof body === "string") {
-    view.writeU32(BODY_KIND_STRING);
-    encodeString(body, view);
-    return;
-  }
-
-  if (typeof body === "object" && body !== null) {
+  
+  if (body.type === "text") {
+    const text = body.text();
+    view.writeU32(BODY_KIND_TEXT);
+    encodeString(text, view);
+  } else if (body.type === "fields") {
+    const fields = body.fields();
     const entries = Object.entries(body);
     const entryCount = entries.length;
 
-    view.writeU32(BODY_KIND_MAP);
+    view.writeU32(BODY_KIND_FIELDS);
     view.writeU32(entryCount);
 
-    for (const [key, value] of Object.entries(body)) {
+    for (const [key, value] of Object.entries(fields)) {
       encodeString(key, view);
 
       if (typeof value === "string") {
         view.writeU32(BODY_KIND_MAP_VALUE_STRING);
         encodeString(value, view);
       } else {
-        view.writeU32(BODY_KIND_MAP_VALUE_BYTES);
+        view.writeU32(BODY_KIND_MAP_VALUE_BLOB);
         await encodeFile(value, view);
       }
     }
-  }
-
-  if (body === null || body === void 0) {
+  } else if (body.type === "binary") {
+    view.writeU32(BODY_KIND_BINARY);
+    encodeBlob(body.binary(), view);
+  } else if (body.type === "json") {
+    view.writeU32(BODY_KIND_JSON);
+    const jsonText = JSON.stringify(body.json());
+    encodeString(jsonText, view);
+  } else if (body === null || body === void 0 || body.type === "none") {
     view.writeU32(BODY_KIND_NULL);
-    return;
+  } else {
+    throw new Error(`Unsupported body type: ${body?.type ?? typeof body}`);
   }
-
-  //throw new Error(`Unsupported body type: ${typeof body}`);
 };
 
 const sizeOfRequest = (request: RequestFacade) => sizeOfUrlSection(request.url)
@@ -180,7 +222,6 @@ const sizeOfRequest = (request: RequestFacade) => sizeOfUrlSection(request.url)
 
 const encodeRequestInto = async (request: RequestFacade, view: BufferView) => {
   encodeSectionUrl(request.url, view);
-  // @ts-expect-error old
   await encodeSectionBody(request.body, view);
   encodeMapSection(PATH_SECTION, request.path.toJSON(), view);
   encodeMapSection(QUERY_SECTION, request.query.toJSON(), view);

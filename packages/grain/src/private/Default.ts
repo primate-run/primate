@@ -44,7 +44,7 @@ export default class Default extends Runtime {
       sections.push("--strict-sequence");
     }
 
-    return sections.join(" ");
+    return ""; // sections.join(" ");
   }
 
   build(app: BuildApp, next: NextBuild) {

@@ -2,7 +2,7 @@ import buffersize from "#wasm/buffersize";
 import encodeBuffer from "#wasm/encode-buffer";
 import encodeString from "#wasm/encode-string";
 import I32_SIZE from "#wasm/I32_SIZE";
-import stringsize from "#wasm/stringsize";
+import stringSize from "#wasm/stringsize";
 import BufferView from "@rcompat/bufferview";
 
 const SIZE_I64 = BigInt64Array.BYTES_PER_ELEMENT;
@@ -17,7 +17,7 @@ export default function encodeWebsocketMessage(id: bigint, message: Message) {
     + I32_SIZE // Kind
     + (
       typeof message === "string"
-        ? stringsize(message)
+        ? stringSize(message)
         : buffersize(message)
     );
   const output = new Uint8Array(size);
