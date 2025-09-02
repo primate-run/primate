@@ -1,6 +1,6 @@
 /**
  * Public session API available inside routes with
- * import session from  "#session";
+ * import session from "#session";
  *
  * `T` is inferred automatically from the app's `config/session.ts` schema.
  */

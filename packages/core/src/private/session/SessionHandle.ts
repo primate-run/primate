@@ -44,7 +44,7 @@ export default class SessionHandle<Data> {
   }
 
   create(initial?: Data): void {
-    // idenpotent noop
+    // idempotent noop
     if (this.exists) return;
 
     const parsed = this.#schema.parse(initial ?? {});
