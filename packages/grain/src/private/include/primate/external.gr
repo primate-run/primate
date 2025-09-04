@@ -23,10 +23,16 @@ provide foreign wasm payloadByteLength:
 provide foreign wasm send:
   (ptr: WasmI32, length: WasmI32) => Void from "primate"
 
-provide foreign wasm newSession:
+provide foreign wasm sessionNew:
   () => Void from "primate"
 
-provide foreign wasm getSession:
+provide foreign wasm sessionGet:
+  () => Void from "primate"
+
+provide foreign wasm sessionExists:
+  () => WasmI32 from "primate"
+
+provide foreign wasm sessionSet:
   () => Void from "primate"
 
 provide foreign wasm websocketSend:

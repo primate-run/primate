@@ -12,6 +12,13 @@ from "./external.gr" include External
 from "runtime/unsafe/wasmi32" include WasmI32
 from "runtime/dataStructures" include DataStructures
 from "runtime/gc" include GC
+from "primate/common" include Common
+use Common.{ 
+  readString,
+  readBytes,
+  readUint32,
+  readJson
+}
 
 use Uri.{ type Uri }
 use Map.{ type Map }
@@ -75,37 +82,6 @@ let _BODY_MAP_ELEMENT_KIND_STRING = 0ul
 let _BODY_MAP_ELEMENT_KIND_BYTES = 1ul
 
 
-let readUint32 = (offset: Number, payload: Bytes) => {
-  let value = Bytes.getUint32(offset, payload)
-  (offset + 4, value)
-}
-
-let readString = (offset: Number, payload: Bytes) => {
-  use Uint32.{ toNumber }
-  use Bytes.{ slice, toString, getUint32 }
-  let (offset, size) = readUint32(offset, payload)
-  let size = toNumber(size)
-  let string = slice(offset, size, payload)
-  let string = toString(string)
-  let offset = offset + size
-  (offset, string)
-}
-
-let readBytes = (offset: Number, payload: Bytes) => {
-  use Uint32.{ toNumber }
-  use Bytes.{ slice, toString, getUint32 }
-  let (offset, size) = readUint32(offset, payload)
-  let size = toNumber(size)
-  let bytes = slice(offset, size, payload)
-  let offset = offset + size
-  (offset, bytes)
-}
-
-let readJson = (offset: Number, payload: Bytes) => {
-  let (offset, str) = readString(offset, payload)
-  let json = Result.expect("Expected JSON to parse correctly.", Json.parse(str))
-  (offset, json)
-}
 
 let readBlobLike = (offset: Number, payload: Bytes) => {
   let (offset, mimeType) = readString(offset, payload);

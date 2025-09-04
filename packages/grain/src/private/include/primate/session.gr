@@ -9,44 +9,44 @@ from "string" include String
 from "bytes" include Bytes
 from "buffer" include Buffer
 from "uint32" include Uint32
+from "./common.gr" include Common
 
 use Json.{ type Json }
 use Offsets.{ _BYTES_DATA_OFFSET }
 use WasmI32.{ (+) as (+.) }
-
+use Common.{
+  readString,
+  readUint32,
+  readJson,
+  readBytes,
+}
 provide exception InvalidSessionPayload
 
 provide record Session {
   data: Json,
-  new: Bool,
   id: String,
 }
 
 let parseSessionPayload = (payload: Bytes) => {
   use Bytes.{ getUint32, slice, toString }
   use Uint32.{ toNumber, (<), (+) as (+.) }
-  
+
   let offset = 0
-  let strLength = Uint32.toNumber(Bytes.getUint32(0, payload))
-  let str = Bytes.slice(4, strLength, payload)
-  let data = Result.expect("Invalid JSON data", Json.parse(toString(str)))
   
-  let offset = offset + 4 + strLength
-  let new = Bytes.getUint32(offset, payload) == 1ul
-  let offset = offset + 4
-  
-  let idLength = Uint32.toNumber(Bytes.getUint32(offset, payload))
-  let idBytes = Bytes.slice(offset + 4, idLength, payload)
-  let id = toString(idBytes)
+  let (offset, exists) = readUint32(offset, payload)
 
-  let offset = offset + 4 + idLength
-  if (offset != Bytes.length(payload)) throw InvalidSessionPayload
-
-  {
-    data,
-    new,
-    id,
-  }: Session
+  if (exists == 1ul) {
+    let (offset, id) = readString(offset, payload)
+    let (offset, data) = readJson(offset, payload)
+    if (offset != Bytes.length(payload)) throw InvalidSessionPayload
+    Some({
+      data,
+      id,
+    }): Option<Session>
+  } else {
+    if (offset != Bytes.length(payload)) throw InvalidSessionPayload
+    None: Option<Session>
+  }
 }
 
 @unsafe
@@ -64,14 +64,25 @@ provide let create = (data: Json) => {
   External.send(ptr, byteLength)
   ignore(bytes)
   
-  External.newSession()
+  External.sessionNew()
   let payload = External.receiveBytes()
   parseSessionPayload(payload)
 }
 
 @unsafe
 provide let get = () => {
-  External.getSession()
+  External.sessionGet()
   let payload = External.receiveBytes()
   parseSessionPayload(payload)
+}
+
+@unsafe
+provide let exists = () => {
+  use WasmI32.{ (==) }
+  External.sessionExists() == 1n
+}
+
+provide let set = (session: Json) => {
+  External.sendJson(session)
+  External.sessionSet()
 }
