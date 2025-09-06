@@ -14,7 +14,7 @@ type Redirection =
   ;
 
 type RedirectObject = {
-  // must starts with "/"
+  // must start with "/"
   pathname: string;
   query?: Record<string, boolean | null | number | string | undefined>;
 };
@@ -22,11 +22,11 @@ type RedirectObject = {
 type RedirectTarget = RedirectObject | string;
 
 type RedirectOptions = {
-  // Allow absolute external redirects. Default: false (same-origin only)
+  // allow absolute external redirects. Default: false (same-origin only)
   allowExternal?: boolean;
-  // Base URL used to normalize relative paths & compare origins, default `request.url`
+  // base URL used to normalize relative paths & compare origins, default `request.url`
   base?: string | URL;
-  // Max allowed Location header size (bytes), default 2048
+  // max allowed Location header size (bytes), default 2048
   maxLocationBytes?: number;
 };
 
@@ -49,12 +49,12 @@ function isAbsoluteUrl(s: string): boolean {
 }
 
 function encodePathname(s: string): string {
-  // Expect strict origin-form path ("/..."), disallow protocol-relative and
+  // expect strict origin-form path ("/..."), disallow protocol-relative and
   // backslashes
   if (!s.startsWith("/") || s.startsWith("//") || s.includes("\\")) {
     throw new Error("invalid pathname");
   }
-  // Encode per segment to avoid double-encoding present percent-escapes
+  // encode per segment to avoid double-encoding present percent-escapes
   return s.split("/")
     .map((each, i) => i === 0 ? "" : encodeURIComponent(each)).join("/");
 }

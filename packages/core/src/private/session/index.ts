@@ -14,7 +14,7 @@ export default function session<S extends Schema<any>>(
   config: { schema: S } & Partial<ConfigInput>
 ): SessionFacade<InferSchema<S>>;
 
-// Schema omitted: T = unknown
+// schema omitted: T = unknown
 export default function session(
   config?: Omit<Partial<ConfigInput>, "schema">
 ): SessionFacade<unknown>;
@@ -25,7 +25,7 @@ export default function session<T>(
   const parsed = configSchema.parse(config ?? {});
   const schema: Schema<T> | undefined = config?.schema;
 
-  // Bind the ALS store to this T (unknown at runtime; fine)
+  // bind the ALS store to this T (unknown at runtime; fine)
   const storage = local_storage<T>();
   const current = () => {
     const s = storage.getStore();

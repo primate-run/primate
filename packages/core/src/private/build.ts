@@ -13,13 +13,9 @@ const empty_config = (config?: Config) => config === undefined || empty(config);
 
 const find_config = async (project_root: FileRef) => {
   const ts_config = project_root.join("config/app.ts");
-  if (await ts_config.exists()) {
-    return ts_config;
-  }
+  if (await ts_config.exists()) return ts_config;
   const js_config = project_root.join("config/app.js");
-  if (await js_config.exists()) {
-    return js_config;
-  }
+  if (await js_config.exists()) return js_config;
 };
 
 const get_config = async (project_root: FileRef) => {
@@ -40,12 +36,12 @@ const get_config = async (project_root: FileRef) => {
   return default_config();
 };
 
-export default async (mode: Mode, platform: string) => {
+export default async (mode: Mode, target: string) => {
   try {
     const package_root = await root();
     const config = await get_config(package_root) as Config;
 
-    const app = await new BuildApp(package_root, config, mode).init(platform);
+    const app = await new BuildApp(package_root, config, mode).init(target);
 
     await (app as BuildApp).buildInit();
     return true;

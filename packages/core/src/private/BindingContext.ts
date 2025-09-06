@@ -1,3 +1,10 @@
-type BindingContext = "components" | "config" | "modules" | "routes" | "stores";
+type BindingContext =
+  | "components"
+  | "config"
+  | "locales"
+  | "modules"
+  | "routes"
+  | "stores"
+  ;
 
 export type { BindingContext as default };

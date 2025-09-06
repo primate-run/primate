@@ -22,7 +22,9 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@angular/common": "^20.2.1",
     "@angular/compiler": "^20.2.1",
+    "@angular/core": "^20.2.1",
     "@angular/platform-browser": "^20.2.1",
     "@angular/platform-server": "^20.2.1",
     "@angular/ssr": "^20.2.0",
@@ -32,10 +34,10 @@
     "@rcompat/crypto": "^0.10.0",
     "@rcompat/fs": "^0.21.1",
     "@rcompat/record": "^0.9.1",
+    "typescript": "^5.9.2",
     "zone.js": "^0.15.1"
   },
   "peerDependencies": {
-    "@angular/core": "20",
     "primate": "workspace:^"
   },
   "type": "module",

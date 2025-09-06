@@ -1,29 +1,56 @@
-import render from "#render";
-import type { ComponentDecorator } from "@angular/core";
-import { enableProdMode } from "@angular/core";
-import type App from "@primate/core/App";
+import INITIAL_PROPS from "#INITIAL_PROPS";
+import root from "#root-selector";
+import "@angular/compiler";
+import {
+  importProvidersFrom,
+  provideZoneChangeDetection,
+  type Type,
+} from "@angular/core";
+import {
+  bootstrapApplication,
+  BrowserModule,
+  provideClientHydration,
+} from "@angular/platform-browser";
+import {
+  provideServerRendering,
+  renderApplication,
+} from "@angular/platform-server";
 import FrontendModule from "@primate/core/frontend/Module";
-import type Next from "@primate/core/Next";
-import type NextServe from "@primate/core/NextServe";
-import type ServeApp from "@primate/core/ServeApp";
+import type Render from "@primate/core/frontend/Render";
+import "zone.js/node";
 
-export default class Runtime extends FrontendModule<ComponentDecorator> {
+export default class Runtime extends FrontendModule<Type<any>> {
   name = "angular";
   defaultExtensions = [".component.ts"];
-  layouts = false;
-  render = render;
-  // whether this package exports client code
+  layouts = true;
   client = true;
 
-  init<T extends App>(app: T, next: Next<T>) {
-    app.mode === "production" && enableProdMode();
+  render: Render<Type<any>> = async (RootComponent, props) => {
+    const bootstrap = () => bootstrapApplication(RootComponent, {
+      providers: [
+        importProvidersFrom(BrowserModule),
+        provideServerRendering(),
+        provideClientHydration(),
+        provideZoneChangeDetection({ eventCoalescing: true }),
+        {
+          provide: INITIAL_PROPS,
+          useValue: props,
+        },
+      ],
+    });
 
-    return super.init(app, next);
-  }
+    const html = await renderApplication(bootstrap, {
+      document: `<${root}></${root}>`,
+    });
 
-  async serve(app: ServeApp, next: NextServe) {
-    await import("zone.js");
+    const headMatch = html.match(/<head>(.*?)<\/head>/s);
 
-    return super.serve(app, next);
-  }
+    const bodyRegex = new RegExp(`<${root}>([\\s\\S]*?)<\\/${root}>`);
+    const bodyMatch = html.match(bodyRegex);
+
+    return {
+      body: bodyMatch?.[1] || html,
+      head: headMatch?.[1] || "",
+    };
+  };
 }

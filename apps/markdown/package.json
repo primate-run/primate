@@ -9,7 +9,6 @@
     "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
-    "@primate/i18n": "workspace:^",
     "@primate/markdown": "workspace:^",
     "marked": "^16.2.0",
     "primate": "workspace:^"

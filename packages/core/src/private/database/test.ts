@@ -114,7 +114,7 @@ export default <D extends Database>(database: D) => {
 
   test.case("find - sorting by multiple fields", async assert => {
     await bootstrap(async () => {
-      // Sorting by multiple fields: age descending, then Lastname ascending
+      // sorting by multiple fields: age descending, then Lastname ascending
       const sorted = await User.find({}, {
         select: { age: true, name: true },
         sort: { age: "desc", lastname: "asc" },
@@ -177,8 +177,8 @@ export default <D extends Database>(database: D) => {
 
   test.case("find - null criteria uses IS NULL semantics", async assert => {
     await bootstrap(async () => {
-      // Inserted fixtures include Jeremy without a lastname (NULL in DB).
-      // Querying with { lastname: null } should find him.
+      // inserted fixtures include Jeremy without a lastname (NULL in DB)
+      // querying with { lastname: null } should find him
       const rows = await User.find({ lastname: null }, {
         select: { name: true, lastname: true },
         sort: { name: "asc" },
@@ -235,7 +235,7 @@ export default <D extends Database>(database: D) => {
 
   test.case("update - criteria and changes share a column", async assert => {
     await bootstrap(async () => {
-      // Donald has age 30; update age using criteria on the same column.
+      // Donald has age 30; update age using criteria on the same column
       const n = await User.update({ age: 30 }, { age: 31 });
       assert(n).equals(1);
 
@@ -251,7 +251,7 @@ export default <D extends Database>(database: D) => {
     await bootstrap(async () => {
       let error: unknown;
       try {
-        // should be rejected; otherwise updates all rows.
+        // should be rejected; otherwise updates all rows
         await User.update({} as any, { age: 99 });
       } catch (e) { error = e; }
       const msg = error instanceof Error ? error.message : String(error);
@@ -578,7 +578,7 @@ export default <D extends Database>(database: D) => {
         // intentionally wrong: should be "asc" | "desc"
         await User.find({}, { sort: { age: "ascending" as any } });
       } catch (e) { error = e; }
-      // We expect our own validation error, not a SQLite syntax error.
+      // we expect our own validation error, not a SQLite syntax error
       const message = error instanceof Error ? error.message : String(error);
       assert(!!error).true();
       assert(message.includes("invalid sort direction")).true();
@@ -598,7 +598,7 @@ export default <D extends Database>(database: D) => {
   });
 
   test.case("quote safety - reserved table & column names", async assert => {
-    // This stresses identifier quoting in CREATE/INSERT/SELECT/UPDATE/DELETE.
+    // this stresses identifier quoting in CREATE/INSERT/SELECT/UPDATE/DELETE
     const Reserved = new Store({
       id: primary,
       // deliberately reserved-looking column name

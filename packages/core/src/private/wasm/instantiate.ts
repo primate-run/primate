@@ -218,7 +218,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
         exports.finalizeResponse(wasmResponse);
 
         if (response.type === "web_socket_upgrade") {
-          // The callback encloses over the response websocket id provided by
+          // the callback encloses over the response websocket id provided by
           // the module.
           return response.callback(instance as any);
         }

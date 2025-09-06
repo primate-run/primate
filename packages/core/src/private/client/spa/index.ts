@@ -43,10 +43,12 @@ async function refetch(
   let url = new URL(input.toString(), globalThis.location.href);
   let hops = 0;
 
-  while (true) {
-    const response = await fetch(url.pathname + url.search, { ...init, redirect: "manual" });
+  while (hops < maxHops) {
+    const response = await fetch(url.pathname + url.search, {
+      ...init, redirect: "manual",
+    });
 
-    // cross-origin redirect → bail
+    // cross-origin redirect -> bail
     if (response.type === "opaqueredirect") {
       return { requested: url, response: response };
     }
@@ -54,19 +56,18 @@ async function refetch(
     // same-origin redirect we can see?
     const location = getLocation(response, url.toString());
     if (location && (response.status >= 300 && response.status < 400)) {
-      if (!sameorigin(location)) {
-        // would go cross-origin → bail
-        return { requested: url, response: response };
-      }
+      // would go cross-origin -> bail
+      if (!sameorigin(location)) return { requested: url, response: response };
       // follow internally without touching history
       url = location;
-      if (++hops > maxHops) throw new Error("Too many redirects");
+      hops++;
       continue;
     }
 
-    // not a redirect → return it
+    // not a redirect -> return it
     return { requested: url, response };
   }
+  throw new Error("Too many redirects");
 }
 
 function is_json(response: Response) {
@@ -76,12 +77,12 @@ function is_json(response: Response) {
 };
 
 const handle = async (response: Response, updater: Updater<any>) => {
-  // If it's JSON, process SPA update and keep history under our control.
+  // if it's JSON, process SPA update and keep history under our control
   if (is_json(response)) {
     updater(await response.json());
-    return true; // handled in-SPA
+    return true; // handled in SPA
   }
-  // Not JSON ⇒ we will hard-navigate outside the SPA.
+  // not JSON ⇒ we will hard-navigate outside the SPA
   return false;
 };
 

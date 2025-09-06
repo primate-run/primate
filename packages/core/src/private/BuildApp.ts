@@ -27,6 +27,7 @@ export default class BuildApp extends App {
   #roots: FileRef[] = [];
   #server_build: string[] = ["route"];
   #id = crypto.randomUUID().slice(0, 8);
+  #i18n_active = false;
 
   async buildInit() {
     log.system("starting {0} build in {1} mode", this.platform.name, this.mode);
@@ -38,6 +39,7 @@ export default class BuildApp extends App {
   }
 
   get build() {
+    const extensions = [...this.frontends.values()];
     return cache.get(s, () =>
       new Build({
         ...(this.config("build")),
@@ -46,17 +48,25 @@ export default class BuildApp extends App {
           contents: "",
           resolveDir: this.root.path,
         },
+        resolveExtensions: [".ts", ".js", ...extensions],
         tsconfigRaw: {
           compilerOptions: {
             baseUrl: "${configDir}",
             paths: {
               "#component/*": [
-                "components/*",
-                ...[...this.frontends.values()]
-                  .map(extension => `components/*${extension}`),
+                "components/*", ...extensions.map(e => `components/*${e}`),
               ],
-              "#static/*": [
-                "./static/*.js", "./static/*.ts",
+              "#static/*": ["./static/*.js", "./static/*.ts"],
+              "#i18n": ["config/i18n.ts", "config/i18n.js"],
+              "#store/*": ["stores/*"],
+              "#locale/*": ["locales/*"],
+              "#config/*": ["config/*"],
+              "#session": ["config/session.ts", "config/session.js"],
+              "#database": [
+                "config/database/index.ts",
+                "config/database/index.js",
+                "config/database/default.ts",
+                "config/database/default.js",
               ],
             },
           },
@@ -162,5 +172,13 @@ export default class BuildApp extends App {
 
   depth(): number {
     return this.get<number>(s_layout_depth);
+  }
+
+  get i18n_active() {
+    return this.#i18n_active;
+  }
+
+  set i18n_active(active: boolean) {
+    this.#i18n_active = active;
   }
 }

@@ -24,21 +24,36 @@ export default {
     const { descriptor } = parse(text);
     const { has_script, inline, is_typescript } = analyze(descriptor);
 
-    const template = compileTemplate({
-      filename: "",
-      id,
-      source: descriptor.template?.content ?? "",
-    });
-    const script = has_script
-      ? compileScript(descriptor, { genDefaultAs, id, inlineTemplate: inline })
-      : { content: `const ${genDefaultAs} = {}` };
+    let module: string;
 
-    const module = `
-      ${inline ? "" : template.code}
-      ${script.content}
+    if (inline) {
+      // For <script setup>, compile with inlineTemplate to get both script and render
+      const script = compileScript(descriptor, {
+        genDefaultAs,
+        id,
+        inlineTemplate: true,
+      });
+      module = `
+        ${script.content}
+        export default { ...__SCRIPT__ };
+      `;
+    } else {
+      // For regular components, compile template and script separately
+      const template = compileTemplate({
+        filename: "",
+        id,
+        source: descriptor.template?.content ?? "",
+      });
+      const script = has_script
+        ? compileScript(descriptor, { genDefaultAs, id, inlineTemplate: false })
+        : { content: `const ${genDefaultAs} = {}` };
 
-      export default { ...__SCRIPT__, ${inline ? "" : "render"} };
-    `;
+      module = `
+        ${template.code}
+        ${script.content}
+        export default { ...__SCRIPT__, render };
+      `;
+    }
 
     return is_typescript ? transform(module, typescript).code : module;
   },

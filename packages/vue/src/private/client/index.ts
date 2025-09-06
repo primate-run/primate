@@ -1,14 +1,46 @@
+import type ClientData from "@primate/core/client/Data";
+import spa from "@primate/core/client/spa";
 import type Dict from "@rcompat/type/Dict";
 import { createSSRApp } from "vue";
-// @ts-expect-error esbuild vfs
 import * as components from "vue:components";
-// @ts-expect-error esbuild vfs
 import root from "vue:root";
 
-export default class Vue {
-  static mount(component: string, props: Dict) {
-    const rendered = root(components[component], props);
-    const app = createSSRApp(rendered);
+type Data = ClientData<{
+  components: string[];
+  props: Dict[];
+}>;
+
+export default class VueClient {
+  static mount(_component: string, data: ClientData<Data>) {
+    const resolve = (names: string[]) =>
+      names.map((n) => (components as Record<string, any>)[n]);
+
+    let app = createSSRApp(root, {
+      p: {
+        components: resolve(data.components),
+        props: data.props,
+        request: data.request,
+        update: undefined,
+      },
+    });
     app.mount("#app");
+
+    if (data.spa) {
+      window.addEventListener("DOMContentLoaded", () =>
+        spa<Data>((next, update) => {
+          app.unmount();
+          app = createSSRApp(root, {
+            p: {
+              components: resolve(next.components),
+              props: next.props,
+              request: next.request,
+              update,
+            },
+          });
+          app.mount("#app");
+          update?.();
+        }),
+      );
+    }
   }
 }

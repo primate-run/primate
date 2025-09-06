@@ -1,8 +1,11 @@
 {
-  "Switch language": "Switch language",
-  "English": "English",
-  "German": "German",
-  "All posts": "All posts",
-  "Counter": "Counter",
-  "Title": "Title"
+  "home.heading_all_posts": "All posts",
+  "home.switch_language": "Switch language",
+  "common.english": "English",
+  "common.german": "German",
+  "home.counter": "Counter",
+  "home.counter_value": "{count}",,
+  "home.items_count": "{count, plural, one {# item} other {# items}}",
+  "home.greeting": "Hello, {name}!",
+  "seo.title_home": "Primate app"
 }

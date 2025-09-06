@@ -1,4 +1,4 @@
-export default (depth: number) => {
+export default (depth: number, i18n_active: boolean) => {
   const n = depth - 1;
   const body = Array.from({ length: n }, (_, i) => i - 1)
     .reduceRight((child, _, i) => `
@@ -12,11 +12,21 @@ export default (depth: number) => {
     `, `<svelte:component this={components[${n}]} {request} {...props[${n}]}/>`,
     );
 
+  const i18nImports = i18n_active
+    ? `
+      import t from "#i18n";
+      import sInternal from "primate/s/internal";`
+    : "";
+
+  const i18nInit = i18n_active
+    ? "t[sInternal].init(request.context.i18n.locale);"
+    : "";
+
   return `
     <script>
       import { afterUpdate, setContext } from "poly";
       import context_name from "@primate/poly/context-name";
-      import { writable } from "poly/store";
+      ${i18nImports}
 
       export let components;
       export let props;
@@ -24,6 +34,8 @@ export default (depth: number) => {
       export let update = () => undefined;
 
       setContext(context_name, request.context);
+
+      ${i18nInit}
 
       afterUpdate(() => update());
     </script>

@@ -1,6 +1,5 @@
+import type Child from "#Head/ClientChild";
 import { onCleanup, onMount } from "solid-js";
-
-type Child = HTMLElement;
 
 const data_attribute = "data-sh";
 const data_ssr = "ssr";
@@ -38,7 +37,7 @@ const Head = function Head(props: { children: Child[] }) {
     clear(id);
   });
 
-  // no return, nothing rendered
+  return null;
 };
 
 Head.clear = (data_value = data_ssr) => clear(data_value);

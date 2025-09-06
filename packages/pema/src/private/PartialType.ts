@@ -49,7 +49,7 @@ export default class PartialType<D extends Partialable>
     const issues: ParseIssue[] = [];
 
     for (const key of Object.keys(this.#spec)) {
-      // Skip missing/undefined keys (partial semantics)
+      // skip missing/undefined keys (partial semantics)
       if (!(key in input) || input[key] === undefined) continue;
 
       try {
@@ -57,12 +57,12 @@ export default class PartialType<D extends Partialable>
         if (parsed !== undefined) out[key] = parsed;
       } catch (e) {
         if (e instanceof ParseError) {
-          // Child already rebased to /<key> via nextOptions → just collect
+          // child already rebased to /<key> via nextOptions -> just collect
           if (e.issues && e.issues.length) {
             issues.push(...e.issues);
           }
         } else {
-          // Wrap non-ParseError into a properly-pathed issue at /<key>
+          // wrap non-ParseError into a properly-pathed issue at /<key>
           const message = e && typeof (e as any).message === "string"
             ? (e as any).message
             : String(e);
