@@ -48,19 +48,15 @@ export const wrapPromising = <Args extends readonly AnyWasmValue[], R extends An
     ? WebAssembly.promising(fn)
     : fn;
 
-export const wrapSuspending = <Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue>(fn: AnyWasmFunction<Args, R>): WebAssembly.ImportValue =>
+export const wrapSuspending = <Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue>(fn: AnyWasmFunction<Args, R>, alt: AnyWasmFunction<Args, R>): WebAssembly.ImportValue =>
   typeof WebAssembly.Suspending === "function"
     ? new WebAssembly.Suspending(fn) as unknown as WebAssembly.ImportValue
-    : fn;
+    : alt;
 
 
 declare global {
   namespace WebAssembly {
     export const promising: undefined | (<Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue>(fn: AnyWasmFunction<Args, R>) => AnyWasmFunction<Args, R>);
-    // Constructor that returns the wrapped function
-    interface SuspendingConstructor {
-      new <T extends AnyWasmFunction<readonly AnyWasmValue[], AnyWasmReturnValue>>(fn: T): T;
-    }
 
     // May be absent at runtime
     export class Suspending<T> {
@@ -74,6 +70,7 @@ const STORE_NOT_FOUND_ERROR = 1;
 const STORE_RECORD_NOT_FOUND_ERROR = 2;
 const STORE_UNKNOWN_ERROR_OCCURRED = 3;
 const STORE_SCHEMA_INVALID_RECORD_ERROR = 4;
+const STORE_OPERATION_NOT_SUPPORTED = 5;
 
 type STORE_OPERATION_RESULT =
   | typeof STORE_OPERATION_SUCCESS
@@ -81,6 +78,7 @@ type STORE_OPERATION_RESULT =
   | typeof STORE_RECORD_NOT_FOUND_ERROR
   | typeof STORE_UNKNOWN_ERROR_OCCURRED
   | typeof STORE_SCHEMA_INVALID_RECORD_ERROR
+  | typeof STORE_OPERATION_NOT_SUPPORTED
 
 /**
  * Instantiate a WASM module from a file reference and the given web assembly
@@ -217,20 +215,23 @@ const instantiate = async (args: Init) => {
     socket.send(message);
   };
 
+  /** Default Store operation for when Suspending isn't supported. */
+  const storeOperationNotSupported = (_id: StoreID) => STORE_OPERATION_NOT_SUPPORTED as STORE_OPERATION_RESULT;
+
   /**
    * Count the number of records that match the query.
    * 
    * @param {StoreID} id - The ID of the store.
    * @returns {STORE_OPERATION_RESULT}
    */
-  const storeCount = wrapSuspending(async (id: StoreID) => {
+  const storeCount = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
     const count = await store.count();
     payload = new Uint8Array(4);
     new DataView(payload.buffer).setUint32(0, count, true);
     return STORE_OPERATION_SUCCESS;
-  });
+  }, storeOperationNotSupported);
 
   /**
    * Delete a record by it's id.
@@ -238,7 +239,7 @@ const instantiate = async (args: Init) => {
    * @param {StoreID} id - The ID of the store.
    * @returns {STORE_OPERATION_RESULT} 
    */
-  const storeDelete = wrapSuspending(async (id: StoreID) => {
+  const storeDelete = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
     try {
@@ -248,7 +249,7 @@ const instantiate = async (args: Init) => {
     } catch (ex) {
       return STORE_RECORD_NOT_FOUND_ERROR;
     }
-  });
+  }, storeOperationNotSupported);
 
 
   /**
@@ -256,7 +257,7 @@ const instantiate = async (args: Init) => {
    * 
    * @returns {STORE_OPERATION_RESULT} 
    */
-  const storeGet = wrapSuspending(async () => {
+  const storeGet = wrapSuspending<readonly [], MaybePromise<STORE_OPERATION_RESULT>>(async () => {
     const url = decodeString(new BufferView(received));
     if (storesByPath.has(url)) {
       payload = new Uint8Array(4);
@@ -273,7 +274,7 @@ const instantiate = async (args: Init) => {
     } catch (ex) {
       return STORE_NOT_FOUND_ERROR;
     }
-  });
+  }, () => STORE_OPERATION_NOT_SUPPORTED);
 
   /**
    * Get a store's name.
@@ -281,7 +282,7 @@ const instantiate = async (args: Init) => {
    * @param {StoreID} id - The id of the store.
    * @returns {STORE_OPERATION_RESULT}
    */
-  const storeGetName = wrapSuspending(async (id: StoreID) => {
+  const storeGetName = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
 
     const store = stores.get(id)!;
@@ -289,7 +290,7 @@ const instantiate = async (args: Init) => {
     payload = new Uint8Array(nameSize);
     encodeString(store.name, new BufferView(payload));
     return STORE_OPERATION_SUCCESS;
-  });
+  }, storeOperationNotSupported);
 
   /**
    * Find records in a store.
@@ -297,7 +298,7 @@ const instantiate = async (args: Init) => {
    * @param {StoreID} id - The id of the store.
    * @returns {STORE_OPERATION_RESULT}
    */
-  const storeFind = wrapSuspending(async (id: StoreID) => {
+  const storeFind = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
     const query = decodeJson(new BufferView(received));
@@ -311,9 +312,15 @@ const instantiate = async (args: Init) => {
     } catch (ex) {
       return STORE_UNKNOWN_ERROR_OCCURRED;
     }
-  });
+  }, storeOperationNotSupported);
 
-  const storeGetById = wrapSuspending(async (id: StoreID) => {
+  /**
+   * Get a record by it's id.
+   * 
+   * @param {StoreID} id - The id of the store.
+   * @returns {STORE_OPERATION_RESULT}
+   */
+  const storeGetById = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
 
     const store = stores.get(id)!;
@@ -327,9 +334,15 @@ const instantiate = async (args: Init) => {
     } else {
       return STORE_RECORD_NOT_FOUND_ERROR;
     }
-  });
+  }, storeOperationNotSupported);
 
-  const storeHas = wrapSuspending(async (id: StoreID) => {
+  /**
+   * Check if a record exists based on a record id.
+   * 
+   * @param {StoreID} id - The id of the store.
+   * @returns {STORE_OPERATION_RESULT}
+   */
+  const storeHas = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
     const recordId = decodeString(new BufferView(received));
@@ -340,9 +353,15 @@ const instantiate = async (args: Init) => {
       payload = new Uint8Array(4);
     }
     return STORE_OPERATION_SUCCESS
-  });
+  }, storeOperationNotSupported);
 
-  const storeInsert = wrapSuspending(async (id: StoreID) => {
+  /**
+   * Insert a record into a store.
+   * 
+   * @param {StoreID} id - The id of the store.
+   * @returns {STORE_OPERATION_RESULT}
+   */
+  const storeInsert = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
     try {
@@ -354,9 +373,15 @@ const instantiate = async (args: Init) => {
     } catch (ex) {
       return STORE_SCHEMA_INVALID_RECORD_ERROR;
     }
-  });
+  }, storeOperationNotSupported);
 
-  const storeUpdate = wrapSuspending(async (id: StoreID) => {
+  /**
+   * Update a record in a store by it's id.
+   * 
+   * @param {StoreID} id - The id of the store.
+   * @returns {STORE_OPERATION_RESULT}
+   */
+  const storeUpdate = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
     try {
@@ -366,8 +391,7 @@ const instantiate = async (args: Init) => {
     } catch(ex) {
       return STORE_SCHEMA_INVALID_RECORD_ERROR;
     }
-  });
-  
+  }, storeOperationNotSupported);
 
   /**
    * The imports that Primate provides to the WASM module. This follows the
