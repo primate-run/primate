@@ -1,3 +1,4 @@
+import DatabaseStore from "#database/Store";
 import type RequestFacade from "#request/RequestFacade";
 import verbs from "#request/verbs";
 import type ResponseLike from "#response/ResponseLike";
@@ -19,6 +20,10 @@ import BufferView from "@rcompat/bufferview";
 import FileRef from "@rcompat/fs/FileRef";
 import MaybePromise from "@rcompat/type/MaybePromise";
 import { WASI } from "node:wasi";
+import StoreSchema from "pema/StoreSchema";
+import encodeString from "./encode-string.js";
+import utf8size from "@rcompat/string/utf8size";
+import decodeString from "./decode-string.js";
 
 type ServerWebSocket = {
   close(code?: number, reason?: string): void;
@@ -34,14 +39,48 @@ type Init = {
 export type { API };
 
 
-type UnknownCallback = (...args: unknown[]) => unknown;
-const wrapPromising = typeof WebAssembly.promising === "function"
-  ? <T extends UnknownCallback>(fn: T) => WebAssembly.promising!(fn)
-  : <T>(t: T) => t;
+export type AnyWasmValue = number | bigint | Tagged<"Request", number>;
+export type AnyWasmReturnValue = MaybePromise<AnyWasmValue | undefined | void>;
+export type AnyWasmFunction<Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue> = (...args: Args) => R;
 
-const wrapSuspending = typeof WebAssembly.Suspending !== "undefined"
-  ? <T extends UnknownCallback>(fn: T) => new WebAssembly.Suspending!(fn)
-  : <T>(t: T) => t;
+export const wrapPromising = <Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue>(fn: AnyWasmFunction<Args, R>): AnyWasmFunction<Args, R> =>
+  typeof WebAssembly.promising === "function"
+    ? WebAssembly.promising(fn)
+    : fn;
+
+export const wrapSuspending = <Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue>(fn: AnyWasmFunction<Args, R>): WebAssembly.ImportValue =>
+  typeof WebAssembly.Suspending === "function"
+    ? new WebAssembly.Suspending(fn) as unknown as WebAssembly.ImportValue
+    : fn;
+
+
+declare global {
+  namespace WebAssembly {
+    export const promising: undefined | (<Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue>(fn: AnyWasmFunction<Args, R>) => AnyWasmFunction<Args, R>);
+    // Constructor that returns the wrapped function
+    interface SuspendingConstructor {
+      new <T extends AnyWasmFunction<readonly AnyWasmValue[], AnyWasmReturnValue>>(fn: T): T;
+    }
+
+    // May be absent at runtime
+    export class Suspending<T> {
+      constructor(fn: T)
+    }
+  }
+}
+
+const STORE_OPERATION_SUCCESS = 0;
+const STORE_NOT_FOUND_ERROR = 1;
+const STORE_RECORD_NOT_FOUND_ERROR = 2;
+const STORE_UNKNOWN_ERROR_OCCURRED = 3;
+const STORE_SCHEMA_INVALID_RECORD_ERROR = 4;
+
+type STORE_OPERATION_RESULT =
+  | typeof STORE_OPERATION_SUCCESS
+  | typeof STORE_NOT_FOUND_ERROR
+  | typeof STORE_RECORD_NOT_FOUND_ERROR
+  | typeof STORE_UNKNOWN_ERROR_OCCURRED
+  | typeof STORE_SCHEMA_INVALID_RECORD_ERROR
 
 /**
  * Instantiate a WASM module from a file reference and the given web assembly
@@ -52,13 +91,21 @@ const wrapSuspending = typeof WebAssembly.Suspending !== "undefined"
  * @returns The instantiated WASM module, its exports, and the API that Primate
  * exposes to the WASM module.
  */
-const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
+const instantiate = async (args: Init) => {
+  type TRequest = I32;
+  type TResponse = I32;
   type WasmRequest = Tagged<"Request", TRequest>;
   type WasmResponse = Tagged<"Response", TResponse>;
+  type StoreID = Tagged<"StoreID", I32>;
+
   type MethodFunc = (request: WasmRequest) => MaybePromise<WasmResponse>;
 
   const wasmFileRef = new FileRef(args.filename);
   const wasmImports = args.imports ?? {};
+  const stores = new Map<StoreID, DatabaseStore<StoreSchema>>;
+  const storesByPath = new Map<string, StoreID>();
+
+  let storeId = 0;
 
   // default payload is set to an empty buffer via setPayloadBuffer
   let payload = new Uint8Array(0) as Uint8Array;
@@ -107,7 +154,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
   const sessionSet = () => {
     const data = decodeJson.from(received);
     session().set(data);
-  }
+  };
 
   /**
    * Get the length of the current active payload.
@@ -116,7 +163,7 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
    */
   const payloadByteLength = () => {
     return payload.byteLength;
-  }
+  };
 
   /**
    * Send the current active payload to the WASM module.
@@ -171,17 +218,178 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
   };
 
   /**
+   * Count the number of records that match the query.
+   * 
+   * @param {StoreID} id - The ID of the store.
+   * @returns {STORE_OPERATION_RESULT}
+   */
+  const storeCount = wrapSuspending(async (id: StoreID) => {
+    if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
+    const store = stores.get(id)!;
+    const count = await store.count();
+    payload = new Uint8Array(4);
+    new DataView(payload.buffer).setUint32(0, count, true);
+    return STORE_OPERATION_SUCCESS;
+  });
+
+  /**
+   * Delete a record by it's id.
+   * 
+   * @param {StoreID} id - The ID of the store.
+   * @returns {STORE_OPERATION_RESULT} 
+   */
+  const storeDelete = wrapSuspending(async (id: StoreID) => {
+    if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
+    const store = stores.get(id)!;
+    try {
+      const id = decodeString(new BufferView(received));
+      await store.delete(id);
+      return STORE_OPERATION_SUCCESS;
+    } catch (ex) {
+      return STORE_RECORD_NOT_FOUND_ERROR;
+    }
+  });
+
+
+  /**
+   * Get a store and set the id of that store to the payload.
+   * 
+   * @returns {STORE_OPERATION_RESULT} 
+   */
+  const storeGet = wrapSuspending(async () => {
+    const url = decodeString(new BufferView(received));
+    if (storesByPath.has(url)) {
+      payload = new Uint8Array(4);
+      new DataView(payload.buffer).setUint32(0, storesByPath.get(url)!, true);
+      return STORE_OPERATION_SUCCESS;
+    }
+    try {
+      const store = await import(url);
+      const id = storeId++ as StoreID;
+      stores.set(id, store);
+      payload = new Uint8Array(4);
+      new DataView(payload.buffer).setUint32(0, storesByPath.get(url)!, true);
+      return STORE_OPERATION_SUCCESS;
+    } catch (ex) {
+      return STORE_NOT_FOUND_ERROR;
+    }
+  });
+
+  /**
+   * Get a store's name.
+   * 
+   * @param {StoreID} id - The id of the store.
+   * @returns {STORE_OPERATION_RESULT}
+   */
+  const storeGetName = wrapSuspending(async (id: StoreID) => {
+    if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
+
+    const store = stores.get(id)!;
+    const nameSize = utf8size(store.name) + 4;
+    payload = new Uint8Array(nameSize);
+    encodeString(store.name, new BufferView(payload));
+    return STORE_OPERATION_SUCCESS;
+  });
+
+  /**
+   * Find records in a store.
+   * 
+   * @param {StoreID} id - The id of the store.
+   * @returns {STORE_OPERATION_RESULT}
+   */
+  const storeFind = wrapSuspending(async (id: StoreID) => {
+    if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
+    const store = stores.get(id)!;
+    const query = decodeJson(new BufferView(received));
+
+    try {
+      const records = await store.find(query);
+      const recordsPayload = JSON.stringify(records);
+      payload = new Uint8Array(utf8size(recordsPayload) + 4);
+      encodeString(recordsPayload, new BufferView(payload));
+      return STORE_OPERATION_SUCCESS;
+    } catch (ex) {
+      return STORE_UNKNOWN_ERROR_OCCURRED;
+    }
+  });
+
+  const storeGetById = wrapSuspending(async (id: StoreID) => {
+    if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
+
+    const store = stores.get(id)!;
+    const recordId = decodeString(new BufferView(received));
+    const record = await store.try(recordId);
+    if (record) {
+      const recordPayload = JSON.stringify(record);
+      payload = new Uint8Array(utf8size(recordPayload) + 4);
+      encodeString(recordPayload, new BufferView(payload));
+      return STORE_OPERATION_SUCCESS;
+    } else {
+      return STORE_RECORD_NOT_FOUND_ERROR;
+    }
+  });
+
+  const storeHas = wrapSuspending(async (id: StoreID) => {
+    if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
+    const store = stores.get(id)!;
+    const recordId = decodeString(new BufferView(received));
+    if (await store.has(recordId)) {
+      payload = new Uint8Array(4);
+      payload[3] = 1;
+    } else {
+      payload = new Uint8Array(4);
+    }
+    return STORE_OPERATION_SUCCESS
+  });
+
+  const storeInsert = wrapSuspending(async (id: StoreID) => {
+    if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
+    const store = stores.get(id)!;
+    try {
+      const record = decodeJson(new BufferView(received));
+      const result = JSON.stringify(await store.insert(record));
+      payload = new Uint8Array(utf8size(result) + 4);
+      encodeString(result, new BufferView(payload));
+      return STORE_OPERATION_SUCCESS;
+    } catch (ex) {
+      return STORE_SCHEMA_INVALID_RECORD_ERROR;
+    }
+  });
+
+  const storeUpdate = wrapSuspending(async (id: StoreID) => {
+    if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
+    const store = stores.get(id)!;
+    try {
+      const record = decodeJson(new BufferView(received));
+      await store.update(record.id, record);
+      return STORE_OPERATION_SUCCESS;
+    } catch(ex) {
+      return STORE_SCHEMA_INVALID_RECORD_ERROR;
+    }
+  });
+  
+
+  /**
    * The imports that Primate provides to the WASM module. This follows the
    * Primate WASM ABI convention.
    */
   const primateImports = {
-    sessionGet,
-    sessionNew,
-    sessionExists,
-    sessionSet,
     payloadByteLength,
     receive,
     send,
+    sessionExists,
+    sessionGet,
+    sessionNew,
+    sessionSet,
+    storeCount,
+    storeDelete,
+    storeFind,
+    storeGet,
+    storeGetById,
+    storeGetName,
+    storeHas,
+    storeInsert,
+    storeUpdate,
     websocketClose,
     websocketSend,
   };
@@ -237,8 +445,9 @@ const instantiate = async <TRequest = I32, TResponse = I32>(args: Init) => {
   } as Instantiation<TRequest, TResponse>;
   for (const method of verbs) {
     if (method in exports && typeof exports[method] === "function") {
-      const callback = exports[method] as UnknownCallback
-      const methodFunc = wrapPromising(callback) as MethodFunc;
+      
+      type ExportedWasmMethodFunc = AnyWasmFunction<readonly [WasmRequest], WasmResponse>
+      const methodFunc = wrapPromising(exports[method] as ExportedWasmMethodFunc) as MethodFunc;
 
       api[method] = async (request: RequestFacade): Promise<ResponseLike> => {
         // payload is now set
