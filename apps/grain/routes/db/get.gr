@@ -10,7 +10,7 @@ from "result" include Result
 use Json.{ type Json, module Lenses }
 use Request.{ type Request }
 use Lenses.{ type Lens, (||>) }
-let _User = Result.expect("User Store must exist", Store.store("#stores/User"))
+let _User = Result.expect("User Store must exist", Store.store("User"))
 
 
 let mapKeys = (keys: List<String>) => {

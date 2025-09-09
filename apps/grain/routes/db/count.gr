@@ -9,20 +9,20 @@ from "result" include Result
 use Json.{ type Json }
 use Request.{ type Request }
 
+let _User = Result.expect("User Store must exist", Store.store("User"))
 
 provide let get = (req: Request) => {
-    let userStore = Result.expect("User Store must exist", Store.store("#stores/User"))
-    Result.expect("Operation must succeed", Store.delete(userStore, JsonNull))
-    Result.expect("Operation must succeed", Store.insert(userStore, JsonObject([
+    Result.expect("Operation must succeed", Store.delete(_User, JsonNull))
+    Result.expect("Operation must succeed", Store.insert(_User, JsonObject([
         ("age", JsonNumber(30)),
         ("name", JsonString("Donald"))
     ])))
-    Result.expect("Operation must succeed", Store.insert(userStore, JsonObject([
+    Result.expect("Operation must succeed", Store.insert(_User, JsonObject([
         ("age", JsonNumber(40)),
         ("name", JsonString("Ryan"))
     ])))
 
-    let count = Result.expect("Operation must succeed", Store.count(userStore))
+    let count = Result.expect("Operation must succeed", Store.count(_User))
 
     JsonObject([
         ("count", JsonNumber(count))

@@ -48,7 +48,7 @@ export const wrapPromising = <Args extends readonly AnyWasmValue[], R extends An
   typeof WebAssembly.promising === "function"
     ? WebAssembly.promising(fn)
     : fn;
-
+console.log("Suspending is", Object.keys(WebAssembly));
 export const wrapSuspending = <Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue>(fn: AnyWasmFunction<Args, R>, alt: AnyWasmFunction<Args, R>): WebAssembly.ImportValue =>
   typeof WebAssembly.Suspending === "function"
     ? new WebAssembly.Suspending(fn) as unknown as WebAssembly.ImportValue
@@ -261,7 +261,7 @@ const instantiate = async (args: Init) => {
    * 
    * @returns {STORE_OPERATION_RESULT} 
    */
-  const storeImport = wrapSuspending<readonly [], MaybePromise<STORE_OPERATION_RESULT>>(async () => {
+  const storeImport = () => {
     const storeName = decodeString(new BufferView(received));
     if (storeIdsByName.has(storeName)) {
       payload = new Uint8Array(4);
@@ -269,7 +269,7 @@ const instantiate = async (args: Init) => {
       return STORE_OPERATION_SUCCESS;
     }
     return STORE_NOT_FOUND_ERROR;
-  }, () => STORE_OPERATION_NOT_SUPPORTED);
+  };
 
   /**
    * Find records in a store.

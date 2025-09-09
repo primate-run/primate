@@ -10,7 +10,7 @@ from "result" include Result
 use Json.{ type Json, module Lenses }
 use Request.{ type Request }
 use Lenses.{ type Lens, (||>) }
-let userStore = Result.expect("User Store must exist", Store.store("#stores/User"))
+let _User = Result.expect("User Store must exist", Store.store("User"))
 
 let keysLens = (keys: List<String>) => {
     
@@ -28,13 +28,13 @@ let keysLens = (keys: List<String>) => {
 
 
 provide let get = (req: Request) => {
-    Result.expect("Operation must succeed", Store.delete(userStore, JsonNull))
-    let result = Result.expect("Operation must succeed", Store.insert(userStore, JsonObject([
+    Result.expect("Operation must succeed", Store.delete(_User, JsonNull))
+    let result = Result.expect("Operation must succeed", Store.insert(_User, JsonObject([
         ("age", JsonNumber(30)),
         ("name", JsonString("Donald"))
     ])))
 
-    let found = Result.expect("Operation must succeed", Store.find(userStore, JsonObject([
+    let found = Result.expect("Operation must succeed", Store.find(_User, JsonObject([
         ("age", JsonNumber(30))
     ])))
     

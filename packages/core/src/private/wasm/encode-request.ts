@@ -120,9 +120,9 @@ type FileLike = {
 const encodeBlob = async (file: BlobLike, view: BufferView) => {
   const type = file.type;
   const bytes = await file.bytes();
+  console.log("Encoding blob", type, bytes)
   encodeString(type, view);
-  view.writeU32(bytes.byteLength);
-  view.writeBytes(bytes);
+  encodeBuffer(bytes, view);
 };
 
 const encodeFile = async (file: FileLike, view: BufferView) => {
