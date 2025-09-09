@@ -106,6 +106,7 @@ export default class ServeApp extends App {
   #components: PartialDict<Import>;
   #csp: CSP = {};
   #assets: Asset[] = [];
+  #stores: Dict;
   #frontends: PartialDict<ViewResponse> = {};
   #router: FileRouter;
   #builtins: {
@@ -120,6 +121,8 @@ export default class ServeApp extends App {
 
     this.#init = init;
     this.#components = Object.fromEntries(init.components ?? []);
+    this.#stores = Object.fromEntries((init.stores?.map(([k, s]) =>
+      [k, s.default])) ?? []);
 
     const http = this.#init.config.http;
     this.#i18n_config = init.i18n_config;
@@ -188,6 +191,10 @@ export default class ServeApp extends App {
 
   get files() {
     return this.#init.files;
+  }
+
+  get stores() {
+    return this.#stores;
   }
 
   get i18n() {

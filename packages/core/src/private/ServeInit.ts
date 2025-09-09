@@ -5,7 +5,6 @@ import type Loader from "#Loader";
 import type Mode from "#Mode";
 import type SessionConfig from "#session/Config";
 import type Dict from "@rcompat/type/Dict";
-import type Schema from "pema/Schema";
 
 type Import = {
   default: unknown;
@@ -13,15 +12,12 @@ type Import = {
 
 type BuildFiles = {
   routes: [string, { default: any }][];
-  stores?: [string, {
-    default: Schema;
-    name?: string;
-  }][];
 };
 
 type ServeInit = {
   assets: Asset[];
   components?: [string, Import][];
+  stores?: [string, Import][];
   config: Config;
   files: BuildFiles;
   loader: Loader;

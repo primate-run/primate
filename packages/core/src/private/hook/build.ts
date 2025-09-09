@@ -90,6 +90,22 @@ const write_directories = async (build_directory: FileRef, app: BuildApp) => {
   }
 };
 
+const write_stores = async (build_directory: FileRef, app: BuildApp) => {
+  const d2 = app.runpath(location.stores);
+  const e = await Promise.all((await FileRef.collect(d2, file =>
+    js_re.test(file.path)))
+    .map(async path => `${path}`.replace(d2.toString(), _ => "")));
+  const stores_js = `
+const store = [];
+${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
+    `import * as store${i} from "${FileRef.webpath(`#store/${bare}`)}";
+store.push(["${FileRef.webpath(bare)}", store${i}]);`,
+  ).join("\n")}
+
+export default store;`;
+  await build_directory.join("stores.js").write(stores_js);
+};
+
 const write_components = async (build_directory: FileRef, app: BuildApp) => {
   const d2 = app.runpath(location.components);
   const e = await Promise.all((await FileRef.collect(d2, file =>
@@ -120,6 +136,7 @@ ${app.server_build.map(name => `${name}s`).map(name =>
      files.${name} = ${name};`,
   ).join("\n")}
 import components from "./${app.id}/components.js";
+import stores from "./${app.id}/stores.js";
 import platform from "./platform.js";
 import session from "#session";
 import config from "#config";
@@ -138,6 +155,7 @@ const app = await serve(import.meta.url, {
   config,
   files,
   components,
+  stores,
   mode: "${mode}",
   session_config: session[s_config],
   i18n_config,
@@ -249,6 +267,7 @@ const post = async (app: BuildApp) => {
   await build_directory.create();
 
   await write_components(build_directory, app);
+  await write_stores(build_directory, app);
   await write_directories(build_directory, app);
   await write_bootstrap(app, app.mode, app.i18n_active);
 
