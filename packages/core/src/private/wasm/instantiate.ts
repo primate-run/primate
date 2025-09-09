@@ -100,7 +100,7 @@ const instantiate = async (args: Init) => {
 
   const wasmFileRef = new FileRef(args.filename);
   const wasmImports = args.imports ?? {};
-  const stores = new Map<StoreID, DatabaseStore<StoreSchema>>;
+  const stores = new Map<StoreID, DatabaseStore<StoreSchema>>();
   const storesByPath = new Map<string, StoreID>();
 
   let storeId = 0;
@@ -227,9 +227,10 @@ const instantiate = async (args: Init) => {
   const storeCount = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
-    const count = await store.count();
+    const criteria = decodeJson(new BufferView(received))
+    const count = await store.count(criteria);
     payload = new Uint8Array(4);
-    new DataView(payload.buffer).setUint32(0, count, true);
+    new DataView(payload.buffer).setUint32(0, count);
     return STORE_OPERATION_SUCCESS;
   }, storeOperationNotSupported);
 
@@ -243,7 +244,7 @@ const instantiate = async (args: Init) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
     try {
-      const id = decodeString(new BufferView(received));
+      const id = decodeJson(new BufferView(received));
       await store.delete(id);
       return STORE_OPERATION_SUCCESS;
     } catch (ex) {
@@ -253,44 +254,28 @@ const instantiate = async (args: Init) => {
 
 
   /**
-   * Get a store and set the id of that store to the payload.
+   * Get a store by it's "import", and return it to wasm.
    * 
    * @returns {STORE_OPERATION_RESULT} 
    */
-  const storeGet = wrapSuspending<readonly [], MaybePromise<STORE_OPERATION_RESULT>>(async () => {
-    const url = decodeString(new BufferView(received));
-    if (storesByPath.has(url)) {
+  const storeImport = wrapSuspending<readonly [], MaybePromise<STORE_OPERATION_RESULT>>(async () => {
+    const importPath = decodeString(new BufferView(received));
+    if (storesByPath.has(importPath)) {
       payload = new Uint8Array(4);
-      new DataView(payload.buffer).setUint32(0, storesByPath.get(url)!, true);
+      new DataView(payload.buffer).setUint32(0, storesByPath.get(importPath)!, true);
       return STORE_OPERATION_SUCCESS;
     }
     try {
-      const store = await import(url);
+      const store = await import(importPath);
       const id = storeId++ as StoreID;
       stores.set(id, store);
       payload = new Uint8Array(4);
-      new DataView(payload.buffer).setUint32(0, storesByPath.get(url)!, true);
+      new DataView(payload.buffer).setUint32(0, storesByPath.get(importPath)!, true);
       return STORE_OPERATION_SUCCESS;
     } catch (ex) {
       return STORE_NOT_FOUND_ERROR;
     }
   }, () => STORE_OPERATION_NOT_SUPPORTED);
-
-  /**
-   * Get a store's name.
-   * 
-   * @param {StoreID} id - The id of the store.
-   * @returns {STORE_OPERATION_RESULT}
-   */
-  const storeGetName = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
-    if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
-
-    const store = stores.get(id)!;
-    const nameSize = utf8size(store.name) + 4;
-    payload = new Uint8Array(nameSize);
-    encodeString(store.name, new BufferView(payload));
-    return STORE_OPERATION_SUCCESS;
-  }, storeOperationNotSupported);
 
   /**
    * Find records in a store.
@@ -320,7 +305,7 @@ const instantiate = async (args: Init) => {
    * @param {StoreID} id - The id of the store.
    * @returns {STORE_OPERATION_RESULT}
    */
-  const storeGetById = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
+  const storeGet = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
 
     const store = stores.get(id)!;
@@ -409,9 +394,8 @@ const instantiate = async (args: Init) => {
     storeDelete,
     storeFind,
     storeGet,
-    storeGetById,
-    storeGetName,
     storeHas,
+    storeImport,
     storeInsert,
     storeUpdate,
     websocketClose,
