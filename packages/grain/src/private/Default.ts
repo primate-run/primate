@@ -55,9 +55,18 @@ export default class Default extends Runtime {
       const wasm = route.bare(".wasm");
       const command = this.#command(wasm, route, app.mode);
       await execute(command, { cwd: `${route.directory}` });
-
-      const code = (await bootstrap_file.text()).replaceAll("__FILENAME__",
-        wasm.path);
+      const files = (await app.path.stores
+        .collect(file => [".ts", ".js"].includes(file.extension)))
+        .map(file => file.debase(`${app.path.stores}/`).path.slice(0, -".ts".length));
+      const storeStr = `Object.fromEntries(await (async function() {
+        const names = [${files.map(JSON.stringify as any).join(",")}];
+        const stores = (await Promise.all([${files.map(f => `import("#store/${f}")`)}]))
+        .map(s => s.default);
+        return names.map((name, i) => [name, stores[i]]);
+      })())`;
+      const code = (await bootstrap_file.text())
+        .replaceAll("__FILENAME__", wasm.path)
+        .replaceAll("__STORES__", storeStr);
       await route.bare(".gr.js").write(wrap(code, route, build));
     });
 

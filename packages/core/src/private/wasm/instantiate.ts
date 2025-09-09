@@ -1,4 +1,4 @@
-import DatabaseStore from "#database/Store";
+import type DatabaseStore from "#database/Store";
 import type RequestFacade from "#request/RequestFacade";
 import verbs from "#request/verbs";
 import type ResponseLike from "#response/ResponseLike";
@@ -33,6 +33,7 @@ type ServerWebSocket = {
 type Init = {
   filename: string;
   imports?: WebAssembly.Imports;
+  stores: Record<string, DatabaseStore<StoreSchema>>
 };
 
 // used by instance
@@ -100,10 +101,12 @@ const instantiate = async (args: Init) => {
 
   const wasmFileRef = new FileRef(args.filename);
   const wasmImports = args.imports ?? {};
-  const stores = new Map<StoreID, DatabaseStore<StoreSchema>>();
-  const storesByPath = new Map<string, StoreID>();
-
-  let storeId = 0;
+  const storesByName = args.stores;
+  const storeIdsByName = new Map(Object.keys(storesByName).map((e, i) => [e, i]));
+  const stores = new Map<StoreID, DatabaseStore<StoreSchema>>(
+    Array.from(storeIdsByName.entries())
+    .map(([name, id]) => [id as StoreID, storesByName[name]]),
+  );
 
   // default payload is set to an empty buffer via setPayloadBuffer
   let payload = new Uint8Array(0) as Uint8Array;
@@ -259,22 +262,13 @@ const instantiate = async (args: Init) => {
    * @returns {STORE_OPERATION_RESULT} 
    */
   const storeImport = wrapSuspending<readonly [], MaybePromise<STORE_OPERATION_RESULT>>(async () => {
-    const importPath = decodeString(new BufferView(received));
-    if (storesByPath.has(importPath)) {
+    const storeName = decodeString(new BufferView(received));
+    if (storeIdsByName.has(storeName)) {
       payload = new Uint8Array(4);
-      new DataView(payload.buffer).setUint32(0, storesByPath.get(importPath)!, true);
+      new DataView(payload.buffer).setUint32(0, storeIdsByName.get(storeName)!, true);
       return STORE_OPERATION_SUCCESS;
     }
-    try {
-      const store = await import(importPath);
-      const id = storeId++ as StoreID;
-      stores.set(id, store);
-      payload = new Uint8Array(4);
-      new DataView(payload.buffer).setUint32(0, storesByPath.get(importPath)!, true);
-      return STORE_OPERATION_SUCCESS;
-    } catch (ex) {
-      return STORE_NOT_FOUND_ERROR;
-    }
+    return STORE_NOT_FOUND_ERROR;
   }, () => STORE_OPERATION_NOT_SUPPORTED);
 
   /**

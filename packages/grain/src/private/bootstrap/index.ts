@@ -4,6 +4,8 @@ import instantiate from "primate/wasm/instantiate";
 
 const instantiated = await instantiate({
   filename: "__FILENAME__",
+  // @ts-expect-error: this identifier is replaced by an index of stores at compile time
+  stores: __STORES__,
 });
 
 Object.entries(instantiated.api).forEach(([verb, fn]) => {
