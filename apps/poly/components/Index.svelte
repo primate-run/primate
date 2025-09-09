@@ -1,26 +1,41 @@
 <script>
-  import t from "@primate/poly/i18n";
-  import locale from "@primate/poly/locale";
+  import t from "#i18n";
   import Link from "#component/Link";
 
-  export let posts = [], title = "";
+  export let posts = [],
+    title = "";
   let count = 0;
 </script>
+
 <svelte:head>
   <title>Primate Poly app</title>
   <meta name="keywords" content={title} />
 </svelte:head>
 <a href="/redirect">redirect</a>
-<h1 on:click={() => { console.log("clicked!"); }}>{$t("All posts2")}</h1>
+<h1
+  on:click={() => {
+    console.log("clicked!");
+  }}
+>
+  {$t("all_posts")}
+</h1>
 {#each posts as post}
-<Link {post} />
+  <Link {post} />
 {/each}
-<h3>{$t("Counter")}</h3>
+<h3>{$t("counter")}</h3>
 <div>
-<button on:click={() => { count = count - 1; }}>-</button>
-<button on:click={() => { count = count + 1; }}>+</button>
-{count}
+  <button
+    on:click={() => {
+      count = count - 1;
+    }}>-</button
+  >
+  <button
+    on:click={() => {
+      count = count + 1;
+    }}>+</button
+  >
+  {count}
 </div>
-<h3>{$t("Switch language")}</h3>
-<div><a on:click={() => locale.set("en-US")}>{$t("English")}</a></div>
-<div><a on:click={() => locale.set("de-DE")}>{$t("German")}</a></div>
+<h3>{$t("switch_language")}</h3>
+<button on:click={() => t.locale.set("en-US")}>{$t("english")}</button>
+<button on:click={() => t.locale.set("de-DE")}>{$t("german")}</button>

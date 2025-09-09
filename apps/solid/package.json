@@ -9,7 +9,6 @@
     "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
-    "@primate/i18n": "workspace:^",
     "@primate/solid": "workspace:^",
     "@primate/sqlite": "workspace:^",
     "@rcompat/assert": "^0.3.1",

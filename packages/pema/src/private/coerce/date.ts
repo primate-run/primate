@@ -6,8 +6,8 @@ const ISO_DATETIME_TZ =
 const INT = /^[+-]?\d+$/;
 
 function epoch(n: number, digits?: number): Date | undefined {
-  // For strings we use digit-count to choose s vs ms.
-  // For numbers we ALWAYS treat as ms (no digits provided).
+  // for strings we use digit-count to choose s vs ms.
+  // for numbers we ALWAYS treat as ms (no digits provided)
   const ms = digits !== undefined
     ? (digits >= 13 ? n : n * 1000)
     : n;
@@ -25,7 +25,7 @@ function fromString(raw: string) {
   const s = raw.trim();
   if (s === "") return raw;
 
-  // Integer string → epoch seconds or ms (based on digit count)
+  // integer string -> epoch seconds or ms (based on digit count)
   if (INT.test(s)) {
     const digits = s[0] === "+" || s[0] === "-" ? s.length - 1 : s.length;
     const n = Number(s);
@@ -33,7 +33,7 @@ function fromString(raw: string) {
     return date ?? raw;
   }
 
-  // ISO date-only → interpret as UTC midnight
+  // ISO date-only -> interpret as UTC midnight
   if (ISO_DATE.test(s)) {
     const date = new Date(`${s}T00:00:00.000Z`);
     return Number.isNaN(date.getTime()) ? raw : date;
@@ -49,10 +49,10 @@ function fromString(raw: string) {
 }
 
 export default function coerceDate(x: unknown) {
-  // Already a Date
+  // already a Date
   if (x instanceof Date) return x;
 
-  // Numbers as treated as epochs
+  // numbers are treated as epochs
   if (typeof x === "number" && Number.isFinite(x)) {
     return fromNumber(x);
   }

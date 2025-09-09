@@ -6,7 +6,7 @@ type X<T> = {
 } & {};
 
 // NB: name chosen to avoid collision with TS's builtin Record and DOM Document.
-// Persisted/output shape: all fields plus REQUIRED `id`.
+// persisted/output shape: all fields plus REQUIRED `id`.
 type DataRecord<T extends StoreSchema> = X<InferStoreOut<T>>;
 
 export type { DataRecord as default };

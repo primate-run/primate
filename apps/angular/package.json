@@ -11,8 +11,11 @@
   "dependencies": {
     "@angular/common": "^20.2.1",
     "@angular/core": "^20.2.1",
+    "@angular/forms": "^20.2.4",
+    "@angular/platform-browser": "^20.2.1",
     "@primate/angular": "workspace:^",
     "@primate/sqlite": "workspace:^",
+    "@rcompat/assert": "^0.3.1",
     "@rcompat/fs": "^0.21.1",
     "pema": "workspace:^",
     "primate": "workspace:^"

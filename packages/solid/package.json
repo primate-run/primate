@@ -17,6 +17,7 @@
   },
   "scripts": {
     "build": "npm run clean && tsc",
+    "postbuild": "node scripts/compile-jsx.js",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
@@ -30,23 +31,23 @@
     "@rcompat/build": "^0.14.0",
     "@rcompat/fs": "^0.21.1",
     "@rcompat/runtime": "^0.6.0",
-    "babel-preset-solid": "^1.9.9"
+    "babel-preset-solid": "^1.9.9",
+    "fast-glob": "^3.3.3"
   },
   "peerDependencies": {
-    "@primate/i18n": "workspace:^",
     "primate": "workspace:^",
     "solid-js": "1"
-  },
-  "peerDependenciesMeta": {
-    "@primate/i18n": {
-      "optional": true
-    }
   },
   "type": "module",
   "imports": {
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
+    },
+    "#HeadImpl": {
+      "apekit": "./src/private/Head/default.ts",
+      "browser": "./lib/private/Head/browser.js",
+      "default": "./lib/private/Head/default.js"
     }
   },
   "exports": {
@@ -56,9 +57,9 @@
       "default": "./lib/public/default.js"
     },
     "./*": "./lib/public/*.js",
-    "./Head": {
-      "browser": "./lib/public/Head/browser.js",
-      "default": "./lib/public/Head/default.js"
+    "./i18n/Bridge": {
+      "browser": "./lib/public/i18n/Bridge/browser.js",
+      "default": "./lib/public/i18n/Bridge/default.js"
     }
   }
 }

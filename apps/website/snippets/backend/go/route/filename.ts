@@ -1,0 +1,1 @@
+export default () => "routes/redirected.go";

@@ -43,16 +43,16 @@ test.case("string key", assert => {
   {
     // symbol key on record(string, string)
     const issues = throwsIssues(assert, () => r.parse({ [foo]: "foo" }));
-    // JSON Pointer cannot address a symbol key → anchor at the record itself
+    // JSON Pointer cannot address a symbol key -> anchor at the record itself
     assert(pathsOf(issues)).equals([""]);                   // root
-    // Keep your existing message helper for keys
+    // keep your existing message helper for keys
     assert(messagesOf(issues)).equals([expect_key("s", foo)]);
   }
 
   {
-    // number key on record(string, string) → property "0"
+    // number key on record(string, string) -> property "0"
     const issues = throwsIssues(assert, () => r.parse({ 0: "foo" }));
-    // This points at the offending key
+    // this points at the offending key
     assert(pathsOf(issues)).equals(["/0"]);
     assert(messagesOf(issues)).equals([expect_key("s", 0)]);
   }
@@ -82,7 +82,7 @@ test.case("number key", assert => {
   {
     // symbol key on record(number, string)
     const issues = throwsIssues(assert, () => r.parse({ [foo]: "foo" }));
-    // JSON Pointer can't address symbol keys → anchor at the record (root)
+    // JSON Pointer can't address symbol keys -> anchor at the record (root)
     assert(pathsOf(issues)).equals([""]);
     assert(messagesOf(issues)).equals([expect_key("n", foo)]);
   }
@@ -90,7 +90,7 @@ test.case("number key", assert => {
   {
     // string key on record(number, string)
     const issues = throwsIssues(assert, () => r.parse({ foo: "foo" }));
-    // Point directly at the offending key
+    // point directly at the offending key
     assert(pathsOf(issues)).equals(["/foo"]);
     assert(messagesOf(issues)).equals([expect_key("n", "foo")]);
   }
@@ -99,7 +99,7 @@ test.case("number key", assert => {
   {
     // invalid value type at numeric key
     const issues = throwsIssues(assert, () => r.parse({ 1: 1 }));
-    // Key "1" is valid; the value is wrong → path is that key
+    // key "1" is valid; the value is wrong -> path is that key
     assert(pathsOf(issues)).equals(["/1"]);
     assert(messagesOf(issues)).equals([expect("s", 1)]);
   }

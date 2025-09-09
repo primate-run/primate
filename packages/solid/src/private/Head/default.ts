@@ -1,12 +1,6 @@
 import HeadContext from "#context/head";
-import type Dict from "@rcompat/type/Dict";
+import type Child from "#Head/ServerChild";
 import { useContext } from "solid-js";
-
-type Child = {
-  props: Dict;
-  t: string;
-  tagName: string;
-};
 
 const data_attribute = "data-sh";
 const data_ssr = "ssr";
@@ -53,7 +47,7 @@ const Head = function Head(props: { children: Child[] }) {
   const context = useContext(HeadContext) as ((input: string[]) => void);
   context(render(props.children, data_ssr));
 
-  // no return, nothing rendered
+  return null;
 };
 
 Head.clear = (data_value = data_ssr) => clear(data_value);

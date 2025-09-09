@@ -11,6 +11,8 @@ import type ServerComponent from "#frontend/ServerComponent";
 import type ViewOptions from "#frontend/ViewOptions";
 import type ViewResponse from "#frontend/ViewResponse";
 import hash from "#hash";
+import I18NModule from "#i18n/Module";
+import type ServerConfig from "#i18n/ServerConfig";
 import type Loader from "#Loader";
 import location from "#location";
 import log from "#log";
@@ -104,21 +106,26 @@ export default class ServeApp extends App {
   #components: PartialDict<Import>;
   #csp: CSP = {};
   #assets: Asset[] = [];
+  #stores: Dict;
   #frontends: PartialDict<ViewResponse> = {};
   #router: FileRouter;
   #builtins: {
     dev?: DevModule;
     handle: HandleModule;
     session: SessionModule;
+    i18n?: I18NModule;
   };
-
+  #i18n_config?: ServerConfig;
   constructor(rootfile: string, init: ServeInit) {
     super(new FileRef(rootfile).directory, init.config, init.mode);
 
     this.#init = init;
     this.#components = Object.fromEntries(init.components ?? []);
+    this.#stores = Object.fromEntries((init.stores?.map(([k, s]) =>
+      [k, s.default])) ?? []);
 
     const http = this.#init.config.http;
+    this.#i18n_config = init.i18n_config;
 
     this.set(s_http, {
       host: http.host,
@@ -142,6 +149,7 @@ export default class ServeApp extends App {
       dev: init.mode === "development" ? new DevModule(this) : undefined,
       handle: new HandleModule(this),
       session: new SessionModule(this),
+      i18n: init.i18n_config ? new I18NModule(init.i18n_config) : undefined,
     };
   };
 
@@ -164,8 +172,8 @@ export default class ServeApp extends App {
   }
 
   get modules() {
-    const session = this.#builtins.session;
-    return [session, ...super.modules];
+    const { session, i18n } = this.#builtins;
+    return [session, i18n, ...super.modules].filter(m => m !== undefined);
   }
 
   get url() {
@@ -183,6 +191,14 @@ export default class ServeApp extends App {
 
   get files() {
     return this.#init.files;
+  }
+
+  get stores() {
+    return this.#stores;
+  }
+
+  get i18n() {
+    return this.#i18n_config;
   }
 
   component<T = ServerComponent>(name: string) {
@@ -296,8 +312,11 @@ export default class ServeApp extends App {
         integrity: await hash(code),
       };
     }));
-    const modules = [this.#builtins.dev, this.#builtins.session,
-    ...this.modules, this.#builtins.handle].filter(m => m !== undefined);
+    const modules = [
+      this.#builtins.dev,
+      ...this.modules,
+      this.#builtins.handle,
+    ].filter(m => m !== undefined);
 
     const handle = (request: RequestFacade) =>
       reducer(modules, request, "handle") as Promise<Response>;

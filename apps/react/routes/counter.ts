@@ -2,7 +2,7 @@ import Counter from "#store/Counter";
 import number from "pema/number";
 import string from "pema/string";
 import view from "primate/response/view";
-import route from "@primate/core/route";
+import route from "primate/route";
 
 await Counter.schema.create();
 

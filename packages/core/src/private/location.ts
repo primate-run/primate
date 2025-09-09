@@ -23,4 +23,6 @@ export default {
   static: "static",
   // stores
   stores: "stores",
+  // locales
+  locales: "locales",
 } as const;

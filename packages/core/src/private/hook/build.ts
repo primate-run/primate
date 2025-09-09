@@ -26,6 +26,15 @@ const pre = async (app: BuildApp) => {
   const router = await $router(app.path.routes, app.extensions);
   app.set(s_layout_depth, router.depth("layout"));
 
+  const i18n_config_path = app.path.config.join("i18n.ts");
+  const i18n_config_js_path = app.path.config.join("i18n.js");
+
+  // minimal effort: check if i18n.ts exists (heavier effort during serve)
+  const has_i18n_config = await i18n_config_path.exists()
+    || await i18n_config_js_path.exists();
+
+  app.i18n_active = has_i18n_config;
+
   return app;
 };
 
@@ -81,6 +90,22 @@ const write_directories = async (build_directory: FileRef, app: BuildApp) => {
   }
 };
 
+const write_stores = async (build_directory: FileRef, app: BuildApp) => {
+  const d2 = app.runpath(location.stores);
+  const e = await Promise.all((await FileRef.collect(d2, file =>
+    js_re.test(file.path)))
+    .map(async path => `${path}`.replace(d2.toString(), _ => "")));
+  const stores_js = `
+const store = [];
+${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
+    `import * as store${i} from "${FileRef.webpath(`#store/${bare}`)}";
+store.push(["${FileRef.webpath(bare)}", store${i}]);`,
+  ).join("\n")}
+
+export default store;`;
+  await build_directory.join("stores.js").write(stores_js);
+};
+
 const write_components = async (build_directory: FileRef, app: BuildApp) => {
   const d2 = app.runpath(location.components);
   const e = await Promise.all((await FileRef.collect(d2, file =>
@@ -102,7 +127,7 @@ export default component;`;
   await build_directory.join("components.js").write(components_js);
 };
 
-const write_bootstrap = async (app: BuildApp, mode: string) => {
+const write_bootstrap = async (app: BuildApp, mode: string, i18n_active: boolean) => {
   const build_start_script = `
 import serve from "primate/serve";
 const files = {};
@@ -111,18 +136,29 @@ ${app.server_build.map(name => `${name}s`).map(name =>
      files.${name} = ${name};`,
   ).join("\n")}
 import components from "./${app.id}/components.js";
+import stores from "./${app.id}/stores.js";
 import platform from "./platform.js";
 import session from "#session";
 import config from "#config";
 import s_config from "primate/symbol/config";
+
+${i18n_active ? `
+import t from "#i18n";
+const { defaultLocale, locales, currency } = t[s_config];
+const i18n_config = { defaultLocale, locales: Object.keys(locales), currency };
+` : `
+const i18n_config = undefined;
+`}
 
 const app = await serve(import.meta.url, {
   ...platform,
   config,
   files,
   components,
+  stores,
   mode: "${mode}",
   session_config: session[s_config],
+  i18n_config,
 });
 
 export default app;
@@ -154,13 +190,17 @@ const post = async (app: BuildApp) => {
     return `export { default } from "#stage/config${file}";`;
   });
 
-  // build/config/database/index.ts will be overwritten if user has created one
+  await app.stage(app.path.modules, "modules", file =>
+    `export { default } from "#stage/module${file}";`);
+
+  // stage locales
+  await app.stage(app.path.locales, "locales", file =>
+    `export { default } from "#stage/locale${file}";`);
+
+  // stage app config after locales so #locale imports can be resolved
   await app.stage(app.path.config, "config", file =>
     `export { default } from "#stage/config${file}";`,
   );
-
-  await app.stage(app.path.modules, "modules", file =>
-    `export { default } from "#stage/module${file}";`);
 
   // stage components
   await app.stage(app.path.components, "components", file => `
@@ -227,8 +267,9 @@ const post = async (app: BuildApp) => {
   await build_directory.create();
 
   await write_components(build_directory, app);
+  await write_stores(build_directory, app);
   await write_directories(build_directory, app);
-  await write_bootstrap(app, app.mode);
+  await write_bootstrap(app, app.mode, app.i18n_active);
 
   const manifest_data = {
     ...await (await json()).json() as Dict,
@@ -238,11 +279,13 @@ const post = async (app: BuildApp) => {
       "#database": "./config/database/index.js",
       "#database/*": "./config/database/*.js",
       "#session": "./config/session.js",
+      "#i18n": "./config/i18n.js",
       "#component/*": "./components/*.js",
       "#locale/*": "./locales/*.js",
       "#module/*": "./modules/*.js",
       "#route/*": "./routes/*.js",
       "#stage/component/*": "./stage/components/*.js",
+      "#stage/locale/*": "./stage/locales/*.js",
       "#stage/config/*": "./stage/config/*.js",
       "#stage/module/*": "./stage/modules/*.js",
       "#stage/route/*": "./stage/routes/*.js",

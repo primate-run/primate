@@ -63,7 +63,7 @@ export default abstract class PrimitiveType<StaticType, Name extends string>
         v($x as StaticType);
       } catch (e) {
         if (e instanceof ParseError) {
-          // Rebase each issue path under `base`
+          // rebase each issue path under `base`
           const rebased = (e.issues ?? []).map(i => ({
             ...i,
             path: i.path === ""
@@ -72,7 +72,7 @@ export default abstract class PrimitiveType<StaticType, Name extends string>
           }));
           throw new ParseError(rebased);
         }
-        // Non-ParseError → wrap with proper path
+        // non a ParseError - wrap with proper path
         const message = e && typeof (e as any).message === "string"
           ? (e as any).message
           : String(e);

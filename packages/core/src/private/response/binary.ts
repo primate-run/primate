@@ -17,15 +17,15 @@ const encodeRFC5987 = (s: string) =>
  * references: RFC 6266, RFC 5987
  */
 function toContentDisposition(filename: string) {
-  // Prevent header injection (remove CR/LF) and limit length for safety
+  // prevent header injection (remove CR/LF) and limit length for safety
   const clean = filename.replace(/[\r\n]/g, "").slice(0, 255);
 
-  // Create an ASCII-safe version of the filename by replacing non-printable
+  // create an ASCII-safe version of the filename by replacing non-printable
   // ASCII chars and quotes/backslashes (RFC 6266)
   const ascii = clean.replace(/[^\x20-\x7E]/g, "_").replace(/["\\]/g, "_");
 
-  // Encode the clean filename in UTF-8 using percent-encoding.
-  // This prepares it for the 'filename*' extended parameter (RFC 5987)
+  // encode the clean filename in UTF-8 using percent-encoding.
+  // this prepares it for the 'filename*' extended parameter (RFC 5987)
   const utf8 = encodeRFC5987(clean);
 
   return `attachment; filename="${ascii}"; filename*=UTF-8''${utf8}`;

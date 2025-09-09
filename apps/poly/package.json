@@ -9,7 +9,6 @@
     "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
-    "@primate/i18n": "workspace:^",
     "@primate/poly": "workspace:^",
     "@rcompat/assert": "^0.3.1",
     "pema": "workspace:^",

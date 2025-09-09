@@ -2,6 +2,7 @@ import type App from "#App";
 import AppError from "#AppError";
 import type BuildApp from "#BuildApp";
 import type ClientData from "#client/Data";
+import bundle from "#frontend/bundle-server";
 import type Component from "#frontend/Component";
 import type Render from "#frontend/Render";
 import type ServerComponent from "#frontend/ServerComponent";
@@ -47,7 +48,7 @@ export default abstract class FrontendModule<
   render: Render<S> = async (component, props) =>
     ({ body: await (component as ServerComponent)(props) });
   root?: {
-    create: (depth: number) => string;
+    create: (depth: number, i18n_active: boolean) => string;
   };
   compile: {
     client?: (text: string, file: FileRef, root: boolean) =>
@@ -215,7 +216,7 @@ export default abstract class FrontendModule<
               return { namespace: `${name}`, path };
             });
             build.onLoad({ filter }, async () => {
-              const contents = (await compile.client!(root.create(app.depth()),
+              const contents = (await compile.client!(root.create(app.depth(), app.i18n_active),
                 new FileRef("/tmp"), true)).js;
               return contents ? { contents, loader: "js", resolveDir } : null;
             });
@@ -284,9 +285,18 @@ export default abstract class FrontendModule<
           `${this.name}: only components supported`);
 
         if (this.compile.server) {
-          // compile server component
-          const code = await this.compile.server(await file.text());
-          await file.append(".js").write(code.replaceAll(e, `${e}.js`));
+
+          const original = file.debase(app.runpath("stage", "components"));
+          const source = app.path.components.join(original);
+          const code = await this.compile.server(await source.text());
+          const bundled = await bundle({
+            code,
+            source,
+            root: app.root,
+            extensions: this.fileExtensions,
+            compile: async s => this.compile.server!(s),
+          });
+          await file.append(".js").write(bundled);
         }
       });
     });
@@ -297,7 +307,7 @@ export default abstract class FrontendModule<
     // compile root server
     if (this.root !== undefined && this.compile.server !== undefined) {
       const filename = `${this.rootname}.js`;
-      const root = await this.compile.server(this.root.create(app.depth()));
+      const root = await this.compile.server(this.root.create(app.depth(), app.i18n_active));
       const path = app.runpath(location.server, filename);
       await path.write(root);
       app.addRoot(path);

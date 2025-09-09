@@ -1,1 +1,1 @@
-export { default } from "@primate/core/config/session";
+export { default } from "@primate/core/session/config";

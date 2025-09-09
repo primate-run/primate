@@ -1,11 +1,11 @@
 <script>
-  import t from "@primate/poly/i18n";
-  import locale from "@primate/poly/locale";
+  import t from "#i18n";
 
   export let post;
 </script>
-<h1>{$t("Title")}: {post.title}</h1>
+
+<h1>{$t("title")}: {post.title}</h1>
 
 <div>Id: {post.id}</div>
-<div><a on:click={() => locale.set("en-US")}>{$t("English")}</a></div>
-<div><a on:click={() => locale.set("de-DE")}>{$t("German")}</a></div>
+<button on:click={() => t.locale.set("en-US")}>{$t("english")}</button>
+<button on:click={() => t.locale.set("de-DE")}>{$t("german")}</button>

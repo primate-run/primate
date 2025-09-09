@@ -1,8 +1,8 @@
 {
-  "Switch language": "Sprache wechseln",
-  "English": "Englisch",
-  "German": "Deutsch",
-  "All posts": "Alle Beiträge",
-  "Counter": "Zähler",
-  "Title": "Titel"
+  "home.heading_all_posts": "Alle Beiträge",
+  "home.switch_language": "Sprache wechseln",
+  "common.english": "Englisch",
+  "common.german": "Deutsch",
+  "home.counter": "Zähler",
+  "seo.title_home": "Primate-App"
 }

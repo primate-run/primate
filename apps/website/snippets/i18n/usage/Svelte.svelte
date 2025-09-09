@@ -1,10 +1,17 @@
 <script>
   import t from "@primate/svelte/i18n";
   import locale from "@primate/svelte/locale";
+  let count = 3;
 </script>
 
-<h1>{$t("All posts")}</h1>
+<svelte:head>
+  <title>{$t("seo.title_home")}</title>
+</svelte:head>
 
-<!-- switch language -->
-<a on:click={() => locale.set("en-US")}>{$t("English")}</a>
-<a on:click={() => locale.set("de-DE")}>{$t("German")}</a>
+<h1>{$t("home.heading_all_posts")}</h1>
+<p>{$t("home.greeting", { name: "Ada" })}</p>
+<p>{$t("home.counter")}: {$t("home.counter_value", { count })}</p>
+<p>{$t("home.items_count", { count })}</p>
+
+<button on:click={() => locale.set("en-US")}>{$t("common.english")}</button>
+<button on:click={() => locale.set("de-DE")}>{$t("common.german")}</button>

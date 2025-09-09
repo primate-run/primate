@@ -32,15 +32,9 @@
     "@rcompat/runtime": "^0.6.0"
   },
   "peerDependencies": {
-    "@primate/i18n": "workspace:^",
     "primate": "workspace:^",
     "react": "19",
     "react-dom": "19"
-  },
-  "peerDependenciesMeta": {
-    "@primate/i18n": {
-      "optional": true
-    }
   },
   "type": "module",
   "imports": {
@@ -59,6 +53,10 @@
     "./Head": {
       "browser": "./lib/public/Head/browser.js",
       "default": "./lib/public/Head/default.js"
+    },
+    "./i18n/Bridge": {
+      "browser": "./lib/public/i18n/Bridge/browser.js",
+      "default": "./lib/public/i18n/Bridge/default.js"
     }
   }
 }

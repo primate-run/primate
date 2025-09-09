@@ -149,9 +149,9 @@ export default class DatabaseStore<S extends StoreSchema> {
   async has(id: StoreId<S>) {
     is(id).string();
 
-    // Invariant: ids are primary keys and must be unique.
-    // If the driver ever returns more than one record, assert will fail.
-    // Public contract remains just "true if it exists, false otherwise".
+    // invariant: ids are primary keys and must be unique.
+    // if the driver ever returns more than one record, assert will fail.
+    // public contract remains just "true if it exists, false otherwise".
     return (await this.count({ id })) === 1;
   }
 

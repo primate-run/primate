@@ -29,11 +29,19 @@ const toContextString = (array: string[]) => array
   .map(member => member.endsWith("s") ? member.slice(0, -1) : member)
   .join(", ");
 
+const BIND_CONTEXTS = [
+  "config",
+  "routes",
+  "components",
+  "stores",
+  "locales",
+  "modules",
+];
+
 const default_bindings: Dict<Binder> = {
   ".js": async (file, { build, context }) => {
-    const contexts = ["routes", "stores", "config", "components", "modules"];
-    const error = `js: only ${toContextString(contexts)} are supported`;
-    assert(contexts.includes(context), error);
+    const error = `js: only ${toContextString(BIND_CONTEXTS)} are supported`;
+    assert(BIND_CONTEXTS.includes(context), error);
     const code = context === "routes"
       ? wrap(await file.text(), file, build)
       : await file.text();
@@ -45,9 +53,8 @@ const default_bindings: Dict<Binder> = {
     // just copy the JSON for now
   },
   ".ts": async (file, { build, context }) => {
-    const contexts = ["routes", "stores", "config", "components", "modules"];
-    const error = `ts: only ${toContextString(contexts)} are supported`;
-    assert(contexts.includes(context), error);
+    const error = `ts: only ${toContextString(BIND_CONTEXTS)} are supported`;
+    assert(BIND_CONTEXTS.includes(context), error);
 
     const code = context === "routes"
       ? wrap(compile(await file.text()), file, build)

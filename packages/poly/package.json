@@ -27,14 +27,8 @@
     "pema": "workspace:^"
   },
   "peerDependencies": {
-    "@primate/i18n": "workspace:^",
     "poly": "0.7",
     "primate": "workspace:^"
-  },
-  "peerDependenciesMeta": {
-    "@primate/i18n": {
-      "optional": true
-    }
   },
   "type": "module",
   "imports": {

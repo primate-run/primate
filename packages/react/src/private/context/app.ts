@@ -1,22 +1,21 @@
-import type ContextData from "@primate/i18n/ContextData";
+import type ContextData from "@primate/core/i18n/ContextData";
 import type Dict from "@rcompat/type/Dict";
 import { createContext } from "react";
 
 type Context = {
   i18n: ContextData;
-};
+} & Dict;
 
-type AppContext = {
+export type AppContextValue = {
   context: Context;
-  setContext: React.Dispatch<Context>;
+  setContext: React.Dispatch<React.SetStateAction<Context>>;
 };
 
-export default createContext<AppContext>({
+export default createContext<AppContextValue>({
   context: {
     i18n: {
       locale: "en-US",
-      locales: {},
     },
   },
-  setContext: (_: Dict) => {},
+  setContext: (() => { }) as React.Dispatch<React.SetStateAction<Context>>,
 });
