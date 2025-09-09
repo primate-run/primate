@@ -69,7 +69,7 @@ provide let count = (store: Store, criteria: Json = JsonNull) => {
     else if (result == _STORE_NOT_FOUND_ERROR) Err(StoreNotFound)
     else if (result == _STORE_OPERATION_SUCCESS) {
         let bytes = External.receiveBytes()
-        Ok(Bytes.getUint32(0, bytes))
+        Ok(Uint32.toNumber(Bytes.getUint32(0, bytes)))
     } else Err(UnknownError)
 }
 
@@ -187,7 +187,11 @@ provide let insert = (store: Store, value: Json) => {
     let result = Conv.toUint32(storeInsert(store))
     if (result == _STORE_NOT_FOUND_ERROR) Err(StoreNotFound)
     else if (result == _STORE_SCHEMA_INVALID_RECORD_ERROR) Err(SchemaInvalidRecordError)
-    else if (result == _STORE_OPERATION_SUCCESS) Ok(void)
+    else if (result == _STORE_OPERATION_SUCCESS) {
+      let bytes = External.receiveBytes()
+      let (_, json) = Common.readJson(0, bytes)
+      Ok(json)
+    }
     else Err(UnknownError)
 }
 

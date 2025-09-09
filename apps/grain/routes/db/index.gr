@@ -1,0 +1,22 @@
+module Index
+
+from "json" include Json
+from "primate/request" include Request
+from "primate/response" include Response
+from "primate/store" include Store
+from "result" include Result
+
+use Json.{ type Json }
+use Request.{ type Request }
+
+let userStore = Result.expect("User Store must exist", Store.store("#stores/User"))
+
+provide let get = (req: Request) => {
+    Result.expect("Operation must succeed", Store.delete(userStore, JsonNull))
+
+    let count = Result.expect("Operation must succeed", Store.count(userStore))
+
+    JsonObject([
+        ("count", JsonNumber(count))
+    ])
+}

@@ -20,6 +20,7 @@ export default class Default extends Runtime {
     const sections = [
       config.command,
       "compile",
+      "--import-memory",
       "-o", wasm.name,
       grain.name,
       "-I", [...includeDirs].join(","),

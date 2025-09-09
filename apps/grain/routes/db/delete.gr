@@ -1,0 +1,22 @@
+module Delete
+from "json" include Json
+from "option" include Option
+from "primate/request" include Request
+from "primate/response" include Response
+from "primate/store" include Store
+from "result" include Result
+
+use Json.{ type Json, module Lenses }
+use Request.{ type Request }
+use Lenses.{ (||>) }
+let userStore = Result.expect("User Store must exist", Store.store("#stores/User"))
+
+provide let get = (req: Request) => {
+    let result = Result.expect("Operation must succeed", Store.insert(userStore, JsonObject([
+        ("age", JsonNumber(30)),
+        ("name", JsonString("Donald"))
+    ])))
+    let id = Option.expect("ID must be set", Lenses.get(Lenses.property("x") ||> Lenses.string, result))
+    Result.expect("Operation must succeed", Store.deleteById(userStore, id))
+    "deleted"
+}

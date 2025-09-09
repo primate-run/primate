@@ -403,6 +403,8 @@ const instantiate = async (args: Init) => {
   };
 
   const bytes = await wasmFileRef.arrayBuffer();
+  
+  const memory = new WebAssembly.Memory({ initial: 64 });
 
   const instantiateDeno = async () => {
     // @ts-expect-error: for deno, need to implement the std lib implementation
@@ -415,6 +417,7 @@ const instantiate = async (args: Init) => {
 
     const instance = await WebAssembly.instantiate(bytes, {
       ...wasmImports,
+      "env": { memory },
       "primate": primateImports,
       "wasi_snapshot_preview1": context.exports,
     });
@@ -427,6 +430,7 @@ const instantiate = async (args: Init) => {
       bytes,
       {
         ...wasmImports,
+        "env": { memory },
         "primate": primateImports,
         "wasi_snapshot_preview1": wasiSnapshotPreview1.wasiImport,
       },
@@ -435,13 +439,12 @@ const instantiate = async (args: Init) => {
     wasiSnapshotPreview1.start(wasm.instance);
     return wasm;
   };
-
+  
   const wasm = typeof Deno !== "undefined"
-    ? await instantiateDeno()
-    : await defaultInstantiate();
-
+  ? await instantiateDeno()
+  : await defaultInstantiate();
+  
   const exports = wasm.instance.exports as Exports<TRequest, TResponse>;
-  const memory = exports.memory;
 
   const api: API = {};
   const instance = {
