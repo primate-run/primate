@@ -12,8 +12,6 @@ use Request.{ type Request }
 let _User = Result.expect("User Store must exist", Store.store("User"))
 
 provide let get = (req: Request) => {
-    Result.expect("Operation must succeed", Store.delete(_User, JsonNull))
-
     let count = Result.expect("Operation must succeed", Store.count(_User))
 
     JsonObject([

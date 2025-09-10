@@ -15,10 +15,14 @@ provide let readString = (offset: Number, payload: Bytes) => {
   use Bytes.{ slice, toString, getUint32 }
   let (offset, size) = readUint32(offset, payload)
   let size = toNumber(size)
-  let string = slice(offset, size, payload)
-  let string = toString(string)
-  let offset = offset + size
-  (offset, string)
+  if (size == 0) {
+    (offset, "")
+  } else {
+    let string = slice(offset, size, payload)
+    let string = toString(string)
+    let offset = offset + size
+    (offset, string)
+  }
 }
 
 provide let readBytes = (offset: Number, payload: Bytes) => {

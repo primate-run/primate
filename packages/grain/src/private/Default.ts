@@ -10,6 +10,7 @@ import execute from "@rcompat/stdio/execute";
 const dirname = import.meta.dirname;
 const postlude_file = FileRef.join(dirname, "bootstrap", "postlude.gr");
 const bootstrap_file = FileRef.join(dirname, "bootstrap", "index.js");
+
 export default class Default extends Runtime {
   #command(wasm: FileRef, grain: FileRef, mode: Mode) {
     const config = this.config;
@@ -20,6 +21,7 @@ export default class Default extends Runtime {
     const sections = [
       config.command,
       "compile",
+      // Import memory is required so that stores can be retrieved at compile time
       "--import-memory",
       "-o", wasm.name,
       grain.name,
@@ -29,6 +31,7 @@ export default class Default extends Runtime {
       sections.push("-S", config.stdlib);
     }
 
+    // Dev mode should generate faster builds and the wat text representation
     if (mode === "development") {
       sections.push("--debug", "--wat");
     } else {
@@ -58,12 +61,8 @@ export default class Default extends Runtime {
       const files = (await app.path.stores
         .collect(file => [".ts", ".js"].includes(file.extension)))
         .map(file => file.debase(`${app.path.stores}/`).path.slice(0, -".ts".length));
-      const storeStr = `Object.fromEntries(await (async function() {
-        const names = [${files.map(JSON.stringify as any).join(",")}];
-        const stores = (await Promise.all([${files.map(f => `import("#store/${f}")`)}]))
-        .map(s => s.default);
-        return names.map((name, i) => [name, stores[i]]);
-      })())`;
+      const storeStr =
+        `Object.fromEntries(await Promise.all([${files.map(f => `"${f}"`).join(",")}].map(async f=>[f,(await import(\`#store/\${f}\`)).default])))`;
       const code = (await bootstrap_file.text())
         .replaceAll("__FILENAME__", wasm.path)
         .replaceAll("__STORES__", storeStr);

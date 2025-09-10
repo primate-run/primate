@@ -62,6 +62,7 @@ export default class DatabaseStore<S extends StoreSchema> {
   #name?: string;
 
   constructor(schema: S, config: Config = {}) {
+    debugger;
     this.#schema = schema;
     this.#type = new StoreType(schema);
     this.#types = Object.fromEntries(Object.entries(schema)

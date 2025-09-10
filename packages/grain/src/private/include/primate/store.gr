@@ -37,6 +37,9 @@ provide foreign wasm storeUpdate:
 provide foreign wasm storeFind:
   (WasmI32) => WasmI32 from "primate"
 
+provide foreign wasm storeClear:
+  (WasmI32) => WasmI32 from "primate"
+
 provide type Store = Uint32
 provide let _STORE_OPERATION_SUCCESS = 0ul
 provide let _STORE_NOT_FOUND_ERROR = 1ul
@@ -69,7 +72,9 @@ provide let count = (store: Store, criteria: Json = JsonNull) => {
     else if (result == _STORE_NOT_FOUND_ERROR) Err(StoreNotFound)
     else if (result == _STORE_OPERATION_SUCCESS) {
         let bytes = External.receiveBytes()
-        Ok(Uint32.toNumber(Bytes.getUint32(0, bytes)))
+        let count = Bytes.getUint32(0, bytes)
+        print(("Count is", count, bytes))
+        Ok(Uint32.toNumber(count))
     } else Err(UnknownError)
 }
 
@@ -212,3 +217,13 @@ provide let update = (store: Store, value: Json) => {
     else if (result == _STORE_OPERATION_SUCCESS) Ok(void)
     else Err(UnknownError)
 }
+
+@unsafe
+provide let clear = (store: Store) => {
+  let store = fromUint32(store)
+  let result = Conv.toUint32(storeClear(store))
+  if (result == _STORE_NOT_FOUND_ERROR) Err(StoreNotFound)
+  else if (result == _STORE_OPERATION_SUCCESS) Ok(void)
+  else Err(UnknownError)
+}
+

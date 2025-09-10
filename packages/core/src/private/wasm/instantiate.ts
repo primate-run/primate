@@ -233,7 +233,7 @@ const instantiate = async (args: Init) => {
     const criteria = decodeJson(new BufferView(received))
     const count = await store.count(criteria);
     payload = new Uint8Array(4);
-    new DataView(payload.buffer).setUint32(0, count);
+    new DataView(payload.buffer).setUint32(0, count, true);
     return STORE_OPERATION_SUCCESS;
   }, storeOperationNotSupported);
 
@@ -343,6 +343,7 @@ const instantiate = async (args: Init) => {
   const storeInsert = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
+    console.log(store.database);
     try {
       const record = decodeJson(new BufferView(received));
       const result = JSON.stringify(await store.insert(record));
@@ -350,6 +351,7 @@ const instantiate = async (args: Init) => {
       encodeString(result, new BufferView(payload));
       return STORE_OPERATION_SUCCESS;
     } catch (ex) {
+      console.log(ex);
       return STORE_SCHEMA_INVALID_RECORD_ERROR;
     }
   }, storeOperationNotSupported);
@@ -372,6 +374,15 @@ const instantiate = async (args: Init) => {
     }
   }, storeOperationNotSupported);
 
+  const storeClear = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
+    if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
+    const store = stores.get(id)!;
+    console.log(store, store.schema);
+    await store.schema.delete();
+    await store.schema.create();
+    return STORE_OPERATION_SUCCESS;
+  }, storeOperationNotSupported);
+
   /**
    * The imports that Primate provides to the WASM module. This follows the
    * Primate WASM ABI convention.
@@ -384,6 +395,7 @@ const instantiate = async (args: Init) => {
     sessionGet,
     sessionNew,
     sessionSet,
+    storeClear,
     storeCount,
     storeDelete,
     storeFind,
