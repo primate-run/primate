@@ -20,8 +20,8 @@ import { Component, Input } from "@angular/core";
       {{ count }}
     </div>
     <h3>{{ t("switch_language") }}</h3>
-    <button (click)="setLocale('en-US')">{{ t("english") }}</button>
-    <button (click)="setLocale('de-DE')">{{ t("german") }}</button>
+    <button [disabled]="t.loading" (click)="setLocale('en-US')">{{ t("english") }}</button>
+    <button [disabled]="t.loading" (click)="setLocale('de-DE')">{{ t("german") }}</button>
     <p>Current locale: {{ getCurrentLocale() }}</p>
   `,
 })

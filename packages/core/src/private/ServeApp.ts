@@ -11,8 +11,8 @@ import type ServerComponent from "#frontend/ServerComponent";
 import type ViewOptions from "#frontend/ViewOptions";
 import type ViewResponse from "#frontend/ViewResponse";
 import hash from "#hash";
+import type I18NConfig from "#i18n/Config";
 import I18NModule from "#i18n/Module";
-import type ServerConfig from "#i18n/ServerConfig";
 import type Loader from "#Loader";
 import location from "#location";
 import log from "#log";
@@ -115,7 +115,7 @@ export default class ServeApp extends App {
     session: SessionModule;
     i18n?: I18NModule;
   };
-  #i18n_config?: ServerConfig;
+  #i18n_config?: I18NConfig;
   constructor(rootfile: string, init: ServeInit) {
     super(new FileRef(rootfile).directory, init.config, init.mode);
 

@@ -145,8 +145,7 @@ import s_config from "primate/symbol/config";
 
 ${i18n_active ? `
 import t from "#i18n";
-const { defaultLocale, locales, currency } = t[s_config];
-const i18n_config = { defaultLocale, locales: Object.keys(locales), currency };
+const i18n_config = t[s_config];
 ` : `
 const i18n_config = undefined;
 `}

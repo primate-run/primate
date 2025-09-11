@@ -14,8 +14,7 @@ import { Component, Input } from "@angular/core";
 export default class PostDetail {
   @Input() post: any;
 
-  // Expose t to the template
-  t = (key: string) => t(key);
+  t = t;
 
   setLocale(locale: string) {
     t.locale.set(locale);

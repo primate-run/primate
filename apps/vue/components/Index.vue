@@ -57,7 +57,7 @@ function updateMetaKeywords(content: string) {
     {{ count }}
   </div>
   <h3>{{ t("switch_language") }}</h3>
-  <button @click="t.locale.set('en-US')">{{ t("english") }}</button>
-  <button @click="t.locale.set('de-DE')">{{ t("german") }}</button>
+  <button :disabled="t.loading" @click="t.locale.set('en-US')">{{ t("english") }}</button>
+  <button :disabled="t.loading" @click="t.locale.set('de-DE')">{{ t("german") }}</button>
   <p>Current locale: {{ t.locale.get() }}</p>
 </template>

@@ -1,1 +1,1 @@
-export default "primate:i18n:locale";
+export default "primate-i18n";
