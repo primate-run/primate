@@ -9,6 +9,8 @@ type Schema =
   | Schema[]
   | string
   | undefined
+  | false
+  | true
   ;
 
 export type { Schema as default };
