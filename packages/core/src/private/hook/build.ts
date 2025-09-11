@@ -40,16 +40,16 @@ const pre = async (app: BuildApp) => {
 
 async function indexDatabase(base: FileRef) {
   const export_from = "export { default } from";
-  const fallback = `${export_from} "#stage/config/database/index.js";`;
+  const default_database = `${export_from} "#stage/config/database/index.js";`;
 
   // app/config/database does not exist
-  if (!await base.exists()) return fallback;
+  if (!await base.exists()) return default_database;
 
   const databases = await base.list();
   const n = databases.length;
 
   // none in app/config/database -> fallback
-  if (n === 0) return fallback;
+  if (n === 0) return default_database;
 
   // index database file found, will be overwritten in next step
   if (databases.some(d => d.base === "index")) return "";
