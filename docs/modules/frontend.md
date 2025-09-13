@@ -13,7 +13,7 @@ itself doesn't support those.
 
 ## Layouts
 
-Svelte, Poly, React and Solid currently support [recursive layouting][Layouts]
+Svelte, React and Solid currently support [recursive layouting][Layouts]
 in Primate.
 
 ## Server-side rendering (SSR)
@@ -32,7 +32,7 @@ Once a complete prerendered page has been sent to client, it is often necessary
 to kick off the frontend framework on the client so it can register events and
 manage the page. This is known as hydration.
 
-Currently the Angular, Svelte, Poly, React and Solid modules support hydration,
+Currently the Angular, Svelte, React and Solid modules support hydration,
 while work on Vue hydration is planned for future versions.
 
 HTMX, having no SSR support, also has no support for hydration. The HTMX client
@@ -40,7 +40,7 @@ is *always* sent along the page and activates on page load.
 
 ## SPA
 
-For modules that support it (currently Svelte, Poly, React and Solid), SPA
+For modules that support it (currently Svelte, React and Solid), SPA
 browsing is active by default. It injects a small JavaScript client into the
 build which uses `fetch` to manage clicking on links and submitting forms
 instead of reloading the entire page, and also manages browsing the history.
@@ -48,7 +48,7 @@ instead of reloading the entire page, and also manages browsing the history.
 ## Head component
 
 If you need to manipulate the `<head>` part from within an individual
-component, use `<svelte:head>` for Svelte and Poly. For React and Solid, you
+component, use `<svelte:head>` for Svelte. For React and Solid, you
 can use the `@primate/react/head` or `@primate/solid/head` export for the same
 behavior.
 
@@ -67,7 +67,6 @@ use different frontend frameworks alongside each other, in different routes.
 |[HTMX]          |`.htmx`        |✓    |✗      |✓  |✗        |✗  |✗   |✗   |
 |[Markdown]      |`.md`          |✗    |✗      |✓  |✗        |✗  |✗   |✗   |
 |[Marko]         |`.marko`       |✓    |✗      |✓  |✗        |✗  |✗   |✗   |
-|[Poly]          |`.poly`        |✓    |✓      |✓  |✓        |✓  |✓   |✓   |
 |[React]         |`.jsx`         |✓    |✓      |✓  |✓        |✓  |✓   |✓   |
 |[Solid]         |`.jsx`         |✓    |✓      |✓  |✓        |✓  |✓   |✓   |
 |[Svelte]        |`.svelte`      |✓    |✓      |✓  |✓        |✓  |✓   |✓   |
@@ -102,7 +101,6 @@ dependency is missing and what command you need to issue to install it.
 [HTMX]: /modules/htmx
 [Markdown]: /modules/markdown
 [Marko]: /modules/marko
-[Poly]: /modules/poly
 [React]: /modules/react
 [Solid]: /modules/solid
 [Svelte]: /modules/svelte

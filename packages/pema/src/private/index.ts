@@ -24,6 +24,9 @@ export default function schema<const S extends Schema>(s: S):
   if (typeof s === "string") {
     return new SchemaType(literal(s)) as never;
   }
+  if (s === false || s === true) {
+    return new SchemaType(literal(s)) as never;
+  }
   if (newable(s)) {
     return new SchemaType(constructor(s)) as never;
   }

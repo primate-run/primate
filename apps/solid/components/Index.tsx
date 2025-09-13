@@ -29,8 +29,8 @@ export default ({ posts, title }: Props) => {
     </div>
     <h3>{t("switch_language")}</h3>
     <div>
-      <button onClick={() => t.locale.set("en-US")}>{t("english")}</button>
-      <button onClick={() => t.locale.set("de-DE")}>{t("german")}</button>
+      <button disabled={t.loading} onClick={() => t.locale.set("en-US")}>{t("english")}</button>
+      <button disabled={t.loading} onClick={() => t.locale.set("de-DE")}>{t("german")}</button>
       <p>Current locale: {t.locale.get()}</p>
     </div>
   </>;

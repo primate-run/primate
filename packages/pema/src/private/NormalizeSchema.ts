@@ -14,7 +14,7 @@ type NormalizeSchema<S> =
   S extends null ? NullType :
   S extends undefined ? UndefinedType :
   S extends AbstractNewable ? ConstructorType<S> :
-  S extends string ? LiteralType<S> :
+  S extends typeof LiteralType.Literal ? LiteralType<S> :
   S extends [infer O] ?
   O extends Parsed<unknown> ? ArrayType<NormalizeSchema<O>> : never :
   S extends Schema[] ? TupleType<S> :

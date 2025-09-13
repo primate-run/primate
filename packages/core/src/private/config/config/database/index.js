@@ -1,1 +1,2 @@
-// dummy file, to trigger database defaults check during staging
+import DefaultDatabase from "primate/database/default";
+export default new DefaultDatabase();

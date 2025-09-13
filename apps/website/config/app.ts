@@ -347,7 +347,6 @@ export default config({
               "HTMX",
               "Markdown",
               "Marko",
-              "Poly",
               "React",
               "Solid",
               "Svelte",

@@ -2,17 +2,16 @@ import t from "#i18n";
 import { Component, Input } from "@angular/core";
 
 @Component({
-  selector: "post-detail",
   template: `
-    <h1>{{ t("title") }}: {{ post.title }}</h1>
-    <div>Id: {{ post.id }}</div>
-    <h3>{{ t("switch_language") }}</h3>
+    <h1>{{ t("title") }}</h1>
+    <p>{{ t("greet_user", { name: "John" }) }}</p>
+    <p>{{ t("counter", { count: count }) }}</p>
     <button (click)="setLocale('en-US')">{{ t("english") }}</button>
     <button (click)="setLocale('de-DE')">{{ t("german") }}</button>
   `,
 })
-export default class PostDetail {
-  @Input() post: any;
+export class TranslatedComponent {
+  @Input() count!: number;
 
   t = t;
 

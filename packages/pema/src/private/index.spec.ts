@@ -46,6 +46,14 @@ test.case("literals", assert => {
   const foo = schema("foo");
   assert(foo).type<SchemaType<LiteralType<"foo">>>();
   assert(foo.parse("foo")).equals("foo").type<"foo">();
+  const t = schema(true);
+  assert(t).type<SchemaType<LiteralType<true>>>();
+  assert(t.parse(true)).equals(true).type<true>();
+  assert(() => t.parse(false)).throws();
+  const f = schema(false);
+  assert(f).type<SchemaType<LiteralType<false>>>();
+  assert(f.parse(false)).equals(false).type<false>();
+  assert(() => f.parse(true)).throws();
 });
 
 test.case("empty []", assert => {

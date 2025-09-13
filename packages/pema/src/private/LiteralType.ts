@@ -4,7 +4,7 @@ import type Infer from "#Infer";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 
-type Literal = string;
+type Literal = string | boolean;
 type InferLiteral<T extends Literal> = T;
 
 export default class LiteralType<T extends Literal> extends
@@ -14,6 +14,14 @@ export default class LiteralType<T extends Literal> extends
   constructor(literal: T) {
     super();
     this.#literal = literal;
+  }
+
+  static new<T extends Literal>(literal: T) {
+    return new LiteralType(literal);
+  }
+
+  static get Literal(): Literal {
+    return undefined as unknown as Literal;
   }
 
   get name() {

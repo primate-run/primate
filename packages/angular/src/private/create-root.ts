@@ -24,20 +24,15 @@ export default (depth: number, i18n_active: boolean) => {
 
   const i18n_imports = i18n_active
     ? `import t from "#i18n";
-import sInternal from "primate/s/internal";
-import { signal, effect } from "@angular/core";`
+import sInternal from "primate/s/internal";`
     : "";
 
-  const i18n_setup = i18n_active
-    ? `if (this.#p?.request?.context?.i18n?.locale) {
+  const i18n_setup = i18n_active ?
+    `if (this.#p.request.context.i18n.locale) {
   t[sInternal].init(this.#p.request.context.i18n.locale);
-}
-const _tick = signal(t[sInternal].version);
-this.#off = t.onChange(() => {
-  this.#cdr.markForCheck();
-  _tick.set(t[sInternal].version);
-});
-effect(() => { void _tick(); });`
+  }
+  this.#off = t.subscribe(() => this.#cdr.markForCheck());
+`
     : "";
 
   return `
@@ -48,6 +43,7 @@ import {
   ChangeDetectorRef,
   OnDestroy,
   TemplateRef,
+  AfterViewInit,
 } from "@angular/core";
 import { CommonModule, NgComponentOutlet } from "@angular/common";
 import INITIAL_PROPS from "@primate/angular/INITIAL_PROPS";
@@ -83,7 +79,7 @@ export default class RootComponent implements OnDestroy {
   @Input({ required: true })
   set p(value: RootProps) {
     this.#p = value;
-    this.#cdr.markForCheck();  // root on Default CD, zone ticks traverse
+    this.#cdr.markForCheck();  // root on default CD, zone ticks traverse
   }
   get p(): RootProps { return this.#p; }
   get P(): RootProps { return this.#p; }
@@ -103,6 +99,10 @@ export default class RootComponent implements OnDestroy {
   slotInputs(i: number, slot: TemplateRef<unknown>) {
     const base = (this.P?.props?.[i] ?? {}) as Dict;
     return { ...base, slot };
+  }
+
+  ngAfterViewInit() {
+    t[sInternal].restore();
   }
 
   ngOnDestroy() { this.#off?.(); }

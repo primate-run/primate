@@ -1,8 +1,11 @@
 import AppError from "#AppError";
+import bye from "#bye";
 import cookie from "#cookie";
+import type Config from "#i18n/Config";
 import COOKIE_NAME from "#i18n/constant/COOKIE_NAME";
 import PERSIST_HEADER from "#i18n/constant/PERSIST_HEADER";
-import type ServerConfig from "#i18n/ServerConfig";
+import type PersistMode from "#i18n/PersistMode";
+import log from "#log";
 import Module from "#Module";
 import type NextHandle from "#module/NextHandle";
 import type NextRoute from "#module/NextRoute";
@@ -19,15 +22,11 @@ function toLowerCase(string: string) {
 
 function pick(client: Locale[], server: Locale[]): string | undefined {
   const lower = server.map(toLowerCase);
-
   for (const raw of client.map(toLowerCase)) {
     const locale = raw.trim();
     if (!locale) continue;
-
     const exact = lower.indexOf(locale);
     if (exact !== -1) return server[exact];
-
-    // base lang fallback (e.g. "de" -> "de-DE")
     const base = locale.split("-")[0];
     const index = lower.findIndex(s => s === base || s.startsWith(`${base}-`));
     if (index !== -1) return server[index];
@@ -35,41 +34,57 @@ function pick(client: Locale[], server: Locale[]): string | undefined {
   return undefined;
 }
 
+function fail(message: string, ...params: unknown[]) {
+  const error = new AppError(`{0} ${message}`, "[i18n]", ...params);
+  log.error(error);
+  bye();
+  process.exit(1);
+}
+
 export default class I18NModule extends Module {
   name = "builtin/i18n";
-  #config: ServerConfig;
-  #secure: boolean = false;
+  #secure = false;
+  #defaultLocale: string;
+  #locales: string[];
+  #persist: PersistMode = "cookie";
+  #currency: string;
 
-  constructor(config: ServerConfig) {
+  constructor(config: Config) {
     super();
 
-    if (config.locales.length < 1) {
-      throw new AppError("[i18n] must have at least 1 locale");
-    }
-    if (!config.locales.includes(config.defaultLocale)) {
-      throw new AppError("[i18n] locales don't include default locale");
-    }
-    this.#config = config;
+    const defaultLocale = config.defaultLocale;
+    const locales = Object.keys(config.locales);
+
+    if (locales.length < 1) fail("must have at least 1 locale");
+    if (defaultLocale === undefined) fail("must have a default locale");
+    if (!locales.includes(defaultLocale)) fail("default locale not in locales");
+
+    this.#defaultLocale = defaultLocale;
+    this.#locales = locales;
+    this.#persist = config.persist ?? "cookie";
+    this.#currency = config.currency ?? "USD";
   }
 
   #configured(locale: string) {
-    return this.#config.locales.includes(locale);
+    return this.#locales.includes(locale);
   }
 
   serve(app: ServeApp, next: NextServe) {
     this.#secure = app.secure;
-
     return next(app);
   }
+
   handle(request: RequestFacade, next: NextHandle) {
     const requested = request.headers.try(PERSIST_HEADER);
     if (requested === undefined) return next(request);
 
-    // only accept configured locales
-    if (!this.#configured(requested)) {
-      // ignore
+    // only cookie-persistance is server-supported
+    if (this.#persist !== "cookie")
       return new Response(null, { status: Status.NO_CONTENT });
-    }
+
+    // only accept configured locales
+    if (!this.#configured(requested))
+      return new Response(null, { status: Status.NO_CONTENT });
 
     const header = cookie(COOKIE_NAME, requested, {
       secure: this.#secure,
@@ -78,28 +93,38 @@ export default class I18NModule extends Module {
     });
 
     return new Response(null, {
-      headers: {
-        "set-cookie": header,
-      },
+      headers: { "set-cookie": header },
       status: Status.NO_CONTENT,
     });
   }
 
   route(request: RequestFacade, next: NextRoute) {
-    const server_locales = this.#config.locales;
+    const server_locales = this.#locales;
     const accept_language = request.headers.try("Accept-Language") ?? "";
     const client_locales = accept_language
       .split(",")
-      .map(s => s.split(";")[0].trim()).filter(Boolean);
+      .map(s => s.split(";")[0].trim())
+      .filter(Boolean);
 
-    const locale = request.cookies.try(COOKIE_NAME)
-      ?? pick(client_locales, server_locales)
-      ?? this.#config.defaultLocale;
+    const mode = this.#persist;
+
+    const cookieLocale =
+      mode === "cookie" ? request.cookies.try(COOKIE_NAME) : undefined;
+
+    const locale = cookieLocale ??
+      pick(client_locales, server_locales) ??
+      this.#defaultLocale;
 
     return next({
-      ...request, context: {
+      ...request,
+      context: {
         ...request.context,
-        i18n: { locale, locales: this.#config.locales },
+        i18n: {
+          currency: this.#currency,
+          mode,
+          locale,
+          locales: server_locales,
+        },
       },
     });
   }

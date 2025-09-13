@@ -8,22 +8,10 @@ import PERSIST_METHOD from "#i18n/constant/PERSIST_METHOD";
 import PERSIST_STORAGE_KEY from "#i18n/constant/PERSIST_STORAGE_KEY";
 import Formatter from "#i18n/Formatter";
 import sInternal from "#i18n/symbol/internal";
+import type TypeOf from "#i18n/TypeOf";
 import sConfig from "#symbol/config";
 import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
-
-type Normalize<S extends string> =
-  Lowercase<S extends `${infer A}|${string}` ? A : S>;
-
-type TypeOf<T extends string> =
-  Normalize<T> extends "n" | "number" ? number :
-  Normalize<T> extends "d" | "date" ? Date | number :
-  Normalize<T> extends "c" | "currency" ? number :
-  Normalize<T> extends "o" | "ordinal" ? number :
-  Normalize<T> extends "a" | "ago" ? number :
-  Normalize<T> extends "l" | "list" ? string[] :
-  Normalize<T> extends `u(${string})` | `unit(${string})` ? number :
-  string;
 
 type EntryOf<Body extends string> =
   Body extends `${infer Name}:${infer Spec}`
@@ -43,7 +31,6 @@ type ParamsFromEntries<E> =
 
 export default function i18n<const C extends Catalogs>(config: Config<C>) {
   type Locale = keyof C & string;
-
   type Schema = C[typeof config.defaultLocale] extends Catalog
     ? C[typeof config.defaultLocale]
     : never;
@@ -52,51 +39,27 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
   type Message<K extends Key> = Schema[K] & string;
   type Params<K extends Key> = ParamsFromEntries<EntriesOf<Message<K>>>;
 
-  const catalogs: Catalogs = config.locales;
+  const catalogs: Catalogs = config.locales as Catalogs;
   let activeLocale: Locale = config.defaultLocale;
-  const currency: string = config.currency ?? "USD";
+  const currency = config.currency ?? "USD";
   const formatter = new Formatter(activeLocale);
   const defaultCatalog = catalogs[config.defaultLocale] as Schema;
 
   // reactive core
   let version = 0;
-  const dependReaders = new Set<() => void>();
+  const subscribers = new Set<() => void>();
   const touch = () => {
-    for (const f of dependReaders) {
+    for (const subscriber of subscribers) {
       try {
-        f();
+        subscriber();
       } catch {
-        /* ignore */
+        // ignore
       }
     }
   };
 
   let persistFn: ((locale: Locale) => MaybePromise<void>) | undefined;
   let loading: Promise<void> | null = null;
-
-  if (typeof window !== "undefined") {
-    const mode = config.persist ?? DEFAULT_PERSIST_MODE;
-    if (mode === "cookie") {
-      persistFn = async (locale: Locale) => {
-        const res = await fetch("/", {
-          method: PERSIST_METHOD, headers: { [PERSIST_HEADER]: locale },
-        });
-        if (!res.ok) throw new Error(`[i18n] persist failed: ${res.status}`);
-      };
-    } else if (mode === "localStorage") {
-      persistFn = (locale: Locale) => {
-        try {
-          localStorage.setItem(PERSIST_STORAGE_KEY, locale);
-        } catch { /* ignore */ }
-      };
-    } else if (mode === "sessionStorage") {
-      persistFn = (locale: Locale) => {
-        try {
-          sessionStorage.setItem(PERSIST_STORAGE_KEY, locale);
-        } catch { /* ignore */ }
-      };
-    } // no persistence
-  }
 
   const listeners = new Set<(locale: Locale) => void>();
   const notify = (locale: Locale) => {
@@ -119,7 +82,11 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
       const run = async (l: Locale) => { await persistFn!(l); };
       loading = run(locale)
         .catch(e => { console.warn("[i18n]: persist failed", e); })
-        .finally(() => { loading = null; });
+        .finally(() => {
+          loading = null;
+          version++;
+          notify(activeLocale);
+        });
     }
   }
 
@@ -127,6 +94,45 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
     emit: true, persist: true,
   });
   const init = (locale: Locale) => apply(locale);
+
+  if (typeof window !== "undefined") {
+    const mode = config.persist ?? DEFAULT_PERSIST_MODE;
+
+    if (mode === "cookie") {
+      persistFn = async (locale: Locale) => {
+        const res = await fetch("/", {
+          method: PERSIST_METHOD, headers: { [PERSIST_HEADER]: locale },
+        });
+        if (!res.ok) throw new Error(`[i18n] persist failed: ${res.status}`);
+      };
+    } else if (mode === "localStorage") {
+      persistFn = (locale: Locale) => {
+        try {
+          localStorage.setItem(PERSIST_STORAGE_KEY, locale);
+        } catch { } // ignore
+      };
+    } else if (mode === "sessionStorage") {
+      persistFn = (locale: Locale) => {
+        try {
+          sessionStorage.setItem(PERSIST_STORAGE_KEY, locale);
+        } catch { } // ignore
+      };
+    } // no persistence
+  }
+
+  function storageRestore() {
+    if (typeof window === "undefined") return;
+    const mode = config.persist ?? DEFAULT_PERSIST_MODE;
+    if (mode === "localStorage" || mode === "sessionStorage") {
+      try {
+        const store = mode === "localStorage" ? localStorage : sessionStorage;
+        const saved = store.getItem(PERSIST_STORAGE_KEY) as Locale | null;
+        if (saved && (saved as string) in catalogs) {
+          set(saved as Locale);
+        }
+      } catch { } //
+    }
+  }
 
   type Args<K extends string> =
     K extends Key
@@ -141,14 +147,20 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
     const [key, maybeParams] = args as [Key, Dict?];
 
     const active = catalogs[activeLocale];
-    const template =
+    let template =
       (active && active[key]) ??
       (defaultCatalog && defaultCatalog[key]) ??
       String(key);
 
     const params = (maybeParams ?? {}) as Dict;
 
-    return template.replace(/\{([^}]+)\}/g, (_, body: string) => {
+    // save escaped braces
+    template = template.replace(/\{\{/g, "\uE000");
+    template = template.replace(/\}\}/g, "\uE001");
+
+    // Process normal parameters with nested brace support
+    const template_re = /\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g;
+    template = template.replace(template_re, (_, body: string) => {
       // name[:spec]
       let name = body;
       let spec: string | undefined;
@@ -168,10 +180,8 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
       const tail = bar === -1 ? "" : spec.slice(bar + 1);
 
       // units u(...)/unit(...)
-      {
-        const m = /^(?:u|unit)\(([^)]+)\)$/.exec(head);
-        if (m) return formatter.unit(Number(value ?? 0), m[1]);
-      }
+      const m = /^(?:u|unit)\(([^)]+)\)$/.exec(head);
+      if (m) return formatter.unit(Number(value ?? 0), m[1]);
 
       switch (head) {
         case "n":
@@ -179,29 +189,41 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
           if (tail) {
             const options = tail.split("|");
             const n = Number(value ?? 0);
-            const cat = Number.isFinite(n)
-              ? formatter.pluralRules().select(n)
-              : "other";
-            if (options.length === 2) {
-              const [one, other] = options;
-              return cat === "one" ? one : other;
-            }
-            if (options.length === 3) {
-              const [zero, one, other] = options;
-              if (n === 0) return zero;
-              return cat === "one" ? one : other;
-            }
-            return formatter.number(n);
+            const formatted = formatter.number(n);
+            const plural = () => {
+              const category = Number.isFinite(n)
+                ? formatter.pluralRules().select(n)
+                : "other";
+              if (options.length === 2) {
+                const [one, other] = options;
+                return category === "one" ? one : other;
+              }
+              if (options.length === 3) {
+                const [zero, one, other] = options;
+                return n === 0 ? zero : (category === "one" ? one : other);
+              }
+              if (options.length === 5) {
+                const [zero, one, few, many, other] = options;
+                if (n === 0) return zero;
+                switch (category) {
+                  case "one": return one;
+                  case "few": return few;
+                  case "many": return many;
+                  default: return other;
+                }
+              }
+              return formatted;
+            };
+            return plural().replace(new RegExp(`\\{${name}\\}`, "g"), formatted);
           }
           return formatter.number(Number(value ?? 0));
         }
 
         case "d":
         case "date": {
-          const v = value as unknown;
-          const d = typeof v === "number"
-            ? new Date(v)
-            : v instanceof Date ? v : new Date(NaN);
+          const d = typeof value === "number"
+            ? new Date(value)
+            : value instanceof Date ? value : new Date(NaN);
           return formatter.date(d);
         }
 
@@ -219,12 +241,18 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
 
         case "l":
         case "list":
-          return formatter.list(value);
+          return formatter.list(Array.isArray(value) ? value : []);
 
         default:
           return value == null ? "" : String(value);
       }
     });
+
+    // restore escaped braces
+    template = template.replace(/\uE000/g, "{");
+    template = template.replace(/\uE001/g, "}");
+
+    return template;
   }
 
   type TFn = typeof t;
@@ -235,6 +263,7 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
 
   api.onChange = (fn: (locale: Locale) => void) => {
     listeners.add(fn);
+    try { fn(activeLocale); } catch { } // ignore
     return () => { listeners.delete(fn); };
   };
 
@@ -243,14 +272,11 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
     set,
   };
 
-  Object.defineProperty(api, "loading", { get: () => loading !== null });
-
+  Object.defineProperty(api, "loading", {
+    get: () => { touch(); return loading !== null; },
+  });
   Object.defineProperty(api, sConfig, {
-    get: () => ({
-      defaultLocale: config.defaultLocale,
-      locales: config.locales,
-      currency,
-    }),
+    get: () => config,
   });
 
   Object.defineProperty(api, sInternal, {
@@ -258,18 +284,18 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
       init,
       wait: () => loading ?? Promise.resolve(),
       depend(fn: () => void) {
-        dependReaders.add(fn); return () => dependReaders.delete(fn);
+        subscribers.add(fn);
+        return () => subscribers.delete(fn);
       },
       get version() { return version; },
       touch,
+      restore: storageRestore,
     },
   });
 
   // svelte-style store interface
   api.subscribe = (run: (value: Translator) => void) => {
-    run(api);
-    const off = api.onChange(() => run(api));
-    return () => off?.();
+    return api.onChange(() => run(api));
   };
 
   return api;

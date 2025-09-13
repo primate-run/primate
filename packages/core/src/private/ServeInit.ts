@@ -1,6 +1,6 @@
 import type Asset from "#asset/Asset";
 import type Config from "#config/Config";
-import type ServerConfig from "#i18n/ServerConfig";
+import type I18NConfig from "#i18n/Config";
 import type Loader from "#Loader";
 import type Mode from "#Mode";
 import type SessionConfig from "#session/Config";
@@ -24,7 +24,7 @@ type ServeInit = {
   mode: Mode;
   platform: string;
   session_config: SessionConfig;
-  i18n_config?: ServerConfig;
+  i18n_config?: I18NConfig;
 };
 
 export type { ServeInit as default };

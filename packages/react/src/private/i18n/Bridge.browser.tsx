@@ -8,14 +8,19 @@ export default function I18nBridge<C extends Catalogs>(
   { t, children }: { t: API<C>; children?: ReactNode },
 ) {
   const { context, setContext } = useContext(AppContext);
+  const server = context.i18n.locale;
+  if (server !== undefined && server !== t.locale.get()) {
+    t[sInternal].init(server);
+  }
 
-  t[sInternal].init(context.i18n.locale);
+  useEffect(() => { t[sInternal].restore(); }, []);
 
-  useEffect(() => t.onChange(locale =>
-    setContext(previous => ({
-      ...previous, i18n: { ...previous.i18n, locale },
-    })),
-  ), [setContext, t]);
+  useEffect(() => t.subscribe(() => {
+    setContext(prev => ({
+      ...prev,
+      i18n: { ...prev.i18n, locale: t.locale.get() },
+    }));
+  }), [setContext, t]);
 
   return <>{children}</>;
 }

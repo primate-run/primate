@@ -40,15 +40,16 @@ const pre = async (app: BuildApp) => {
 
 async function indexDatabase(base: FileRef) {
   const export_from = "export { default } from";
+  const default_database = `${export_from} "#stage/config/database/index.js";`;
 
   // app/config/database does not exist
-  if (!await base.exists()) return `${export_from} "primate/database/default";`;
+  if (!await base.exists()) return default_database;
 
   const databases = await base.list();
   const n = databases.length;
 
   // none in app/config/database -> fallback
-  if (n === 0) return `${export_from} "primate/database/default";`;
+  if (n === 0) return default_database;
 
   // index database file found, will be overwritten in next step
   if (databases.some(d => d.base === "index")) return "";
@@ -144,8 +145,7 @@ import s_config from "primate/symbol/config";
 
 ${i18n_active ? `
 import t from "#i18n";
-const { defaultLocale, locales, currency } = t[s_config];
-const i18n_config = { defaultLocale, locales: Object.keys(locales), currency };
+const i18n_config = t[s_config];
 ` : `
 const i18n_config = undefined;
 `}

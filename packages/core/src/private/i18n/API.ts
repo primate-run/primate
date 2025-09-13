@@ -7,6 +7,7 @@ type LocaleTags<C extends Catalogs> = keyof C & string;
 
 type API<C extends Catalogs> = {
   onChange(fn: (locale: LocaleTags<C>) => void): () => void;
+  subscribe(run: (value: API<C>) => void): () => void;
 
   locale: {
     get(): LocaleTags<C>;
@@ -22,6 +23,7 @@ type API<C extends Catalogs> = {
     wait(): Promise<void>;
     depend(fn: () => void): () => void;
     readonly version: number;
+    restore: () => void;
   };
 };
 

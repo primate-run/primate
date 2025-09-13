@@ -14,11 +14,19 @@ export default (depth: number, i18n_active: boolean) => {
   const i18nImports = i18n_active
     ? `
       import t from "#i18n";
-      import sInternal from "primate/s/internal";`
+      import sInternal from "primate/s/internal";
+      import { onMount } from "svelte";`
     : "";
 
   const i18nInit = i18n_active
-    ? "t[sInternal].init(p.request.context.i18n.locale);"
+    ? `
+      const server = p.request.context.i18n.locale;
+      if (server !== undefined && server !== t.locale.get()) {
+        t[sInternal].init(server);
+      }
+
+      // after hydration: in storage modes, flip to saved locale once
+      onMount(() => { t[sInternal].restore(); });`
     : "";
 
   return `

@@ -16,7 +16,9 @@ export default (depth: number, i18n_active: boolean) => {
   const body = depth > 0 ? buildComponent(0) : "h(\"div\")";
 
   const vueImports =
-    `import { defineComponent, h${i18n_active ? ", ref, onUnmounted" : ""} } from "vue";`;
+    `import {
+    defineComponent, h${i18n_active ? ", ref, onMounted, onUnmounted" : ""}
+    } from "vue";`;
   const i18nImports = i18n_active
     ? `
 import t from "#i18n";
@@ -24,14 +26,17 @@ import sInternal from "primate/s/internal";`
     : "";
   const i18nSetup = i18n_active
     ? `
-// Initialize locale once (SSR + hydration safe). No emit/persist.
 const initialLocale = props.p?.request?.context?.i18n?.locale;
 if (initialLocale) t[sInternal].init(initialLocale);
-// Client-only: make any t(...) calls reactive across the app
+
+onMounted(() => { t[sInternal].restore(); });
+
 if (typeof window !== "undefined") {
-  const versionRef = ref(t[sInternal].version);
-  const removeDepend = t[sInternal].depend(() => { void versionRef.value; });
-  const unsubscribe = t.onChange(() => { versionRef.value = t[sInternal].version; });
+  const version = ref(t[sInternal].version);
+  const removeDepend = t[sInternal].depend(() => { void version.value; });
+  const unsubscribe = t.onChange(() => {
+    version.value = t[sInternal].version;
+  });
   onUnmounted(() => { unsubscribe?.(); removeDepend?.(); });
 }`
     : "";
