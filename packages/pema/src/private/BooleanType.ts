@@ -1,6 +1,6 @@
 import CoerceKey from "#CoerceKey";
 import PrimitiveType from "#PrimitiveType";
-import type Storeable from "#Storeable";
+import Storeable from "#Storeable";
 import boolish from "@rcompat/is/boolish";
 
 export default class BooleanType
@@ -8,7 +8,7 @@ export default class BooleanType
   implements Storeable<"boolean"> {
 
   get name() {
-    return "boolean";
+    return "boolean" as const;
   }
 
   get datatype() {
@@ -17,5 +17,9 @@ export default class BooleanType
 
   [CoerceKey](x: unknown) {
     return boolish(x) ? x === "true" : x;
+  }
+
+  toJSON() {
+    return Storeable.serialize(this);
   }
 }

@@ -6,6 +6,9 @@ import {
   provideZoneChangeDetection,
   type Type,
 } from "@angular/core";
+import type {
+  BootstrapContext,
+} from "@angular/platform-browser";
 import {
   bootstrapApplication,
   BrowserModule,
@@ -26,25 +29,24 @@ export default class Runtime extends FrontendModule<Type<any>> {
   client = true;
 
   render: Render<Type<any>> = async (RootComponent, props) => {
-    const bootstrap = () => bootstrapApplication(RootComponent, {
-      providers: [
-        importProvidersFrom(BrowserModule),
-        provideServerRendering(),
-        provideClientHydration(),
-        provideZoneChangeDetection({ eventCoalescing: true }),
-        {
-          provide: INITIAL_PROPS,
-          useValue: props,
-        },
-      ],
-    });
+    const providers = [
+      importProvidersFrom(BrowserModule),
+      provideServerRendering(),
+      provideClientHydration(),
+      provideZoneChangeDetection({ eventCoalescing: true }),
+      {
+        provide: INITIAL_PROPS,
+        useValue: props,
+      },
+    ];
+    const bootstrap = (context: BootstrapContext) =>
+      bootstrapApplication(RootComponent, { providers }, context);
 
     const html = await renderApplication(bootstrap, {
       document: `<${root}></${root}>`,
     });
 
     const headMatch = html.match(/<head>(.*?)<\/head>/s);
-
     const bodyRegex = new RegExp(`<${root}>([\\s\\S]*?)<\\/${root}>`);
     const bodyMatch = html.match(bodyRegex);
 

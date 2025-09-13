@@ -13,7 +13,7 @@ export default class OptionalType<S extends Parsed<unknown>>
   }
 
   get name() {
-    return "optional";
+    return "optional" as const;
   }
 
   get schema() {
@@ -33,5 +33,12 @@ export default class OptionalType<S extends Parsed<unknown>>
     }
 
     return s.parse(x, options) as Infer<this>;
+  }
+
+  toJSON() {
+    return {
+      type: this.name,
+      of: this.schema.toJSON(),
+    };
   }
 }

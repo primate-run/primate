@@ -42,3 +42,9 @@ test.case("default", assert => {
     assert(() => d.parse("1")).throws(expect("n", "1"));
   });
 });
+
+test.case("toJSON", assert => {
+  assert(number.toJSON())
+    .equals({ type: "number", datatype: "f64" })
+    ;
+});

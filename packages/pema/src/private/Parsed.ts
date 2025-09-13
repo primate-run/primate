@@ -1,8 +1,10 @@
 import CoerceKey from "#CoerceKey";
 import ParsedKey from "#ParsedKey";
 import type ParseOptions from "#ParseOptions";
+import type Serialized from "#Serialized";
+import type Serializable from "@rcompat/type/Serializable";
 
-export default abstract class Parsed<StaticType> {
+export default abstract class Parsed<StaticType> implements Serializable {
   get [ParsedKey]() {
     return "ParsedKey" as const;
   }
@@ -31,4 +33,6 @@ export default abstract class Parsed<StaticType> {
   * @returns The parsed value, if successfully parsed.
   */
   abstract parse(x: unknown, options?: ParseOptions): StaticType;
+
+  abstract toJSON(): Serialized;
 }

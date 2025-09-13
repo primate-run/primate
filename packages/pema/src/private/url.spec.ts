@@ -29,3 +29,10 @@ test.case("default", assert => {
     assert(() => d.parse(1)).throws(expect("ur", 1));
   });
 });
+
+test.case("toJSON", assert => {
+  assert(url.toJSON())
+    .type<{ type: "url"; datatype: "url" }>()
+    .equals({ type: "url", datatype: "url" })
+    ;
+});

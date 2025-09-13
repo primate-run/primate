@@ -1,5 +1,5 @@
 import BuiltinType from "#BuiltinType";
-import type Storeable from "#Storeable";
+import Storeable from "#Storeable";
 
 export default class BlobType
   extends BuiltinType<Blob, "BlobType">
@@ -10,10 +10,14 @@ export default class BlobType
   }
 
   get name() {
-    return "blob";
+    return "blob" as const;
   }
 
   get datatype() {
     return "blob" as const;
+  }
+
+  toJSON() {
+    return Storeable.serialize(this);
   }
 }

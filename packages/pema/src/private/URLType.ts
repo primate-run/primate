@@ -1,5 +1,5 @@
 import BuiltinType from "#BuiltinType";
-import type Storeable from "#Storeable";
+import Storeable from "#Storeable";
 
 export default class URLType
   extends BuiltinType<URL, "URLType">
@@ -10,10 +10,14 @@ export default class URLType
   }
 
   get name() {
-    return "url";
+    return "url" as const;
   }
 
   get datatype() {
     return "url" as const;
+  }
+
+  toJSON() {
+    return Storeable.serialize(this);
   }
 }

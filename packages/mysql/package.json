@@ -27,7 +27,7 @@
     "@rcompat/assert": "^0.3.1",
     "@rcompat/is": "^0.1.4",
     "@rcompat/record": "^0.9.1",
-    "mysql2": "^3.14.3",
+    "mysql2": "^3.14.5",
     "pema": "workspace:"
   },
   "type": "module",

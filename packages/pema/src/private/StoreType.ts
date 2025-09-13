@@ -5,15 +5,17 @@ import ParsedKey from "#ParsedKey";
 import type ParseOptions from "#ParseOptions";
 import PartialType from "#PartialType";
 import join from "#path/join";
+import type Serialized from "#Serialized";
 import type StoreSchema from "#StoreSchema";
+import type Dict from "@rcompat/type/Dict";
 
 export default class StoreType<T extends StoreSchema>
   extends GenericType<T, InferStore<T>, "StoreType"> {
-  #spec: T;
+  #properties: T;
 
   constructor(spec: T) {
     super();
-    this.#spec = spec;
+    this.#properties = spec;
   }
 
   get name() {
@@ -21,15 +23,15 @@ export default class StoreType<T extends StoreSchema>
   }
 
   get schema() {
-    return this.#spec;
+    return this.#properties;
   }
 
   partial() {
-    return new PartialType(this.#spec);
+    return new PartialType(this.#properties);
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    const spec = this.#spec;
+    const spec = this.#properties;
 
     if (typeof x !== "object" || x === null) {
       throw new Error("Expected object");
@@ -46,5 +48,13 @@ export default class StoreType<T extends StoreSchema>
     }
 
     return x as never;
+  }
+
+  toJSON() {
+    const properties: Dict<Serialized> = {};
+    for (const [k, v] of Object.entries(this.#properties)) {
+      properties[k] = v.toJSON();
+    }
+    return { type: "object" as const, properties };
   }
 }

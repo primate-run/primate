@@ -3,9 +3,9 @@ import type BigIntType from "#BigIntType";
 import boolean from "#boolean";
 import type BooleanType from "#BooleanType";
 import schema from "#index";
+import type ObjectType from "#ObjectType";
 import optional from "#optional";
 import type OptionalType from "#OptionalType";
-import type SchemaType from "#SchemaType";
 import string from "#string";
 import type StringType from "#StringType";
 import test from "@rcompat/test";
@@ -20,10 +20,10 @@ test.case("empty", assert => {
 });
 
 test.case("object", assert => {
-  type S = SchemaType<{
-    bar: {
+  type S = ObjectType<{
+    bar: ObjectType<{
       baz: BigIntType;
-    };
+    }>;
     foo: OptionalType<StringType>;
   }>;
 

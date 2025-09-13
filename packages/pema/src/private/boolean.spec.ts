@@ -36,3 +36,10 @@ test.case("default", assert => {
     assert(() => d.parse("true")).throws(expect("b", "true"));
   });
 });
+
+test.case("toJSON", assert => {
+  assert(boolean.toJSON())
+    .type<{ type: "boolean"; datatype: "boolean" }>()
+    .equals({ type: "boolean", datatype: "boolean" })
+    ;
+});

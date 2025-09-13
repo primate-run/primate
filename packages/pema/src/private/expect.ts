@@ -31,5 +31,6 @@ function print_got(got: unknown) {
   return `\`${got}\` (${typeof got})`;
 }
 
-export default (type: keyof typeof types, got: unknown, at: At = "") =>
-  `${prefix(`${at}`)}expected ${types[type]}, got ${print_got(got)}`;
+export default function expect(type: keyof typeof types, got: unknown, at: At = "") {
+  return `${prefix(`${at}`)}expected ${types[type]}, got ${print_got(got)}`;
+}

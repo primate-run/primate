@@ -1,15 +1,13 @@
 import CoerceKey from "#CoerceKey";
 import type FloatDataType from "#FloatDataType";
 import NumericType from "#NumericType";
-import type Storeable from "#Storeable";
 import coerce from "#coerce/int";
 
 export default class NumberType<T extends FloatDataType = "f64">
-  extends NumericType<T, number, "NumberType">
-  implements Storeable<T> {
+  extends NumericType<T, number, "NumberType"> {
   [CoerceKey] = coerce;
 
   get name() {
-    return "number";
+    return "number" as const;
   }
 }

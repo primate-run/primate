@@ -34,17 +34,17 @@ const is = <T>(x: unknown, validator: (t: unknown) => boolean): x is T =>
 export default class ArrayType<T extends Parsed<unknown>>
   extends GenericType<T, Infer<T>[], "ArrayType">
   implements OptionalTrait {
-  #subtype: T;
+  #item: T;
   #validators: Validator<Array<Infer<T>>>[];
 
-  constructor(subtype: T, validators: Validator<Array<Infer<T>>>[] = []) {
+  constructor(item: T, validators: Validator<Array<Infer<T>>>[] = []) {
     super();
-    this.#subtype = subtype;
+    this.#item = item;
     this.#validators = validators;
   }
 
   get name() {
-    return "array";
+    return "array" as const;
   }
 
   optional() {
@@ -54,7 +54,7 @@ export default class ArrayType<T extends Parsed<unknown>>
   derive(_next: Next<Array<Infer<T>>>): this {
     const Constructor = this.constructor as Newable<this>;
     return new Constructor(
-      this.#subtype,
+      this.#item,
       [...this.#validators, ..._next.validators ?? []],
     );
   }
@@ -68,9 +68,9 @@ export default class ArrayType<T extends Parsed<unknown>>
   unique(
     this: Infer<T> extends Primitive ? ArrayType<T> : never,
   ): ArrayType<T> {
-    if (!isPrimitive(this.#subtype)) {
+    if (!isPrimitive(this.#item)) {
       throw schemafail(
-        "unique: subtype {0} must be primitive", this.#subtype.name,
+        "unique: subtype {0} must be primitive", this.#item.name,
       );
     }
     return this.derive({ validators: [unique] });
@@ -106,11 +106,11 @@ export default class ArrayType<T extends Parsed<unknown>>
       // sparse array check
       if (i > last) {
         throw new ParseError([{
-          ...error(this.#subtype.name, undefined, options)[0],
+          ...error(this.#item.name, undefined, options)[0],
           path: join(base, last),
         }]);
       }
-      const validator = this.#subtype;
+      const validator = this.#item;
       validator.parse(v, next(i, options));
       last++;
     });
@@ -118,7 +118,7 @@ export default class ArrayType<T extends Parsed<unknown>>
     // sparse array with end slots
     if (x.length > last) {
       throw new ParseError([{
-        ...error(this.#subtype.name, undefined, options)[0],
+        ...error(this.#item.name, undefined, options)[0],
         path: join(base, last),
       }]);
     }
@@ -137,5 +137,9 @@ export default class ArrayType<T extends Parsed<unknown>>
     }
 
     return x as never;
+  }
+
+  toJSON() {
+    return { type: this.name, of: this.#item.toJSON() };
   }
 }

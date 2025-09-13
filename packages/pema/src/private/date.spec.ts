@@ -36,3 +36,10 @@ test.case("default", assert => {
     assert(() => d.parse(1)).throws(expect("d", 1));
   });
 });
+
+test.case("toJSON", assert => {
+  assert(date.toJSON())
+    .type<{ type: "date"; datatype: "datetime" }>()
+    .equals({ type: "date", datatype: "datetime" })
+    ;
+});

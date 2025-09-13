@@ -1,14 +1,17 @@
+import type NormalizeSchema from "#NormalizeSchema";
 import type Schema from "#Schema";
 import UnionType from "#UnionType";
+import normalize from "#normalize";
 
-import type NormalizeSchema from "#NormalizeSchema";
-
-type NormalizeSchemas<T extends Schema[]> = {
-  [K in keyof T]: NormalizeSchema<T[K]>
+type NormalizeArray<T extends Schema[]> = {
+  [K in keyof T]: NormalizeSchema<T[K]>;
 };
 
-/**
-* Value is a union of the given types.
-*/
-export default <const T extends Schema[]>(...types: T):
-  UnionType<NormalizeSchemas<T>> => new UnionType(types) as never;
+export default function union(): UnionType<[]>;
+export default function union<const T extends Schema[]>(
+  ...types: T
+): UnionType<NormalizeArray<T>>;
+
+export default function union(...types: Schema[]) {
+  return new UnionType(types.map(normalize));
+}

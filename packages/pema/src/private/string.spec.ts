@@ -139,3 +139,10 @@ test.case("combined validators", assert => {
     assert(messagesOf(issues)).equals(["\"/foo\" does not end with \".\""]);
   }
 });
+
+test.case("toJSON", assert => {
+  assert(string.toJSON())
+    .type<{ type: "string"; datatype: "string" }>()
+    .equals({ type: "string", datatype: "string" })
+    ;
+});

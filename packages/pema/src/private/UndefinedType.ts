@@ -4,6 +4,12 @@ type Name = "UndefinedType";
 
 export default class UndefinedType extends PrimitiveType<undefined, Name> {
   get name() {
-    return "undefined";
+    return "undefined" as const;
+  }
+
+  toJSON() {
+    return {
+      type: this.name,
+    };
   }
 }

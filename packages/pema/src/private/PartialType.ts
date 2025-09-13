@@ -14,7 +14,7 @@ import isDict from "@rcompat/is/dict";
 import type Dict from "@rcompat/type/Dict";
 
 type InferPartial<D extends Partialable> = {
-  [K in keyof D]?: NonNullable<Infer<D[K]>>;
+  -readonly [K in keyof D]?: NonNullable<Infer<D[K]>>;
 };
 
 export default class PartialType<D extends Partialable>
@@ -28,7 +28,7 @@ export default class PartialType<D extends Partialable>
   }
 
   get name() {
-    return "partial";
+    return "partial" as const;
   }
 
   get schema() {
@@ -80,5 +80,9 @@ export default class PartialType<D extends Partialable>
     }
 
     return out as unknown as InferPartial<D>;
+  }
+
+  toJSON() {
+    return { type: this.name, of: { type: "string" as const } };
   }
 }

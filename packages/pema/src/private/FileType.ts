@@ -1,5 +1,5 @@
 import BuiltinType from "#BuiltinType";
-import type Storeable from "#Storeable";
+import Storeable from "#Storeable";
 
 export default class FileType
   extends BuiltinType<File, "FileType">
@@ -10,10 +10,14 @@ export default class FileType
   }
 
   get name() {
-    return "file";
+    return "file" as const;
   }
 
   get datatype() {
     return "blob" as const;
+  }
+
+  toJSON() {
+    return Storeable.serialize(this);
   }
 }

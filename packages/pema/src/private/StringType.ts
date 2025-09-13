@@ -1,6 +1,6 @@
 import schemafail from "#error/schemafail";
 import PrimitiveType from "#PrimitiveType";
-import type Storeable from "#Storeable";
+import Storeable from "#Storeable";
 import email from "#validator/email";
 import ends_with from "#validator/ends-with";
 import isotime from "#validator/isotime";
@@ -16,7 +16,7 @@ export default class StringType
   implements Storeable<"string"> {
 
   get name() {
-    return "string";
+    return "string" as const;
   }
 
   get datatype() {
@@ -63,5 +63,9 @@ export default class StringType
 
   length(from: number, to: number) {
     return this.derive({ validators: [length(from, to)] });
+  }
+
+  toJSON() {
+    return Storeable.serialize(this);
   }
 }
