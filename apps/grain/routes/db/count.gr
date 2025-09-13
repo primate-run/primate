@@ -12,7 +12,7 @@ use Request.{ type Request }
 let _User = Result.expect("User Store must exist", Store.store("User"))
 
 provide let get = (req: Request) => {
-    // Result.expect("Operation must succeed", Store.clear(_User))
+    Result.expect("Operation must succeed", Store.clear(_User))
     Result.expect("Operation must succeed", Store.insert(_User, JsonObject([
         ("age", JsonNumber(30)),
         ("name", JsonString("Donald"))

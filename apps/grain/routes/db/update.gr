@@ -27,6 +27,7 @@ let mapKeys = (keys: List<String>) => {
 }
 
 provide let get = (req: Request) => {
+    Result.expect("Operation must succeed", Store.clear(_User))
     let result = Result.expect("Operation must succeed", Store.insert(_User, JsonObject([
         ("age", JsonNumber(30)),
         ("name", JsonString("Donald"))

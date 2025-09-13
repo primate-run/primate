@@ -73,7 +73,6 @@ provide let count = (store: Store, criteria: Json = JsonNull) => {
     else if (result == _STORE_OPERATION_SUCCESS) {
         let bytes = External.receiveBytes()
         let count = Bytes.getUint32(0, bytes)
-        print(("Count is", count, bytes))
         Ok(Uint32.toNumber(count))
     } else Err(UnknownError)
 }

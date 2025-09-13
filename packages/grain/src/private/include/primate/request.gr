@@ -85,9 +85,7 @@ let _BODY_MAP_ELEMENT_KIND_BYTES = 1ul
 
 let readBlobLike = (offset: Number, payload: Bytes) => {
   let (offset, mimeType) = readString(offset, payload);
-  print(("mimeType", offset, mimeType))
   let (offset, bytes) = readBytes(offset, payload);
-  print(("bytes", offset, bytes))
   (offset, { mimeType, bytes })
 }
 
