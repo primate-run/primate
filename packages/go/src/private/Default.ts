@@ -67,7 +67,7 @@ globalThis.PRMT_SESSION = {
   },
   try() {
     return JSON.stringify(session().try());
-  }
+  },
   set(data) {
     session().set(JSON.parse(set));
   },

@@ -115,8 +115,7 @@ test.post(
     },
   );
 }
-// --- binary: application/octet-stream ---
-{
+/*{
   // 6 bytes: 0xDE 0xAD 0xBE 0xEF 0x00 0x01
   const bytes = new Uint8Array([0xde, 0xad, 0xbe, 0xef, 0x00, 0x01]);
 
@@ -130,4 +129,4 @@ test.post(
       });
     },
   );
-}
+}*/

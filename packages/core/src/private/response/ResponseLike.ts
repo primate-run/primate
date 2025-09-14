@@ -3,16 +3,16 @@ import type Streamable from "@rcompat/fs/Streamable";
 import type Dict from "@rcompat/type/Dict";
 
 type ResponseLike =
-  | Blob
+  | string
   | Dict
   | Dict[]
-  | null
+  | URL
+  | Blob
   | ReadableStream
+  | Streamable
   | Response
   | ResponseFunction
-  | Streamable
-  | string
-  | URL
+  | null
   ;
 
 export { ResponseLike as default };
