@@ -6,7 +6,7 @@ import PrimitiveType from "#PrimitiveType";
 
 export default class NullType extends PrimitiveType<null, "NullType"> {
   get name() {
-    return "null";
+    return "null" as const;
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
@@ -15,5 +15,11 @@ export default class NullType extends PrimitiveType<null, "NullType"> {
     }
 
     return x as never;
+  }
+
+  toJSON() {
+    return {
+      type: this.name,
+    };
   }
 }

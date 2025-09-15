@@ -2,15 +2,15 @@ import type Parsed from "#Parsed";
 import type AbstractNewable from "@rcompat/type/AbstractNewable";
 
 type Schema =
-  | { [k: string]: Schema }
+  | Parsed<unknown>
   | AbstractNewable
   | null
-  | Parsed<unknown>
-  | Schema[]
-  | string
   | undefined
-  | false
-  | true
+  | string
+  | number
+  | boolean
+  | Schema[]
+  | { [k: string]: Schema }
   ;
 
 export type { Schema as default };

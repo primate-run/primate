@@ -3,14 +3,14 @@ import type Infer from "#Infer";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import PrimitiveType from "#PrimitiveType";
-import type Storeable from "#Storeable";
+import Storeable from "#Storeable";
 
 export default class PrimaryType
   extends PrimitiveType<string | undefined, "PrimaryType">
   implements Storeable<"primary"> {
 
   get name() {
-    return "primary";
+    return "primary" as const;
   }
 
   get datatype() {
@@ -28,5 +28,9 @@ export default class PrimaryType
     }
 
     return x as never;
+  }
+
+  toJSON() {
+    return Storeable.serialize(this);
   }
 }

@@ -37,3 +37,10 @@ test.case("default", assert => {
   const fd = blob.default(f);
   assert(fd).type<DefaultType<BlobType, File>>();
 });
+
+test.case("toJSON", assert => {
+  assert(blob.toJSON())
+    .type<{ type: "blob"; datatype: "blob" }>()
+    .equals({ type: "blob", datatype: "blob" })
+    ;
+});

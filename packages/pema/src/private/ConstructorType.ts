@@ -32,4 +32,11 @@ export default class ConstructorType<C extends AbstractNewable>
 
     return x as never;
   }
+
+  toJSON() {
+    return {
+      type: "newable" as const,
+      of: this.#type.name,
+    };
+  }
 }

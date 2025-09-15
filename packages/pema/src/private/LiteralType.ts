@@ -4,7 +4,7 @@ import type Infer from "#Infer";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 
-type Literal = string | boolean;
+type Literal = string | boolean | number;
 type InferLiteral<T extends Literal> = T;
 
 export default class LiteralType<T extends Literal> extends
@@ -25,7 +25,7 @@ export default class LiteralType<T extends Literal> extends
   }
 
   get name() {
-    return `literal '${this.#literal}'`;
+    return JSON.stringify(this.#literal);
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
@@ -33,5 +33,12 @@ export default class LiteralType<T extends Literal> extends
       throw new ParseError(error(this.name, x, options));
     }
     return x as never;
+  }
+
+  toJSON() {
+    return {
+      type: "literal" as const,
+      value: this.#literal,
+    };
   }
 }

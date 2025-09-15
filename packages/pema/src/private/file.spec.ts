@@ -30,3 +30,10 @@ test.case("default", assert => {
     assert(() => d.parse(1)).throws(expect("f", 1));
   });
 });
+
+test.case("toJSON", assert => {
+  assert(file.toJSON())
+    .type<{ type: "file"; datatype: "blob" }>()
+    .equals({ type: "file", datatype: "blob" })
+    ;
+});

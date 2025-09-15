@@ -12,10 +12,9 @@ const expected = `
 </div>
 <h3>Switch language</h3>
 <div>
-  <a>English</a>
-</div>
-<div>
-  <a>German</a>
+  <button>English</button>
+  <button>German</button>
+  <p>Current locale: <!-- -->en-US</p>
 </div>
 `.replaceAll("\n", "").replaceAll("  ", "");
 

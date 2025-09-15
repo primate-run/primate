@@ -1,4 +1,5 @@
 import INITIAL_PROPS from "#INITIAL_PROPS";
+import "zone.js";
 import "@angular/compiler";
 import {
   NgZone,
@@ -15,7 +16,6 @@ import spa from "@primate/core/client/spa";
 import type Dict from "@rcompat/type/Dict";
 import * as components from "angular:components";
 import root from "angular:root";
-import "zone.js";
 
 type Data = ClientData<{
   components: string[];

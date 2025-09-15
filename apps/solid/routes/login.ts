@@ -1,19 +1,19 @@
-import route from "primate/route";
-import view from "primate/response/view";
 import pema from "pema";
 import string from "pema/string";
+import view from "primate/response/view";
+import route from "primate/route";
 
 const LoginSchema = pema({
-  email: string.email,
+  email: string.email(),
   password: string.min(8),
 });
 
 route.get(() => view("LoginForm.tsx"));
 
-route.post(async request => {
-  const body = await request.body.json(LoginSchema);
+route.post(request => {
+  const body = request.body.json(LoginSchema);
 
-  console.log("Login attempt:", (body as any).email);
+  console.log("Login attempt:", body.email);
 
   return null;
 });

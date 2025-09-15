@@ -5,6 +5,7 @@ import type BooleanType from "#BooleanType";
 import type ConstructorType from "#ConstructorType";
 import type DefaultType from "#DefaultType";
 import type LiteralType from "#LiteralType";
+import type ObjectType from "#ObjectType";
 import string from "#string";
 import type StringType from "#StringType";
 import union from "#union";
@@ -51,10 +52,10 @@ test.case("deep", assert => {
   const u = union(string, { bar: "baz", foo: bigint });
   const u_e = "string | { bar: \"baz\", foo: bigint }";
 
-  assert(u).type<UnionType<[StringType, {
+  assert(u).type<UnionType<[StringType, ObjectType<{
     bar: LiteralType<"baz">;
     foo: BigIntType;
-  }]>>();
+  }>]>>();
   assert(u.parse("foo")).equals("foo")
     .type<{ bar: "baz"; foo: bigint } | string>();
   assert(() => u.parse(1)).throws(`expected \`${u_e}\`, got \`1\` (number)`);
@@ -65,7 +66,7 @@ test.case("classes", assert => {
   const c = new Class();
 
   const u = union(string, Class);
-  const u_e = "string | class Class { }";
+  const u_e = "string | constructor";
 
   assert(u).type<UnionType<[StringType, ConstructorType<typeof Class>]>>();
   assert(u.parse("foo")).equals("foo").type<Class | string>();

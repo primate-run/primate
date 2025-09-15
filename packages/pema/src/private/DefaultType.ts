@@ -22,7 +22,7 @@ export default class DefaultType<
   }
 
   get name() {
-    return "default";
+    return "default" as const;
   }
 
   get schema() {
@@ -41,5 +41,9 @@ export default class DefaultType<
     }
 
     return this.#schema.parse($x, options);
+  }
+
+  toJSON() {
+    return { type: this.name, of: this.#schema.toJSON() };
   }
 }

@@ -9,7 +9,7 @@ export default class PureType<Type, Name extends string = "PureType">
   implements Printable, OptionalTrait {
 
   get name() {
-    return "pure-type";
+    return "pure";
   }
 
   get Name() {
@@ -23,5 +23,9 @@ export default class PureType<Type, Name extends string = "PureType">
   parse(x: unknown): Infer<this> {
     // no parsing of static types
     return x as Infer<this>;
+  }
+
+  toJSON() {
+    return { type: "pure" as const };
   }
 }

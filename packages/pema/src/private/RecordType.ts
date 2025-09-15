@@ -39,7 +39,7 @@ export default class RecordType<
   }
 
   get name() {
-    return "record";
+    return "record" as const;
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
@@ -97,5 +97,13 @@ export default class RecordType<
     }
 
     return x as never;
+  }
+
+  toJSON() {
+    return {
+      type: this.name,
+      key: this.#key.toJSON(),
+      value: this.#value.toJSON(),
+    };
   }
 }

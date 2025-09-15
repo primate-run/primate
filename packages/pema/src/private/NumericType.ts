@@ -1,5 +1,7 @@
+import type DataKey from "#DataKey";
 import type ParseOptions from "#ParseOptions";
 import PrimitiveType from "#PrimitiveType";
+import type Storeable from "#Storeable";
 import type Validator from "#Validator";
 import max from "#validator/max";
 import min from "#validator/min";
@@ -13,14 +15,15 @@ type Next<T> = {
 };
 
 export default abstract class NumericType<
-  Datatype,
+  Key extends DataKey,
   T extends bigint | number,
   Name extends string>
-  extends PrimitiveType<T, Name> {
-  #datatype: Datatype;
+  extends PrimitiveType<T, Name>
+  implements Storeable<Key> {
+  #datatype: Key;
 
   constructor(
-    datatype: Datatype,
+    datatype: Key,
     validators: Validator<T>[] = [],
     options: ParseOptions = {},
   ) {
@@ -55,5 +58,12 @@ export default abstract class NumericType<
 
   get datatype() {
     return this.#datatype;
+  }
+
+  toJSON() {
+    return {
+      type: this.name as "number" | "bigint",
+      datatype: this.#datatype,
+    };
   }
 }

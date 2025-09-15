@@ -6,6 +6,7 @@ import type Infer from "#Infer";
 import type InferSchema from "#InferSchema";
 import isParsedType from "#is-parsed-type";
 import OptionalType from "#OptionalType";
+import type Parsed from "#Parsed";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import type Schema from "#Schema";
@@ -50,23 +51,23 @@ const print = (type: unknown) => {
 const union_error = (types: Schema[]) =>
   `\`${types.map(t => isParsedType(t) ? t.name : print(t)).join(" | ")}\``;
 
-export default class UnionType<T extends Schema[]>
+export default class UnionType<T extends Parsed<unknown>[]>
   extends GenericType<T, InferUnion<T>, "UnionType">
   implements OptionalTrait, DefaultTrait<InferUnion<T>> {
-  #schema: T;
+  #of: T;
 
-  constructor(_schema: T) {
-    assert(_schema.length > 1, "union type must have at least two members");
+  constructor(of: T) {
+    assert(of.length > 1, "union type must have at least two members");
     super();
-    this.#schema = _schema;
+    this.#of = of;
   }
 
   get name() {
-    return "union";
+    return "union" as const;
   }
 
   get schema() {
-    return this.#schema;
+    return this.#of;
   }
 
   optional() {
@@ -79,7 +80,7 @@ export default class UnionType<T extends Schema[]>
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     // union parses when any of its members parses
-    const parsed = this.#schema.map(type => {
+    const parsed = this.#of.map(type => {
       const validator = isParsedType(type) ? type : schema(type);
       try {
         validator.parse(x, options);
@@ -89,9 +90,13 @@ export default class UnionType<T extends Schema[]>
       }
     });
     if (!parsed.some(r => r === true)) {
-      throw new ParseError(error(union_error(this.#schema), x, options));
+      throw new ParseError(error(union_error(this.#of), x, options));
     }
 
     return x as never;
+  }
+
+  toJSON() {
+    return { type: this.name, of: this.#of.map(t => t.toJSON()) };
   }
 }

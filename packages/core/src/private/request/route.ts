@@ -51,7 +51,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
     errorRoute = errors[0];
 
     const route_hooks = app.modules.map(module => module.route.bind(module));
-    const hooks = [...route_hooks, guard(app, guards), last(handler)];
+    const hooks = [...route_hooks, guard(guards), last(handler)];
 
     // handle request
     const { request, response } = await reducer(hooks, route.request) as {

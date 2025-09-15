@@ -1,7 +1,7 @@
 import BuiltinType from "#BuiltinType";
 import coerce from "#coerce/date";
 import CoerceKey from "#CoerceKey";
-import type Storeable from "#Storeable";
+import Storeable from "#Storeable";
 
 export default class DateType
   extends BuiltinType<Date, "DateType">
@@ -13,10 +13,14 @@ export default class DateType
   }
 
   get name() {
-    return "date";
+    return "date" as const;
   }
 
   get datatype() {
     return "datetime" as const;
+  }
+
+  toJSON() {
+    return Storeable.serialize(this);
   }
 }

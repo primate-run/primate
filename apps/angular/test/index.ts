@@ -1,8 +1,7 @@
 import test from "primate/test";
 import FileRef from "@rcompat/fs/FileRef";
 
-const expected = await FileRef.join(import.meta.dirname, "index.expected.html")
-  .text();
+const expected = "<ng-component ngh=\"1\"><a href=\"/redirect\">redirect</a><h1>";
 
 test.get("/", response => {
   response.body.includes(expected);

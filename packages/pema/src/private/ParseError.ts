@@ -2,6 +2,7 @@ import type JSONIssue from "#json/JSONIssue";
 import type JSONPayload from "#json/JSONPayload";
 import type ParseIssue from "#ParseIssue";
 import type JSONPointer from "@rcompat/type/JSONPointer";
+import type Serializable from "@rcompat/type/Serializable";
 
 function humanize(path: JSONPointer): string {
   return path === ""
@@ -24,7 +25,7 @@ function stringify(issue: ParseIssue) {
     ;
 }
 
-export default class ParseError extends Error {
+export default class ParseError extends Error implements Serializable {
   #issues?: ParseIssue[];
 
   constructor(issues: ParseIssue[]) {
