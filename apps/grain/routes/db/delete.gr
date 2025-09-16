@@ -17,7 +17,7 @@ provide let get = (req: Request) => {
         ("age", JsonNumber(30)),
         ("name", JsonString("Donald"))
     ])))
-    let id = Option.expect("ID must be set", Lenses.get(Lenses.property("x") ||> Lenses.string, result))
+    let id = Option.expect("ID must be set", Lenses.get(Lenses.property("id") ||> Lenses.string, result))
     Result.expect("Operation must succeed", Store.deleteById(_User, id))
     "deleted"
 }

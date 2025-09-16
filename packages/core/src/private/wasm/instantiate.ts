@@ -48,7 +48,7 @@ export const wrapPromising = <Args extends readonly AnyWasmValue[], R extends An
   typeof WebAssembly.promising === "function"
     ? WebAssembly.promising(fn)
     : fn;
-console.log("Suspending is", Object.keys(WebAssembly));
+
 export const wrapSuspending = <Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue>(fn: AnyWasmFunction<Args, R>, alt: AnyWasmFunction<Args, R>): WebAssembly.ImportValue =>
   typeof WebAssembly.Suspending === "function"
     ? new WebAssembly.Suspending(fn) as unknown as WebAssembly.ImportValue
@@ -325,9 +325,10 @@ const instantiate = async (args: Init) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
     const recordId = decodeString(new BufferView(received));
+
     if (await store.has(recordId)) {
       payload = new Uint8Array(4);
-      payload[3] = 1;
+      payload[0] = 1;
     } else {
       payload = new Uint8Array(4);
     }
@@ -343,7 +344,6 @@ const instantiate = async (args: Init) => {
   const storeInsert = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
-    console.log(store.database);
     try {
       const record = decodeJson(new BufferView(received));
       const result = JSON.stringify(await store.insert(record));
@@ -351,7 +351,6 @@ const instantiate = async (args: Init) => {
       encodeString(result, new BufferView(payload));
       return STORE_OPERATION_SUCCESS;
     } catch (ex) {
-      console.log(ex);
       return STORE_SCHEMA_INVALID_RECORD_ERROR;
     }
   }, storeOperationNotSupported);
@@ -366,8 +365,10 @@ const instantiate = async (args: Init) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
     try {
-      const record = decodeJson(new BufferView(received));
-      await store.update(record.id, record);
+      const view = new BufferView(received);
+      const id = decodeString(view);
+      const changes = decodeJson(view);
+      await store.update(id, changes);
       return STORE_OPERATION_SUCCESS;
     } catch(ex) {
       return STORE_SCHEMA_INVALID_RECORD_ERROR;
@@ -377,7 +378,6 @@ const instantiate = async (args: Init) => {
   const storeClear = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
-    console.log(store, store.schema);
     await store.schema.delete();
     await store.schema.create();
     return STORE_OPERATION_SUCCESS;

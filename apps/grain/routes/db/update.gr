@@ -34,8 +34,7 @@ provide let get = (req: Request) => {
     ])))
 
     let id = Option.expect("Operation must succeed", Lenses.get(Lenses.property("id") ||> Lenses.string, result))
-    Result.expect("Operation must succeed", Store.update(_User, JsonObject([
-        ("id", JsonString(id)),
+    Result.expect("Operation must succeed", Store.update(_User, id, JsonObject([
         ("age", JsonNumber(35))
     ])))
 

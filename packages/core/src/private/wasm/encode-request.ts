@@ -60,9 +60,11 @@ const sizeOfBodySection = (body: RequestBody) => {
 
   if (body.type === "binary") {
     const bin = body.binary();
+    console.log("string size", size);
     size += stringSize(bin.type);
+    console.log("after type", size);
     size += I32_SIZE + bin.size;
-
+    console.log("after bin", size);
     return size;
   }
 
@@ -120,10 +122,13 @@ type FileLike = {
 const encodeBlob = async (file: BlobLike, view: BufferView) => {
   const type = file.type;
   const bytes = await file.bytes();
-  console.log("Encoding blob", type, bytes)
+  console.log("should traverse:", stringSize(type) + I32_SIZE + bytes.byteLength);
+  console.log("before type position in blob", view.position);
   encodeString(type, view);
+  console.log("after type position in blob", view.position);
   encodeBuffer(bytes, view);
-};
+  console.log("after bytes position in blob", view.position);
+}; 
 
 const encodeFile = async (file: FileLike, view: BufferView) => {
   const name = file.name;
@@ -200,7 +205,7 @@ const encodeSectionBody = async (body: RequestBody, view: BufferView) => {
     }
   } else if (body.type === "binary") {
     view.writeU32(BODY_KIND_BINARY);
-    encodeBlob(body.binary(), view);
+    await encodeBlob(body.binary(), view);
   } else if (body.type === "json") {
     view.writeU32(BODY_KIND_JSON);
     const jsonText = JSON.stringify(body.json());

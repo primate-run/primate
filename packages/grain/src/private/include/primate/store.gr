@@ -143,6 +143,8 @@ provide let has = (store: Store, id: String) => {
     let buffer = Buffer.make(idLength + 4)
     Buffer.addUint32(Uint32.fromNumber(idLength), buffer)
     Buffer.addString(id, buffer)
+    let bytes = Buffer.toBytes(buffer)
+    External.sendBytes(bytes)
 
     let result = Conv.toUint32(storeHas(store))
     if (result == _STORE_NOT_FOUND_ERROR) Err(StoreNotFound)
@@ -200,11 +202,14 @@ provide let insert = (store: Store, value: Json) => {
 }
 
 @unsafe
-provide let update = (store: Store, value: Json) => {
+provide let update = (store: Store, id: String, value: Json) => {
     let store = fromUint32(store)
     let value = Result.expect("Value must be valid json", Json.toString(value))
+    let idLength = String.byteLength(id)
     let valueLength = String.byteLength(value)
-    let buffer = Buffer.make(valueLength + 4)
+    let buffer = Buffer.make(idLength + 4 + valueLength + 4)
+    Buffer.addUint32(Uint32.fromNumber(idLength), buffer)
+    Buffer.addString(id, buffer)
     Buffer.addUint32(Uint32.fromNumber(valueLength), buffer)
     Buffer.addString(value, buffer)
     let bytes = Buffer.toBytes(buffer)

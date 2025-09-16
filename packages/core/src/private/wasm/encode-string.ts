@@ -12,6 +12,6 @@ import utf8size from "@rcompat/string/utf8size";
  * @returns The next offset.
  */
 export default function encodeString(string: string, view: BufferView) {
-  view.writeU32(utf8size(string));
-  view.write(string);
+  view.writeU32(utf8size(string))
+    .write(string);
 };
