@@ -5,7 +5,7 @@ import route from "primate/route";
 route.get(request => {
   const page = request.path.get("page");
 
-  return async (app) => {
+  return app => {
     const { html, toc } = app.component<Component>(`content/docs/${page}.md`);
     const props = {
       app: request.config,

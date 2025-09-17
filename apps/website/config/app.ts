@@ -312,20 +312,6 @@ export default config({
               },
               {
                 href: "/stores",
-                items: [
-                  {
-                    href: "/database",
-                    title: "Database stores",
-                  },
-                  {
-                    href: "/api",
-                    title: "API",
-                  },
-                  {
-                    href: "/derived",
-                    title: "Derived",
-                  },
-                ],
                 title: "Stores",
               },
               {

@@ -1,20 +1,7 @@
 # Svelte
 
-Primate runs Svelte components with file-based routing, SSR, hydration, SPA
-navigation, and layouts.
-
-## Support
-
-| Feature                   | Status | Notes                  |
-| ------------------------- | ------ | ---------------------- |
-| Server-side rendering     | ✓      |                        |
-| Hydration                 | ✓      |                        |
-| SPA navigation            | ✓      |                        |
-| [Validation](#validation) | ✓      |                        |
-| [Forms](#forms)           | ✓      |                        |
-| [Layouts](#layouts)       | ✓      |                        |
-| [Head tags](#head-tags)   | ✓      |                        |
-| [i18n](#i18n)             | ✓      |                        |
+Primate runs [Svelte][Documentation] with server-side rendering, hydration,
+client navigation, layouts, validation and i18n.
 
 ## Setup
 
@@ -27,18 +14,20 @@ npm install @primate/svelte svelte
 ### Configure
 
 ```ts
+import config from "primate/config";
 import svelte from "@primate/svelte";
 
-export default {
+export default config({
   modules: [svelte()],
-};
+});
 ```
 
 ## Components
 
-Create Svelte components in `components`.
+Create Svelte components in `components` using Svelte's template syntax.
 
 ```svelte
+<!-- components/PostIndex.svelte -->
 <script lang="ts">
   export let title: string;
   export let posts: Array<{title: string; excerpt?: string}> = [];
@@ -59,7 +48,7 @@ Create Svelte components in `components`.
 </div>
 ```
 
-Serve the component from a route.
+Serve the component from a route:
 
 ```ts
 // routes/posts.ts
@@ -78,7 +67,9 @@ route.get(() => {
 
 ## Props
 
-Props you pass via `view()` map 1:1 to component props.
+Props passed via `view()` map directly to component props.
+
+Pass props from a route:
 
 ```ts
 import view from "primate/response/view";
@@ -92,7 +83,10 @@ route.get(() => {
 });
 ```
 
+Access the props in the component:
+
 ```svelte
+<!-- components/User.svelte -->
 <script lang="ts">
   export let user: {name: string; role: string};
   export let permissions: string[] = [];
@@ -109,7 +103,10 @@ route.get(() => {
 </div>
 ```
 
-## Reactivity (Stores)
+## Reactivity with Stores
+
+Svelte's reactivity system uses reactive statements and stores for state
+management.
 
 ```svelte
 <script lang="ts">
@@ -127,46 +124,46 @@ route.get(() => {
 
 ## Validation
 
-Use Primate's validated state wrapper to sync with a backend route.
+Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```svelte
 <script lang="ts">
   import validate from "@primate/svelte/validate";
   export let id: string;
-  export let counter: number;
+  export let value: number;
 
-  const _counter = validate<number>(counter).post(`/counter?id=${id}`);
+  const counter = validate<number>(value).post(`/counter?id=${id}`);
 </script>
 
 <div style="margin-top: 2rem; text-align: center;">
   <h2>Counter Example</h2>
   <div>
     <button
-      on:click={() => _counter.update((n) => n - 1)}
-      disabled={$_counter.loading}
+      on:click={() => counter.update((n) => n - 1)}
+      disabled={$counter.loading}
     >
       -
     </button>
 
-    <span style="margin: 0 1rem;">{$_counter.value}</span>
+    <span style="margin: 0 1rem;">{$counter.value}</span>
 
     <button
-      on:click={() => _counter.update((n) => n + 1)}
-      disabled={$_counter.loading}
+      on:click={() => counter.update((n) => n + 1)}
+      disabled={$counter.loading}
     >
       +
     </button>
   </div>
 
-  {#if $_counter.error}
+  {#if $counter.error}
     <p style="color: red; margin-top: 1rem;">
-      {$_counter.error.message}
+      {$counter.error.message}
     </p>
   {/if}
 </div>
 ```
 
-Add backend validation in route.
+Add corresponding backend validation in the route:
 
 ```ts
 // routes/counter.ts
@@ -185,7 +182,10 @@ route.get(async () => {
     ? await Counter.insert({ counter: 10 })
     : counters[0];
 
-  return view("Counter.svelte", { id: counter.id, counter: counter.counter });
+  return view("Counter.svelte", {
+    id: counter.id,
+    value: counter.counter
+  });
 });
 
 route.post(async request => {
@@ -196,14 +196,17 @@ route.post(async request => {
 });
 ```
 
+The wrapper automatically tracks loading states, captures validation errors,
+and posts updates on state changes.
+
 ## Forms
 
 Create forms with Svelte's reactive statements and two-way binding.
 
 ```svelte
 <script lang="ts">
-  let email = '';
-  let password = '';
+  let email = "";
+  let password = "";
   let errors: {email?: string; password?: string} = {};
 
   function validateForm() {
@@ -229,9 +232,9 @@ Create forms with Svelte's reactive statements and two-way binding.
 
     if (!validateForm()) return;
 
-    await fetch('/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
   }
@@ -241,40 +244,33 @@ Create forms with Svelte's reactive statements and two-way binding.
   <h2>Login</h2>
 
   <div style="margin-bottom: 1rem;">
-    <input
-      type="email"
-      placeholder="Email"
-      bind:value={email}
-      style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem;"
-    />
+    <input type="email" placeholder="Email" bind:value={email} />
     {#if errors.email}
-      <p style="color: red; font-size: 0.875rem; margin-top: 0.25rem;">{errors.email}</p>
+      <p>{errors.email}</p>
     {/if}
   </div>
 
   <div style="margin-bottom: 1rem;">
-    <input
-      type="password"
-      placeholder="Password"
-      bind:value={password}
-      style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem;"
-    />
+    <input type="password" placeholder="Password" bind:value={password} />
     {#if errors.password}
-      <p style="color: red; font-size: 0.875rem; margin-top: 0.25rem;">{errors.password}</p>
+      <p>{errors.password}</p>
     {/if}
   </div>
 
   <button
     type="submit"
     disabled={!email || !password}
-    style="width: 100%; padding: 0.75rem; background-color: {!email || !password ? '#ccc' : '#007bff'}; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: {!email || !password ? 'not-allowed' : 'pointer'};"
+    style="width: 100%; padding: 0.75rem;
+           background-color: {!email || !password ? '#ccc' : '#007bff'};
+           color: white; border: none; border-radius: 4px; font-size: 1rem;
+           cursor: {!email || !password ? 'not-allowed' : 'pointer'};"
   >
     Submit
   </button>
 </form>
 ```
 
-Add the route.
+Add the corresponding route:
 
 ```ts
 // routes/login.ts
@@ -284,7 +280,7 @@ import pema from "pema";
 import string from "pema/string";
 
 const LoginSchema = pema({
-  email: string.email,
+  email: string.email(),
   password: string.min(8),
 });
 
@@ -293,7 +289,7 @@ route.get(() => view("LoginForm.svelte"));
 route.post(async request => {
   const body = await request.body.json(LoginSchema);
 
-  // authenticate
+  // implement authentication logic
 
   return null;
 });
@@ -301,13 +297,13 @@ route.post(async request => {
 
 ## Layouts
 
-Create layout components that wrap your pages.
+Create layout components that wrap your pages using `<slot>`.
 
-**Layout component:**
+Create a layout component:
 
 ```svelte
+<!-- components/Layout.svelte -->
 <script lang="ts">
-  import { page } from "$app/stores";
   export let brand = "My App";
 </script>
 
@@ -330,7 +326,7 @@ Create layout components that wrap your pages.
 </div>
 ```
 
-Register the layout via a `+layout.ts` file:
+Next, register the layout via a `+layout.ts` file:
 
 ```ts
 // routes/+layout.ts
@@ -343,11 +339,11 @@ export default {
 };
 ```
 
-Any page under this route subtree renders inside the layout.
+Pages under this route subtree render inside the layout's `<slot>`.
 
-## i18n
+## Internationalization
 
-Primate's `t` is framework-agnostic. In Svelte, just call it.
+Primate's `t` function is framework-agnostic. In Svelte, call it directly:
 
 ```svelte
 <script lang="ts">
@@ -355,35 +351,32 @@ Primate's `t` is framework-agnostic. In Svelte, just call it.
 </script>
 
 <div>
-  <h1>{t("welcome")}</h1>
-  <button on:click={() => t.locale.set("en-US")}>{t("english")}</button>
-  <button on:click={() => t.locale.set("de-DE")}>{t("german")}</button>
-  <p>{t("current_locale")}: {t.locale.get()}</p>
+  <h1>{$t("welcome")}</h1>
+  <button on:click={() => t.locale.set("en-US")}>{$t("english")}</button>
+  <button on:click={() => t.locale.set("de-DE")}>{$t("german")}</button>
+  <p>{$t("current_locale")}: {t.locale.get()}</p>
 </div>
 ```
 
-The runtime subscribes to locale changes and triggers re-renders when you switch languages.
+Primate's integration automatically subscribes to locale changes and triggers
+rerenders when switching languages.
 
-## Head tags
+## Head Tags
+
+Use Svelte's `<svelte:head>` to manage document head elements.
 
 ```svelte
 <script lang="ts">
-  import { onMount } from "svelte";
-
-  onMount(() => {
-    document.title = "About Us - Primate Svelte Demo";
-
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute("content", "Learn more about our company and mission");
-    } else {
-      const meta = document.createElement("meta");
-      meta.name = "description";
-      meta.content = "Learn more about our company and mission";
-      document.head.appendChild(meta);
-    }
-  });
+  // component logic here
 </script>
+
+<svelte:head>
+  <title>About Us - Primate Svelte Demo</title>
+  <meta name="description" content="Learn more about our company" />
+  <meta property="og:title" content="About Us - Primate Svelte Demo" />
+  <meta property="og:description" content="Learn more about our company" />
+  <meta property="og:type" content="website" />
+</svelte:head>
 
 <div style="max-width: 800px; margin: 2rem auto; padding: 0 1rem;">
   <h1>About Us</h1>
@@ -395,27 +388,35 @@ The runtime subscribes to locale changes and triggers re-renders when you switch
 </div>
 ```
 
-## Options
+## Configuration
 
-| Option     | Type       | Default             | Description               |
-| ---------- | ---------- | ------------------- | ------------------------- |
-| extensions | `string[]` | `[".svelte"]` | Component file extensions |
+| Option         | Type       | Default       | Description                  |
+| -------------- | ---------- | ------------- | ---------------------------- |
+| fileExtensions | `string[]` | `[".svelte"]` | Associated file extensions   |
+| ssr            | `boolean`  | `true`        | Active server-side rendering |
+| spa            | `boolean`  | `true`        | Active client-browsing       |
+
+### Example
 
 ```ts
 import svelte from "@primate/svelte";
+import config from "primate/config";
 
-export default {
+export default config({
   modules: [
     svelte({
-      extensions: [".svelte", ".component.svelte"],
+      // add `.component.svelte` to associated file extensions
+      fileExtensions: [".svelte", ".component.svelte"],
     }),
   ],
-};
+});
 ```
 
 ## Resources
 
-- [Svelte Documentation](https://svelte.dev)
-- [Svelte Tutorial](https://svelte.dev/tutorial)
-- [Reactive Statements](https://svelte.dev/docs#component-format-script-3-assignments)
+- [Documentation]
+- [Tutorial](https://svelte.dev/tutorial)
+- [Reactive statements](https://svelte.dev/docs#component-format-script-3-assignments)
 - [Stores](https://svelte.dev/docs#run-time-svelte-store)
+
+[Documentation]: https://svelte.dev

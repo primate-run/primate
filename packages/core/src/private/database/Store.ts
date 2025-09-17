@@ -8,6 +8,7 @@ import assert from "@rcompat/assert";
 import is from "@rcompat/assert/is";
 import maybe from "@rcompat/assert/maybe";
 import type Dict from "@rcompat/type/Dict";
+import type Serializable from "@rcompat/type/Serializable";
 import type Id from "pema/Id";
 import type InferStore from "pema/InferStore";
 import type StoreId from "pema/StoreId";
@@ -53,7 +54,8 @@ type Config = {
  * CRUD/query API.
  *
  */
-export default class DatabaseStore<S extends StoreSchema> {
+export default class DatabaseStore<S extends StoreSchema>
+  implements Serializable {
   #schema: S;
   #type: StoreType<S>;
   #types: Types;
@@ -378,6 +380,10 @@ export default class DatabaseStore<S extends StoreSchema> {
 
     return result as Filter<DataRecord<S>, F>[];
   };
+
+  toJSON() {
+    return this.#type.toJSON();
+  }
 
   /**
    * *Create a custom query.*

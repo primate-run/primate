@@ -1,20 +1,7 @@
 # React
 
-Primate runs React components with file-based routing, SSR, hydration, SPA
-navigation, and layouts.
-
-## Support
-
-| Feature                   | Status | Notes                  |
-| ------------------------- | ------ | ---------------------- |
-| Server-side rendering     | ✓      |                        |
-| Hydration                 | ✓      |                        |
-| SPA navigation            | ✓      |                        |
-| [Validation](#validation) | ✓      |                        |
-| [Forms](#forms)           | ✓      |                        |
-| [Layouts](#layouts)       | ✓      |                        |
-| [Head tags](#head-tags)   | ✓      |                        |
-| [i18n](#i18n)             | ✓      |                        |
+Primate runs [React][Documentation] with server-side rendering, hydration,
+client navigation, layouts, validation and i18n.
 
 ## Setup
 
@@ -27,16 +14,17 @@ npm install @primate/react react react-dom
 ### Configure
 
 ```ts
+import config from "primate/config";
 import react from "@primate/react";
 
-export default {
+export default config({
   modules: [react()],
-};
+});
 ```
 
 ## Components
 
-Create React components in `components`.
+Create React components in `components` using TypeScript or JavaScript.
 
 ```tsx
 // components/PostIndex.tsx
@@ -69,7 +57,7 @@ export default function PostIndex({ title, posts }: Props) {
 }
 ```
 
-Serve the component from a route.
+Serve the component from a route:
 
 ```ts
 // routes/posts.ts
@@ -88,7 +76,9 @@ route.get(() => {
 
 ## Props
 
-Props you pass via `view()` map 1:1 to component props.
+Props passed via `view()` map directly to component props.
+
+Pass props from a route:
 
 ```ts
 import view from "primate/response/view";
@@ -102,9 +92,9 @@ route.get(() => {
 });
 ```
 
-```tsx
-import { useState } from "react";
+Access the props in the component:
 
+```tsx
 interface User {
   name: string;
   role: string;
@@ -130,7 +120,10 @@ export default function User({ user, permissions }: Props) {
 }
 ```
 
-## Reactivity (Hooks)
+## Reactivity with Hooks
+
+React's hooks provide state management and side effects for interactive
+components.
 
 ```tsx
 import { useState } from "react";
@@ -152,7 +145,7 @@ export default function Counter() {
 
 ## Validation
 
-Use Primate's validated state wrapper to sync with a backend route.
+Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```tsx
 import validate from "@primate/react/validate";
@@ -170,23 +163,29 @@ export default function Counter({ id, counter: initial }: Props) {
     <div style={{ marginTop: "2rem", textAlign: "center" }}>
       <h2>Counter Example</h2>
       <div>
-        <button onClick={() => counter.update(n => n - 1)}
-          disabled={counter.loading}>
+        <button
+          onClick={() => counter.update(n => n - 1)}
+          disabled={counter.loading}
+        >
           -
         </button>
         <span style={{ margin: "0 1rem" }}>{counter.value}</span>
-        <button onClick={() => counter.update(n => n + 1)}
-          disabled={counter.loading}>
+        <button
+          onClick={() => counter.update(n => n + 1)}
+          disabled={counter.loading}
+        >
           +
         </button>
       </div>
-      {counter.error && <p style={{ color: "red" }}>{counter.error.message}</p>}
+      {counter.error && (
+        <p style={{ color: "red" }}>{counter.error.message}</p>
+      )}
     </div>
   );
 }
 ```
 
-Add backend validation in route.
+Add corresponding backend validation in the route:
 
 ```ts
 // routes/counter.ts
@@ -205,7 +204,10 @@ route.get(async () => {
     ? await Counter.insert({ counter: 10 })
     : counters[0];
 
-  return view("Counter.tsx", { id: counter.id, counter: counter.counter });
+  return view("Counter.tsx", {
+    id: counter.id,
+    counter: counter.counter
+  });
 });
 
 route.post(async request => {
@@ -216,6 +218,9 @@ route.post(async request => {
 });
 ```
 
+The wrapper automatically tracks loading states, captures validation errors,
+and posts updates on state changes.
+
 ## Forms
 
 Create forms with React hooks for state management and validation.
@@ -223,12 +228,13 @@ Create forms with React hooks for state management and validation.
 ```tsx
 import { useState } from "react";
 
-interface Props {}
-
-export default function LoginForm(props: Props) {
+export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{email?: string; password?: string}>({});
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string
+  }>({});
 
   const validateForm = () => {
     const newErrors: {email?: string; password?: string} = {};
@@ -279,7 +285,15 @@ export default function LoginForm(props: Props) {
             fontSize: "1rem"
           }}
         />
-        {errors.email && <p style={{ color: "red", fontSize: "0.875rem", marginTop: "0.25rem" }}>{errors.email}</p>}
+        {errors.email && (
+          <p style={{
+            color: "red",
+            fontSize: "0.875rem",
+            marginTop: "0.25rem"
+          }}>
+            {errors.email}
+          </p>
+        )}
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
@@ -296,7 +310,15 @@ export default function LoginForm(props: Props) {
             fontSize: "1rem"
           }}
         />
-        {errors.password && <p style={{ color: "red", fontSize: "0.875rem", marginTop: "0.25rem" }}>{errors.password}</p>}
+        {errors.password && (
+          <p style={{
+            color: "red",
+            fontSize: "0.875rem",
+            marginTop: "0.25rem"
+          }}>
+            {errors.password}
+          </p>
+        )}
       </div>
 
       <button
@@ -320,7 +342,7 @@ export default function LoginForm(props: Props) {
 }
 ```
 
-Add the route.
+Add the corresponding route:
 
 ```ts
 // routes/login.ts
@@ -330,7 +352,7 @@ import pema from "pema";
 import string from "pema/string";
 
 const LoginSchema = pema({
-  email: string.email,
+  email: string.email(),
   password: string.min(8),
 });
 
@@ -339,7 +361,7 @@ route.get(() => view("LoginForm.tsx"));
 route.post(async request => {
   const body = await request.body.json(LoginSchema);
 
-  // authenticate
+  // implement authentication logic
 
   return null;
 });
@@ -347,9 +369,9 @@ route.post(async request => {
 
 ## Layouts
 
-Create layout components that wrap your pages.
+Create layout components that wrap your components using `children`.
 
-**Layout component:**
+Create a layout component:
 
 ```tsx
 // components/Layout.tsx
@@ -375,7 +397,11 @@ export default function Layout({ children, brand = "My App" }: Props) {
         {children}
       </main>
 
-      <footer style={{ padding: "1rem", backgroundColor: "#f8f9fa", textAlign: "center" }}>
+      <footer style={{
+        padding: "1rem",
+        backgroundColor: "#f8f9fa",
+        textAlign: "center"
+      }}>
         © 1996 {brand}
       </footer>
     </div>
@@ -383,7 +409,7 @@ export default function Layout({ children, brand = "My App" }: Props) {
 }
 ```
 
-Register the layout via a `+layout.ts` file:
+Next, register the layout via a `+layout.ts` file:
 
 ```ts
 // routes/+layout.ts
@@ -396,11 +422,11 @@ export default {
 };
 ```
 
-Any page under this route subtree renders inside the layout.
+Pages under this route subtree render inside the layout as `children`.
 
-## i18n
+## Internationalization
 
-Primate's `t` is framework-agnostic. In React, just call it.
+Primate's `t` function is framework-agnostic. In React, call it directly:
 
 ```tsx
 import t from "#i18n";
@@ -417,73 +443,65 @@ export default function Welcome() {
 }
 ```
 
-The runtime subscribes to locale changes and triggers re-renders when you switch languages.
+Primate's integration automatically subscribes to locale changes and triggers
+rerenders when switching languages.
 
-## Head tags
+## Head Tags
+
+Use Primate's `Head` component to manage document head elements.
 
 ```tsx
-import { useEffect } from "react";
 import Head from "@primate/react/Head";
 
-interface Props {}
-
-export default function About(props: Props) {
-  useEffect(() => {
-    document.title = "About Us - Primate React Demo";
-
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute("content", "Learn more about our company and mission");
-    } else {
-      const meta = document.createElement("meta");
-      meta.name = "description";
-      meta.content = "Learn more about our company and mission";
-      document.head.appendChild(meta);
-    }
-  }, []);
-
+export default function About() {
   return (
     <div style={{ maxWidth: "800px", margin: "2rem auto", padding: "0 1rem" }}>
       <Head>
         <title>About Us - Primate React Demo</title>
-        <meta name="description" content="Learn more about our company and mission" />
+        <meta name="description" content="Learn more about our company" />
         <meta property="og:title" content="About Us - Primate React Demo" />
-        <meta property="og:description" content="Learn more about our company and mission" />
+        <meta property="og:description" content="Learn more about our company" />
         <meta property="og:type" content="website" />
       </Head>
 
       <h1>About Us</h1>
       <p>
         Welcome to our Primate React demo application. This page demonstrates
-        how to manage document head elements including the title and meta tags
-        for better SEO and social media sharing.
+        how to manage document head elements including the title and meta tags.
       </p>
     </div>
   );
 }
 ```
 
-## Options
+## Configuration
 
-| Option     | Type       | Default             | Description               |
-| ---------- | ---------- | ------------------- | ------------------------- |
-| extensions | `string[]` | `[".tsx", ".jsx"]` | Component file extensions |
+| Option         | Type       | Default            | Description                  |
+| -------------- | ---------- | ------------------ | ---------------------------- |
+| fileExtensions | `string[]` | `[".tsx", ".jsx"]` | Associated file extensions   |
+| ssr            | `boolean`  | `true`             | Active server-side rendering |
+| spa            | `boolean`  | `true`             | Active client-browsing       |
+
+### Example
 
 ```ts
 import react from "@primate/react";
+import config from "primate/config";
 
-export default {
+export default config({
   modules: [
     react({
-      extensions: [".tsx", ".jsx", ".component.tsx"],
+      // add `.react.tsx` to associated file extensions
+      fileExtensions: [".tsx", ".jsx", ".react.tsx"],
     }),
   ],
-};
+});
 ```
 
 ## Resources
 
-- [React Documentation](https://react.dev)
-- [React Components Guide](https://react.dev/learn/your-first-component)
-- [React Hooks](https://react.dev/reference/react)
-- [Next.js (similar SSR approach)](https://nextjs.org)
+- [Documentation]
+- [Components guide](https://react.dev/learn/your-first-component)
+- [Reference](https://react.dev/reference/react)
+
+[Documentation]: https://react.dev
