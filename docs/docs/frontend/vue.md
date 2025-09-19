@@ -1,20 +1,7 @@
 # Vue
 
-Primate runs Vue components with file-based routing, SSR, hydration, SPA
-navigation, and layouts.
-
-## Support
-
-| Feature                   | Status | Notes                  |
-| ------------------------- | ------ | ---------------------- |
-| Server-side rendering     | ✓      |                        |
-| Hydration                 | ✓      |                        |
-| SPA navigation            | ✓      |                        |
-| [Validation](#validation) | ✓      |                        |
-| [Forms](#forms)           | ✓      |                        |
-| [Layouts](#layouts)       | ✓      |                        |
-| [Head tags](#head-tags)   | ✓      |                        |
-| [i18n](#i18n)             | ✓      |                        |
+Primate runs [Vue][Documentation] with server-side rendering, hydration, client
+navigation, layouts, validation and i18n.
 
 ## Setup
 
@@ -27,18 +14,20 @@ npm install @primate/vue vue
 ### Configure
 
 ```ts
+import config from "primate/config";
 import vue from "@primate/vue";
 
-export default {
+export default config({
   modules: [vue()],
-};
+});
 ```
 
 ## Components
 
-Create Vue components in `components`.
+Create Vue components in `components` using Single File Component syntax.
 
 ```vue
+<!-- components/PostIndex.vue -->
 <script lang="ts" setup>
 interface Post {
   title: string;
@@ -66,7 +55,7 @@ const props = defineProps<Props>();
 </template>
 ```
 
-Serve the component from a route.
+Serve the component from a route:
 
 ```ts
 // routes/posts.ts
@@ -85,7 +74,9 @@ route.get(() => {
 
 ## Props
 
-Props you pass via `view()` map 1:1 to component props.
+Props passed via `view()` map directly to component props.
+
+Pass props from a route:
 
 ```ts
 import view from "primate/response/view";
@@ -99,7 +90,10 @@ route.get(() => {
 });
 ```
 
+Access the props in the component:
+
 ```vue
+<!-- components/User.vue -->
 <script lang="ts" setup>
 interface User {
   name: string;
@@ -127,7 +121,10 @@ const props = defineProps<Props>();
 </template>
 ```
 
-## Reactivity (Composition API)
+## Reactivity with Composition API
+
+Vue's Composition API provides reactive state management with `ref` and
+`computed`.
 
 ```vue
 <script lang="ts" setup>
@@ -149,14 +146,17 @@ const doubled = computed(() => count.value * 2);
 
 ## Validation
 
-Use Primate's validated state wrapper to sync with a backend route.
+Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```vue
 <script lang="ts" setup>
 import { computed } from "vue";
 import validate from "@primate/vue/validate";
 
-interface Props { id: string; counter: number };
+interface Props {
+  id: string;
+  counter: number
+}
 
 const props = defineProps<Props>();
 const counter = validate<number>(props.counter).post(`/counter?id=${props.id}`);
@@ -186,7 +186,7 @@ const error = computed(() => counter.error.value?.message);
 </template>
 ```
 
-Add backend validation in route.
+Add corresponding backend validation in the route:
 
 ```ts
 // routes/counter.ts
@@ -205,7 +205,10 @@ route.get(async () => {
     ? await Counter.insert({ counter: 10 })
     : counters[0];
 
-  return view("Counter.vue", { id: counter.id, counter: counter.counter });
+  return view("Counter.vue", {
+    id: counter.id,
+    counter: counter.counter
+  });
 });
 
 route.post(async request => {
@@ -215,6 +218,9 @@ route.post(async request => {
   return null;
 });
 ```
+
+The wrapper automatically tracks loading states, captures validation errors,
+and posts updates on state changes.
 
 ## Forms
 
@@ -256,7 +262,10 @@ const handleSubmit = async (e: Event) => {
   await fetch("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: email.value, password: password.value }),
+    body: JSON.stringify({
+      email: email.value,
+      password: password.value
+    }),
   });
 };
 </script>
@@ -266,40 +275,20 @@ const handleSubmit = async (e: Event) => {
     <h2>Login</h2>
 
     <div style="margin-bottom: 1rem;">
-      <input
-        type="email"
-        placeholder="Email"
-        v-model="email"
-        style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem;"
-      />
-      <p v-if="errors.email" style="color: red; font-size: 0.875rem; margin-top: 0.25rem;">
-        {{ errors.email }}
-      </p>
+      <input type="email" placeholder="Email" v-model="email" />
+      <p v-if="errors.email">{{ errors.email }}</p>
     </div>
 
     <div style="margin-bottom: 1rem;">
-      <input
-        type="password"
-        placeholder="Password"
-        v-model="password"
-        style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem;"
-      />
-      <p v-if="errors.password" style="color: red; font-size: 0.875rem; margin-top: 0.25rem;">
-        {{ errors.password }}
-      </p>
+      <input type="password" placeholder="Password" v-model="password" />
+      <p v-if="errors.password">{{ errors.password }}</p>
     </div>
 
     <button
       type="submit"
       :disabled="!isFormValid"
       :style="{
-        width: '100%',
-        padding: '0.75rem',
         backgroundColor: isFormValid ? '#007bff' : '#ccc',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        fontSize: '1rem',
         cursor: isFormValid ? 'pointer' : 'not-allowed'
       }"
     >
@@ -309,7 +298,7 @@ const handleSubmit = async (e: Event) => {
 </template>
 ```
 
-Add the route.
+Add the corresponding route:
 
 ```ts
 // routes/login.ts
@@ -319,7 +308,7 @@ import pema from "pema";
 import string from "pema/string";
 
 const LoginSchema = pema({
-  email: string.email,
+  email: string.email(),
   password: string.min(8),
 });
 
@@ -328,7 +317,7 @@ route.get(() => view("LoginForm.vue"));
 route.post(async request => {
   const body = await request.body.json(LoginSchema);
 
-  // authenticate
+  // implement authentication logic
 
   return null;
 });
@@ -336,11 +325,12 @@ route.post(async request => {
 
 ## Layouts
 
-Create layout components that wrap your pages.
+Create layout components that wrap your pages using `<slot>`.
 
-**Layout component:**
+Create a layout component:
 
 ```vue
+<!-- components/Layout.vue -->
 <script lang="ts" setup>
 interface Props {
   brand?: string;
@@ -365,14 +355,15 @@ const props = withDefaults(defineProps<Props>(), {
       <slot />
     </main>
 
-    <footer style="padding: 1rem; background-color: #f8f9fa; text-align: center;">
+    <footer style="padding: 1rem; background-color: #f8f9fa;
+                   text-align: center;">
       © 1996 {{ brand }}
     </footer>
   </div>
 </template>
 ```
 
-Register the layout via a `+layout.ts` file:
+Next, register the layout via a `+layout.ts` file:
 
 ```ts
 // routes/+layout.ts
@@ -385,11 +376,11 @@ export default {
 };
 ```
 
-Any page under this route subtree renders inside the layout.
+Pages under this route subtree render inside the layout's `<slot>`.
 
-## i18n
+## Internationalization
 
-Primate's `t` is framework-agnostic. In Vue, just call it.
+Primate's `t` function is framework-agnostic. In Vue, call it directly:
 
 ```vue
 <script lang="ts" setup>
@@ -406,9 +397,12 @@ import t from "#i18n";
 </template>
 ```
 
-The runtime subscribes to locale changes and triggers re-renders when you switch languages.
+Primate's integration automatically subscribes to locale changes and triggers
+rerenders when switching languages.
 
-## Head tags
+## Head Tags
+
+Use Vue's `onMounted` to manage document head elements.
 
 ```vue
 <script lang="ts" setup>
@@ -419,11 +413,11 @@ onMounted(() => {
 
   const metaDescription = document.querySelector('meta[name="description"]');
   if (metaDescription) {
-    metaDescription.setAttribute("content", "Learn more about our company and mission");
+    metaDescription.setAttribute("content", "Learn more about our company");
   } else {
     const meta = document.createElement("meta");
     meta.name = "description";
-    meta.content = "Learn more about our company and mission";
+    meta.content = "Learn more about our company";
     document.head.appendChild(meta);
   }
 });
@@ -441,27 +435,35 @@ onMounted(() => {
 </template>
 ```
 
-## Options
+## Configuration
 
-| Option     | Type       | Default             | Description               |
-| ---------- | ---------- | ------------------- | ------------------------- |
-| extensions | `string[]` | `[".vue"]` | Component file extensions |
+| Option         | Type       | Default    | Description                  |
+| -------------- | ---------- | ---------- | ---------------------------- |
+| fileExtensions | `string[]` | `[".vue"]` | Associated file extensions   |
+| ssr            | `boolean`  | `true`     | Active server-side rendering |
+| spa            | `boolean`  | `true`     | Active client-browsing       |
+
+### Example
 
 ```ts
 import vue from "@primate/vue";
+import config from "primate/config";
 
-export default {
+export default config({
   modules: [
     vue({
+      // add `.component.vue` to associated file extensions
       extensions: [".vue", ".component.vue"],
     }),
   ],
-};
+});
 ```
 
 ## Resources
 
-- [Vue.js Documentation](https://vuejs.org)
-- [Vue 3 Composition API](https://vuejs.org/guide/extras/composition-api-faq.html)
+- [Documentation]
+- [Composition API](https://vuejs.org/guide/extras/composition-api-faq.html)
 - [Single File Components](https://vuejs.org/guide/scaling-up/sfc.html)
 - [Reactivity Fundamentals](https://vuejs.org/guide/essentials/reactivity-fundamentals.html)
+
+[Documentation]: https://vuejs.org

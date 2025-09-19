@@ -1,20 +1,7 @@
 # Solid
 
-Primate runs Solid components with file-based routing, SSR, hydration, SPA
-navigation, and layouts.
-
-## Support
-
-| Feature                   | Status | Notes                  |
-| ------------------------- | ------ | ---------------------- |
-| Server-side rendering     | ✓      |                        |
-| Hydration                 | ✓      |                        |
-| SPA navigation            | ✓      |                        |
-| [Validation](#validation) | ✓      |                        |
-| [Forms](#forms)           | ✓      |                        |
-| [Layouts](#layouts)       | ✓      |                        |
-| [Head tags](#head-tags)   | ✓      |                        |
-| [i18n](#i18n)             | ✓      |                        |
+Primate runs [Solid][Documentation] with server-side rendering, hydration,
+client navigation, layouts, validation and i18n.
 
 ## Setup
 
@@ -27,16 +14,17 @@ npm install @primate/solid solid-js
 ### Configure
 
 ```ts
+import config from "primate/config";
 import solid from "@primate/solid";
 
-export default {
+export default config({
   modules: [solid()],
-};
+});
 ```
 
 ## Components
 
-Create Solid components in `components`.
+Create Solid components in `components` using JSX syntax.
 
 ```tsx
 // components/PostIndex.tsx
@@ -71,7 +59,7 @@ export default function PostIndex(props: Props) {
 }
 ```
 
-Serve the component from a route.
+Serve the component from a route:
 
 ```ts
 // routes/posts.ts
@@ -90,7 +78,9 @@ route.get(() => {
 
 ## Props
 
-Props you pass via `view()` map 1:1 to component props.
+Props passed via `view()` map directly to component props.
+
+Pass props from a route:
 
 ```ts
 import view from "primate/response/view";
@@ -103,6 +93,8 @@ route.get(() => {
   });
 });
 ```
+
+Access the props in the component:
 
 ```tsx
 import { For } from "solid-js";
@@ -132,7 +124,10 @@ export default function User(props: Props) {
 }
 ```
 
-## Reactivity (Signals)
+## Reactivity with Signals
+
+Solid's signals provide fine-grained reactivity for state management and
+computed values.
 
 ```tsx
 import { createSignal, createMemo } from "solid-js";
@@ -154,7 +149,7 @@ export default function Counter() {
 
 ## Validation
 
-Use Primate's validated state wrapper to sync with a backend route.
+Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```tsx
 import validate from "@primate/solid/validate";
@@ -172,13 +167,17 @@ export default function Counter(props: Props) {
     <div style={{ "margin-top": "2rem", "text-align": "center" }}>
       <h2>Counter Example</h2>
       <div>
-        <button onClick={() => counter.update(n => n - 1)}
-          disabled={counter.loading()}>
+        <button
+          onClick={() => counter.update(n => n - 1)}
+          disabled={counter.loading()}
+        >
           -
         </button>
         <span style={{ margin: "0 1rem" }}>{counter.value()}</span>
-        <button onClick={() => counter.update(n => n + 1)}
-          disabled={counter.loading()}>
+        <button
+          onClick={() => counter.update(n => n + 1)}
+          disabled={counter.loading()}
+        >
           +
         </button>
       </div>
@@ -189,7 +188,7 @@ export default function Counter(props: Props) {
 }
 ```
 
-Add backend validation in route.
+Add corresponding backend validation in the route:
 
 ```ts
 // routes/counter.ts
@@ -208,7 +207,10 @@ route.get(async () => {
     ? await Counter.insert({ counter: 10 })
     : counters[0];
 
-  return view("Counter.tsx", { id: counter.id, counter: counter.counter });
+  return view("Counter.tsx", {
+    id: counter.id,
+    counter: counter.counter
+  });
 });
 
 route.post(async request => {
@@ -219,6 +221,9 @@ route.post(async request => {
 });
 ```
 
+The wrapper automatically tracks loading states, captures validation errors,
+and posts updates on state changes.
+
 ## Forms
 
 Create forms with Solid signals for state management and validation.
@@ -226,12 +231,13 @@ Create forms with Solid signals for state management and validation.
 ```tsx
 import { createSignal } from "solid-js";
 
-interface Props {}
-
-export default function LoginForm(props: Props) {
+export default function LoginForm() {
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
-  const [errors, setErrors] = createSignal<{email?: string; password?: string}>({});
+  const [errors, setErrors] = createSignal<{
+    email?: string;
+    password?: string
+  }>({});
 
   const validateForm = () => {
     const newErrors: {email?: string; password?: string} = {};
@@ -265,7 +271,10 @@ export default function LoginForm(props: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ "max-width": "400px", margin: "2rem auto" }}>
+    <form onSubmit={handleSubmit} style={{
+      "max-width": "400px",
+      margin: "2rem auto"
+    }}>
       <h2>Login</h2>
 
       <div style={{ "margin-bottom": "1rem" }}>
@@ -282,7 +291,15 @@ export default function LoginForm(props: Props) {
             "font-size": "1rem"
           }}
         />
-        {errors().email && <p style={{ color: "red", "font-size": "0.875rem", "margin-top": "0.25rem" }}>{errors().email}</p>}
+        {errors().email && (
+          <p style={{
+            color: "red",
+            "font-size": "0.875rem",
+            "margin-top": "0.25rem"
+          }}>
+            {errors().email}
+          </p>
+        )}
       </div>
 
       <div style={{ "margin-bottom": "1rem" }}>
@@ -299,7 +316,15 @@ export default function LoginForm(props: Props) {
             "font-size": "1rem"
           }}
         />
-        {errors().password && <p style={{ color: "red", "font-size": "0.875rem", "margin-top": "0.25rem" }}>{errors().password}</p>}
+        {errors().password && (
+          <p style={{
+            color: "red",
+            "font-size": "0.875rem",
+            "margin-top": "0.25rem"
+          }}>
+            {errors().password}
+          </p>
+        )}
       </div>
 
       <button
@@ -323,7 +348,7 @@ export default function LoginForm(props: Props) {
 }
 ```
 
-Add the route.
+Add the corresponding route:
 
 ```ts
 // routes/login.ts
@@ -333,7 +358,7 @@ import pema from "pema";
 import string from "pema/string";
 
 const LoginSchema = pema({
-  email: string.email,
+  email: string.email(),
   password: string.min(8),
 });
 
@@ -342,7 +367,7 @@ route.get(() => view("LoginForm.tsx"));
 route.post(async request => {
   const body = await request.body.json(LoginSchema);
 
-  // authenticate
+  // implement authentication logic
 
   return null;
 });
@@ -350,9 +375,9 @@ route.post(async request => {
 
 ## Layouts
 
-Create layout components that wrap your pages.
+Create layout components that wrap your pages using `children`.
 
-**Layout component:**
+Create a layout component:
 
 ```tsx
 // components/Layout.tsx
@@ -378,7 +403,11 @@ export default function Layout(props: Props) {
         {props.children}
       </main>
 
-      <footer style={{ padding: "1rem", "background-color": "#f8f9fa", "text-align": "center" }}>
+      <footer style={{
+        padding: "1rem",
+        "background-color": "#f8f9fa",
+        "text-align": "center"
+      }}>
         © 1996 {props.brand}
       </footer>
     </div>
@@ -386,7 +415,7 @@ export default function Layout(props: Props) {
 }
 ```
 
-Register the layout via a `+layout.ts` file:
+Next, register the layout via a `+layout.ts` file:
 
 ```ts
 // routes/+layout.ts
@@ -399,11 +428,11 @@ export default {
 };
 ```
 
-Any page under this route subtree renders inside the layout.
+Pages under this route subtree render inside the layout as `children`.
 
-## i18n
+## Internationalization
 
-Primate's `t` is framework-agnostic. In Solid, just call it.
+Primate's `t` function is framework-agnostic. In Solid, call it directly:
 
 ```tsx
 import t from "#i18n";
@@ -420,79 +449,70 @@ export default function Welcome() {
 }
 ```
 
-The runtime subscribes to locale changes and triggers re-renders when you switch languages.
+Primate's integration automatically subscribes to locale changes and triggers
+rerenders when switching languages.
 
-## Head tags
+## Head Tags
+
+Use Primate's `Head` component to manage document head elements.
 
 ```tsx
-import { onMount } from "solid-js";
+import Head from "@primate/solid/Head";
 
-interface Props {}
-
-export default function About(props: Props) {
-  onMount(() => {
-    // Set document title
-    document.title = "About Us - Primate Solid Demo";
-
-    // Helper function to create or update meta tags
-    const setMetaTag = (name: string, content: string, property?: string) => {
-      const selector = property ? `meta[property="${property}"]` : `meta[name="${name}"]`;
-      let meta = document.querySelector(selector) as HTMLMetaElement;
-
-      if (!meta) {
-        meta = document.createElement("meta");
-        if (property) {
-          meta.setAttribute("property", property);
-        } else {
-          meta.setAttribute("name", name);
-        }
-        document.head.appendChild(meta);
-      }
-
-      meta.setAttribute("content", content);
-    };
-
-    // Set meta tags
-    setMetaTag("description", "Learn more about our company and mission");
-    setMetaTag("og:title", "About Us - Primate Solid Demo", "og:title");
-    setMetaTag("og:description", "Learn more about our company and mission", "og:description");
-    setMetaTag("og:type", "website", "og:type");
-  });
-
+export default function About() {
   return (
-    <div style={{ "max-width": "800px", margin: "2rem auto", padding: "0 1rem" }}>
+    <div style={{
+      "max-width": "800px",
+      margin: "2rem auto",
+      padding: "0 1rem"
+    }}>
+      <Head>
+        <title>About Us - Primate Solid Demo</title>
+        <meta name="description" content="Learn more about our company" />
+        <meta property="og:title" content="About Us - Primate Solid Demo" />
+        <meta property="og:description" content="Learn more about our company" />
+        <meta property="og:type" content="website" />
+      </Head>
+
       <h1>About Us</h1>
       <p>
         Welcome to our Primate Solid demo application. This page demonstrates
-        how to manage document head elements including the title and meta tags
-        for better SEO and social media sharing.
+        how to manage document head elements including the title and meta tags.
       </p>
     </div>
   );
 }
 ```
 
-## Options
+## Configuration
 
-| Option     | Type       | Default             | Description               |
-| ---------- | ---------- | ------------------- | ------------------------- |
-| extensions | `string[]` | `[".tsx", ".jsx"]` | Component file extensions |
+| Option         | Type       | Default            | Description                  |
+| -------------- | ---------- | ------------------ | ---------------------------- |
+| fileExtensions | `string[]` | `[".tsx", ".jsx"]` | Associated file extensions   |
+| ssr            | `boolean`  | `true`             | Active server-side rendering |
+| spa            | `boolean`  | `true`             | Active client-browsing       |
+
+### Example
 
 ```ts
 import solid from "@primate/solid";
+import config from "primate/config";
 
-export default {
+export default config({
   modules: [
     solid({
-      extensions: [".tsx", ".jsx", ".component.tsx"],
+      // add `.solid.tsx` to associated file extensions
+      fileExtensions: [".tsx", ".jsx", ".solid.tsx"],
     }),
   ],
-};
+});
 ```
 
 ## Resources
 
-- [SolidJS Documentation](https://www.solidjs.com)
-- [SolidJS Tutorial](https://www.solidjs.com/tutorial)
+- [Documentation]
+- [Tutorial](https://www.solidjs.com/tutorial)
 - [Signals](https://www.solidjs.com/docs/latest/api#createsignal)
 - [Reactivity](https://www.solidjs.com/docs/latest/api#reactivity)
+
+[Documentation]: https://www.solidjs.com

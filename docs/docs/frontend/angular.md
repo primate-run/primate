@@ -1,20 +1,11 @@
 # Angular
 
-Primate runs Angular components with file-based routing, SSR, hydration, SPA
-navigation, and layouts.
+Primate runs [Angular][Documentation] with server-side rendering, hydration,
+client navigation, layouts, validation and i18n.
 
-## Support
-
-| Feature                   | Status | Notes                  |
-| ------------------------- | ------ | ---------------------- |
-| Server-side rendering     | ✓      |                        |
-| Hydration                 | ✓      |                        |
-| SPA navigation            | ✓      |                        |
-| [Validation](#validation) | ✓      |                        |
-| [Forms](#forms)           | ✓      |                        |
-| [Layouts](#layouts)       | ✓      | slot via `TemplateRef` |
-| [Head tags](#head-tags)   | ✓      |                        |
-| [i18n](#i18n)             | ✓      |                        |
+Unlike most frontends that Primate runs, Angular is a full-stack framework. To
+achieve parity with other frontends, Primate uses only the client portion and
+provides the server implementation itself.
 
 ## Setup
 
@@ -24,14 +15,20 @@ navigation, and layouts.
 npm install @primate/angular
 ```
 
+!!!
+Most core Angular framework dependencies are included with `@primate/angular`.
+Install additional packages like `@angular/forms` as needed.
+!!!
+
 ### Configure
 
 ```ts
+import config from "primate/config";
 import angular from "@primate/angular";
 
-export default {
+export default config({
   modules: [angular()],
-};
+});
 ```
 
 ## Components
@@ -60,13 +57,13 @@ export default class PostIndex {
 ```
 
 !!!
-You only need a `selector` when a component is used by tag from another
+Components only require a `selector` when referenced by tag from another
 component's template. Pages rendered from routes and layouts are instantiated
-programmatically, so they **don't** need a selector.
+programmatically and do not need a selector.
 
-If you reference a child component by tag (e.g. `<app-link>`), the child must
-declare a selector, and the parent must list the child in `imports: [Child]`
-(keep `CommonModule` when using `*ngIf`/`*ngFor`).
+When referencing child components by tag (e.g., `<app-link>`), the child must
+declare a selector and the parent must include the child in `imports: [Child]`.
+Retain `CommonModule` when using `*ngIf` or `*ngFor`.
 !!!
 
 Serve the component from a route.
@@ -78,17 +75,25 @@ import route from "primate/route";
 
 route.get(() => {
   const posts = [
-    { title: "First Post", excerpt: "Introduction to Primate with Angular" },
-    { title: "Second Post", excerpt: "Building reactive applications" },
+    {
+      title: "First Post",
+      excerpt: "Introduction to Primate with Angular"
+    },
+    {
+      title: "Second Post",
+      excerpt: "Building reactive applications"
+    },
   ];
 
   return view("PostIndex.component.ts", { title: "Blog", posts });
 });
 ```
 
-## Props -> `@Input()`
+## Props
 
-Props you pass via `view()` map 1:1 to `@Input()`s on the component.
+Props passed via `view()` are mapped to `@Input()`s inside Angular components.
+
+Pass props from a route:
 
 ```ts
 import view from "primate/response/view";
@@ -101,6 +106,8 @@ route.get(() => {
   });
 });
 ```
+
+These props become `@Input()` properties in the component:
 
 ```ts
 import { Component, Input } from "@angular/core";
@@ -124,7 +131,10 @@ export default class User {
 }
 ```
 
-## Reactivity (Signals)
+## Reactivity with Signals
+
+Angular's signals provide fine-grained reactivity for state management and
+computed values.
 
 ```ts
 import { Component, signal, computed } from "@angular/core";
@@ -142,14 +152,20 @@ import { Component, signal, computed } from "@angular/core";
 export default class Counter {
   count = signal(0);
   doubled = computed(() => this.count() * 2);
-  increment() { this.count.update(n => n + 1); }
-  decrement() { this.count.update(n => n - 1); }
+
+  increment() {
+    this.count.update(n => n + 1);
+  }
+
+  decrement() {
+    this.count.update(n => n - 1);
+  }
 }
 ```
 
 ## Validation
 
-Use Primate's validated state wrapper to sync with a backend route.
+Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```ts
 import { Component, Input } from "@angular/core";
@@ -188,7 +204,7 @@ export default class Counter {
 }
 ```
 
-Add backend validation in route.
+Add corresponding backend validation in the route:
 
 ```ts
 // routes/counter.ts
@@ -205,38 +221,45 @@ await Counter.schema.create();
 route.get(async () => {
   const [existing] = await Counter.find({});
   const counter = existing ?? await Counter.insert({ value: 10 });
-  return view("Counter.component.ts", { id: counter.id, counter: counter.value });
+  return view("Counter.component.ts", {
+    id: counter.id,
+    counter: counter.value
+  });
 });
 
 // POST updates (called by validate().post)
 route.post(async request => {
-  // ensure id is present
+  // Ensure id is present
   const id = string.parse(request.query.get("id"));
-  // validate/coerce
+  // Validate and coerce
   const body = request.body.fields(pema({ value: number }).coerce);
-  // persist
+  // Persist changes
   await Counter.update({ id }, { value: body.value });
   return null; // 204
 });
 ```
 
-The wrapper tracks `loading`, captures validation errors, and posts on
-`update()`.
+The wrapper automatically tracks loading states, captures validation errors, and
+posts updates on `update()` calls.
 
 ## Forms
 
-Install `@angular/forms`.
+Install the Angular Forms package:
 
-```sh
+```bash
 npm install @angular/forms
 ```
 
-Create the component.
+Create the form component:
 
 ```ts
 import { CommonModule } from "@angular/common";
 import { Component, inject } from "@angular/core";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators
+} from "@angular/forms";
 
 @Component({
   imports: [CommonModule, ReactiveFormsModule],
@@ -275,7 +298,7 @@ export default class LoginForm {
 }
 ```
 
-Add the route.
+Add the corresponding route:
 
 ```ts
 // routes/login.ts
@@ -285,7 +308,7 @@ import string from "pema/string";
 import view from "primate/response/view";
 
 const LoginSchema = pema({
-  email: string.email,
+  email: string.email(),
   password: string.min(8),
 });
 
@@ -294,18 +317,18 @@ route.get(() => view("LoginForm.component.ts"));
 route.post(async request => {
   const body = await request.body.json(LoginSchema);
 
-  // authenticate
+  // implement authentication logic
 
-  return null; // 204 or a redirect/response
+  return null; // 204 or redirect/response
 });
 ```
 
 ## Layouts
 
-For SSR + hydration, layouts accept a `slot: TemplateRef` and render it via
-`*ngTemplateOutlet`. Do not use `projectableNodes`/`content`.
+For SSR with hydration, layouts accept a `slot: TemplateRef` and render it
+using `*ngTemplateOutlet`.
 
-**Layout component:**
+Create a layout component:
 
 ```ts
 // components/Layout.component.ts
@@ -334,8 +357,7 @@ export default class Layout {
 }
 ```
 
-Register the layout via a `+layout.ts` file (layouts are normal routes; you can
-pass props to them):
+Next, register the layout using a `+layout.ts` file:
 
 ```ts
 // routes/+layout.ts
@@ -343,17 +365,17 @@ import view from "primate/response/view";
 
 export default {
   get() {
-    // any props you pass here become @Input()s on Layout
-    return view("Layout.component.ts", { /* layout props */ });
+    return view("Layout.component.ts");
   },
 };
 ```
 
-Any page under this route subtree renders **inside** the layout's slot.
+This layout applies to all pages under this route subtree, rendering them
+inside the layout's slot.
 
-### Passing props to a layout
+### Passing Props to Layouts
 
-You can pass props from `+layout.ts` to the layout component as normal inputs:
+Pass props from `+layout.ts` to the layout component as standard inputs:
 
 ```ts
 // components/Layout.component.ts
@@ -380,20 +402,24 @@ export default class Layout {
 }
 ```
 
+Then update the layout registration to pass the props:
+
 ```ts
 // routes/+layout.ts
 import view from "primate/response/view";
 
 export default {
   get() {
-    return view("Layout.component.ts", { brand: "Primate Angular Demo" });
+    return view("Layout.component.ts", {
+      brand: "Primate Angular Demo"
+    });
   },
 };
 ```
 
-## i18n
+## Internationalization
 
-Primate's `t` is framework-agnostic. In Angular, just call it.
+Primate's `t` function is framework-agnostic. In Angular, call it directly:
 
 ```ts
 import { Component } from "@angular/core";
@@ -402,22 +428,30 @@ import t from "#i18n";
 @Component({
   template: `
     <h1>{{ t("welcome") }}</h1>
-    <button (click)="set('en-US')">{{ t("english") }}</button>
-    <button (click)="set('de-DE')">{{ t("german") }}</button>
-    <p>{{ t("current_locale") }}: {{ current() }}</p>
+    <button (click)="setLocale('en-US')">{{ t("english") }}</button>
+    <button (click)="setLocale('de-DE')">{{ t("german") }}</button>
+    <p>{{ t("current_locale") }}: {{ currentLocale() }}</p>
   `,
 })
 export default class Welcome {
   t = (key: string) => t(key);
-  set(locale: string) { t.locale.set(locale); }
-  current() { return t.locale.get(); }
+
+  setLocale(locale: string) {
+    t.locale.set(locale);
+  }
+
+  currentLocale() {
+    return t.locale.get();
+  }
 }
 ```
 
-The runtime subscribes to locale changes and triggers change detection at the
-root, so templates update when you switch languages.
+Primate's integration automatically subscribes to locale changes and triggers
+rerenders when switching languages.
 
-## Head tags
+## Head Tags
+
+Use Angular's `Title` and `Meta` to dynamically set page titles and meta tags.
 
 ```ts
 import type { OnInit } from "@angular/core";
@@ -434,33 +468,46 @@ export default class Page implements OnInit {
 
   ngOnInit() {
     this.title.setTitle(this.pageTitle);
-    this.meta.addTag({ name: "description", content: "Learn more about us" });
-    this.meta.addTag({ property: "og:title", content: this.pageTitle });
+    this.meta.addTag({
+      name: "description",
+      content: "Learn more about us"
+    });
+    this.meta.addTag({
+      property: "og:title",
+      content: this.pageTitle
+    });
   }
 }
 ```
 
-## Options
+## Configuration
 
-| Option     | Type       | Default             | Description               |
-| ---------- | ---------- | ------------------- | ------------------------- |
-| extensions | `string[]` | `[".component.ts"]` | Component file extensions |
+| Option         | Type       | Default             | Description                |
+| -------------- | ---------- | ------------------- | -------------------------- |
+| fileExtensions | `string[]` | `[".component.ts"]` | Associated file extensions |
+
+### Example
 
 ```ts
+import config from "primate/config";
 import angular from "@primate/angular";
 
-export default {
+export default config({
   modules: [
     angular({
-      extensions: [".component.ts", ".ng.ts"], // add more if needed
+      // add `.ng.ts` to associated file extensions
+      fileExtensions: [".component.ts", ".ng.ts"],
     }),
   ],
-};
+});
 ```
 
 ## Resources
 
-- [Angular Documentation](https://angular.dev)
-- [Angular Components Guide](https://angular.dev/guide/components)
-- [Reactive Forms](https://angular.dev/guide/forms/reactive-forms)
+- [Documentation]
+- [Components guide](https://angular.dev/guide/components)
+- [Reactive forms](https://angular.dev/guide/forms/reactive-forms)
 - [Signals](https://angular.dev/guide/signals)
+
+
+[Documentation]: https://angular.dev
