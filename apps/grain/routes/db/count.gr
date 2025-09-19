@@ -1,0 +1,28 @@
+module Count
+
+from "json" include Json
+from "primate/request" include Request
+from "primate/response" include Response
+from "primate/store" include Store
+from "result" include Result
+
+use Json.{ type Json }
+use Request.{ type Request }
+
+let _User = Result.expect("User Store must exist", Store.store("User"))
+
+provide let get = (req: Request) => {
+    Result.expect("Operation must succeed", Store.clear(_User))
+    Result.expect("Operation must succeed", Store.insert(_User, JsonObject([
+        ("age", JsonNumber(30)),
+        ("name", JsonString("Donald"))
+    ])))
+    Result.expect("Operation must succeed", Store.insert(_User, JsonObject([
+        ("age", JsonNumber(40)),
+        ("name", JsonString("Ryan"))
+    ])))
+    let count = Result.expect("Operation must succeed", Store.count(_User))
+    JsonObject([
+        ("count", JsonNumber(count))
+    ])
+}

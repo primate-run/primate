@@ -4,7 +4,7 @@
   "scripts": {
     "start": "npx primate",
     "build": "npx primate build",
-    "test": "npx primate test",
+    "test": "node --experimental-wasm-jspi node_modules/primate/lib/bin.js test",
     "test:deno": "deno run -A npm:primate test",
     "test:bun": "bun x --bun primate test"
   },
@@ -13,7 +13,15 @@
     "@primate/core": "workspace:^",
     "@primate/grain": "workspace:^",
     "@primate/html": "workspace:^",
+    "@primate/sqlite": "workspace:^",
     "@rcompat/fs": "^0.21.1",
+    "pema": "workspace:^",
     "primate": "workspace:^"
+  },
+  "imports": {
+    "#*": {
+      "apekit": "./*.ts",
+      "default": "./*.js"
+    }
   }
 }

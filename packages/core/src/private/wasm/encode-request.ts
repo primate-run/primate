@@ -62,7 +62,6 @@ const sizeOfBodySection = (body: RequestBody) => {
     const bin = body.binary();
     size += stringSize(bin.type);
     size += I32_SIZE + bin.size;
-
     return size;
   }
 
@@ -121,9 +120,8 @@ const encodeBlob = async (file: BlobLike, view: BufferView) => {
   const type = file.type;
   const bytes = await file.bytes();
   encodeString(type, view);
-  view.writeU32(bytes.byteLength);
-  view.writeBytes(bytes);
-};
+  encodeBuffer(bytes, view);
+}; 
 
 const encodeFile = async (file: FileLike, view: BufferView) => {
   const name = file.name;
@@ -200,7 +198,7 @@ const encodeSectionBody = async (body: RequestBody, view: BufferView) => {
     }
   } else if (body.type === "binary") {
     view.writeU32(BODY_KIND_BINARY);
-    encodeBlob(body.binary(), view);
+    await encodeBlob(body.binary(), view);
   } else if (body.type === "json") {
     view.writeU32(BODY_KIND_JSON);
     const jsonText = JSON.stringify(body.json());

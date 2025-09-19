@@ -3,6 +3,7 @@ module Session
 from "primate/request" include Request
 from "primate/response" include Response
 from "primate/session" include Session
+from "option" include Option
 from "json" include Json
 
 use Request.{ type Request }
@@ -13,6 +14,7 @@ provide let get = (request: Request) => {
     ("id", JsonNumber(0)),
     ("message", JsonString("Hello world!")),
   ]))
+  let session = Option.expect("Session must be set", session)
 
   Response.json(session.data)
 }
