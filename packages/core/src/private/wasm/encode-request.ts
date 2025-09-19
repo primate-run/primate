@@ -60,11 +60,8 @@ const sizeOfBodySection = (body: RequestBody) => {
 
   if (body.type === "binary") {
     const bin = body.binary();
-    console.log("string size", size);
     size += stringSize(bin.type);
-    console.log("after type", size);
     size += I32_SIZE + bin.size;
-    console.log("after bin", size);
     return size;
   }
 
