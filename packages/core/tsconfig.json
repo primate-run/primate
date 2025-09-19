@@ -1,6 +1,3 @@
 {
-  "compilerOptions": {
-    "skipLibCheck": true
-  },
   "extends": "../../tsconfig.base.json"
 }
