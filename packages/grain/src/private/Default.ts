@@ -57,17 +57,6 @@ export default class Default extends Runtime {
   }
 
   build(app: BuildApp, next: NextBuild) {
-    const storesDone = app.path.stores
-      .collect(f => f.extension === ".ts" || f.extension === ".js")
-      .then(async stores => {
-        for (const store of stores) {
-          const grainModulePath = store.bare(".gr");
-          const mod = await store.import() as DatabaseStore<StoreSchema>;
-          // @ts-ignore
-          console.log(mod.toJSON);
-        }
-      })
-
 
     app.bind(this.extension, async (route, { build, context }) => {
       assert(context === "routes", "grain: only route files are supported");
