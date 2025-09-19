@@ -122,12 +122,8 @@ type FileLike = {
 const encodeBlob = async (file: BlobLike, view: BufferView) => {
   const type = file.type;
   const bytes = await file.bytes();
-  console.log("should traverse:", stringSize(type) + I32_SIZE + bytes.byteLength);
-  console.log("before type position in blob", view.position);
   encodeString(type, view);
-  console.log("after type position in blob", view.position);
   encodeBuffer(bytes, view);
-  console.log("after bytes position in blob", view.position);
 }; 
 
 const encodeFile = async (file: FileLike, view: BufferView) => {
