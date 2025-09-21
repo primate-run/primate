@@ -191,6 +191,52 @@ export default <D extends Database>(database: D) => {
     });
   });
 
+  test.case("find - $like operator for strings", async assert => {
+    await bootstrap(async () => {
+      const prefix = await User.find({ name: { $like: "J%" } });
+      assert(prefix.length).equals(1);
+      if (prefix.length > 0) assert(prefix[0].name).equals("Just Jeremy");
+
+      const suffix = await User.find({ lastname: { $like: "%er" } });
+      assert(suffix.length).equals(2);
+      const lastnames = suffix.map(u => u.lastname).sort();
+      assert(lastnames).equals(["Miller", "Miller"]);
+
+      const contains = await User.find({ name: { $like: "%on%" } });
+      assert(contains.length).equals(1);
+      if (contains.length > 0) assert(contains[0].name).equals("Donald");
+
+      const exact = await User.find({ name: { $like: "Ryan" } });
+      assert(exact.length).equals(1);
+      if (exact.length > 0) assert(exact[0].name).equals("Ryan");
+
+      const none = await User.find({ name: { $like: "xyz%" } });
+      assert(none.length).equals(0);
+    });
+  });
+
+  test.case("find - $like with null/undefined fields", async assert => {
+    await bootstrap(async () => {
+      // Jeremy has no lastname (null), should not match ANY $like patterns
+      const results = await User.find({ lastname: { $like: "%ll%" } });
+      assert(results.length).equals(2); // Ben, Paul
+
+      const names = results.map(u => u.name).sort();
+      assert(names).equals(["Ben", "Paul"]);
+    });
+  });
+
+  test.case("find - $like: reject non-string types", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        // age is u8, should not accept $like
+        await User.find({ age: { $like: "30%" } } as any);
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
   test.case("update - single record", async assert => {
     await bootstrap(async () => {
       const [donald] = (await User.find({ name: "Donald" }));
@@ -247,7 +293,7 @@ export default <D extends Database>(database: D) => {
     });
   });
 
-  test.case("security - update: reject missing criteria", async assert => {
+  test.case("update - reject missing criteria", async assert => {
     await bootstrap(async () => {
       let error: unknown;
       try {
@@ -257,6 +303,17 @@ export default <D extends Database>(database: D) => {
       const msg = error instanceof Error ? error.message : String(error);
       assert(!!error).true();
       assert(msg.includes("update: no criteria")).true();
+    });
+  });
+
+  test.case("update - $like criteria", async assert => {
+    await bootstrap(async () => {
+      // update all users whose names start with "J"
+      const updated = await User.update({ name: { $like: "J%" } }, { age: 25 });
+      assert(updated).equals(1);
+
+      const jeremy = await User.find({ name: "Just Jeremy" });
+      assert(jeremy[0].age).equals(25);
     });
   });
 
@@ -281,6 +338,20 @@ export default <D extends Database>(database: D) => {
     });
   });
 
+  test.case("delete - $like criteria", async assert => {
+    await bootstrap(async () => {
+      // Delete all users with "Miller" lastname
+      const deleted = await User.delete({ lastname: { $like: "%Miller%" } });
+      assert(deleted).equals(2);
+
+      const remaining = await User.find({});
+      assert(remaining.length).equals(3);
+
+      const remainingNames = remaining.map(u => u.name).sort();
+      assert(remainingNames).equals(["Donald", "Just Jeremy", "Ryan"]);
+    });
+  });
+
   test.case("count", async assert => {
     await bootstrap(async () => {
       assert(await User.count()).equals(5);
@@ -288,6 +359,14 @@ export default <D extends Database>(database: D) => {
       assert(await User.count({ age: 40 })).equals(2);
       assert(await User.count({ age: 30 })).equals(1);
       assert(await User.count({ age: 35 })).equals(0);
+    });
+  });
+
+  test.case("count - $like operator", async assert => {
+    await bootstrap(async () => {
+      assert(await User.count({ name: { $like: "J%" } })).equals(1);
+      assert(await User.count({ lastname: { $like: "%er" } })).equals(2);
+      assert(await User.count({ name: { $like: "%xyz%" } })).equals(0);
     });
   });
 
@@ -597,6 +676,38 @@ export default <D extends Database>(database: D) => {
     });
   });
 
+  test.case("security - $like: reject unknown field", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        await User.find({ unknownField: { $like: "test%" } } as any);
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });
+
+  /*test.case("security - number operators: reject on non-number fields", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        // name is string, should not accept $gte
+        await User.find({ name: { $gte: 10 } } as any);
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });*/
+
+  /*test.case("security - mixed operators: reject invalid combinations", async assert => {
+    await bootstrap(async () => {
+      let threw = false;
+      try {
+        // can't mix string and number operators
+        await User.find({ name: { $like: "test%", $gte: 5 } } as any);
+      } catch { threw = true; }
+      assert(threw).true();
+    });
+  });*/
+
   test.case("quote safety - reserved table & column names", async assert => {
     // this stresses identifier quoting in CREATE/INSERT/SELECT/UPDATE/DELETE
     const Reserved = new Store({
@@ -604,7 +715,7 @@ export default <D extends Database>(database: D) => {
       // deliberately reserved-looking column name
       order: u8.optional(),
       name: string,
-    }, { database, name: "select" }); // deliberately reserved-looking table name
+    }, { database, name: "select" }); // deliberately reserved-like table name
 
     await Reserved.schema.create();
 

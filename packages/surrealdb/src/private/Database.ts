@@ -17,6 +17,8 @@ import Surreal from "surrealdb";
 
 type Count = { count: number }[];
 
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const schema = pema({
   database: string,
   host: string.default("http://localhost"),
@@ -79,18 +81,34 @@ export default class SurrealDBDatabase extends Database {
     await (await this.#get()).close();
   }
 
-  toWhere(types: Types, criteria: Dict) {
+  toWhere(types: Types, criteria: DataDict) {
     const base = super.toWhere(types, criteria);
     if (!base) return base;
 
     return Object.entries(criteria).reduce((where, [k, v]) => {
-      if (v !== null) {
-        return where;
-      }
       const column = this.ident(k);
-      return where.replace(
-        `${column} IS NULL`,
-        `(${column} IS NULL OR ${column}=none)`);
+
+      if (v === null) {
+        const replacement = where.replace(
+          `${column} IS NULL`,
+          `(${column} IS NULL OR ${column}=none)`,
+        );
+
+        return replacement;
+      }
+      if (typeof v === "object" && "$like" in v) {
+        const like = String(v.$like);
+        const re = `^${escape(like).replace(/%/g, ".*").replace(/_/g, ".")}$`;
+        const s_re = JSON.stringify(re);
+
+        return where.replace(
+          `${column} LIKE $${k}`,
+          `${column} != none AND string::matches(${column}, ${s_re})`,
+        );
+      }
+
+      // unchanged from base
+      return where;
     }, base.replace("`id`=$id", "`id`=<record>$id"));
   }
 

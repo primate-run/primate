@@ -1,10 +1,10 @@
-import AppError from "#AppError";
 import type As from "#database/As";
 import type ColumnTypes from "#database/ColumnTypes";
 import Database from "#database/Database";
 import type DataDict from "#database/DataDict";
 import type Sort from "#database/Sort";
 import type TypeMap from "#database/TypeMap";
+import fail from "#fail";
 import assert from "@rcompat/assert";
 import entries from "@rcompat/record/entries";
 import type Dict from "@rcompat/type/Dict";
@@ -12,8 +12,40 @@ import type MaybePromise from "@rcompat/type/MaybePromise";
 import type PartialDict from "@rcompat/type/PartialDict";
 
 function match(record: Dict, criteria: Dict) {
-  return Object.entries(criteria).every(([k, v]) =>
-    record[k] === v || v === null && !Object.hasOwn(record, k));
+  return Object.entries(criteria).every(([k, v]) => {
+    const value = record[k];
+
+    // null criteria (IS NULL semantics)
+    if (v === null) return !Object.hasOwn(record, k);
+
+    // handle operator objects
+    if (typeof v === "object") {
+      // $like operator
+      if ("$like" in v) {
+        // NULL values don't match LIKE patterns
+        if (value === null || value === undefined) return false;
+
+        const $like = v.$like;
+        if (typeof $like !== "string")
+          throw fail("$like operator requires string, got {0}", typeof $like);
+        const regex = new RegExp(
+          "^" + $like.replace(/%/g, ".*").replace(/\?/g, ".") + "$",
+        );
+        return regex.test(String(value));
+      }
+
+      // future: number operators
+      // if ("$gte" in v) return recordValue >= v.$gte;
+      // if ("$gt" in v) return recordValue > v.$gt;
+      // if ("$lte" in v) return recordValue <= v.$lte;
+      // if ("$lt" in v) return recordValue < v.$lt;
+
+      return false; // unknown operator
+    }
+
+    // direct equality match
+    return value === v;
+  });
 }
 
 function filter(record: Dict, fields: string[]) {
@@ -87,7 +119,7 @@ export default class InMemoryDatabase extends Database {
 
   #new(name: string) {
     if (this.#collections[name] !== undefined) {
-      throw new AppError(`collection ${name} already exists`);
+      throw fail("collection {0} already exists", name);
     }
     this.#collections[name] = [];
   }
@@ -123,10 +155,10 @@ export default class InMemoryDatabase extends Database {
       record.id = crypto.randomUUID();
     };
     if (typeof record.id !== "string") {
-      throw new AppError(`id must be string, got: ${record.id}`);
+      throw fail("id must be string, got {0}", record.id);
     }
     if (collection.find(stored => stored.id === record.id)) {
-      throw new AppError(`id ${record.id} already existed in the database`);
+      throw fail("id {0} already exists in the database", record.id);
     }
     collection.push({ ...record });
 
@@ -196,7 +228,7 @@ export default class InMemoryDatabase extends Database {
 
   delete(as: As, args: { criteria: DataDict }) {
     if (Object.keys(args.criteria).length === 0) {
-      throw new AppError("delete: no criteria");
+      throw fail("delete: no criteria");
     }
     this.toWhere(as.types, args.criteria);
 

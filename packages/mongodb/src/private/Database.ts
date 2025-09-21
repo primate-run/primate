@@ -91,7 +91,20 @@ export default class MongoDBDatabase extends Database {
   }
 
   async #bind(object: DataDict, types: Types) {
-    const { id, ...rest } = await this.bind(types, object);
+    const prepared: DataDict = Object.fromEntries(Object.entries(object)
+      .map(([key, value]) => {
+        if (value === null) return [key, null];
+
+        if (typeof value === "object" && "$like" in value) {
+          const pattern = String(value.$like);
+          const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const $regex = `^${escaped.replace(/%/g, ".*").replace(/_/g, ".")}$`;
+          return [key, { $regex }];
+        }
+        return [key, value];
+      }));
+
+    const { id, ...rest } = await this.bind(types, prepared);
 
     return id === undefined
       ? rest

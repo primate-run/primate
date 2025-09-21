@@ -1,9 +1,9 @@
-import AppError from "#AppError";
 import type Changes from "#database/Changes";
 import type Database from "#database/Database";
 import type DataRecord from "#database/DataRecord";
 import wrap from "#database/symbol/wrap";
 import type Types from "#database/Types";
+import fail from "#fail";
 import assert from "@rcompat/assert";
 import is from "@rcompat/assert/is";
 import maybe from "@rcompat/assert/maybe";
@@ -18,9 +18,26 @@ import StoreType from "pema/StoreType";
 type X<T> = {
   [K in keyof T]: T[K]
 } & {};
+
+type StringOperators = {
+  $like?: string;
+};
+
+/*type NumberOperators = {
+  $gte?: number;
+  $gt?: number;
+  $lte?: number;
+  $lt?: number;
+};*/
+
+type QueryOperators<T> =
+  T extends string ? T | StringOperators | null :
+  //  T extends number ? T | NumberOperators | null :
+  T | null;
+
 type Criteria<T extends StoreSchema> = X<{
   // any criterion key can be omitted; if present, it can be a value or null
-  [K in keyof Omit<InferStore<T>, "id">]?: InferStore<T>[K] | null
+  [K in keyof Omit<InferStore<T>, "id">]?: QueryOperators<InferStore<T>[K]>
 } & {
   id?: StoreId<T> | null;
 }>;
@@ -47,7 +64,7 @@ type Config = {
 };
 
 /**
- * Database-backed Store for Primate.
+ * Database-backed store.
  *
  * A `DatabaseStore` exposes a typed, validated interface over a relational or
  * document database table/collection. It pairs a Pema schema with a uniform
@@ -63,6 +80,8 @@ export default class DatabaseStore<S extends StoreSchema>
   #database?: Database;
   #name?: string;
 
+  declare readonly R: DataRecord<S>;
+
   constructor(schema: S, config: Config = {}) {
     this.#schema = schema;
     this.#type = new StoreType(schema);
@@ -75,6 +94,33 @@ export default class DatabaseStore<S extends StoreSchema>
         .filter(([, v]) => v.nullable)
         .map(([k]) => k),
     );
+  }
+
+  #parseCriteria(criteria: Criteria<S>) {
+    for (const [field, value] of Object.entries(criteria)) {
+      if (!(field in this.#types)) throw fail("unknown field {0}", field);
+
+      // skip null/undefined values
+      if (value === null) continue;
+
+      // if it's an operator object, validate
+      if (typeof value === "object") {
+        const type = this.#types[field];
+
+        if ("$like" in value && type !== "string") {
+          throw fail("$like operator not supported in {0} ({1})", field, type);
+        }
+
+        /*const n_ops = ["$gte", "$gt", "$lte", "$lt"];
+        if (n_ops.some(op => op in value) && !["number", "i8", "i16", "i32",
+          "i64", "i128", "u8", "u16", "u32", "u64", "u128", "f32", "f64"]
+          .includes(type)) {
+          const used = n_ops.filter(op => op in value).join(", ");
+          throw fail("operators {0} not supported in {1} ({2})", used, field,
+            type);
+        }*/
+      }
+    }
   }
 
   static new<S extends StoreSchema>(schema: S, config: Config = {}) {
@@ -103,16 +149,14 @@ export default class DatabaseStore<S extends StoreSchema>
   }
 
   [wrap](name: string, database: Database) {
-    return new DatabaseStore(this.#schema, {
-      database: this.#database ?? database,
-      name: this.#name ?? name,
-    });
+    this.#database ??= database;
+    this.#name ??= name;
+
+    return this;
   }
 
   get database() {
-    if (this.#database === undefined) {
-      throw new AppError("store missing database");
-    }
+    if (this.#database === undefined) throw fail("store missing database");
     return this.#database;
   }
 
@@ -121,9 +165,7 @@ export default class DatabaseStore<S extends StoreSchema>
   }
 
   get name() {
-    if (this.#name === undefined) {
-      throw new AppError("store missing name");
-    }
+    if (this.#name === undefined) throw fail("store missing name");
     return this.#name;
   }
 
@@ -134,7 +176,8 @@ export default class DatabaseStore<S extends StoreSchema>
    * @returns Number of matching records (or total if no criteria given).
    */
   async count(criteria?: Criteria<S> | { id: StoreId<S> }) {
-    maybe(criteria).object();
+    maybe(criteria).record();
+    if (criteria) this.#parseCriteria(criteria);
 
     return (await this.database.read(this.#as, {
       count: true,
@@ -174,9 +217,7 @@ export default class DatabaseStore<S extends StoreSchema>
 
     assert(records.length <= 1);
 
-    if (records.length === 0) {
-      throw new AppError("no record with id {0}", id);
-    }
+    if (records.length === 0) throw fail("no record with id {0}", id);
 
     return this.#type.parse(records[0]) as DataRecord<S>;
   }
@@ -206,7 +247,7 @@ export default class DatabaseStore<S extends StoreSchema>
    * @returns The inserted record with id.
    */
   async insert(record: Insertable<S>): Promise<DataRecord<S>> {
-    is(record).object();
+    is(record).record();
 
     return this.database.create(this.#as, { record: this.#type.parse(record) });
   }
@@ -246,16 +287,14 @@ export default class DatabaseStore<S extends StoreSchema>
     criteria: Criteria<S> | Id,
     changes: Changes<S>,
   ) {
-    is(changes).object();
+    is(changes).record();
 
-    if ("id" in changes) {
-      throw new AppError("'.id' cannot be updated");
-    }
+    if ("id" in changes) throw fail("{0} cannot be updated", ".id");
 
     const changeEntries = Object.entries(changes);
     for (const [k, v] of changeEntries) {
       if (v === null && !this.#nullables.has(k)) {
-        throw new AppError(`.${k}: null not allowed (field is not nullable)`);
+        throw fail(".{0}: null not allowed (field not nullable)", k);
       }
     }
     const toParse = Object.fromEntries(changeEntries
@@ -287,7 +326,8 @@ export default class DatabaseStore<S extends StoreSchema>
   }
 
   async #update_n(criteria: Criteria<S>, changes: Changes<S>) {
-    is(criteria).object();
+    is(criteria).record();
+    this.#parseCriteria(criteria);
 
     const count = await this.database.update(this.#as, {
       changes,
@@ -328,7 +368,8 @@ export default class DatabaseStore<S extends StoreSchema>
   }
 
   async #delete_n(criteria: Criteria<S>) {
-    is(criteria).object();
+    is(criteria).record();
+    this.#parseCriteria(criteria);
 
     return await this.database.delete(this.#as, { criteria });
   }
@@ -365,9 +406,10 @@ export default class DatabaseStore<S extends StoreSchema>
       sort?: Sort<DataRecord<S>>;
     },
   ) {
-    is(criteria).object();
+    is(criteria).record();
+    this.#parseCriteria(criteria);
     maybe(options).record();
-    maybe(options?.select).object();
+    maybe(options?.select).record();
     maybe(options?.sort).record();
     maybe(options?.limit).usize();
 
@@ -383,6 +425,17 @@ export default class DatabaseStore<S extends StoreSchema>
 
   toJSON() {
     return this.#type.toJSON();
+  }
+
+  extend<A extends Dict>(extensor: (This: this) => A): this & A {
+    const extensions = extensor(this);
+
+    for (const k of Object.keys(extensions)) {
+      if (k in this) throw fail("key {0} already exists on store", k);
+    }
+
+    Object.assign(this, extensions);
+    return this as this & A;
   }
 
   /**

@@ -92,7 +92,7 @@ export default abstract class Database {
     return limit !== undefined ? ` LIMIT ${limit}` : "";
   }
 
-  toWhere(types: Types, criteria: Dict) {
+  toWhere(types: Types, criteria: DataDict) {
     const columns = Object.keys(criteria);
     this.#assert(types, columns);
 
@@ -102,10 +102,20 @@ export default abstract class Database {
 
     const parts = columns.map(column => {
       const value = criteria[column];
-      // emit IS NULL for null criteria (no bind)
-      return value === null
-        ? `${this.#quote(column)} IS NULL`
-        : `${this.#quote(column)}=${p}${column}`;
+
+      // null criteria
+      if (value === null) return `${this.#quote(column)} IS NULL`;
+
+      if (typeof value === "object") {
+        if ("$like" in value) {
+          return `${this.#quote(column)} LIKE ${p}${column}`;
+        }
+        //if ("$gte" in value) return `${this.#quote(column)} >= ${p}${column}`;
+
+        throw fail("unsupported operator in field {0}", column);
+      }
+
+      return `${this.#quote(column)}=${p}${column}`;
     });
 
     return `WHERE ${parts.join(" AND ")}`;
@@ -167,14 +177,29 @@ export default abstract class Database {
         }),
       ),
     );
-    return this.formatBinds(out); // <-- hook applied once, everywhere
+    return this.formatBinds(out);
   }
 
-  async bindCriteria(types: Types, criteria: Dict): Promise<Binds> {
-    // only bind keys that are not null
-    const filtered = Object.fromEntries(
-      Object.entries(criteria).filter(([, v]) => v !== null),
-    ) as DataDict;
+  async bindCriteria(types: Types, criteria: DataDict): Promise<Binds> {
+    const filtered: DataDict = {};
+
+    for (const [key, value] of Object.entries(criteria)) {
+      // null isn't bound
+      if (value === null) continue;
+
+      if (typeof value === "object") {
+        // extract primitive value from operator object
+        if ("$like" in value) {
+          if (typeof value.$like !== "string") {
+            throw fail("$like operator requires string value, got {0}",
+              typeof value.$like);
+          }
+          filtered[key] = value.$like;
+        }
+      } else {
+        filtered[key] = value;
+      }
+    }
 
     return this.bind(types, filtered);
   }

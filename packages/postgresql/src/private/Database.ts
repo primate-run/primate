@@ -133,17 +133,26 @@ export default class PostgreSQLDatabase extends Database {
     return limit === undefined ? sql`` : sql` LIMIT ${limit}`;
   }
 
-  #where(types: Types, criteria: Dict, nonnull: Dict) {
+  #where(types: Types, criteria: DataDict, nonnull: Dict) {
     this.toWhere(types, criteria); // validate
 
     const sql = this.#sql();
     const entries = Object.entries(criteria);
     if (entries.length === 0) return sql``;
 
-    const clauses = entries.map(([key, raw]) => raw === null
-      ? sql`${sql(key)} IS NULL`
-      : sql`${sql(key)} = ${nonnull[key]}`,
-    );
+    const clauses = entries.map(([key, raw]) => {
+      if (raw === null) return sql`${sql(key)} IS NULL`;
+
+      const value = nonnull[key];
+
+      // Handle operator objects
+      if (typeof raw === "object") {
+        if ("$like" in raw) return sql`${sql(key)} LIKE ${value}`;
+        // if ("$gte" in raw) return sql`${sql(key)} >= ${nonnull[key]}`;
+      }
+
+      return sql`${sql(key)} = ${value}`;
+    });
 
     return sql`WHERE ${this.#join(clauses, sql` AND `)}`;
   }
