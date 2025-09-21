@@ -1,4 +1,4 @@
-import AppError from "#AppError";
+import fail from "#fail";
 import binary from "#response/binary";
 import json from "#response/json";
 import redirect from "#response/redirect";
@@ -12,7 +12,7 @@ import type Newable from "@rcompat/type/Newable";
 import type UnknownFunction from "@rcompat/type/UnknownFunction";
 
 function invalid_body(body: string) {
-  throw new AppError("invalid body {0} returned from route", body);
+  throw fail("invalid body {0} returned from route", body);
 }
 
 const is_instance = <T>(of: Newable<T>) =>

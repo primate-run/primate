@@ -1,4 +1,4 @@
-import AppError from "#AppError";
+import fail from "#fail";
 import is from "@rcompat/assert/is";
 import type PartialDict from "@rcompat/type/PartialDict";
 
@@ -80,7 +80,7 @@ export default class RequestBag {
    *
    * @param key - Key to look up (pre-normalization).
    * @returns The defined value.
-   * @throws {AppError} If the key is absent or its value is `undefined`.
+   * @throws If the key is absent or its value is `undefined`.
    */
   get(key: string): string {
     const k = this.#normalize(key);
@@ -90,7 +90,7 @@ export default class RequestBag {
       if (v !== undefined) return v;
     }
 
-    throw new AppError("{0} has no key {1}", this.#name, key);
+    throw fail("{0} has no key {1}", this.#name, key);
   }
 
   /**

@@ -1,5 +1,5 @@
 import type App from "#App";
-import AppError from "#AppError";
+import fail from "#fail";
 import type Platform from "#platform/Platform";
 import web from "#platform/web";
 
@@ -36,7 +36,7 @@ export default class PlatformManager {
         message += "\n   - add {2} for more platforms";
       }
       const platforms = this.#platforms.map(p => p.name).join(", ");
-      throw new AppError(message, name, platforms, "@primate/native");
+      throw fail(message, name, platforms, "@primate/native");
     }
 
     this.#name = name;
@@ -44,7 +44,7 @@ export default class PlatformManager {
 
   add(platform: Platform) {
     if (this.has(platform.name)) {
-      throw new AppError("Cannot add platform {0} twice", platform.name);
+      throw fail("Cannot add platform {0} twice", platform.name);
     }
     this.#platforms.push(platform);
   }

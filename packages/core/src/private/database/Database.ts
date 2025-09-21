@@ -1,4 +1,3 @@
-import AppError from "#AppError";
 import type As from "#database/As";
 import type Binds from "#database/Binds";
 import type DataDict from "#database/DataDict";
@@ -6,6 +5,7 @@ import type DataKey from "#database/DataKey";
 import type Sort from "#database/Sort";
 import type TypeMap from "#database/TypeMap";
 import type Types from "#database/Types";
+import fail from "#fail";
 import maybe from "@rcompat/assert/maybe";
 import entries from "@rcompat/record/entries";
 import type Dict from "@rcompat/type/Dict";
@@ -15,10 +15,6 @@ import type StoreSchema from "pema/StoreSchema";
 
 function required(operation: string) {
   fail("{0}: at least one column required", operation);
-}
-
-function fail(message: string, ...params: unknown[]) {
-  return new AppError(message, ...params);
 }
 
 function normalizeSort(direction: "asc" | "desc") {

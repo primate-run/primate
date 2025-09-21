@@ -1,4 +1,4 @@
-import AppError from "#AppError";
+import fail from "#fail";
 import json from "@rcompat/http/mime/application/json";
 import binary from "@rcompat/http/mime/application/octet-stream";
 import form from "@rcompat/http/mime/application/x-www-form-urlencoded";
@@ -41,7 +41,7 @@ export default class RequestBody {
 
     try {
       switch (type) {
-        case binary: 
+        case binary:
           return new RequestBody({ type: "binary", value: await request.blob() });
         case form:
         case formData:
@@ -53,11 +53,11 @@ export default class RequestBody {
         case "none":
           return RequestBody.none();
         default:
-          throw new AppError("{0}: unsupported content type {1}", path, type);
+          throw fail("{0}: unsupported content type {1}", path, type);
       }
     } catch (cause) {
       const message = "{0}: unparseable content type {1} - cause:\n[2]";
-      throw new AppError(message, path, type, cause);
+      throw fail(message, path, type, cause);
     }
   }
 
@@ -78,8 +78,7 @@ export default class RequestBody {
   }
 
   #throw(expected: string) {
-    const message = "request body: expected {0}, got {1}";
-    throw new AppError(message, expected, this.type);
+    throw fail("request body: expected {0}, got {1}", expected, this.type);
   }
 
   json(): JSONValue;
