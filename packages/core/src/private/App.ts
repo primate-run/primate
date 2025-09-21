@@ -4,9 +4,9 @@ import fail from "#fail";
 import location from "#location";
 import type Mode from "#Mode";
 import type Module from "#Module";
-import PlatformManager from "#platform/Manager";
 import reducer from "#reducer";
 import wrap from "#route/wrap";
+import TargetManager from "#target/Manager";
 import assert from "@rcompat/assert";
 import transform from "@rcompat/build/sync/transform";
 import type FileRef from "@rcompat/fs/FileRef";
@@ -75,7 +75,7 @@ export default class App {
   #kv = new Map<symbol, unknown>();
   #mode: Mode;
   #bindings: [string, Binder][] = Object.entries(default_bindings);
-  #platform: PlatformManager;
+  #target: TargetManager;
 
   constructor(root: FileRef, config: Config, mode: Mode) {
     this.#root = root;
@@ -83,10 +83,10 @@ export default class App {
     this.#modules = config.modules?.flat(10) ?? [];
     this.#path = entries(location).valmap(([, path]) => root.join(path)).get();
     this.#mode = mode;
-    this.#platform = new PlatformManager(this);
+    this.#target = new TargetManager(this);
   }
 
-  async init(platform: string) {
+  async init(target: string) {
     const names = this.#modules.map(({ name }) => name);
     if (new Set(names).size !== this.#modules.length) {
       throw fail("module {0} loaded twice", doubled(names));
@@ -94,7 +94,7 @@ export default class App {
 
     const app = await reducer(this.#modules, this, "init");
 
-    this.#platform.set(platform);
+    this.#target.set(target);
 
     return app;
   }
@@ -103,8 +103,8 @@ export default class App {
     return { ...location };
   }
 
-  get platform() {
-    return this.#platform;
+  get target() {
+    return this.#target;
   }
 
   get root() {

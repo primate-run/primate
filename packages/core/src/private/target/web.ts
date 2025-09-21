@@ -1,10 +1,10 @@
 import location from "#location";
-import type Platform from "#platform/Platform";
+import type Target from "#target/Target";
 import FileRef from "@rcompat/fs/FileRef";
 
 const html = /^.*.html$/ui;
 
-const web: Platform = {
+const web: Target = {
   name: "web",
   runner: async app => {
     const client = app.runpath(location.client);
@@ -65,10 +65,10 @@ const web: Platform = {
       rootfile: import.meta.url,
       static_root: "${app.config("http.static.root")}",
     }),
-    platform: "web",
+    target: "web",
   };
 `;
-    await app.path.build.join("platform.js").write(assets_scripts);
+    await app.path.build.join("target.js").write(assets_scripts);
   },
   target: "web",
 };

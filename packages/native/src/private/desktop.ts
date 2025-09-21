@@ -41,7 +41,7 @@ export default async (app: App) => {
   const app_js = client_imports.find($import => $import.src.endsWith(".js"));
 
   const assets_scripts = dedent`
-    import Webview from "@primate/native/platform/${app.platform.target}";
+    import Webview from "@primate/native/target/${app.target.target}";
     import Loader from "@primate/native/Loader";
     import FileRef from "@primate/native/FileRef";
 
@@ -96,8 +96,8 @@ export default async (app: App) => {
         static_imports,
         Webview,
       }),
-      platform: "${app.platform.name}",
+      target: "${app.target.name}",
     };
   `;
-  await app.path.build.join("platform.js").write(assets_scripts);
+  await app.path.build.join("target.js").write(assets_scripts);
 };
