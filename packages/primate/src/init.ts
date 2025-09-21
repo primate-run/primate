@@ -16,5 +16,5 @@ export default async (...args: string[]) => {
     version,
   } = await (await json(import.meta.url)).json() as PkgJSON;
   print(blue(bold(name as string)), blue(version as string), "\n");
-  find(command)(...flags);
+  find(command)(flags);
 };
