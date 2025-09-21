@@ -8,22 +8,12 @@ import Build from "@rcompat/build";
 import type FileRef from "@rcompat/fs/FileRef";
 import cache from "@rcompat/kv/cache";
 import type MaybePromise from "@rcompat/type/MaybePromise";
-import type PartialDict from "@rcompat/type/PartialDict";
 
 const s = Symbol("primate.Build");
-
-type ExtensionCompileFunction = (component: FileRef, app: BuildApp)
-  => Promise<void>;
-
-type ExtensionCompile = {
-  client: ExtensionCompileFunction;
-  server: ExtensionCompileFunction;
-};
 
 export default class BuildApp extends App {
   frontends: Map<string, string> = new Map();
   #postbuild: (() => void)[] = [];
-  #extensions: PartialDict<ExtensionCompile> = {};
   #roots: FileRef[] = [];
   #server_build: string[] = ["route"];
   #id = crypto.randomUUID().slice(0, 8);
@@ -139,35 +129,6 @@ export default class BuildApp extends App {
       await runtime_file.directory.create();
       runtime_file.write(await importer(debased));
     }
-  }
-
-  async compile(component: FileRef) {
-    const { client, components, server } = location;
-
-    const compile = this.#extensions[component.fullExtension]
-      ?? this.#extensions[component.extension];
-    if (compile === undefined) {
-      const source = this.path.build.join(components);
-      const debased = `${component.path}`.replace(source.toString(), "");
-
-      const server_target = this.runpath(server, components, debased);
-      await server_target.directory.create();
-      await component.copy(server_target);
-
-      const client_target = this.runpath(client, components, debased);
-      await client_target.directory.create();
-      await component.copy(client_target);
-    } else {
-      // compile server components
-      await compile.server(component, this);
-
-      // compile client components
-      await compile.client(component, this);
-    }
-  }
-
-  register(extension: string, compile: ExtensionCompile) {
-    this.#extensions[extension] = compile;
   }
 
   depth(): number {
