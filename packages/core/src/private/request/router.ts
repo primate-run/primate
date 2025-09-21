@@ -1,4 +1,5 @@
 import AppError from "#AppError";
+import fail from "#fail";
 import type FileRef from "@rcompat/fs/FileRef";
 import FileRouter from "@rcompat/fs/FileRouter";
 
@@ -34,13 +35,13 @@ export default async (directory: FileRef, extensions: string[]) => {
 
       if (!allowed.re.test(segment)) {
         const message = `route {0} may only contain ${allowed.text}`;
-        throw new AppError(message, path, ...allowed.replacements);
+        throw fail(message, path, ...allowed.replacements);
       }
       if (segment.startsWith("+") && !specials.includes(segment.slice(1))) {
-        throw new AppError("route {0} is not a valid special file", path);
+        throw fail("route {0} is not a valid special file", path);
       }
       if (!p.test(segment)) {
-        throw new AppError("route {0} has an invalid parameter", path);
+        throw fail("route {0} has an invalid parameter", path);
       }
     });
     return router;

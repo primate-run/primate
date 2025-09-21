@@ -1,10 +1,7 @@
+import fail from "#fail";
 import ordinals from "#i18n/ordinals";
 import toIntlUnit from "#i18n/toIntlUnit";
 import is from "@rcompat/assert/is";
-
-function fail(message: string) {
-  return new Error(message);
-}
 
 export default class Formatter {
   #locale: string;
@@ -100,7 +97,7 @@ export default class Formatter {
 
   unit(value: number, u: string) {
     const unit = toIntlUnit(u);
-    if (unit === undefined) throw fail(`unit ${u} not supported`);
+    if (unit === undefined) throw fail("unit {0} not supported", u);
 
     const options = { style: "unit", unit } as const;
     try {

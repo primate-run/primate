@@ -1,5 +1,4 @@
 import App from "#App";
-import AppError from "#AppError";
 import type Asset from "#asset/Asset";
 import type Font from "#asset/Font";
 import type Script from "#asset/Script";
@@ -7,6 +6,7 @@ import type Style from "#asset/Style";
 import DevModule from "#builtin/DevModule";
 import HandleModule from "#builtin/HandleModule";
 import type CSP from "#CSP";
+import fail from "#fail";
 import type ServerComponent from "#frontend/ServerComponent";
 import type ViewOptions from "#frontend/ViewOptions";
 import type ViewResponse from "#frontend/ViewResponse";
@@ -205,8 +205,7 @@ export default class ServeApp extends App {
     const base = name.slice(0, name.lastIndexOf((".")));
     const component = this.#components[base];
     if (component === undefined) {
-      const path = `${location.components}/${name}`;
-      throw new AppError("missing component {0}", path);
+      throw fail("missing component {0}", `${location.components}/${name}`);
     }
     return (component!.default ?? component) as T;
   };
@@ -296,7 +295,7 @@ export default class ServeApp extends App {
 
   register(extension: string, viewFunction: ViewResponse) {
     if (this.#frontends[extension] !== undefined) {
-      throw new AppError("double file extension {0}", extension);
+      throw fail("double file extension {0}", extension);
     }
     this.#frontends[extension] = viewFunction;
   };
@@ -358,7 +357,7 @@ export default class ServeApp extends App {
         const verbs = router.get(v);
         const routeHandler = verbs[verb];
         if (routeHandler === undefined) {
-          throw new AppError("route {0} has no {1} verb", route.path, verb);
+          throw fail("route {0} has no {1} verb", route.path, verb);
         }
         return routeHandler.handler;
       })])
@@ -368,7 +367,7 @@ export default class ServeApp extends App {
     const routePath = verbs[verb];
 
     if (routePath === undefined) {
-      throw new AppError("route {0} has no {1} verb", route.path, verb);
+      throw fail("route {0} has no {1} verb", route.path, verb);
     }
 
     const parseBody = routePath.options.parseBody;

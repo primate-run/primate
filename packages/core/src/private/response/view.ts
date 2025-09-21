@@ -1,4 +1,4 @@
-import AppError from "#AppError";
+import fail from "#fail";
 import type ViewResponse from "#frontend/ViewResponse";
 import FileRef from "@rcompat/fs/FileRef";
 import type Dict from "@rcompat/type/Dict";
@@ -28,7 +28,7 @@ function no_frontend(component: string) {
   const fix = hasPkg ? "" : ", did you configure {1}?";
   const pkgname = hasPkg ? "" : `@primate/${backmap[extension]}`;
 
-  throw new AppError(`${error}${fix}`, component, pkgname);
+  throw fail(`${error}${fix}`, component, pkgname);
 }
 
 /**

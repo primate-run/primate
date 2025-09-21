@@ -1,6 +1,6 @@
-import AppError from "#AppError";
 import type Binder from "#Binder";
 import type Config from "#config/Config";
+import fail from "#fail";
 import location from "#location";
 import type Mode from "#Mode";
 import type Module from "#Module";
@@ -89,7 +89,7 @@ export default class App {
   async init(platform: string) {
     const names = this.#modules.map(({ name }) => name);
     if (new Set(names).size !== this.#modules.length) {
-      throw new AppError("module {0} loaded twice", doubled(names));
+      throw fail("module {0} loaded twice", doubled(names));
     }
 
     const app = await reducer(this.#modules, this, "init");
