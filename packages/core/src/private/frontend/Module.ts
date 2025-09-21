@@ -2,6 +2,7 @@ import type App from "#App";
 import AppError from "#AppError";
 import type BuildApp from "#BuildApp";
 import type ClientData from "#client/Data";
+import type ExtensionLoader from "#ExtensionLoader";
 import bundle from "#frontend/bundle-server";
 import type Component from "#frontend/Component";
 import type Render from "#frontend/Render";
@@ -67,6 +68,7 @@ export default abstract class FrontendModule<
 
   static options = FrontendModule.schema.infer;
   static input = FrontendModule.schema.input;
+  loader?: ExtensionLoader;
 
   constructor(options?: typeof FrontendModule.schema.input) {
     super();
@@ -285,7 +287,6 @@ export default abstract class FrontendModule<
           `${this.name}: only components supported`);
 
         if (this.compile.server) {
-
           const original = file.debase(app.runpath("stage", "components"));
           const source = app.path.components.join(original);
           const code = await this.compile.server(await source.text());
@@ -298,7 +299,7 @@ export default abstract class FrontendModule<
           });
           await file.append(".js").write(bundled);
         }
-      });
+      }, this.loader);
     });
     return next(app);
   }

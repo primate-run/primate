@@ -82,8 +82,8 @@ const write_directories = async (build_directory: FileRef, app: BuildApp) => {
       .map(async path => `${path}`.replace(d.toString(), _ => "")));
     const files_js = `
     const ${name} = [];
-    ${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
-      `const ${name}${i} = (await import("${FileRef.webpath(`#${name}/${bare}`)}")).default;
+    ${e.map(path => path.slice(1)).map((bare, i) =>
+      `const ${name}${i} = (await import("${FileRef.webpath(`../${name}s/${bare}`)}")).default;
     ${name}.push(["${FileRef.webpath(bare)}", ${name}${i}]);`,
     ).join("\n")}
     export default ${name};`;

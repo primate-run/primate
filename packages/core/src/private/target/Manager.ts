@@ -1,11 +1,13 @@
 import type App from "#App";
+import type BuildApp from "#BuildApp";
 import fail from "#fail";
+import $static from "#target/static";
 import type Target from "#target/Target";
 import web from "#target/web";
 
 export default class TargetManager {
   #name: string = "web";
-  #targets: Target[] = [web];
+  #targets: Target[] = [web, $static];
   #app: App;
 
   constructor(app: App) {
@@ -50,6 +52,6 @@ export default class TargetManager {
   }
 
   async run() {
-    await this.get().runner(this.#app);
+    await this.get().runner(this.#app as BuildApp);
   }
 }

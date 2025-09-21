@@ -1,5 +1,6 @@
 import type Binder from "#Binder";
 import type Config from "#config/Config";
+import type ExtensionLoader from "#ExtensionLoader";
 import fail from "#fail";
 import location from "#location";
 import type Mode from "#Mode";
@@ -59,6 +60,7 @@ const default_bindings: Dict<Binder> = {
     const code = context === "routes"
       ? wrap(compile(await file.text()), file, build)
       : compile(await file.text());
+
     await file.append(".js").write(code);
   },
 };
@@ -75,6 +77,7 @@ export default class App {
   #kv = new Map<symbol, unknown>();
   #mode: Mode;
   #bindings: [string, Binder][] = Object.entries(default_bindings);
+  #loaders: [string, ExtensionLoader][] = [];
   #target: TargetManager;
 
   constructor(root: FileRef, config: Config, mode: Mode) {
@@ -127,6 +130,12 @@ export default class App {
     return this.#bindings.map(([extension]) => extension);
   }
 
+  getLoader(extension: string) {
+    const loader = this.#loaders.find(l => l[0] === extension);
+    if (!loader) throw fail("no loader for {0}", extension);
+    return loader;
+  }
+
   binder(file: FileRef) {
     return this.#bindings
       .toSorted(([a], [b]) => a.length > b.length ? -1 : 1)
@@ -153,10 +162,12 @@ export default class App {
 
   // this is technically not necessary for serving, but it has to be used by
   // the init hook, which is shared between the build and serve app
-  bind(extension: string, binder: Binder) {
+  bind(extension: string, binder: Binder, loader?: ExtensionLoader) {
     if (this.extensions.includes(extension)) {
       throw new Error(`${extension} already bound`);
     }
     this.#bindings.push([extension, binder]);
+
+    if (loader !== undefined) this.#loaders.push([extension, loader]);
   }
 }
