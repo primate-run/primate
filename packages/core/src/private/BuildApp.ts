@@ -30,7 +30,7 @@ export default class BuildApp extends App {
   #i18n_active = false;
 
   async buildInit() {
-    log.system("starting {0} build in {1} mode", this.platform.name, this.mode);
+    log.system("starting {0} build in {1} mode", this.target.name, this.mode);
     await build(this);
   }
 

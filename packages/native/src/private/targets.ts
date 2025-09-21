@@ -1,7 +1,7 @@
 import runner from "#desktop";
-import type NativePlatform from "#NativePlatform";
+import type NativeTarget from "#NativeTarget";
 
-const platforms: NativePlatform[] = [
+const targets: NativeTarget[] = [
   {
     exe: "app",
     flags: "--target=bun-linux-x64",
@@ -32,10 +32,9 @@ const platforms: NativePlatform[] = [
   },
 ];
 
-platforms.push({
-  ...platforms.find(platform =>
-    platform.target === `${process.platform}-${process.arch}`)!,
+targets.push({
+  ...targets.find(t => t.target === `${process.platform}-${process.arch}`)!,
   name: "desktop",
 });
 
-export default platforms;
+export default targets;

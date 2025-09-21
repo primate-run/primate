@@ -1,6 +1,6 @@
 import command from "#command";
-import type NativePlatform from "#NativePlatform";
-import platforms from "#platforms";
+import type NativeTarget from "#NativeTarget";
+import targets from "#targets";
 import type App from "@primate/core/App";
 import type BuildApp from "@primate/core/BuildApp";
 import log from "@primate/core/log";
@@ -15,7 +15,7 @@ import pema from "pema";
 import boolean from "pema/boolean";
 import string from "pema/string";
 
-const names = platforms.map(platform => platform.name);
+const names = targets.map(t => t.name);
 
 const schema = pema({
   debug: boolean.default(false),
@@ -35,21 +35,21 @@ export default class NativeModule extends Module {
   }
 
   init<T extends App>(app: T, next: Next<T>) {
-    platforms.forEach(platform => app.platform.add(platform));
+    targets.forEach(t => app.target.add(t));
 
     return next(app);
   }
 
   build(app: BuildApp, next: NextBuild) {
-    if (names.includes(app.platform.name)) {
+    if (names.includes(app.target.name)) {
       app.done(async () => {
-        const { exe, flags } = app.platform.get() as NativePlatform;
+        const { exe, flags } = app.target.get() as NativeTarget;
         const executable_path = dim(`${app.path.build}/${exe}`);
         const { host, port } = app.config("http");
         await app.runpath("worker.js").write(`
-          import platform from "@primate/native/platform/${app.platform.target}";
+          import target from "@primate/native/target/${app.target.target}";
           import Webview from "@primate/native/Webview";
-          const webview = new Webview({ platform });
+          const webview = new Webview({ platform: target });
           webview.navigate("http://${host}:${port}/${this.#config.start}");
           webview.run();
         `);
@@ -66,7 +66,7 @@ export default class NativeModule extends Module {
   }
 
   serve(app: ServeApp, next: NextServe) {
-    if (names.includes(app.platform.name)) {
+    if (names.includes(app.target.name)) {
       const worker = new Worker(app.root.join("worker.js").path);
       worker.addEventListener("message", event => {
         if (event.data === "destroyed") {

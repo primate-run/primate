@@ -138,7 +138,7 @@ ${app.server_build.map(name => `${name}s`).map(name =>
   ).join("\n")}
 import components from "./${app.id}/components.js";
 import stores from "./${app.id}/stores.js";
-import platform from "./platform.js";
+import target from "./target.js";
 import session from "#session";
 import config from "#config";
 import s_config from "primate/symbol/config";
@@ -151,7 +151,7 @@ const i18n_config = undefined;
 `}
 
 const app = await serve(import.meta.url, {
-  ...platform,
+  ...target,
   config,
   files,
   components,
@@ -259,8 +259,8 @@ const post = async (app: BuildApp) => {
   // start the build
   await app.build.start();
 
-  // a platform needs to create an `assets.js` that exports assets
-  await app.platform.run();
+  // a target needs to create an `assets.js` that exports assets
+  await app.target.run();
 
   const build_directory = app.path.build.join(app.id);
   // TODO: remove after rcompat automatically creates directories

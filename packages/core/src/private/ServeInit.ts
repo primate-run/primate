@@ -22,7 +22,7 @@ type ServeInit = {
   files: BuildFiles;
   loader: Loader;
   mode: Mode;
-  platform: string;
+  target: string;
   session_config: SessionConfig;
   i18n_config?: I18NConfig;
 };

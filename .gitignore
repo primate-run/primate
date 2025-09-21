@@ -4,7 +4,6 @@ pnpm-lock.yaml
 bun.lock
 **/lib/**
 .vscode
-target
 **/*.gro
 
 # Mise is used as a tool manager, just added for convenience
