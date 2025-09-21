@@ -1,10 +1,11 @@
 # Stores
 
-A **store** is a collection of records with a schema and a common interface.
-Stores can be backed by APIs, filesystems, caches, or other sources.
+A **store** is a collection of methods for accessing data. Stores can be backed
+by APIs, filesystems, caches, or other sources.
 
-The most common store is the **`DatabaseStore`**, backed by a relational or
-document database. This page focuses on database stores, the most widely used.
+The most common store is the **`DatabaseStore`**, a collection of records with
+a schema and a common interface, backed by a relational or document database.
+This page focuses on database stores, the most widely used.
 
 ## Mapping
 
@@ -123,6 +124,131 @@ the `body` is validated against an ad-hoc Pema schema — it must contain a titl
 (≤100 chars) and a body. Later, before insertion, the entire record to be
 inserted is validated. This distinction is important: not all backend
 validation needs to repeat at the store layer.
+!!!
+
+## Extending stores
+
+Add custom methods to stores with `.extend()`. Extensions can be defined
+inline or in separate files for modularity.
+
+```ts
+// stores/User.ts
+import primary from "pema/primary";
+import string from "pema/string";
+import u8 from "pema/u8";
+import store from "primate/store";
+
+export default store({
+  id: primary,
+  name: string,
+  age: u8.range(0, 120),
+  lastname: string.optional(),
+}).extend(User => ({
+  findByAge(age: typeof User.R.age) {
+    return User.find({ age });
+  },
+
+  async getAverageAge() {
+    const users = await User.find({});
+    return users.reduce((sum, u) => sum + u.age, 0) / users.length;
+  },
+}));
+```
+
+### Modular extensions
+
+Create a base store:
+
+```ts
+// stores/User.ts
+import primary from "pema/primary";
+import string from "pema/string";
+import u8 from "pema/u8";
+import store from "primate/store";
+
+export default store({
+  id: primary,
+  name: string,
+  age: u8.range(0, 120),
+  lastname: string.optional(),
+});
+```
+
+Create an extended version:
+
+```ts
+import Base from "#store/User";
+
+export default Base.extend(User => {
+  type R = typeof User.R;
+
+  return {
+    findByAge(age: R["age"]) {
+      return User.find({ age });
+    },
+
+    findByNamePrefix(prefix: R["name"]) {
+      return User.find({ name: { $like: `${prefix}%` } });
+    },
+
+    async updateAge(id: R["id"], age: R["age"]) {
+      return User.update(id, { age });
+    },
+
+    async getAverageAge() {
+      const users = await User.find({});
+      return users.reduce((sum, u) => sum + u.age, 0) / users.length;
+    },
+  };
+});
+```
+
+Use in routes:
+
+```ts
+import User from "#store/UserExtended";
+import route from "primate/route";
+
+route.get(async () => {
+  const bobs = await User.findByNamePrefix("Bob");
+  const byAge = await User.findByAge(25);
+  const average = await User.getAverageAge();
+
+  return { bobs, byAge, average };
+});
+```
+
+### Extension types
+
+Access field types with `typeof <param>.R.<fieldName>`. If you extract this
+into a type, you'll use `R[fieldName]`.
+
+```ts
+User => {
+  type R = typeof User.R;
+
+  return {
+    // id: string (primary key)
+    findById(id: R["id"]) {
+      return User.get(id);
+    },
+    // name: string
+    updateName(id: R["id"], name: R["name"]) {
+      return User.update(id, { name });
+    },
+  };
+}
+```
+
+!!!
+Naming the parameter: The identifier inside `.extend(param => { ... })` is up
+to you. We use `User` for clarity, but `This` (or any name) works the same.
+Access types via `typeof <param>.R.<field>`.
+!!!
+
+!!!
+Extensions have access to all base store methods (`find`, `insert`, `update`,
+etc.) and can combine them to create higher-level operations.
 !!!
 
 ## API
@@ -275,11 +401,17 @@ await Post.delete({ title: "..." });
 
 ## Criteria
 
-Criteria are plain equality checks:
+Criteria are equality checks:
 
 ```ts
 await Post.find({ title: "Hello" });
 ```
+
+!!!
+**Operators:** String fields also support `$like` (e.g.,
+`{ name: { $like: "Jo%" } }`). Drivers translate this appropriately
+(SQL → `LIKE`, MongoDB → `$regex`, SurrealDB → `string::matches()`).
+!!!
 
 ## Types for stores
 
