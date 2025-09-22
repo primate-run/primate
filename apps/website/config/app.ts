@@ -324,7 +324,7 @@ export default config({
           {
             items: [{
               href: "/frontend",
-              title: "Overview",
+              title: "Intro",
             }].concat(...[
               "Angular",
               "Eta",
@@ -363,7 +363,7 @@ export default config({
           {
             items: [{
               href: "/database",
-              title: "Overview",
+              title: "Intro",
             }].concat(...[
               "MongoDB",
               "MySQL",

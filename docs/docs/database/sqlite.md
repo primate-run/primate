@@ -1,18 +1,32 @@
 # SQLite
 
-SQLite is a self-contained, file-based SQL database.
+SQLite is an embedded relational database. It stores data in a single file, or
+fully in memory for ephemeral use.
 
-## Installation
+## Setup
 
-[s=database/SQLite/install]
+### Install
 
-## Configuration
+```bash
+npm install @primate/sqlite
+```
 
-[s=database/SQLite/config]
+### Configure
 
-## Features
+```ts
+// config/database/index.ts
+import sqlite from "@primate/sqlite";
 
-* File-based database
-* No server required
-* ACID compliant
-* Full SQL support
+export default sqlite({
+  // database: ":memory:",        // in-memory (default)
+  // database: "/var/data.db",     // file path (persists)
+});
+```
+
+## Options
+
+| option   | type     | default      | description                              |
+| -------- | -------- | ------------ | ---------------------------------------- |
+| database | `string` | `":memory:"` | Path to a database file, or `":memory:"` |
+
+`":memory:"` uses an in-memory database. It does **not** persist across runs.
