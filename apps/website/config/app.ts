@@ -348,7 +348,7 @@ export default config({
           {
             items: [{
               href: "/backend",
-              title: "Overview",
+              title: "Intro",
             }].concat(...[
               "Go",
               "Grain",
@@ -377,37 +377,22 @@ export default config({
             title: "Databases",
           },
           {
-            href: "/runtime",
-            items: [{
-              href: "/runtime",
-              title: "Overview",
-            }].concat(...[
-              "Node",
-              "Deno",
-              "Bun",
-            ].map(title => ({
-              href: `/runtime/${title.replaceAll(" ", "-").toLowerCase()}`,
-              title,
-            }))),
-            title: "Runtimes",
-          },
-          {
-            href: "targets",
+            href: "/platform",
             items: [
+              {
+                href: "/platform",
+                title: "Intro",
+              },
               {
                 href: "/target/web",
                 title: "Web",
-              },
-              {
-                title: "Cloud",
-                upcoming: true,
               },
               {
                 href: "/target/native",
                 title: "Native",
               },
             ],
-            title: "Targets",
+            title: "Platforms",
           },
         ],
       },
