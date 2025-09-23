@@ -1,5 +1,9 @@
 package main
 
-func Get(request Request) any {
-  return "Hello, world!";
-}
+import (
+	"github.com/primate-run/go/route"
+)
+
+var _ = route.Get(func(_ route.Request) any {
+	return "Hello, world!"
+})

@@ -1,7 +1,11 @@
 package main
 
-import "github.com/primate-run/primate"
+import (
+	"github.com/primate-run/go/core"
+	"github.com/primate-run/go/response"
+	"github.com/primate-run/go/route"
+)
 
-func Get(request Request) any {
-  return primate.Error(primate.Props{ "body": "Go error" })
-}
+var _ = route.Get(func(_ route.Request) any {
+	return response.Error(core.Dict{"body": "Go error"})
+})

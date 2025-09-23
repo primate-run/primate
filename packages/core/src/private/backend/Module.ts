@@ -7,10 +7,10 @@ export default abstract class BackendModule extends Module {
   #options: typeof BackendModule.options;
 
   static schema = pema({
-    extension: string.optional(),
+    fileExtension: string.optional(),
   });
-
   static options = BackendModule.schema.infer;
+  static input = BackendModule.schema.input;
 
   constructor(options?: typeof BackendModule.schema.input) {
     super();
@@ -18,8 +18,8 @@ export default abstract class BackendModule extends Module {
     this.#options = BackendModule.schema.parse(options);
   }
 
-  get extension() {
-    return this.#options.extension ?? this.defaultExtension;
+  get fileExtension() {
+    return this.#options.fileExtension ?? this.defaultExtension;
   }
 
   get package() {

@@ -1,7 +1,10 @@
 package main
 
-import "github.com/primate-run/primate"
+import (
+	"github.com/primate-run/go/response"
+	"github.com/primate-run/go/route"
+)
 
-func Get(request Request) any {
-  return primate.Redirect("/redirected");
-}
+var _ = route.Get(func(_ route.Request) any {
+	return response.Redirect("/redirected")
+})

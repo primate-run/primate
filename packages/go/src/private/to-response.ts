@@ -22,7 +22,6 @@ const handle_handler = (handler: Handler, response: Dict) => {
   if (handler === "redirect") {
     const { location, status } = response as {
       location: string;
-      // unchecked, go is int
       status: null | Parameters<typeof redirect>[1];
     };
     return redirect(location, status === null ? undefined : status);

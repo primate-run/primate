@@ -1,10 +1,10 @@
 package main
 
-import "github.com/primate-run/primate"
+import (
+	"github.com/primate-run/go/core"
+	"github.com/primate-run/go/route"
+)
 
-func Get(request Request) any {
-  return primate.Array[primate.Props]{
-    { "name": "Donald" },
-    { "name": "Ryan" },
- };
-}
+var _ = route.Get(func(_ route.Request) any {
+	return core.Array[core.Dict]{{"name": "Donald"}, {"name": "Ryan"}}
+})

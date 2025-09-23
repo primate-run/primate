@@ -70,7 +70,7 @@ async function bridgeBody(body: RequestBody) {
     }
     case "binary": {
       const blob: Blob = body.binary();
-      const buf = new Uint8Array(await blob.arrayBuffer()); // precompute bytes
+      const buf = new Uint8Array(await blob.arrayBuffer());
       const mime = blob.type || "application/octet-stream";
       return {
         binarySync: () => buf,
@@ -88,10 +88,11 @@ export default async function toRequest(request: RequestFacade) {
 
   return {
     body,
-    cookies: request.cookies.toJSON(),
-    headers: request.headers.toJSON(),
-    path: request.path.toJSON(),
-    query: request.query.toJSON(),
+    cookies: JSON.stringify(request.cookies.toJSON()),
+    headers: JSON.stringify(request.headers.toJSON()),
+    path: JSON.stringify(request.path.toJSON()),
+    query: JSON.stringify(request.query.toJSON()),
+    searchParams: JSON.stringify(request.url.searchParams),
     url: request.url,
   };
 }

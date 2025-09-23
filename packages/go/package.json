@@ -7,7 +7,6 @@
   "license": "MIT",
   "files": [
     "/lib/**/*.js",
-    "/lib/**/*.go",
     "/lib/**/*.sum",
     "/lib/**/*.mod",
     "/lib/**/*.d.ts",
@@ -19,7 +18,7 @@
     "directory": "packages/go"
   },
   "scripts": {
-    "build": "npm run clean && tsc && cp -a src/private/*.go lib/private && cp src/private/go.* lib/private",
+    "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
@@ -27,7 +26,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.3.1",
-    "@rcompat/cli": "^0.10.2",
+    "@rcompat/cli": "^0.10.3",
     "@rcompat/env": "^0.9.0",
     "@rcompat/fs": "^0.21.1",
     "@rcompat/runtime": "^0.6.0",

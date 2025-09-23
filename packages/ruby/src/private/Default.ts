@@ -75,7 +75,7 @@ ${routes.map(route => make_route(route)).join("\n  ")}
 
 export default class Default extends Runtime {
   build(app: BuildApp, next: NextBuild) {
-    app.bind(this.extension, async (route, { build, context }) => {
+    app.bind(this.fileExtension, async (route, { build, context }) => {
       assert(context === "routes", "ruby: only route files are supported");
 
       const code = await route.text();

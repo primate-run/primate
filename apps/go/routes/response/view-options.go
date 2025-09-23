@@ -1,10 +1,16 @@
 package main
 
-import "github.com/primate-run/primate"
+import (
+	"github.com/primate-run/go/core"
+	"github.com/primate-run/go/response"
+	"github.com/primate-run/go/route"
+)
 
-func Get(request Request) any {
-  return primate.View("index.html",
-    primate.Props{ "hello": "world" },
-    primate.Options{ "partial": true },
-  );
-}
+type dict = core.Dict
+
+var _ = route.Get(func(_ route.Request) any {
+	return response.View("index.html",
+		dict{"hello": "world"},
+		dict{"partial": true},
+	)
+})

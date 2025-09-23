@@ -9,7 +9,7 @@ export default class Runtime extends Module {
   defaultExtension = ".py";
 
   static schema = pema({
-    extension: string.optional(),
+    fileExtension: string.optional(),
     packages: array(string).optional(),
   });
 
@@ -17,9 +17,9 @@ export default class Runtime extends Module {
   static input = Runtime.schema.input;
 
   constructor(init: typeof Runtime.input) {
-    const { extension, packages } = Runtime.schema.parse(init);
+    const { fileExtension, packages } = Runtime.schema.parse(init);
 
-    super({ extension });
+    super({ fileExtension });
 
     this.#packages = packages ?? [];
   }

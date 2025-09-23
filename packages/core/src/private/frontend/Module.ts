@@ -64,7 +64,6 @@ export default abstract class FrontendModule<
     spa: boolean.default(true),
     ssr: boolean.default(true),
   });
-
   static options = FrontendModule.schema.infer;
   static input = FrontendModule.schema.input;
 

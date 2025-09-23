@@ -9,3 +9,7 @@ Object.entries({
     response.body.equals(body);
   });
 });
+
+test.get("/type/null", response => {
+  response.status.equals(204);
+});

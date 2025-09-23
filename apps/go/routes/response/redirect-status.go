@@ -1,8 +1,11 @@
 package main
 
-import "github.com/primate-run/primate"
+import (
+	"github.com/primate-run/go/response"
+	"github.com/primate-run/go/route"
+)
 
-func Get(request Request) any {
-  // moved permanently
-  return primate.Redirect("/redirected", 301);
-}
+var _ = route.Get(func(_ route.Request) any {
+	// moved permanently
+	return response.Redirect("/redirected", 301)
+})
