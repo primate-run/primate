@@ -6,7 +6,8 @@
     "build": "npx primate build",
     "test": "npx primate test",
     "test:deno": "deno run -A npm:primate test",
-    "test:bun": "bun x --bun primate test"
+    "test:bun": "bun x --bun primate test",
+    "ruby:install": "bundle config set --local path 'vendor/bundle' && bundle install"
   },
   "dependencies": {
     "@primate/html": "workspace:^",

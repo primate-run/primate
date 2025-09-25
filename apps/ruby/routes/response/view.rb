@@ -1,3 +1,6 @@
-def get(request)
-  Primate.view("index.html", { :hello => "world" })
+require 'primate/route'
+require 'primate/response'
+
+Route.get do |request|
+  Response.view('index.html', hello: 'world')
 end

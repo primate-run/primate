@@ -1,0 +1,8 @@
+source "https://rubygems.org"
+
+group :development do
+  gem "ruby-lsp"
+  gem "rbs"
+end
+
+gem "primate-run", "~> 0.1.0"

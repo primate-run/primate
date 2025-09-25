@@ -1,5 +1,7 @@
-def get(request)
-  Primate.session.create({ :foo => "bar"})
+require 'primate/route'
+require 'primate/session'
 
-  Primate.session.get()
+Route.get do |request|
+  Session.create(foo: 'bar' )
+  Session.get
 end

@@ -26,7 +26,7 @@ export default config({
 });
 ```
 
-### Initialize Go Module
+### Initialize Go
 
 Create a `go.mod` file in your project root:
 

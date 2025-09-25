@@ -1,91 +1,93 @@
 import Runtime from "#Runtime";
 import type BuildApp from "@primate/core/BuildApp";
+import log from "@primate/core/log";
 import type NextBuild from "@primate/core/NextBuild";
 import verbs from "@primate/core/request/verbs";
 import wrap from "@primate/core/route/wrap";
 import assert from "@rcompat/assert";
-import FileRef from "@rcompat/fs/FileRef";
+import type FileRef from "@rcompat/fs/FileRef";
 
-const routes_re = new RegExp(`def (?<route>${verbs.join("|")})`, "gu");
-const get_routes = (code: string) => [...code.matchAll(routes_re)]
-  .map(({ groups }) => groups!.route);
-
-const this_directory = new FileRef(import.meta.url).up(1);
-const request = await this_directory.join("./request.rb").text();
-const make_route = (route: string) => `
-route.${route.toLowerCase()}(async request => {
-  try {
-    return to_response(await environment.callAsync("run_${route}",
-      vm.wrap(request), vm.wrap(helpers), vm.wrap(session())));
-  } catch (e) {
-    console.log("ruby error", e);
-    return "Ruby error";
+/** find which HTTP verbs are present in the Ruby file */
+const detect_routes = (code: string): string[] => {
+  const found: string[] = [];
+  for (const verb of verbs) {
+    const rx = new RegExp(`\\bRoute\\.${verb.toLowerCase()}\\s*do\\b`);
+    if (rx.test(code)) found.push(verb);
   }
-});`;
-
-const type_map = {
-  f32: { transfer: "to_f", type: "float32" },
-  f64: { transfer: "to_f", type: "float64" },
-  i16: { transfer: "to_i", type: "int16" },
-  i32: { transfer: "to_i", type: "int32" },
-  i64: { transfer: "to_i", type: "int64" },
-  i8: { transfer: "to_i", type: "int8" },
-  string: { transfer: "to_s", type: "string" },
-  u16: { transfer: "to_i", type: "uint16" },
-  u32: { nullval: "0", transfer: "to_i", type: "uint32" },
-  u64: { transfer: "to_i", type: "uint64" },
-  u8: { transfer: "to_i", type: "uint8" },
-  uuid: { transfer: "to_s", type: "string" },
+  return found;
 };
 
-const create_ruby_wrappers = (routes: string[]) => routes.map(route =>
-  `
-def run_${route}(js_request, helpers, session)
-  Primate.set_session(session, helpers)
-  ${route}(Request.new(js_request, helpers))
-end
-`).join("\n");
-const js_wrapper = async (path: FileRef, routes: string[]) => {
-  const classes: string[] = [];
-  const request_initialize: string[] = [];
-  const request_defs: string[] = [];
+const js_wrapper = async (fileRef: FileRef, routes: string[]) => {
+  const userRubyRaw = await fileRef.text();
+  const userRuby = userRubyRaw.replace(/`/g, "\\`");
 
   return `
-import FileRef from "primate/runtime/FileRef";
 import route from "primate/route";
+import to_request from "@primate/ruby/to-request";
 import to_response from "@primate/ruby/to-response";
 import helpers from "@primate/ruby/helpers";
-import default_ruby_vm from "@primate/ruby/default-ruby-vm";
-import ruby from "@primate/ruby/ruby";
 import session from "primate/config/session";
+import ruby from "@primate/ruby/ruby";
+import wasi from "@primate/ruby/wasi";
 
-const { vm } = await default_ruby_vm(ruby);
-const code = await FileRef.text(${JSON.stringify(path.toString())});
-const wrappers = ${JSON.stringify(create_ruby_wrappers(routes))};
-const request = ${JSON.stringify(request
-    .replace("%%CLASSES%%", _ => classes.join("\n"))
-    .replace("%%REQUEST_INITIALIZE%%", _ => request_initialize.join("\n"))
-    .replace("%%REQUEST_DEFS%%", _ => request_defs.join("\n")))};
+const { vm } = await wasi(ruby, {
+  env: {
+    BUNDLE_GEMFILE: "/app/Gemfile",
+    BUNDLE_PATH: "/app/vendor/bundle"
+  },
+  preopens: {
+    "/app": process.cwd()
+  },
+});
 
-const environment = await vm.evalAsync(request+code+wrappers);
+await vm.evalAsync(\`
+  Dir.glob("/app/vendor/bundle/ruby/*/gems/*/lib").each do |lib_path|
+    $LOAD_PATH << lib_path unless $LOAD_PATH.include?(lib_path)
+  end
+\`);
 
-${routes.map(route => make_route(route)).join("\n  ")}
+const environment = await vm.evalAsync(\`
+${userRuby}
+
+${routes.map(route => `
+def run_${route.toUpperCase()}(js_request, helpers, session_obj)
+  Route.set_session(session_obj, helpers)
+  request = Request.new(js_request, helpers)
+  Route.call_route("${route.toUpperCase()}", request)
+end`).join("\n")}
+\`);
+
+${routes.map(route => `
+route.${route.toLowerCase()}(async request => {
+  try {
+    return to_response(await environment.callAsync("run_${route.toUpperCase()}",
+      vm.wrap(await to_request(request)), vm.wrap(helpers), vm.wrap(session())));
+  } catch (e) {
+    console.error("ruby error (${route})", e);
+    return { status: 500, body: "Ruby execution error: " + e.message };
+  }
+});`).join("\n")}
 `;
 };
 
 export default class Default extends Runtime {
-  build(app: BuildApp, next: NextBuild) {
+  async build(app: BuildApp, next: NextBuild) {
     app.bind(this.fileExtension, async (route, { build, context }) => {
       assert(context === "routes", "ruby: only route files are supported");
 
-      const code = await route.text();
-      const routes = get_routes(code);
+      const src = await route.text();
+      const routes = detect_routes(src);
+      if (routes.length === 0) {
+        log.warn("No routes detected in {0}. Use Route.get, Route.post, etc.", route);
+        return;
+      }
 
-      const js_code = wrap(await js_wrapper(route, routes), route, build);
-      // write .js wrapper
-      await route.append(".js").write(js_code);
+      log.info("Found routes in {0}: {1}", route, routes.join(", "));
+
+      const jsCode = wrap(await js_wrapper(route, routes), route, build);
+      await route.append(".js").write(jsCode);
     });
 
     return next(app);
   }
-};
+}

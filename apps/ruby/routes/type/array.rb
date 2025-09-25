@@ -1,6 +1,8 @@
-def get(request)
+require 'primate/route'
+
+Route.get do |request|
   [
-    {:name => "Donald"},
-    {:name => "Ryan"},
+    { name: 'Donald' },
+    { name: 'Ryan' },
   ]
 end

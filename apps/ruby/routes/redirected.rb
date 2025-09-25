@@ -1,3 +1,5 @@
-def get(request)
-  "Redirected!"
+require 'primate/route'
+
+Route.get do |request|
+  'Redirected!'
 end
