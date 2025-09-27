@@ -101,7 +101,7 @@ var _ = route.Get(func(request route.Request) any { ... })
 var _ = route.Post(func(request route.Request) any { ... })
 ```
 
-```grain
+```gr
 // Grain
 provide let get = (request: Request) => { ... }
 provide let post = (request: Request) => { ... }
@@ -142,7 +142,7 @@ if request.Query.Has("name") {
 json, err := request.Body.JSON()
 ```
 
-```grain
+```gr
 // Grain - Query parameters
 let query = Request.getQuery(request)
 match (Map.get("name", query)) {
@@ -164,7 +164,7 @@ Return structured data as JSON:
 return map[string]any{"message": "Hello"}
 ```
 
-```grain
+```gr
 JsonObject([("message", JsonString("Hello"))])
 ```
 
@@ -176,7 +176,7 @@ Render frontend components:
 return response.View("component.html", data)
 ```
 
-```grain
+```gr
 Response.view("component.html", props = data)
 ```
 
@@ -188,7 +188,7 @@ Redirect to other routes:
 return response.Redirect("/other-route")
 ```
 
-```grain
+```gr
 Response.redirect("/other-route")
 ```
 
@@ -196,7 +196,7 @@ Response.redirect("/other-route")
 
 Built-in store operations:
 
-```grain
+```gr
 // Grain
 let User = Store.store("User")
 let user = Store.insert(User, userData)
@@ -212,7 +212,7 @@ session.Create(map[string]any{"user": "john"})
 data := session.Get()
 ```
 
-```grain
+```gr
 // Grain
 Session.create(JsonObject([("user", JsonString("john"))]))
 let session = Session.get()
@@ -222,7 +222,7 @@ let session = Session.get()
 
 Real-time communication endpoints:
 
-```grain
+```gr
 // Grain
 Response.ws(
   message = Some((socket, payload) => {

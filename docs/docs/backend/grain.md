@@ -32,7 +32,7 @@ export default config({
 Create Grain route handlers in `routes` using `.gr` files. Routes are
 compiled to WebAssembly and run in the JavaScript runtime.
 
-```grain
+```gr
 // routes/hello.gr
 module Hello
 
@@ -51,7 +51,7 @@ provide let get = (request: Request) =>
 All standard HTTP methods are supported by providing the appropriate
 functions:
 
-```grain
+```gr
 module Routes
 
 from "primate/request" include Request
@@ -79,7 +79,7 @@ provide let delete = (request: Request) =>
 
 Access query parameters through the request object:
 
-```grain
+```gr
 // routes/query.gr
 module Query
 
@@ -106,7 +106,7 @@ Handle different body types based on content:
 
 #### JSON Body
 
-```grain
+```gr
 // routes/json.gr
 module JsonRoute
 
@@ -118,7 +118,7 @@ provide let post = (request: Request) => Body.json(request)
 
 #### Form Fields
 
-```grain
+```gr
 // routes/form.gr
 module Form
 
@@ -143,7 +143,7 @@ provide let post = (request: Request) => {
 
 #### Text Body
 
-```grain
+```gr
 // routes/text.gr
 module Text
 
@@ -156,7 +156,7 @@ provide let post = (request: Request) => Body.text(request)
 
 #### Binary Data
 
-```grain
+```gr
 // routes/binary.gr
 module Binary
 
@@ -191,7 +191,7 @@ provide let post = (request: Request) => {
 
 Handle multipart file uploads:
 
-```grain
+```gr
 // routes/upload.gr
 module Upload
 
@@ -250,7 +250,7 @@ provide let post = (request: Request) => {
 
 Return JSON data by constructing Json values:
 
-```grain
+```gr
 provide let get = (request: Request) =>
   JsonObject([("name", JsonString("Donald"))])
 
@@ -268,7 +268,7 @@ provide let get = (request: Request) =>
 
 Render components with props using the Response module:
 
-```grain
+```gr
 // routes/view.gr
 module View
 
@@ -287,7 +287,7 @@ provide let get = (request: Request) => Response.view(
 
 With options:
 
-```grain
+```gr
 provide let get = (request: Request) => Response.view(
   "index.html",
   props = JsonObject([("hello", JsonString("world"))]),
@@ -299,7 +299,7 @@ provide let get = (request: Request) => Response.view(
 
 Redirect to another route:
 
-```grain
+```gr
 // routes/redirect.gr
 module Redirect
 
@@ -314,7 +314,7 @@ provide let get = (request: Request) => Response.redirect("/redirected")
 
 With custom status code:
 
-```grain
+```gr
 provide let get = (request: Request) =>
   Response.redirect("/redirected", status = Some(MovedPermanently))
 ```
@@ -323,7 +323,7 @@ provide let get = (request: Request) =>
 
 Return error responses:
 
-```grain
+```gr
 // routes/error.gr
 module Error
 
@@ -338,7 +338,7 @@ provide let get = (request: Request) => Response.error()
 
 With custom error options:
 
-```grain
+```gr
 provide let get = (request: Request) =>
   Response.error(body = Some("Custom error message"))
 ```
@@ -347,7 +347,7 @@ provide let get = (request: Request) =>
 
 Manage user sessions with the session module:
 
-```grain
+```gr
 // routes/session.gr
 module Session
 
@@ -383,7 +383,7 @@ provide let get = (request: Request) => {
 Primate Grain includes built-in database operations through the Store
 module:
 
-```grain
+```gr
 // routes/db.gr
 module Database
 
@@ -438,7 +438,7 @@ provide let get = (request: Request) => {
 
 Create WebSocket endpoints for real-time communication:
 
-```grain
+```gr
 // routes/websocket.gr
 module Ws
 
@@ -474,7 +474,7 @@ provide let get = (req: Request) => {
 
 Grain's pattern matching makes request handling elegant:
 
-```grain
+```gr
 provide let post = (request: Request) => {
   match (request.body) {
     BodyString(text) => JsonString("Received text: " ++ text),
@@ -489,7 +489,7 @@ provide let post = (request: Request) => {
 
 Handle errors safely with Grain's type system:
 
-```grain
+```gr
 provide let get = (request: Request) => {
   let query = Request.getQuery(request)
   match (Map.get("id", query)) {
@@ -508,7 +508,7 @@ provide let get = (request: Request) => {
 
 Grain uses immutable data structures by default:
 
-```grain
+```gr
 provide let post = (request: Request) => {
   let baseData = JsonObject([("created", JsonString("2024-01-01"))])
   let requestData = Body.json(request)
@@ -560,7 +560,7 @@ export default config({
 
 Each route file should follow this structure:
 
-```grain
+```gr
 module ModuleName
 
 // Imports

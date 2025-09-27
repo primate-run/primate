@@ -1,17 +1,17 @@
 # Platforms
 
 Primate runs on **Node**, **Bun**, and **Deno** via `rcompat`. It avoids
-runtime-specific APIs and defers differences to `rcompat`. You build and run
-with your chosen runtime, and target **Web** or **Native**.
+runtime-specific APIs and abstracts differences via `rcompat`. You build
+and run with your chosen runtime, and target **Web** or **Native**.
 
 ## Why `rcompat`
 
 Using `rcompat` keeps apps portable and future-proof:
 
-* no vendor lock-in to a single runtime
-* one codebase, three runtimes
-* unified stable interfaces insulate you from runtime churn
-* matches Primate's stance elsewhere (frontend, backend, database agnostic)
+* No vendor lock-in to a single runtime
+* One codebase, three runtimes
+* Unified stable interfaces insulate you from runtime churn
+* Matches Primate's stance elsewhere (frontend, backend, database agnostic)
 
 ## Run
 
@@ -54,9 +54,9 @@ bunx --bun primate serve
 deno run -A npm:primate serve
 ```
 
-## Unified paths with `rcompat`
+## Unified APIs with `rcompat`
 
-Prefer `rcompat` packages over runtime APIs.
+Prefer `rcompat` packages over runtime-specific APIs.
 
 ### Filesystem
 
@@ -113,13 +113,11 @@ blank where a platform is not yet wired up.
 
 | Database     | Node | Deno | Bun (web) | Bun (native) |
 | ------------ | ---- | ---- | --------- | ------------ |
-| [MongoDB]    | ✓    | ✓    | ✓         | †            |
-| [MySQL]      | ✓    | ✓    | ✓         | †            |
-| [PostgreSQL] | ✓    | ✓    | ✓         | †            |
+| [MongoDB]    | ✓    | ✓    | ✓         |              |
+| [MySQL]      | ✓    | ✓    | ✓         |              |
+| [PostgreSQL] | ✓    | ✓    | ✓         |              |
 | [SQLite]     | ✓    |      | ✓         | ✓            |
 | [SurrealDB]  | ✓    | ✓    | ✓         | ✓            |
-
-† Bun native drivers pending (socket/driver availability).
 
 [Go]: /docs/backend/go
 [Python]: /docs/backend/python
