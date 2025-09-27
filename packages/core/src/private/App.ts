@@ -38,30 +38,32 @@ const BIND_CONTEXTS = [
   "modules",
 ];
 
-const default_bindings: Dict<Binder> = {
-  ".js": async (file, { build, context }) => {
-    const error = `js: only ${toContextString(BIND_CONTEXTS)} are supported`;
-    assert(BIND_CONTEXTS.includes(context), error);
-    const code = context === "routes"
-      ? wrap(await file.text(), file, build)
-      : await file.text();
+function generate_bindings(_app: App): Dict<Binder> {
+  return {
+    ".js": async (file, { build, context }) => {
+      const error = `js: only ${toContextString(BIND_CONTEXTS)} are supported`;
+      assert(BIND_CONTEXTS.includes(context), error);
+      const code = context === "routes"
+        ? wrap(await file.text(), file, build)
+        : await file.text();
 
-    await file.append(".js").write(code);
+      await file.append(".js").write(code);
 
-  },
-  ".json": () => {
-    // just copy the JSON for now
-  },
-  ".ts": async (file, { build, context }) => {
-    const error = `ts: only ${toContextString(BIND_CONTEXTS)} are supported`;
-    assert(BIND_CONTEXTS.includes(context), error);
+    },
+    ".json": () => {
+      // just copy the JSON for now
+    },
+    ".ts": async (file, { build, context }) => {
+      const error = `ts: only ${toContextString(BIND_CONTEXTS)} are supported`;
+      assert(BIND_CONTEXTS.includes(context), error);
 
-    const code = context === "routes"
-      ? wrap(compile(await file.text()), file, build)
-      : compile(await file.text());
-    await file.append(".js").write(code);
-  },
-};
+      const code = context === "routes"
+        ? wrap(compile(await file.text()), file, build)
+        : compile(await file.text());
+      await file.append(".js").write(code);
+    },
+  };
+}
 
 const doubled = (set: string[]) =>
   set.find((part: string, i: number, array: string[]) =>
@@ -74,7 +76,7 @@ export default class App {
   #modules: Module[];
   #kv = new Map<symbol, unknown>();
   #mode: Mode;
-  #bindings: [string, Binder][] = Object.entries(default_bindings);
+  #bindings: [string, Binder][];
   #target: TargetManager;
 
   constructor(root: FileRef, config: Config, mode: Mode) {
@@ -84,6 +86,7 @@ export default class App {
     this.#path = entries(location).valmap(([, path]) => root.join(path)).get();
     this.#mode = mode;
     this.#target = new TargetManager(this);
+    this.#bindings = Object.entries(generate_bindings(this));
   }
 
   async init(target: string) {

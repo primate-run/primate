@@ -284,7 +284,6 @@ export default abstract class FrontendModule<
           `${this.name}: only components supported`);
 
         if (this.compile.server) {
-
           const original = file.debase(app.runpath("stage", "components"));
           const source = app.path.components.join(original);
           const code = await this.compile.server(await source.text());

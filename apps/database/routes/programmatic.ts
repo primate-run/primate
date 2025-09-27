@@ -4,8 +4,8 @@ import route from "primate/route";
 
 route.get(() => {
   return app => {
-    const key = Object.keys(app.stores)[0];
-    assert(key === "User");
+    const key = Object.keys(app.stores).filter(k => k === "User")[0];
+    assert(key !== undefined);
     assert(app.stores[key] instanceof Store);
 
     return new Response(key);

@@ -5,6 +5,4 @@ bun.lock
 **/lib/**
 .vscode
 **/*.gro
-
-# Mise is used as a tool manager, just added for convenience
 mise.toml
