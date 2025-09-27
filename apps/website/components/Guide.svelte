@@ -39,9 +39,7 @@
     <span class="breadcrumbs">
       <a href="/guides">Guides</a>
       <Icon name="chevron-right" />
-      <a href={`/guides/${category}`}>
-        {`${category.charAt(0).toUpperCase()}${category.slice(1)}`}
-      </a>
+      {`${category.charAt(0).toUpperCase()}${category.slice(1)}`}
     </span>
     <h1 class="guide-title">
       {@html meta.name.replace(/`([^`]+)`/g, "<code>$1</code>")}

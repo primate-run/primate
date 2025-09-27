@@ -1,8 +1,8 @@
 <script>
   import Header from "#component/Header";
-  import ExampleLink from "#component/ExampleLink";
   import Footer from "#component/Footer";
   import Icon from "#component/Icon";
+  import Guides from "#component/Guides";
 
   export let app;
   export let title = "The Universal Web Framework";
@@ -30,8 +30,7 @@
       <h1 class="hero__title">{title}</h1>
       <div class="hero__lead" style="line-height: 1.8em; margin-bottom: 7rem;">
         Frontend, backend, runtime — Primate lets you pick the tools you love
-        and
-        <span class="emphasis">combine them however you like</span>, without
+        and <span class="emphasis">combine them however you like</span>, without
         lock-ins or rewrites.
       </div>
 
@@ -152,35 +151,7 @@
     </div>
   </section>
 
-  <section id="learn" class="examples">
-    <div class="examples__bg"></div>
-    <div class="examples__inner">
-      <div class="examples__head">
-        <h2 class="examples__title">Get productive.</h2>
-        <p class="examples__lead">
-          Short guides for common tasks. Browse topics and jump into the docs.
-        </p>
-        <a class="examples__all" href="/guides">
-          All guides <Icon name="chevron-right" />
-        </a>
-      </div>
-      {#each guides as category}
-        <div class="example-group">
-          <h3 class="example-group__title">{category[0]}</h3>
-          <ul class="example-list">
-            {#each category[1] as guide}
-              <li>
-                <ExampleLink
-                  title={guide.name}
-                  url={`${category[0]}/${guide.path}`}
-                />
-              </li>
-            {/each}
-          </ul>
-        </div>
-      {/each}
-    </div>
-  </section>
+  <Guides {guides} />
 
   <Footer />
 </main>
@@ -376,9 +347,8 @@
   .feature__lead {
     color: var(--fg2);
     font-size: 1.8rem;
-    margin: 0;
+    margin: 0 0 30px;
     max-width: 72ch;
-    margin-bottom: 30px;
   }
 
   .feature__actions {
@@ -390,7 +360,7 @@
 
   .feature__demo {
     grid-area: demo;
-    background: var(--caption-bg);
+    background:#2e3440;
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 1.2rem;
@@ -416,94 +386,5 @@
     .feature__demo {
       margin-top: 1.2rem;
     }
-  }
-
-  .examples {
-    position: relative;
-    padding: 72px 0;
-    overflow: hidden;
-    isolation: isolate;
-  }
-  .examples__bg {
-    position: absolute;
-    inset: -10% -10%;
-    background: radial-gradient(
-        60rem 30rem at 12% -8%,
-        color-mix(in srgb, var(--primary) 26%, transparent),
-        transparent 60%
-      ),
-      radial-gradient(
-        44rem 22rem at 98% 18%,
-        color-mix(in srgb, var(--primary) 18%, transparent),
-        transparent 60%
-      ),
-      repeating-linear-gradient(
-        to right,
-        color-mix(in srgb, var(--fg) 5%, transparent) 0 1px,
-        transparent 1px 28px
-      ),
-      repeating-linear-gradient(
-        to bottom,
-        color-mix(in srgb, var(--fg) 5%, transparent) 0 1px,
-        transparent 1px 28px
-      );
-    filter: blur(48px);
-    opacity: 0.1;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .examples__inner {
-    position: relative;
-    z-index: 1;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 var(--prs-page-padding-side);
-  }
-  .examples__head {
-    position: static;
-    display: grid;
-    gap: 0.6rem;
-    margin-bottom: 1.6rem;
-  }
-  .examples__title {
-    font-size: clamp(2.8rem, 3.2vw + 1rem, 4.2rem);
-    line-height: 1.1;
-    margin: 0;
-  }
-  .examples__lead {
-    margin: 0;
-    color: var(--fg2);
-    font-size: 1.7rem;
-    max-width: 72ch;
-  }
-  .examples__all {
-    justify-self: start;
-    margin-top: 0.6rem;
-    font-size: 1.4rem;
-    text-decoration: none;
-    color: var(--primary);
-    border-bottom: 1px dashed transparent;
-  }
-  .examples__all:hover {
-    border-bottom-color: var(--primary);
-  }
-
-  .example-group {
-    margin-top: 2.2rem;
-  }
-  .example-group__title {
-    margin: 0 0 0.8rem;
-    font-size: 1.2rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--heading);
-  }
-  .example-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 0.8rem;
   }
 </style>
