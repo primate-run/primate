@@ -1,21 +1,22 @@
 import Module from "@primate/core/backend/Module";
+import log from "@primate/core/log";
+import which from "@rcompat/stdio/which";
 import pema from "pema";
 import array from "pema/array";
 import boolean from "pema/boolean";
 import string from "pema/string";
-import which from "@rcompat/stdio/which";
 
 let default_grain: string;
 try {
   default_grain = await which("grain");
 } catch (_) {
-  console.error("!! Could not find a grain executable on path");
+  log.error("Could not find a grain executable on path");
   default_grain = "";
 }
 
 const schema = pema({
   command: string.default(default_grain),
-  extension: string.optional(),
+  fileExtension: string.optional(),
   includeDirs: array(string).optional(),
   noPervasives: boolean.default(false),
   stdlib: string.optional(),
@@ -30,7 +31,7 @@ export default class Runtime extends Module {
   static input = schema.input;
 
   constructor(config: typeof Runtime.input = {}) {
-    super({ extension: config.extension });
+    super({ fileExtension: config.fileExtension });
 
     this.#config = schema.parse(config);
   }

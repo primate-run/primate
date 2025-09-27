@@ -9,29 +9,24 @@ from "number" include Number
 from "bytes" include Bytes
 from "uint8" include Uint8
 
-// package main
-
-// import (
-//   "strconv"
-// )
-use Request.{ type Request, module BodyFieldsElement, module Body, type BlobLike, type FileLike }
+use Request.{ type Request, module BodyField, module Body, type Blob, type File }
 use Json.{ type Json }
 
 provide let post = (request: Request) => {
-  let fields = Body.expectFields(request)
+  let fields = Body.fields(request)
 
   let baz = Option.expect("Expected property baz", Map.get("baz", fields))
-  let bazString = BodyFieldsElement.expectString(baz)
+  let bazString = BodyField.string(baz)
   let bazValue = Result.expect("Expected parsable integer", Number.parseInt(bazString, 10))
 
   let foo = Option.expect("Expected property foo", Map.get("foo", fields))
-  let fooString = BodyFieldsElement.expectString(foo)
+  let fooString = BodyField.string(foo)
 
   let greeting = Option.expect("Expected property greeting", Map.get("greeting", fields))
-  let { name, mimeType, bytes } = BodyFieldsElement.expectFileLike(greeting)
+  let { name, mimeType, bytes } = BodyField.file(greeting)
   let byteLength = Bytes.length(bytes)
 
-  let content = Bytes.toString(bytes) 
+  let content = Bytes.toString(bytes)
 
   JsonObject([
     ("baz", JsonNumber(bazValue)),

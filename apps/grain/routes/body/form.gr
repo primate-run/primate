@@ -12,7 +12,7 @@ use Json.{ type Json }
 exception UnexpectedBodyType
 
 provide let post = (request: Request) => {
-  let fields = Map.toArray(Body.expectFields(request))
+  let fields = Map.toArray(Body.fields(request))
   let fieldsCount = Array.length(fields)
 
   let mut pairs = []

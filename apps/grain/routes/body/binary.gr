@@ -7,12 +7,12 @@ from "uint8" include Uint8
 from "json" include Json
 
 
-use Request.{ type Request, module Body, type BlobLike, type FileLike }
+use Request.{ type Request, module Body, type Blob, type File }
 use Json.{ type Json }
 
 
 provide let post = (request: Request) => {
-  let { mimeType, bytes }: BlobLike = Body.expectBlobLike(request)
+  let { mimeType, bytes }: Blob = Body.blob(request)
 
   let byteLength = Bytes.length(bytes)
   let mut values = []

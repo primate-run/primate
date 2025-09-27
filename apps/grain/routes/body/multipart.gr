@@ -5,18 +5,18 @@ from "map" include Map
 from "list" include List
 from "json" include Json
 
-use Request.{ type BodyFieldsElement, type Request, module Body, module BodyFieldsElement }
+use Request.{ type BodyField, type Request, module Body, module BodyField }
 use Json.{ type Json }
 
 let toFieldStrings = (field: (String, BodyFieldsElement)) => {
   let (name, fieldValue) = field
-  let value = BodyFieldsElement.expectString(fieldValue)
+  let value = BodyField.string(fieldValue)
   (name, JsonString(value))
 }
 
 
 provide let post = (request: Request) => {
-  let fields = Body.expectFields(request)
+  let fields = Body.fields(request)
 
   JsonObject(List.map(toFieldStrings, Map.toList(fields)))
 }

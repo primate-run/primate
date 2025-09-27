@@ -4,7 +4,7 @@ from "primate/request" include Request
 
 use Request.{ type Request, module Body }
 
-provide let post = (request: Request) => Body.expectText(request)
+provide let post = (request: Request) => Body.text(request)
 
 // package main
 

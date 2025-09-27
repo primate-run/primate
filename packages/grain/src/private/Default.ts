@@ -1,13 +1,11 @@
 import Runtime from "#Runtime";
 import type BuildApp from "@primate/core/BuildApp";
-import DatabaseStore from "@primate/core/database/Store";
 import type Mode from "@primate/core/Mode";
 import type NextBuild from "@primate/core/NextBuild";
 import wrap from "@primate/core/route/wrap";
 import assert from "@rcompat/assert";
 import FileRef from "@rcompat/fs/FileRef";
 import execute from "@rcompat/stdio/execute";
-import StoreSchema from "pema/StoreSchema";
 
 const dirname = import.meta.dirname;
 const postlude_file = FileRef.join(dirname, "bootstrap", "postlude.gr");
@@ -28,7 +26,7 @@ export default class Default extends Runtime {
     const sections = [
       config.command,
       "compile",
-      // Import memory is required so that stores can be retrieved at compile time
+      // import memory is required to retrieve stores at compile time
       "--import-memory",
       "-o", wasm.name,
       grain.name,
@@ -38,7 +36,7 @@ export default class Default extends Runtime {
       sections.push("-S", config.stdlib);
     }
 
-    // Dev mode should generate faster builds and the wat text representation
+    // dev mode should generate faster builds and the wat text representation
     if (mode === "development") {
       sections.push("--debug", "--wat");
     } else {
@@ -57,8 +55,7 @@ export default class Default extends Runtime {
   }
 
   build(app: BuildApp, next: NextBuild) {
-
-    app.bind(this.extension, async (route, { build, context }) => {
+    app.bind(this.fileExtension, async (route, { build, context }) => {
       assert(context === "routes", "grain: only route files are supported");
       const text = await route.text();
       const postlude = await postlude_file.text();
@@ -68,12 +65,16 @@ export default class Default extends Runtime {
       await execute(command, { cwd: `${route.directory}` });
       const files = (await app.path.stores
         .collect(file => [".ts", ".js"].includes(file.extension)))
-        .map(file => file.debase(`${app.path.stores}/`).path.slice(0, -".ts".length));
-      const storeStr =
-        `Object.fromEntries(await Promise.all([${files.map(f => `"${f}"`).join(",")}].map(async f=>[f,(await import(\`#store/\${f}\`)).default])))`;
+        .map(file => file
+          .debase(`${app.path.stores}/`).path.slice(0, -".ts".length));
+      const stores =
+        `Object.fromEntries(await Promise.all([${files
+          .map(f => `"${f}"`)
+          .join(",")}].map(async f=>
+            [f,(await import(\`#store/\${f}\`)).default])))`;
       const code = (await bootstrap_file.text())
         .replaceAll("__FILENAME__", wasm.path)
-        .replaceAll("__STORES__", storeStr);
+        .replaceAll("__STORES__", stores);
       await route.bare(".gr.js").write(wrap(code, route, build));
     });
 

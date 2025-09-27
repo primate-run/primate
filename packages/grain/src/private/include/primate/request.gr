@@ -13,7 +13,7 @@ from "runtime/unsafe/wasmi32" include WasmI32
 from "runtime/dataStructures" include DataStructures
 from "runtime/gc" include GC
 from "primate/common" include Common
-use Common.{ 
+use Common.{
   readString,
   readBytes,
   readUint32,
@@ -26,30 +26,30 @@ use Json.{ type Json }
 
 provide type Dictionary = Map<String, String>
 
-provide record BlobLike {
+provide record Blob {
   mimeType: String,
   bytes: Bytes
 }
 
-provide record FileLike {
+provide record File {
   name: String,
   mimeType: String,
   bytes: Bytes
 }
 
-provide enum BodyFieldsElement {
-  BodyFieldsElementString(String),
-  BodyFieldsElementFile(FileLike),
+provide enum BodyField {
+  BodyFieldString(String),
+  BodyFieldFile(File),
 }
 
-provide type BodyFieldsDictionary = Map<String, BodyFieldsElement>
+provide type BodyFields = Map<String, BodyField>
 
 
 provide enum Body {
   BodyNull,
   BodyString(String),
-  BodyFields(Map<String, BodyFieldsElement>),
-  BodyBlob(BlobLike),
+  BodyFields(BodyFields),
+  BodyBlob(Blob),
   BodyJson(Json)
 }
 
@@ -83,31 +83,31 @@ let _BODY_MAP_ELEMENT_KIND_BYTES = 1ul
 
 
 
-let readBlobLike = (offset: Number, payload: Bytes) => {
+let readBlob = (offset: Number, payload: Bytes) => {
   let (offset, mimeType) = readString(offset, payload);
   let (offset, bytes) = readBytes(offset, payload);
   (offset, { mimeType, bytes })
 }
 
-let readFileLike = (offset: Number, payload: Bytes) => {
+let readFile = (offset: Number, payload: Bytes) => {
   let (offset, name) = readString(offset, payload);
   let (offset, mimeType) = readString(offset, payload);
   let (offset, bytes) = readBytes(offset, payload);
   (offset, { name, mimeType, bytes })
 }
 
-let readBodyFieldsElement = (offset: Number, payload: Bytes) => {
+let readBodyField = (offset: Number, payload: Bytes) => {
   use Uint32.{ toNumber }
   use Bytes.{ slice, toString, getUint32 }
   let kind = Bytes.getUint32(offset, payload)
   match (kind) {
     0ul => {
       let (offset, value) = readString(offset + 4, payload)
-      (offset, BodyFieldsElementString(value))
+      (offset, BodyFieldString(value))
     },
     1ul => {
-      let (offset, file) = readFileLike(offset + 4, payload)
-      (offset, BodyFieldsElementFile(file))
+      let (offset, file) = readFile(offset + 4, payload)
+      (offset, BodyFieldFile(file))
     },
     _ => throw InvalidRequestEncoding,
   }
@@ -124,7 +124,7 @@ let rec getSectionMap = (id: Uint32, offset: Number, payload: Bytes) => {
   }
 
   let (offset, count) = readUint32(offset, payload)
-  
+
   getKeyValues(Uint32.toNumber(count), offset, payload, Map.make())
 } and getKeyValues = (count: Number, offset: Number, payload: Bytes, map: Dictionary) => {
   match (count) {
@@ -152,12 +152,12 @@ let rec getBodyElement = (offset: Number, payload: Bytes) => {
     // const BODY_KIND_MAP = 2;
     2ul => {
       let (offset, count) = readUint32(offset, payload)
-      let (offset, map) = getBodyFieldsElements(Uint32.toNumber(count), offset, payload, Map.make())
+      let (offset, map) = getBodyField(Uint32.toNumber(count), offset, payload, Map.make())
       (offset, BodyFields(map))
     },
     // const BODY_KIND_BLOB = 3;
     3ul => {
-      let (offset, blob) = readBlobLike(offset, payload)
+      let (offset, blob) = readBlob(offset, payload)
       (offset, BodyBlob(blob))
     },
     // const BODY_KIND_JSON = 4;
@@ -167,14 +167,14 @@ let rec getBodyElement = (offset: Number, payload: Bytes) => {
     },
     _ => throw InvalidRequestEncoding
   }
-} and getBodyFieldsElements = (count: Number, offset: Number, payload: Bytes, map: BodyFieldsDictionary) => {
+} and getBodyField = (count: Number, offset: Number, payload: Bytes, map: BodyFields) => {
   match (count) {
     0 => (offset, map),
     _ => {
       let (offset, key) = readString(offset, payload)
-      let (offset, value) = readBodyFieldsElement(offset, payload)
+      let (offset, value) = readBodyField(offset, payload)
       Map.set(key, value, map)
-      getBodyFieldsElements(count - 1, offset, payload, map)
+      getBodyField(count - 1, offset, payload, map)
     }
   }
 }
@@ -185,7 +185,7 @@ provide let make = () => {
   use Uint32.{ toNumber, (<), (+) as (+.) }
   use Uint64.{ (+) as (+..) }
   let payload = External.receiveBytes()
-  
+
   // Section 1
   let mut offset = 0
 
@@ -238,44 +238,44 @@ provide let getCookies = (request: Request) => {
 }
 
 provide module Body {
-  provide let expectText = (request: Request) => {
+  provide let text = (request: Request) => {
     match (request.body) {
       BodyString(text) => text,
       _ => throw UnexpectedBodyType
     }
   }
-  provide let expectFields = (request: Request) => {
+  provide let fields = (request: Request) => {
     match (request.body) {
       BodyFields(map) => map,
-      _ => throw UnexpectedBodyType 
-    }
-  }
-  provide let expectBlobLike = (request: Request) => {
-    match (request.body) {
-      BodyBlob(blob) => blob: BlobLike,
       _ => throw UnexpectedBodyType
     }
   }
-  provide let expectJson = (request: Request) => {
+  provide let blob = (request: Request) => {
+    match (request.body) {
+      BodyBlob(blob) => blob: Blob,
+      _ => throw UnexpectedBodyType
+    }
+  }
+  provide let json = (request: Request) => {
     match (request.body) {
       BodyJson(json) => json,
-      _ => throw UnexpectedBodyType 
+      _ => throw UnexpectedBodyType
     }
   }
 }
 
 
-provide module BodyFieldsElement {
-  provide let expectString = (element: BodyFieldsElement) => {
+provide module BodyField {
+  provide let string = (element: BodyField) => {
     match (element) {
-      BodyFieldsElementString(str) => str,
+      BodyFieldString(str) => str,
       _ => throw UnexpectedBodyType
     }
   }
 
-  provide let expectFileLike = (element: BodyFieldsElement) => {
+  provide let file = (element: BodyField) => {
     match (element) {
-      BodyFieldsElementFile(file) => file,
+      BodyFieldFile(file) => file,
       _ => throw UnexpectedBodyType
     }
   }
