@@ -1,6 +1,8 @@
-from primate import session
+from primate import Route, Session
 
+
+@Route.get
 def get(request):
-    session.create({ "foo": "bar" })
+    Session.create({"foo": "bar"})
 
-    return session.get()
+    return Session.get()

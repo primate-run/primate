@@ -1,59 +1,122 @@
+import type RequestBody from "@primate/core/request/RequestBody";
 import type RequestFacade from "@primate/core/request/RequestFacade";
-import type { PyodideAPI } from "pyodide";
+import type Dict from "@rcompat/type/Dict";
 
-type ToPY = PyodideAPI["toPy"];
-
-/*const wrap_store = (toPy: ToPY, store) => {
-  return {
-    ...store,
-    async validate(input) {
-      return toPy(await store.validate(unwrap_async(input)));
-    },
-    async get(value) {
-      return toPy(await store.get(unwrap_async(value)));
-    },
-    async count(criteria) {
-      return store.count(unwrap_async(criteria));
-    },
-    async find(criteria) {
-      return toPy(await store.find(unwrap_async(criteria)));
-    },
-    async exists(criteria) {
-      return store.exists(unwrap_async(criteria));
-    },
-    async insert(document) {
-      return toPy(await store.insert(unwrap_async(document)));
-    },
-    async update(criteria, document) {
-      const ua = unwrap_async;
-      return toPy(await store.update(ua(criteria), ua(document)));
-    },
-    async save(document) {
-      return toPy(await store.save(unwrap_async(document)));
-    },
-    async delete(criteria) {
-      return store.delete(unwrap_async(criteria));
-    },
-    schema: {
-      async create(description) {
-        return store.schema.create(unwrap_async(description));
-      },
-      async delete() {
-        return store.schema.delete();
-      },
-    },
-  };
+type FileEntry = {
+  bytes: Uint8Array;
+  field: string;
+  name: string;
+  size: number;
+  type: string;
 };
 
-const is_store = value => value.connection !== undefined;
-const wrap_stores = (toPy: ToPY, object) => Object.entries(object)
-  .reduce((reduced, [key, value]) => ({
-    ...reduced,
-    [key]: is_store(value) ? wrap_store(toPy, value) : wrap_stores(toPy, value),
-  }), {});
-*/
+function plainUrl(u: URL) {
+  return {
+    href: u.href,
+    origin: u.origin,
+    protocol: u.protocol,
+    username: u.username,
+    password: u.password,
+    host: u.host,
+    hostname: u.hostname,
+    port: u.port,
+    pathname: u.pathname,
+    search: u.search,
+    hash: u.hash,
+  };
+}
 
-export default (_: ToPY, request: RequestFacade) =>
-  request;
-//  store: wrap_stores(toPy, request.store),
-//);
+function toDict(obj: Record<string, unknown> | URLSearchParams): Dict {
+  const out: Dict = Object.create(null);
+  if (obj instanceof URLSearchParams) {
+    obj.forEach((v, k) => {
+      if (!(k in out)) out[k] = v ?? "";
+    });
+  } else {
+    for (const [k, v] of Object.entries(obj)) {
+      out[k] = v == null ? "" : String(v);
+    }
+  }
+  return out;
+}
+
+async function bridgeFields(body: RequestBody) {
+  const fields = body.fields(); // can be strings or File
+  const plain: Record<string, string> = Object.create(null);
+  const files: FileEntry[] = [];
+  const pending: Promise<void>[] = [];
+
+  for (const [k, v] of Object.entries(fields)) {
+    if (typeof v === "string") {
+      plain[k] = v;
+    } else {
+      // v is File
+      const name = v.name;
+      const type = v.type;
+      const size = v.size;
+      pending.push(
+        v.arrayBuffer().then(buffer => {
+          files.push({
+            bytes: new Uint8Array(buffer),
+            field: k,
+            name,
+            size,
+            type,
+          });
+        }),
+      );
+    }
+  }
+
+  await Promise.all(pending);
+
+  return {
+    fields: () => plain,
+    files: () => files,
+  };
+}
+
+async function bridgeBody(body: RequestBody) {
+  let fields, buffer: Uint8Array<ArrayBuffer>, blob: Blob;
+  if (body.type === "fields") {
+    fields = await bridgeFields(body);
+  }
+  if (body.type === "binary") {
+    blob = body.binary();
+    buffer = new Uint8Array(await blob.arrayBuffer());
+  }
+  return {
+    text: () => body.text(),
+    json: () => {
+      return JSON.stringify(body.json());
+    },
+    fields: () => fields!.fields(),
+    files: () => fields!.files(),
+    binary: () => {
+      const mime = blob.type || "application/octet-stream";
+      return {
+        buffer,
+        mime,
+      };
+    },
+    none: () => null,
+  };
+}
+
+export default async function to_request(request: RequestFacade) {
+  const body = await bridgeBody(request.body);
+
+  const cookies = toDict(request.cookies.toJSON());
+  const headers = toDict(request.headers.toJSON());
+  const path = toDict(request.path.toJSON());
+  const query = toDict(request.query.toJSON());
+
+  const u = request.url as unknown as URL;
+  const url = plainUrl(new URL(String(u)));
+
+  return {
+    url,
+    body,
+    path, query, headers, cookies,
+  };
+}

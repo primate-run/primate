@@ -1,5 +1,5 @@
-import type { PyProxy } from "pyodide/ffi";
 import type Dict from "@rcompat/type/Dict";
+import type { PyProxy } from "pyodide/ffi";
 
 type DictConverter = Iterable<[
   key: string,
@@ -34,7 +34,9 @@ const qualify = (response: PyProxy, destroy = true) => {
   return response;
 };
 
-export const unwrap = (response: PyProxy) => normalize(qualify(response));
+export default function unwrap(response: PyProxy) {
+  return normalize(qualify(response));
+}
 
 /*export const unwrap_async = (response: PyProxy) =>
   normalize(qualify(response, false));*/

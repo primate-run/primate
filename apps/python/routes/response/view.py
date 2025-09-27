@@ -1,4 +1,6 @@
-from primate import view
+from primate import Response, Route
 
+
+@Route.get
 def get(request):
-    return view("index.html", { "hello" : "world" })
+    return Response.view("index.html", {"hello": "world"})

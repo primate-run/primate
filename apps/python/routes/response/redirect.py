@@ -1,4 +1,6 @@
-from primate import redirect
+from primate import Response, Route
 
+
+@Route.get
 def get(request):
-    return redirect("/redirected")
+    return Response.redirect("/redirected")
