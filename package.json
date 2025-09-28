@@ -8,7 +8,7 @@
     "build:packages": "pnpm -r --filter='./packages/**' build",
     "build:apps": "pnpm -r --filter='./apps/**' build",
     "clean": "pnpm -r clean",
-    "publish": "pnpm -r --access=public publish",
+    "publish": "pnpm -r --access=public --otp=$(bw get totp npmjs.com) publish",
     "upgrade": "pnpm -r update -i -L",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
