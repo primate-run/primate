@@ -1,6 +1,6 @@
 {
   "name": "primate",
-  "version": "0.33.0-pre",
+  "version": "0.33.0",
   "description": "The universal web framework",
   "homepage": "https://primate.run",
   "bugs": "https://github.com/primate-run/primate/issues",
