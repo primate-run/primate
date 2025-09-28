@@ -10,16 +10,7 @@ Serve binary data like files or images. Use the `stream` response.
 
 Read and return binary data.
 
-```ts
-// routes/file.ts
-import route from "primate/route";
-import response from "primate/response";
-import FileRef from "@rcompat/fs/FileRef";
-
-const file = new FileRef("path/to/file.pdf");
-
-route.get(() => response.stream(file));
-```
+[s=guides/responses/stream-binary-data/serve-file]
 
 ---
 
@@ -27,9 +18,4 @@ route.get(() => response.stream(file));
 
 Response back with the uploaded steam -- `Blob`s are automatically streamed.
 
-```ts
-// routes/backstream.ts
-import route from "primate/route";
-
-route.post(request => request.body.binary());
-```
+[s=guides/responses/stream-binary-data/serve-stream]

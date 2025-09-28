@@ -1,9 +1,13 @@
-from primate import view
+from primate import Route, Response
 
+
+@Route.get
 def get(request):
-  posts = [{
-   "id": 1,
-   "title": "First post",
-  }]
+    posts = [
+        {
+            "id": 1,
+            "title": "First post",
+        }
+    ]
 
-  return view("Index.jsx", { "posts": posts })
+    return Response.view("Index.jsx", {"posts": posts})

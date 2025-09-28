@@ -92,7 +92,7 @@ A typical route that reads (or creates) a record, then renders a view:
 import Post from "#store/Post";
 import pema from "pema";
 import string from "pema/string";
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(async () => {
@@ -103,7 +103,7 @@ route.get(async () => {
     limit: 20,
   });
 
-  return view("posts.jsx", { posts });
+  return response.view("posts.jsx", { posts });
 });
 
 route.post(async request => {

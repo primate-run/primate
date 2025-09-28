@@ -11,16 +11,7 @@ request.
 
 Access headers via `request.headers`.
 
-```ts
-// routes/index.ts
-import route from "primate/route";
-
-route.get((request) => {
-  const userAgent = request.headers.get("User-Agent");
-  const contentType = request.headers.get("Content-Type");
-  return { userAgent, contentType };
-});
-```
+[s=guides/requests/use-headers/read-headers]
 
 ---
 
@@ -28,11 +19,4 @@ route.get((request) => {
 
 Use `response` with headers option.
 
-```ts
-import route from "primate/route";
-import response from "primate/response";
-
-route.get(() => {
-  return response("Hello", { headers: { "X-Custom": "value" } });
-});
-```
+[s=guides/requests/use-headers/set-headers-in-response]

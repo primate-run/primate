@@ -1,7 +1,9 @@
-package Hello
+package main
 
-import "primate.run"
+import (
+	"github.com/primate-run/go/route"
+)
 
-func Get(request Request) any {
-  return "Hello from Go!";
-}
+var _ = route.Get(func(_ route.Request) any {
+	return "Hello from Go!"
+})

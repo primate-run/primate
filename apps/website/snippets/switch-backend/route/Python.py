@@ -1,4 +1,6 @@
-from primate import view
+from primate import Route, Response
 
+
+@Route.get
 def get(request):
-    return view("Counter.jsx", { "start" : 10 })
+    return Response.view("Counter.jsx", {"start": 10})

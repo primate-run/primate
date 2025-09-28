@@ -5,6 +5,6 @@ import route from "primate/route";
 const Path = pema({ id: string.regex(/^\d+$/) });
 
 route.get(request => {
-  const { id } = request.path.as(Path); // id: string (digits only)
+  const { id } = request.path.parse(Path); // id: string (digits only)
   return `User #${id}`;
 });

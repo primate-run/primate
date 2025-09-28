@@ -1,7 +1,7 @@
 import Status from "@rcompat/http/Status";
-import error from "primate/response/error";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => error({
+route.get(() => response.error({
   status: Status.INTERNAL_SERVER_ERROR,
 }));

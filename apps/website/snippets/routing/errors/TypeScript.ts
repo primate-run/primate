@@ -1,4 +1,4 @@
-import redirect from "primate/response/redirect";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => redirect("/"));
+route.get(() => response.redirect("/"));

@@ -11,15 +11,7 @@ header.
 
 Access cookies via `request.cookies`.
 
-```ts
-// routes/index.ts
-import route from "primate/route";
-
-route.get(request => {
-  const sessionId = request.cookies.get("session_id");
-  return { sessionId };
-});
-```
+[s=guides/requests/use-cookies/read-cookies]
 
 ---
 
@@ -27,14 +19,4 @@ route.get(request => {
 
 Use the `Set-Cookie` header to set cookies in responses.
 
-```ts
-import route from "primate/route";
-
-route.get(() => {
-  return new Response("Cookie set", {
-    headers: {
-      "Set-Cookie": "session_id=abc123; HttpOnly"
-    }
-  });
-});
-```
+[s=guides/requests/use-cookies/set-cookies]

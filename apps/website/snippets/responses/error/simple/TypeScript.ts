@@ -1,6 +1,6 @@
-import error from "primate/response/error";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => error({
+route.get(() => response.error({
   body: "Not Found", // default
 }));

@@ -1,1 +1,1 @@
-npm i @primate/grain
+npm install @primate/grain

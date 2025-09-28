@@ -1,8 +1,8 @@
-import json from "primate/response/json";
+import response from "primate/response";
 import Status from "primate/response/Status";
 import route from "primate/route";
 
-route.get(() => json([
+route.get(() => response.json([
   { name: "Donald" },
   { name: "John" },
 ], { status: Status.CREATED }));

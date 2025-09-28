@@ -11,15 +11,7 @@ that the body is of the correct type.
 
 Use `text()` to get the body as a `string`.
 
-```ts
-// routes/api.ts
-import route from "primate/route";
-
-route.post(request => {
-  const received = request.body.text();
-  return { received };
-});
-```
+[s=guides/requests/read-body/text-string]
 
 ---
 
@@ -27,15 +19,7 @@ route.post(request => {
 
 Use `json()` to get the body as JSON (`Record`).
 
-```ts
-// routes/api.ts
-import route from "primate/route";
-
-route.post(request => {
-  const received = request.body.json();
-  return { received };
-});
-```
+[s=guides/requests/read-body/json-record]
 
 ---
 
@@ -43,15 +27,7 @@ route.post(request => {
 
 Use `fields()` to get the body as form (`Record<string, string | File>`).
 
-```ts
-// routes/api.ts
-import route from "primate/route";
-
-route.post(request => {
-  const received = request.body.fields();
-  return { received };
-});
-```
+[s=guides/requests/read-body/form-record]
 
 ---
 
@@ -59,12 +35,4 @@ route.post(request => {
 
 Use `blods()` to get the body as binary (`Blob`).
 
-```ts
-// routes/api.ts
-import route from "primate/route";
-
-route.post(request => {
-  const received = request.body.body();
-  return { received };
-});
-```
+[s=guides/requests/read-body/binary-blob]

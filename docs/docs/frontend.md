@@ -102,10 +102,10 @@ Render it in a route:
 
 ```ts
 // routes/index.ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => view("Welcome.tsx", { name: "World" }));
+route.get(() => response.view("Welcome.tsx", { name: "World" }));
 ```
 
 ## Mixing frontends

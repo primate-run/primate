@@ -15,14 +15,7 @@ preparsing the body.
 
 Forward request as-is.
 
-```ts
-// routes/api.ts
-import route from "primate/route";
-
-route.get(request => request.forward("https://api.example.com"), {
-  parseBody: false,
-});
-```
+[s=guides/requests/forward-requests/simple-proxy]
 
 ---
 
@@ -30,7 +23,4 @@ route.get(request => request.forward("https://api.example.com"), {
 
 You can add headers to send along the forwarded request.
 
-```ts
-route.post(request =>
-  request.forward("https://api.example.com", { "X-Custom": "value" }));
-```
+[s=guides/requests/forward-requests/add-headers]

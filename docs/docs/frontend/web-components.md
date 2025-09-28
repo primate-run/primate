@@ -52,7 +52,7 @@ Serve the component from a route:
 
 ```ts
 // routes/posts.ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(() => {
@@ -61,7 +61,7 @@ route.get(() => {
     { id: 2, title: "Second Post" },
   ];
 
-  return view("post-index.webc", { posts });
+  return response.view("post-index.webc", { posts });
 });
 ```
 
@@ -72,11 +72,11 @@ Props passed via `view()` are available as `this.props` in the component.
 Pass props from a route:
 
 ```ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(() => {
-  return view("user.webc", {
+  return response.view("user.webc", {
     user: { name: "John", role: "Developer" },
     permissions: ["read", "write"],
   });

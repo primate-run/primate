@@ -1,5 +1,5 @@
 import session from "#session";
-import redirect from "primate/response/redirect";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(request => {
@@ -8,5 +8,5 @@ route.get(request => {
     return null;
   }
 
-  return redirect(`/login?next=${request.target}`);
+  return response.redirect(`/login?next=${request.target}`);
 });

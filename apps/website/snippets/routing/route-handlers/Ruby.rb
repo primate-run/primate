@@ -1,7 +1,9 @@
-def get(request)
+require 'primate/route'
+
+Route.get do |request|
   "Hello from GET!";
 end
 
-def post(request)
+Route.post do |request|
   "Hello from POST!";
 end

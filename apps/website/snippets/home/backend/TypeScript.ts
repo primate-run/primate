@@ -1,9 +1,9 @@
+import response from "primate/response";
 import route from "primate/route";
-import view from "primate/response/view";
 
 const posts = [{
   id: 1,
   title: "First post",
 }];
 
-route.get(() => view("Index.jsx", { posts }));
+route.get(() => response.view("Index.jsx", { posts }));

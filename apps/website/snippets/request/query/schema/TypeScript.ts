@@ -9,6 +9,6 @@ const Query = pema({
 });
 
 route.get(request => {
-  const { page, search } = request.query.as(Query);
+  const { page, search } = request.query.parse(Query);
   return `Searching '${search}' (page ${page})`;
 });

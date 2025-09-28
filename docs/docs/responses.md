@@ -1,7 +1,7 @@
 # Responses
 Route handlers return a `ResponseLike` value that Primate converts into a
 WHATWG `Response`. You can return simple values ("implicit" responses) or use
-explicit handlers from `primate/response/*` when you need to control all
+explicit handlers from `primate/response` when you need to control all
 aspects of the response.
 
 |Return value|Handler|Response|Notes|

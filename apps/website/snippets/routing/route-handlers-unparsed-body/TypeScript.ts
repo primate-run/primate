@@ -4,4 +4,5 @@ import route from "primate/route";
 route.get(request => "Hello from GET!");
 
 // body parsing turned off, request.body will be null
-route.post(request => request.pass("https://my.domain"), { parseBody: false });
+route.post(request => request.forward("https://my.domain"),
+  { parseBody: false });

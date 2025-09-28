@@ -15,14 +15,7 @@ Throw errors to trigger `+error.ts`; return responses for controlled errors.
 
 Triggers error handler.
 
-```ts
-// routes/api.ts
-import route from "primate/route";
-
-route.get(() => {
-  throw new Error("Something went wrong");
-});
-```
+[s=guides/responses/show-errors/throw-error]
 
 ---
 
@@ -30,11 +23,7 @@ route.get(() => {
 
 Controlled error response.
 
-```ts
-import response from "primate/response";
-
-route.get(() => response.json({ error: "Bad request" }, { status: 400 }));
-```
+[s=guides/responses/show-errors/return-error-response]
 
 ---
 
@@ -43,8 +32,4 @@ route.get(() => response.json({ error: "Bad request" }, { status: 400 }));
 Use `+error.ts` for global handling. Routes placed alongside `+error.ts` or in
 subdirectories in its tree will trigger it upon throwing.
 
-```ts
-// routes/+error.ts
-import route from "primate/route";
-
-route.get(() => response.json({ error: "Internal error" }, { status: 500 }));
+[s=guides/responses/show-errors/error-handler]

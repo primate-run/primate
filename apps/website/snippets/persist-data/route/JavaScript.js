@@ -2,8 +2,8 @@ import Counter from "#store/Counter";
 import pema from "pema";
 import number from "pema/number";
 import string from "pema/string";
+import response from "primate/response";
 import route from "primate/route";
-import view from "primate/view";
 
 await Counter.schema.create();
 
@@ -14,7 +14,7 @@ route.get(async () => {
     ? await Counter.insert({ value: 10 })
     : counters[0];
 
-  return view("Counter.jsx", counter);
+  return response.view("Counter.jsx", counter);
 });
 
 route.post(async request => {

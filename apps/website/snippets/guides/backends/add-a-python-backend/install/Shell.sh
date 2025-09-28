@@ -1,1 +1,1 @@
-npm i @primate/python
+npm install @primate/python

@@ -1,12 +1,18 @@
-import "primate.run"
+package main
 
-func Get(request Request) any {
-  posts := Array{Object{
-    "id": 1,
-    "title": "First post",
-  }};
+import (
+	"github.com/primate-run/go/core"
+	"github.com/primate-run/go/response"
+	"github.com/primate-run/go/route"
+)
 
-  return primate.View("Index.jsx", Object{
-    "posts": posts
-  });
-}
+var _ = route.Get(func(_ route.Request) any {
+	posts := core.Array[core.Dict]{core.Dict{
+		"id":    1,
+		"title": "First post",
+	}}
+
+	return response.View("Index.jsx", core.Dict{
+		"posts": posts,
+	})
+})

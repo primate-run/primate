@@ -1,7 +1,11 @@
-package Counter
+package main
 
-import "primate.run"
+import (
+	"github.com/primate-run/go/core"
+	"github.com/primate-run/go/response"
+	"github.com/primate-run/go/route"
+)
 
-func Get(request Request) any {
-  return primate.View("Counter.jsx", primate.Props{ "start": 10 });
-}
+var _ = route.Get(func(request route.Request) any {
+	return response.View("Counter.jsx", core.Dict{"start": 10})
+})
