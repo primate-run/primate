@@ -273,6 +273,7 @@ const post = async (app: BuildApp) => {
 
   const manifest_data = {
     ...await (await json()).json() as Dict,
+    type: "module",
     imports: {
       "#config": "./config/app.js",
       "#config/*": "./config/*.js",
