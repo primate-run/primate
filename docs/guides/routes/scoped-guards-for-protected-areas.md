@@ -14,34 +14,41 @@ Execution order is top-down: parent guard -> child guard -> route.
 
 ### 1) Top guard (protect everything)
 
+Create a top-level guard.
+
 ```ts
 // routes/+guard.ts
 import route from "primate/route";
-import redirect from "primate/response/redirect";
+import response from "primate/response";
 
-route.get(req => {
-  const ok = !!req.headers.get("Authorization");
+route.get(request => {
+  const ok = !!request.headers.get("Authorization");
   if (!ok) {
-    return redirect(`/login?next=${encodeURIComponent(req.target)}`);
+    return response.redirect(`/login?next=${encodeURIComponent(request.target)}`);
   }
-  // explicit pass
+  // pass through
   return null;
 });
 ```
 
 ---
 
-### 2) Tighten rules for a subtree (e.g., /admin/*)
+### Tighten rules for a subtree (e.g., /admin/*)
+
+Create a subguard for the `admin` area; it executes only if the top guard let
+through.
 
 ```ts
 // routes/admin/+guard.ts
 import route from "primate/route";
-import redirect from "primate/response/redirect";
+import response from "primate/response";
 
-route.get(req => {
-  if (req.headers.get("X-Role") !== "admin") {
-    return redirect("/"); // or return a 403 view/response
+route.get(request => {
+  if (request.headers.get("X-Role") !== "admin") {
+    return response.redirect("/"); // or return a 403 view/response
   }
+
+  // pass through
   return null;
 });
 ```

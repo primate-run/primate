@@ -13,6 +13,8 @@ Adjust `Access-Control-Allow-Origin` and headers to your needs.
 
 ### 1) Handle preflights for all /api/* paths
 
+Define an `OPTIONS` route function.
+
 ```ts
 // routes/api/[...segments].ts
 import route from "primate/route";
@@ -34,7 +36,11 @@ route.options(() =>
 
 ### 2) Add your actual handlers
 
+Add substantive handlers.
+
 ```ts
+import route from "primate/route";
+
 route.get(() => "ok");
 route.post(() => "ok");
 ```

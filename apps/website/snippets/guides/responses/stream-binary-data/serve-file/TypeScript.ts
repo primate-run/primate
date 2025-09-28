@@ -1,8 +1,8 @@
 // routes/file.ts
-import route from "primate/route";
-import response from "primate/response";
 import FileRef from "@rcompat/fs/FileRef";
+import response from "primate/response";
+import route from "primate/route";
 
 const file = new FileRef("path/to/file.pdf");
 
-route.get(() => response.stream(file));
+route.get(() => response.binary(file));

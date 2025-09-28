@@ -7,7 +7,7 @@ that the body is of the correct type.
 
 ---
 
-### Text -> string
+### Text -> `string`
 
 Use `text()` to get the body as a `string`.
 
@@ -15,7 +15,7 @@ Use `text()` to get the body as a `string`.
 
 ---
 
-### JSON -> Record
+### JSON -> `Record`
 
 Use `json()` to get the body as JSON (`Record`).
 
@@ -23,7 +23,7 @@ Use `json()` to get the body as JSON (`Record`).
 
 ---
 
-### Form -> Record
+### Form -> `Record`
 
 Use `fields()` to get the body as form (`Record<string, string | File>`).
 
@@ -31,7 +31,7 @@ Use `fields()` to get the body as form (`Record<string, string | File>`).
 
 ---
 
-### Binary -> Blob
+### Binary -> `Blob`
 
 Use `blods()` to get the body as binary (`Blob`).
 

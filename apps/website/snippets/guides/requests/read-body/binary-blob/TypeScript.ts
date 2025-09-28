@@ -2,6 +2,6 @@
 import route from "primate/route";
 
 route.post(request => {
-  const received = request.body.body();
+  const received = request.body.binary();
   return { received };
 });

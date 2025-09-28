@@ -20,6 +20,8 @@ Install the Primate Ruby package as well as the `primate-run` gem.
 
 [s=guides/backends/add-a-ruby-backend/install]
 
+---
+
 ### 2) Configure
 
 Load the Ruby module in your configuration.
