@@ -43,9 +43,9 @@ the stub to resolve `#database`.
 
 ## Import paths
 
-* `#database` → `config/database/index.(ts|js)` or `default.(ts|js)`, or the
+* `#database` -> `config/database/index.(ts|js)` or `default.(ts|js)`, or the
   sole file, per the resolution rules above
-* `#database/<name>` → `config/database/<name>.ts` or `.js`.
+* `#database/<name>` -> `config/database/<name>.ts` or `.js`.
 
 Examples:
 
@@ -106,7 +106,7 @@ you want full control over queries.
 ## Driver shape (CRUD)
 
 All database drivers implement the same abstract CRUD surface. You usually
-won’t call these directly unless writing a custom store or a new driver.
+won't call these directly unless writing a custom store or a new driver.
 
 ```ts
 // create one record; returns the unbound (typed) record with id
@@ -160,4 +160,4 @@ stores/
   Custom.ts             # custom module using db directly
 ```
 
-That’s all you need to wire databases into your app.
+That's all you need to wire databases into your app.

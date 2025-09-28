@@ -39,7 +39,7 @@ work as they do in the browser.
 * **WebView**: renders your UI using the system WebView for each platform.
 
 !!!
-If you proxy to external services, keep in mind you’re now a **desktop**
+If you proxy to external services, keep in mind you're now a **desktop**
 process. Network access, TLS, and CORS behave like any other HTTP client.
 !!!
 

@@ -410,7 +410,7 @@ await Post.find({ title: "Hello" });
 !!!
 **Operators:** String fields also support `$like` (e.g.,
 `{ name: { $like: "Jo%" } }`). Drivers translate this appropriately
-(SQL → `LIKE`, MongoDB → `$regex`, SurrealDB → `string::matches()`).
+(SQL -> `LIKE`, MongoDB -> `$regex`, SurrealDB -> `string::matches()`).
 !!!
 
 ## Types for stores
