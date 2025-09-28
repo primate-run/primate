@@ -159,5 +159,3 @@ stores/
   Post.ts               # DatabaseStore, may pin a specific db
   Custom.ts             # custom module using db directly
 ```
-
-That's all you need to wire databases into your app.

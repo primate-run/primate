@@ -45,7 +45,7 @@ Serve the component from a route:
 
 ```ts
 // routes/posts.ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(() => {
@@ -54,22 +54,22 @@ route.get(() => {
     { id: 2, title: "Second Post" },
   ];
 
-  return view("post-index.jsx", { posts, title: "Blog" });
+  return response.view("post-index.jsx", { posts, title: "Blog" });
 });
 ```
 
 ## Props
 
-Props passed via `view()` are available as component parameters.
+Props passed to `response.view` are available as component parameters.
 
 Pass props from a route:
 
 ```ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(() => {
-  return view("user.jsx", {
+  return response.view("user.jsx", {
     user: { name: "John", role: "Developer" },
     permissions: ["read", "write"],
   });

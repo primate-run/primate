@@ -42,7 +42,7 @@ Serve the component from a route:
 
 ```ts
 // routes/posts.ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(() => {
@@ -51,22 +51,22 @@ route.get(() => {
     { id: 2, title: "Second Post" },
   ];
 
-  return view("post-index.marko", { posts });
+  return response.view("post-index.marko", { posts });
 });
 ```
 
 ## Props
 
-Props passed via `view()` are available as `input` in Marko components.
+Props passed to `response.view` are available as `input` in Marko components.
 
 Pass props from a route:
 
 ```ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(() => {
-  return view("user.marko", {
+  return response.view("user.marko", {
     user: { name: "John", role: "Developer" },
     permissions: ["read", "write"],
   });

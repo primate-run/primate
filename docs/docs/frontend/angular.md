@@ -12,11 +12,10 @@ provides the server implementation itself.
 ### Install
 
 ```bash
-npm install @primate/angular
+npm install @primate/angular @angular/core @angular/common
 ```
 
 !!!
-Most core Angular framework dependencies are included with `@primate/angular`.
 Install additional packages like `@angular/forms` as needed.
 !!!
 
@@ -70,7 +69,7 @@ Serve the component from a route.
 
 ```ts
 // routes/posts.ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(() => {
@@ -85,26 +84,25 @@ route.get(() => {
     },
   ];
 
-  return view("PostIndex.component.ts", { title: "Blog", posts });
+  return response.view("PostIndex.component.ts", { title: "Blog", posts });
 });
 ```
 
 ## Props
 
-Props passed via `view()` are mapped to `@Input()`s inside Angular components.
+Props passed to `response.view` are mapped to `@Input()`s inside Angular
+components.
 
 Pass props from a route:
 
 ```ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => {
-  return view("User.component.ts", {
-    user: { name: "John", role: "Developer" },
-    permissions: ["read", "write"],
-  });
-});
+route.get(() => response.view("User.component.ts", {
+  user: { name: "John", role: "Developer" },
+  permissions: ["read", "write"],
+}));
 ```
 
 These props become `@Input()` properties in the component:
@@ -210,7 +208,7 @@ Add corresponding backend validation in the route:
 // routes/counter.ts
 import Counter from "#store/Counter";
 import route from "primate/route";
-import view from "primate/response/view";
+import response from "primate/response";
 import pema from "pema";
 import number from "pema/number";
 import string from "pema/string";
@@ -221,7 +219,8 @@ await Counter.schema.create();
 route.get(async () => {
   const [existing] = await Counter.find({});
   const counter = existing ?? await Counter.insert({ value: 10 });
-  return view("Counter.component.ts", {
+
+  return response.view("Counter.component.ts", {
     id: counter.id,
     counter: counter.value
   });
@@ -305,14 +304,14 @@ Add the corresponding route:
 import route from "primate/route";
 import pema from "pema";
 import string from "pema/string";
-import view from "primate/response/view";
+import response from "primate/response";
 
 const LoginSchema = pema({
   email: string.email(),
   password: string.min(8),
 });
 
-route.get(() => view("LoginForm.component.ts"));
+route.get(() => response.view("LoginForm.component.ts"));
 
 route.post(async request => {
   const body = await request.body.json(LoginSchema);
@@ -361,13 +360,10 @@ Next, register the layout using a `+layout.ts` file:
 
 ```ts
 // routes/+layout.ts
-import view from "primate/response/view";
+import response from "primate/response";
+import route from "primate/route";
 
-export default {
-  get() {
-    return view("Layout.component.ts");
-  },
-};
+route.get(() => response.view("Layout.component.ts"));
 ```
 
 This layout applies to all pages under this route subtree, rendering them
@@ -406,15 +402,12 @@ Then update the layout registration to pass the props:
 
 ```ts
 // routes/+layout.ts
-import view from "primate/response/view";
+import response from "primate/response";
+import route from "primate/route";
 
-export default {
-  get() {
-    return view("Layout.component.ts", {
-      brand: "Primate Angular Demo"
-    });
-  },
-};
+route.get(() => response.view("Layout.component.ts", {
+  brand: "Primate Angular Demo"
+}));
 ```
 
 ## Internationalization

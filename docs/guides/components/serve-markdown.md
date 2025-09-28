@@ -53,7 +53,7 @@ Use `view()` in a route to render the Markdown.
 ```ts
 // routes/index.ts
 import route from "primate/route";
-import view from "primate/response/view";
+import response from "primate/response";
 
-route.get(() => view("Welcome.md"));
+route.get(() => response.view("Welcome.md"));
 ```

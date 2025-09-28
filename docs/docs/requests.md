@@ -58,8 +58,8 @@ If a parameter is optional in your route, prefer `try()` and handle `undefined`.
 [s=request/path/try]
 
 !!!
-We're using `[[slug]]` to denote an [optional](/routing#optional-routes) path
-segment.
+We're using `[[slug]]` to denote an [optional](/docs/routing#optional-routes)
+path segment.
 !!!
 
 You can validate/coerce all parameters at once with a schema.

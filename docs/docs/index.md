@@ -1,6 +1,6 @@
 # What is Primate?
 
-Primate is a *universal web framework* for building full-stack applications.
+Primate is the *universal web framework* for building full-stack applications.
 
 It doesn't tie you to a single stack — it lets you freely combine frontends,
 backends, databases, and runtimes into the mix that works best for you.

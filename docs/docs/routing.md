@@ -45,7 +45,7 @@ collapsing slashes, ignoring trailing ones).
 | `/docs/index` | `/docs` | Treats explicit 'index' as parent |
 
 !!!
-Normalization doesn't decode parameters -- that happens during matching if a
+Normalization doesn't decode parameters — that happens during matching if a
 dynamic route captures them.
 !!!
 
@@ -53,23 +53,23 @@ dynamic route captures them.
 Primate matches the normalized path to files by traversing segments like a
 folder tree, prioritizing exact matches for predictability.
 
-- **Split into segments** -- `/user/profile` becomes `["user", "profile"]`.
+- **Split into segments** — `/user/profile` becomes `["user", "profile"]`.
 - **Match step by step**
-   - **Static first** -- Exact file or directory names (`user.ts`).
-   - **Then dynamic** -- `[param].ts` or `[[param]].ts` for one segment.
-   - **Rest if last** -- `[...param].ts` or `[[...param]].ts` for the remainder.
-- **Optional fallback** -- If no exact match at the end, try an optional param
+   - **Static first** — Exact file or directory names (`user.ts`).
+   - **Then dynamic** — `[param].ts` or `[[param]].ts` for one segment.
+   - **Rest if last** — `[...param].ts` or `[[...param]].ts` for the remainder.
+- **Optional fallback** — If no exact match at the end, try an optional param
    with an empty value.
 
 This ensures static > required > optional. If nothing matches, it's a 404.
 
 ### Rules for clean setups
 Primate checks for ambiguities at startup and errors out if found.
-- **One dynamic per level** -- Can't mix single (`[id]`) and rest (`[...id]`)
+- **One dynamic per level** — Can't mix single (`[id]`) and rest (`[...id]`)
   under the same dir.
-- **No overlaps** -- Avoid `a.ts` + `a/index.ts`, or static + same-level
+- **No overlaps** — Avoid `a.ts` + `a/index.ts`, or static + same-level
   optional (e.g., `user.ts` + `user/[[id]].ts`).
-- **Endpoints only** -- Optionals and rests can't have subfiles; they're leaves.
+- **Endpoints only** — Optionals and rests can't have subfiles; they're leaves.
 
 | Defined routes | Request | Resolved file | Notes |
 |--------------------------------------------------|--------------------|--------------------------------------|-------|
@@ -93,7 +93,7 @@ Static routes have the highest priority in route resolution.
 
 !!!
 You can also represent a route with an `index.ts` file inside a directory
-(e.g., `routes/user/index.ts` for `/user`). This is equivalent to `user.ts` --
+(e.g., `routes/user/index.ts` for `/user`). This is equivalent to `user.ts` —
 pick one style per route. Using directories with `index.ts` is handy for
 grouping routes to add [special files](#special-files) like layouts or guards.
 !!!
@@ -189,9 +189,8 @@ paths. Instead, they influence how routes in their directory (and below) behave.
 
 !!!
 "Recursive" means the file affects the current directory **and all
-subdirectories**.
-Special files don't map to paths and don't stack arbitrarily -- see each
-section for composition and precedence.
+subdirectories**. Special files don't map to paths and don't stack arbitrarily
+— see each section for composition and precedence.
 !!!
 
 ### Layouts

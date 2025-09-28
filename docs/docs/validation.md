@@ -6,9 +6,8 @@ This ensures your backend logic never executes on malformed or malicious data.
 
 Because the web is for the most part untyped, everything arrives as strings,
 binary blobs, or loosely structured JSON. Primate uses its own validation
-framework, [Pema](/pema), to define schemas for these inputs. These schemas are
-applied in your routes to guarantee that inputs match the shapes your logic
-expects.
+framework, Pema, to define schemas for these inputs. These schemas are applied
+in your routes to guarantee that inputs match the shapes your logic expects.
 
 !!!
 TypeScript already provides compile-time validation during development, but

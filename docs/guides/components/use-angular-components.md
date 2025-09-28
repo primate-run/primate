@@ -8,10 +8,10 @@ Add Angular components with the `@primate/angular` module.
 
 ### 1) Install
 
-Install the Primate Angular package.
+Install the Primate Angular package and Angular.
 
 ```sh
-npm install @primate/angular
+npm install @primate/angular @angular/core @angular/common
 ```
 
 ---

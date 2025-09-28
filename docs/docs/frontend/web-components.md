@@ -67,7 +67,7 @@ route.get(() => {
 
 ## Props
 
-Props passed via `view()` are available as `this.props` in the component.
+Props passed to `response.view` are available as `this.props` in the component.
 
 Pass props from a route:
 

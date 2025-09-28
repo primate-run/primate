@@ -65,7 +65,8 @@ without JavaScript.
 
 ## Props
 
-Props passed via `view()` are available directly in templates as variables.
+Props passed to `response.view` are available directly in templates as
+variables.
 
 Pass props from a route:
 

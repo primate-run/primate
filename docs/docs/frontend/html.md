@@ -42,7 +42,7 @@ Serve the template from a route:
 
 ```ts
 // routes/posts.ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(() => {
@@ -51,22 +51,23 @@ route.get(() => {
     { id: 2, title: "Second Post" },
   ];
 
-  return view("post-index.html", { posts });
+  return response.view("post-index.html", { posts });
 });
 ```
 
 ## Props
 
-Props passed via `view()` are available directly in templates as variables.
+Props passed to `response.view` are available directly in templates as
+variables.
 
 Pass props from a route:
 
 ```ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(() => {
-  return view("user.html", {
+  return response.view("user.html", {
     user: { name: "John", role: "Developer" },
     permissions: ["read", "write"],
   });

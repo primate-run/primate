@@ -61,8 +61,8 @@ Use the explicit `redirect` handler to vary the status or for local redirects.
 [s=responses/redirect/explicit]
 
 ## View
-Render and serve [components](/components) from the `components` directory as
-`text/html`.
+Render and serve [components](/docs/components) from the `components` directory
+as `text/html`.
 
 [s=responses/view/simple]
 
@@ -91,11 +91,6 @@ Populate them in your routes.
 
 [s=responses/view/placeholders/route]
 
-!!!
-Consider writing a [Module](/modules) to set certain placeholders for every
-route.
-!!!
-
 ### Partial
 Pass a `partial: true` option to render the component without the enclosing
 HTML page.
@@ -108,8 +103,8 @@ This is useful for replacing parts of the page whilst retaining the HTML page.
 Serve a `404 Not Found` error page as `text/html`.
 [s=responses/error/simple]
 
-This handler uses the HTML file at `pages/error.html` or fall back to a standard
-one provided by Primate.
+This handler uses the HTML file at `pages/error.html` or falls back to a
+standard one provided by Primate.
 
 [s=responses/error/page]
 

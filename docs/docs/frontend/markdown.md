@@ -45,12 +45,10 @@ Serve the template from a route:
 
 ```ts
 // routes/posts.ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => {
-  return view("post-index.md");
-});
+route.get(() => response.view("post-index.md"));
 ```
 
 ## Frontmatter
@@ -76,12 +74,10 @@ Serve the Markdown file:
 
 ```ts
 // routes/blog.ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => {
-  return view("blog-post.md");
-});
+route.get(() => response.view("blog-post.md"));
 ```
 
 ## Table of Contents
@@ -110,12 +106,10 @@ Serve the article:
 
 ```ts
 // routes/article.ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => {
-  return view("article.md");
-});
+route.get(() => response.view("article.md"));
 ```
 
 The rendered component includes `toc` data with heading information that can
@@ -128,7 +122,7 @@ Access the `toc` data and frontmatter `meta` in your route to build navigation:
 ```ts
 // routes/docs/[page].ts
 import type Component from "@primate/markdown/Component";
-import view from "primate/response/view";
+import respone from "primate/response";
 import route from "primate/route";
 
 route.get(request => {
@@ -137,7 +131,7 @@ route.get(request => {
   return app => {
     const { html, toc, meta } = app.component<Component>(`docs/${page}.md`);
 
-    return view("DocPage.html", {
+    return response.view("DocPage.html", {
       content: html,
       toc,
       meta,

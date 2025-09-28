@@ -59,7 +59,7 @@ Serve the component from a route:
 
 ```ts
 // routes/posts.ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(() => {
@@ -68,26 +68,24 @@ route.get(() => {
     { title: "Second Post", excerpt: "Building reactive applications" },
   ];
 
-  return view("PostIndex.vue", { title: "Blog", posts });
+  return response.view("PostIndex.vue", { title: "Blog", posts });
 });
 ```
 
 ## Props
 
-Props passed via `view()` map directly to component props.
+Props passed to `response.view` map directly to component props.
 
 Pass props from a route:
 
 ```ts
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => {
-  return view("User.vue", {
-    user: { name: "John", role: "Developer" },
-    permissions: ["read", "write"],
-  });
-});
+route.get(() => response.view("User.vue", {
+  user: { name: "John", role: "Developer" },
+  permissions: ["read", "write"],
+}));
 ```
 
 Access the props in the component:
@@ -192,7 +190,7 @@ Add corresponding backend validation in the route:
 // routes/counter.ts
 import Counter from "#store/Counter";
 import route from "primate/route";
-import view from "primate/response/view";
+import response from "primate/response";
 import number from "pema/number";
 import string from "pema/string";
 
@@ -205,7 +203,7 @@ route.get(async () => {
     ? await Counter.insert({ counter: 10 })
     : counters[0];
 
-  return view("Counter.vue", {
+  return response.view("Counter.vue", {
     id: counter.id,
     counter: counter.counter
   });
@@ -303,7 +301,7 @@ Add the corresponding route:
 ```ts
 // routes/login.ts
 import route from "primate/route";
-import view from "primate/response/view";
+import response from "primate/response";
 import pema from "pema";
 import string from "pema/string";
 
@@ -312,7 +310,7 @@ const LoginSchema = pema({
   password: string.min(8),
 });
 
-route.get(() => view("LoginForm.vue"));
+route.get(() => response.view("LoginForm.vue"));
 
 route.post(async request => {
   const body = await request.body.json(LoginSchema);
@@ -367,13 +365,10 @@ Next, register the layout via a `+layout.ts` file:
 
 ```ts
 // routes/+layout.ts
-import view from "primate/response/view";
+import response from "primate/response";
+import route from "primate/route";
 
-export default {
-  get() {
-    return view("Layout.vue", { brand: "Primate Vue Demo" });
-  },
-};
+route.get(() => response.view("Layout.vue", { brand: "Primate Vue Demo" }));
 ```
 
 Pages under this route subtree render inside the layout's `<slot>`.

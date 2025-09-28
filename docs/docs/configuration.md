@@ -126,6 +126,35 @@ between websites.
 The session cookie manager. By default, we use an in-memory session manager
 that resets when the app restarts.
 
-## `database.ts`
+## `i18n.ts`
+
+[s=configuration/i18n-ts]
+
+### i18n options
+
+|Option|Default|Description|
+|-|-|-|
+|[defaultLocale](#default-locale)|undefined|default locale|
+|[locales](#locales)|[]|list of locales|
+|[currency](#currency)|`"USD"`|active currency|
+|[persist](#persist)|`"cookie"`|locale persistance mode|
+
+### `defaultLocale`
+
+The default locale to use, must one one from the `locales` list.
+
+### `locales`
+
+List of locales to use, must have at least one locale.
+
+### `currency`
+
+Currency to use in localization.
+
+### `persist`
+
+Locale persistance mode.
+
+## `database/*.ts`
 
 [s=configuration/database-ts]

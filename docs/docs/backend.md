@@ -27,15 +27,10 @@ or mix them in the same app for different routes.
 * **WebSocket** — real-time bidirectional communication
 * **Validation** — strongly-typed request/response validation schemas
 
-## WebAssembly Compilation
+## WebAssembly
 
-All backend languages are compiled to WebAssembly and run in the JavaScript
-runtime. This provides:
-
-- **Performance** — near-native execution speed
-- **Sandboxing** — secure execution environment
-- **Portability** — runs anywhere JavaScript runs
-- **Memory safety** — isolated memory management
+Backends run in the JS runtime via WebAssembly or a Wasm-based runtime (e.g.
+Pyodide for Python).
 
 ## Language Categories
 

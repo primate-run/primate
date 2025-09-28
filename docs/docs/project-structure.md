@@ -8,14 +8,14 @@ and files used in a Primate app.
 |Directory|Purpose|
 |-|-|
 |`build`|build artefacts — add to `.gitignore`|
-|[components](/components)|frontend components|
-|[config](/configuration)|configuration files|
-|[locales](/i18n#locales)|I18N locales|
+|[components](/docs/components)|frontend components|
+|[config](/docs/configuration)|configuration files|
+|[locales](/docs/i18n#locales)|I18N locales|
 |`node_modules`|install artefacts — add to `.gitignore`|
-|[pages](/pages)|app and error HTML template pages|
-|[routes](/routes)|filesystem-based routes|
-|[static](/static)|static assets — image, font, global JS and CSS files|
-|[stores](/stores)|data stores|
+|pages|app and error HTML template pages|
+|[routes](/docs/routing)|filesystem-based routes|
+|static|static assets — image, font, global JS and CSS files|
+|[stores](/docs/stores)|data stores|
 
 ## Files
 
@@ -35,9 +35,10 @@ Reside inside `config`. May be authored in Javascript or TypeScript.
 
 | | |
 |-|-|
-|[app.ts](/configuration#app-ts)|app options|
-|[session.ts](/configuration#session-ts)|session shape and options|
-|[database.ts](/configuration#database-ts)|database options|
+|[app.ts](/docs/configuration#app-ts)|app options|
+|[session.ts](/docs/configuration#session-ts)|session shape and options|
+|[i18n.ts](/docs/configuration#i18n-ts)|i18n options|
+|[database/*.ts](/docs/configuration#database-ts)|database options|
 
 ## Route files
 
@@ -50,18 +51,17 @@ different routes, but every route must be uniquely handled by one backend.
 |`index.ts`|matches `/`|
 |`user.ts`|matches `/user`|
 |[user/\[name\].ts]|matches `/user/*` — `*` is anything *except* a `/`|
-|[user/\[\[name\]\].ts]matches `/user` *and* `/user/*` — `*` is anything *except* a `/`|
+|[user/\[\[name\]\].ts]|matches `/user` *and* `/user/*` — `*` is anything *except* a `/`|
 |[user/\[...name\].ts]|matches `/user/*` — `*` is anything *including* a `/`|
-|[user/\[\[...name\]\].ts]|matches `/user` *and* `/user/*` — `*` is anything *including* a `/`|
-|[+guard.ts](/routing#guards)|route guard for routes in same directory and below|
-|[+error.ts](/routing#error-files)|route error file for routes in same directory|
-|[+layout.ts](/routes#layouts)|route layouts for routes in same directory and below|
+|[user/\[\[...name\]\].ts]|matches `/user/*` — `*` is anything *including* a `/`|
+|[+layout.ts](/docs/routes#layouts)|route layouts for routes in same directory and below|
+|[+guard.ts](/docs/routing#guards)|route guard for routes in same directory and below|
+|[+error.ts](/docs/routing#error-files)|route error file for routes in same directory|
 
-
-|[user/\[name\].ts]: /docs/routing#dynamic-routes
-|[user/\[\[name\]\].ts]: /docs/routing#optional-routes
-|[user/\[...name\].ts]: /docs/routing#rest-routes
-|[user/\[\[...name\]\].ts]: /docs/routing#optional-rest-routes)
+[user/\[name\].ts]: /docs/routing#dynamic-routes
+[user/\[\[name\]\].ts]: /docs/routing#optional-routes
+[user/\[...name\].ts]: /docs/routing#rest-routes
+[user/\[\[...name\]\].ts]: /docs/routing#optional-rest-routes
 
 ## Component files
 
@@ -72,35 +72,38 @@ must be uniquely handled by one frontend.
 
 | | |
 |-|-|
-|`*.jsx`|[React](/frontend/react), [Solid](/frontend/solid) or [Voby](/frontend/voby) components|
-|`*.tsx`|typed [React](/frontend/react), [Solid](/frontend/solid) or [Voby](/frontend/voby) components|
-|`*.svelte`|[Svelte](/frontend/svelte) components|
-|`*.vue`|[Vue](/frontend/vue) components|
-|`*.component.ts`|[Angular](/frontend/angular) components|
-|`*.marko`|[Marko](/frontend/marko) components|
-|`*.eta`|[Eta](/frontend/eta) components|
-|`*.html`|[HTML](/frontend/html) components|
-|`*.htmx`|[HTMX](/frontend/htmx) components|
-|`*.hbs`|[Handlebars](/frontend/handlebars) components|
-|`*.webc`|[Web components](/frontend/web-components)|
+|`*.jsx`|[React], [Solid] or [Voby] components|
+|`*.tsx`|typed [React], [Solid] or [Voby] components|
+|`*.svelte`|[Svelte](/docs/frontend/svelte) components|
+|`*.vue`|[Vue](/docs/frontend/vue) components|
+|`*.component.ts`|[Angular](/docs/frontend/angular) components|
+|`*.marko`|[Marko](/docs/frontend/marko) components|
+|`*.eta`|[Eta](/docs/frontend/eta) components|
+|`*.html`|[HTML](/docs/frontend/html) components|
+|`*.htmx`|[HTMX](/docs/frontend/htmx) components|
+|`*.hbs`|[Handlebars](/docs/frontend/handlebars) components|
+|`*.webc`|[Web components](/docs/frontend/web-components)|
+
+[React]: /docs/frontend/react
+[Solid]: /docs/frontend/solid
+[Voby]: /docs/frontend/voby
 
 ## Store files
 
-Files inside the `stores` directory, representing [data stores](/stores). May
-be authored in JavaScript or TypeScript.
+Files inside the `stores` directory, representing [data stores](/docs/stores).
+May be authored in JavaScript or TypeScript.
 
 | | |
 |-|-|
-|`User.ts` -- example|import using `#store/User` in routes|
-|`auth/User.ts` -- example|import using `#store/auth/User` in routes|
+|`User.ts` — import using `#store/User` in routes|
+|`auth/User.ts` — import using `#store/auth/User` in routes|
 
 ## Locale files
 
-Files inside the `locales` directory, for [I18N](/docs/i18n). Currently only
-JSONlocales are supported.
+Files inside the `locales` directory, for [I18N](/docs/i18n).
 
 | | |
 |-|-|
-|`en-US.json` -- default|locale for English (United States)|
-|`en-UK.json` -- example|locale for English (United Kingdom)|
-|`de-DE.json` -- example|locale for German (Germany)|
+|`en-US.ts` — locale for English (United States)|
+|`en-UK.ts` — locale for English (United Kingdom)|
+|`de-DE.ts` — locale for German (Germany)|

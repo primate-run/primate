@@ -1,5 +1,5 @@
 # Components
-Frontend component are placed in `components`. To use components, add a
+Frontend components are placed in `components`. To use components, add a
 [frontend modules](/docs/frontend).
 
 ## Serving views
@@ -10,14 +10,15 @@ To serve views, install a frontend module, for example `@primate/html`.
 npm install @primate/html
 ```
 
-Active the module in your configuration.
+Activate the module in your configuration.
 
 ```js
 import html from "@primate/html";
+import config from "primate/config";
 
-export default {
+export default config({
   modules: [html()],
-};
+});
 ```
 
 Create an HTML component in `components`.
@@ -26,20 +27,16 @@ Create an HTML component in `components`.
 <p>Hello, world!</p>
 ```
 
-Serve it with the `view` handler, passing in the name of the file you just
-created.
+Serve it with `response.view`, passing in the name of the file you just created.
 
 ```js caption=routes/hello.js
-import view from "primate/view";
+import response from "primate/response";
+import route from "primate/route";
 
-export default {
-  get() {
-    return view("hello.html");
-  },
-};
+route.get(() => response.view("hello.html"));
 ```
 
-The `view` handler will use the `pages/app.html` to render a full HTML page,
+`response.view` will use the `pages/app.html` to render a full HTML page,
 replacing `%body%` with the component's contents. If `pages/app.html` doesn't
 exist, Primate will use its default fallback file.
 
@@ -78,13 +75,10 @@ page, especially if you're replacing some parts of the page on the frontend
 handler.
 
 ```js caption=routes/partial-hello.js
-import view from "primate/view";
+import response from "primate/response";
+import route from "primate/route";
 
-export default {
-  get() {
-    return view("hello.html", {}, { partial: true });
-  },
-};
+route.get(() => response.view("hello.html", {}, { partial: true }));
 ```
 
 Using the same `hello.html` component specified as above, a client requesting
