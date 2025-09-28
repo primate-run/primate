@@ -1,6 +1,6 @@
 {
   "name": "@primate/mongodb",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Primate MongoDB database",
   "homepage": "https://primate.run/docs/database/mongodb",
   "bugs": "https://github.com/primate-run/primate/issues",

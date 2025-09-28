@@ -4,7 +4,7 @@
   "scripts": {
     "start": "npx primate",
     "build": "npx primate build",
-    "test": "node --experimental-wasm-jspi node_modules/primate/lib/bin.js test",
+    "test:grain": "node --experimental-wasm-jspi node_modules/primate/lib/bin.js test",
     "test:deno": "deno run -A npm:primate test",
     "test:bun": "bun x --bun primate test"
   },

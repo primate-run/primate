@@ -1,6 +1,6 @@
 {
   "name": "@primate/python",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Primate Python backend",
   "homepage": "https://primate.run/docs/backend/python",
   "bugs": "https://github.com/primate-run/primate/issues",
@@ -26,7 +26,7 @@
     "@rcompat/assert": "^0.3.1",
     "@rcompat/fs": "^0.21.1",
     "pema": "workspace:^",
-    "pyodide": "^0.28.2"
+    "pyodide": "^0.28.3"
   },
   "peerDependencies": {
     "primate": "workspace:^"

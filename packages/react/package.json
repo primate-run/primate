@@ -1,6 +1,6 @@
 {
   "name": "@primate/react",
-  "version": "0.12.5",
+  "version": "0.13.0",
   "description": "Primate React frontend",
   "homepage": "https://primate.run/docs/frontend/react",
   "bugs": "https://github.com/primate-run/primate/issues",
@@ -22,7 +22,7 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@types/react": "^19.1.12",
+    "@types/react": "^19.1.15",
     "@types/react-dom": "^19.1.9"
   },
   "dependencies": {

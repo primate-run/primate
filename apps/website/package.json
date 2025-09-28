@@ -20,8 +20,8 @@
     "shiki": "^3.12.2"
   },
   "devDependencies": {
-    "@angular/common": "^20.3.0",
-    "@angular/core": "^20.3.0",
+    "@angular/common": "^20.3.2",
+    "@angular/core": "^20.3.2",
     "@primate/angular": "workspace:^",
     "@primate/go": "workspace:^",
     "@primate/grain": "workspace:^",

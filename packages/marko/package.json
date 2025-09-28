@@ -1,6 +1,6 @@
 {
   "name": "@primate/marko",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Primate Marko frontend",
   "homepage": "https://primate.run/docs/frontend/marko",
   "bugs": "https://github.com/primate-run/primate/issues",
@@ -22,10 +22,10 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@marko/compiler": "^5.39.34",
+    "@marko/compiler": "^5.39.39",
     "@marko/translator-default": "^6.1.3",
     "@primate/core": "workspace:^",
-    "marko": "^5.37.54"
+    "marko": "^5.37.59"
   },
   "devDependencies": {
     "@types/marko": "^4.6.8"
