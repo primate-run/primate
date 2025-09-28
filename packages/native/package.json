@@ -24,11 +24,11 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/cli": "^0.10.2",
+    "@rcompat/cli": "^0.11.3",
     "@rcompat/fs": "^0.21.1",
     "@rcompat/record": "^0.9.1",
     "@rcompat/runtime": "^0.6.0",
-    "@rcompat/stdio": "^0.11.0",
+    "@rcompat/stdio": "^0.12.2",
     "@rcompat/string": "^0.10.0",
     "@rcompat/webview": "^0.14.0",
     "pema": "workspace:^"

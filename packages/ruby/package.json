@@ -26,7 +26,7 @@
     "@rcompat/assert": "^0.3.1",
     "@rcompat/fs": "^0.21.1",
     "@rcompat/package": "^0.22.0",
-    "@rcompat/stdio": "^0.11.0",
+    "@rcompat/stdio": "^0.12.2",
     "@ruby/head-wasm-wasi": "^2.7.1",
     "@ruby/wasm-wasi": "^2.7.1"
   },

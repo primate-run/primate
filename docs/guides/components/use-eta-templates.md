@@ -26,7 +26,7 @@ export default config({ modules: [eta()] });
 
 Compose a template in Eta.
 
-```eta
+```html
 <!-- components/Welcome.eta -->
 <h1>Hello, <%= it.name %>!</h1>
 ```
