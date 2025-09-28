@@ -9,13 +9,17 @@ it in `config/database`; Primate connects to it and provides a unified API.
 Ensure PostgreSQL is running and accessible.
 !!!
 
+---
+
 ### 1) Install
 
 Install the Primate PostgreSQL package.
 
 ```sh
-npm i @primate/postgresql
+npm install @primate/postgresql
 ```
+
+---
 
 ### 2) Configure
 
@@ -32,6 +36,8 @@ export default postgresql({
   // password: "pass",
 });
 ```
+
+---
 
 ### 3) Create a store
 
@@ -50,6 +56,8 @@ export default store({
   email: string,
 });
 ```
+
+---
 
 ### 4) Use the store
 

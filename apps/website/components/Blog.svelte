@@ -39,13 +39,12 @@
 </main>
 
 <style>
-  /* Page shell */
   main.blog {
     padding-top: var(--height);
   }
 
   .blog .title {
-    padding: 18px;
+    padding: 0 18px;
   }
 
   a {
@@ -53,16 +52,18 @@
     text-decoration: none;
   }
 
-  /* Clean list with separators (no cards) */
   .entries {
     list-style: none;
     padding: 0;
     margin: 0;
   }
+
   .entry {
     padding: 18px;
     border-radius: 5px;
+    list-style-type: none;
   }
+
   .entry:hover {
     background: var(--caption-bg);
   }

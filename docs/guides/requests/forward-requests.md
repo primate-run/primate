@@ -9,6 +9,8 @@ Make sure you disable body parsing on the forwarded route, to keep Primate from
 preparsing the body.
 !!!
 
+---
+
 ### Simple proxy
 
 Forward request as-is.
@@ -21,6 +23,8 @@ route.get(request => request.forward("https://api.example.com"), {
   parseBody: false,
 });
 ```
+
+---
 
 ### Add headers
 

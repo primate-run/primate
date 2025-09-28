@@ -4,6 +4,8 @@ name: Use Angular components
 
 Add Angular components with the `@primate/angular` module.
 
+---
+
 ### 1) Install
 
 Install the Primate Angular package.
@@ -11,6 +13,8 @@ Install the Primate Angular package.
 ```sh
 npm install @primate/angular
 ```
+
+---
 
 ### 2) Configure
 
@@ -21,6 +25,8 @@ import config from "primate/config";
 import angular from "@primate/angular";
 export default config({ modules: [angular()] });
 ```
+
+---
 
 ### 3) Write a component
 
@@ -38,6 +44,8 @@ export class WelcomeComponent {
   @Input() name!: string;
 }
 ```
+
+---
 
 ### 4) Render the component
 

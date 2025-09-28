@@ -9,64 +9,35 @@ Add MongoDB as a database with the `@primate/mongodb` module. Configure it in
 Ensure MongoDB is running and accessible.
 !!!
 
+---
+
 ### 1) Install
 
 Install the Primate MongoDB package.
 
-```sh
-npm i @primate/mongodb
-```
+[s=guides/databases/use-mongodb/install]
+
+---
 
 ### 2) Configure
 
 Create `config/database/index.ts` as a default database.
 
-```ts
-import mongodb from "@primate/mongodb";
+[s=guides/databases/use-mongodb/configure]
 
-export default mongodb({
-  database: "app",
-  host: "localhost",
-  port: 27017,
-  // username: "user",
-  // password: "pass",
-});
-```
+---
 
 ### 3) Create a store
 
 Stores used with MongoDb abstract a collection. The store will use MongoDB
 automatically, being the default database.
 
-```ts
-// stores/User.ts
-import store from "primate/store";
-import primary from "pema/primary";
-import string from "pema/string";
+[s=guides/databases/use-mongodb/create-a-store]
 
-export default store({
-  id: primary,
-  name: string,
-  email: string,
-});
-```
+---
 
 ### 4) Use the store
 
 Use the store in routes.
 
-```ts
-// routes/users.ts
-import route from "primate/route";
-import User from "#store/User";
-
-route.get(async () => {
-  const users = await User.find({});
-  return users;
-});
-
-route.post(async (request) => {
-  const user = await User.insert(request.body);
-  return user;
-});
-```
+[s=guides/databases/use-mongodb/use-the-store]

@@ -10,13 +10,17 @@ Ensure SurrealDB is running and accessible. Primate will otherwise default to
 the ephemeral in-memory database.
 !!!
 
+---
+
 ### 1) Install
 
 Install the Primate SurrealDB package.
 
 ```sh
-npm i @primate/surrealdb
+npm install @primate/surrealdb
 ```
+
+---
 
 ### 2) Configure
 
@@ -33,6 +37,8 @@ export default surrealdb({
   // password: "pass",
 });
 ```
+
+---
 
 ### 3) Create a store
 
@@ -51,6 +57,8 @@ export default store({
   email: string,
 });
 ```
+
+---
 
 ### 4) Use the store
 

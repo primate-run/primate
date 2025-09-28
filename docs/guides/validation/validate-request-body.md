@@ -8,6 +8,8 @@ Validate incoming request body with schemas. Use pema for type-safe validation.
 Validation throws on failure; handle errors appropriately.
 !!!
 
+---
+
 ### 1) Define schema
 
 Create validation schema.
@@ -20,6 +22,8 @@ import email from "pema/email";
 
 const UserSchema = pema({ name: string.min(1), email: string.email() });
 ```
+
+---
 
 ### 2) Validate in route
 
@@ -36,6 +40,8 @@ route.post(request => {
   return { user };
 });
 ```
+
+---
 
 ### 3) Handle validation errors
 

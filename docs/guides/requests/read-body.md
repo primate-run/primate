@@ -5,6 +5,8 @@ name: Read body
 Access the request body by calling methods on `request.body`. Methods validate
 that the body is of the correct type.
 
+---
+
 ### Text -> string
 
 Use `text()` to get the body as a `string`.
@@ -18,6 +20,8 @@ route.post(request => {
   return { received };
 });
 ```
+
+---
 
 ### JSON -> Record
 
@@ -33,6 +37,8 @@ route.post(request => {
 });
 ```
 
+---
+
 ### Form -> Record
 
 Use `fields()` to get the body as form (`Record<string, string | File>`).
@@ -46,6 +52,8 @@ route.post(request => {
   return { received };
 });
 ```
+
+---
 
 ### Binary -> Blob
 

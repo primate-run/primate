@@ -4,6 +4,8 @@ name: Stream binary data
 
 Serve binary data like files or images. Use the `stream` response.
 
+---
+
 ### Serve file
 
 Read and return binary data.
@@ -18,6 +20,8 @@ const file = new FileRef("path/to/file.pdf");
 
 route.get(() => response.stream(file));
 ```
+
+---
 
 ### Serve stream
 

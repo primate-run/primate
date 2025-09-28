@@ -4,6 +4,8 @@ name: Use Solid components
 
 Add Solid components with the `@primate/solid` module.
 
+---
+
 ### 1) Install
 
 Install the Primate Solid package along with Solid.
@@ -11,6 +13,8 @@ Install the Primate Solid package along with Solid.
 ```sh
 npm i @primate/solid solid-js
 ```
+
+---
 
 ### 2) Configure
 
@@ -21,6 +25,8 @@ import config from "primate/config";
 import solid from "@primate/solid";
 export default config({ modules: [solid()] });
 ```
+
+---
 
 ### 3) Write a component
 
@@ -36,6 +42,8 @@ const Welcome: Component<{ name: string }> = (props) => {
 
 export default Welcome;
 ```
+
+---
 
 ### 4) Render the component
 

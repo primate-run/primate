@@ -8,7 +8,9 @@ Pema stands **P**rimate sch**ema**. Use pema for type-safe validation of data.
 Pema provides composable validators for common types.
 !!!
 
-### 1) Basic usage
+---
+
+### Basic usage
 
 Import and use validators.
 
@@ -25,7 +27,9 @@ const schema = pema({
 const data = schema.parse({ name: "John", age: 30 });
 ```
 
-### 2) Built-in validators
+---
+
+### Built-in validators
 
 - `string`: String validation
 - `number`: Number validation
@@ -33,7 +37,9 @@ const data = schema.parse({ name: "John", age: 30 });
 - `array`: Array validation
 - `object`: Object validation
 
-### 3) Chaining
+---
+
+### Chaining
 
 Chain validators for complex rules.
 
@@ -42,7 +48,9 @@ const emailSchema = string.min(1).max(255).email();
 const ageSchema = number.integer().min(0).max(150);
 ```
 
-### 4) Error handling
+---
+
+### Error handling
 
 Validation throws `ParseError` with details.
 

@@ -98,6 +98,9 @@ const toIcon = (id: string) =>
   `<svg class="icon" width="16" height="16"><use href="#${id}"></use></svg>`;
 
 export default config({
+  http: {
+    host: "0.0.0.0",
+  },
   build: {
     loader: {
       ".woff2": "file",

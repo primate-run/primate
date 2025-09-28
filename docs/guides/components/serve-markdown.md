@@ -9,6 +9,8 @@ Markdown; Primate renders it to HTML on the server.
 Markdown is converted to HTML for display.
 !!!
 
+---
+
 ### 1) Install
 
 Install the Primate Markdown package.
@@ -16,6 +18,8 @@ Install the Primate Markdown package.
 ```sh
 npm i @primate/markdown
 ```
+
+---
 
 ### 2) Configure
 
@@ -27,6 +31,8 @@ import markdown from "@primate/markdown";
 export default config({ modules: [markdown()] });
 ```
 
+---
+
 ### 3) Write content
 
 Compose content in Markdown.
@@ -37,6 +43,8 @@ Compose content in Markdown.
 
 This is **Markdown** content.
 ```
+
+---
 
 ### 4) Render the content
 

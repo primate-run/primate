@@ -5,8 +5,10 @@ name: Use Web Components
 Add Web Components with the `@primate/web-components` module.
 
 !!!
-Web Components are client-side only in Primate.
+Web Components are client-side only.
 !!!
+
+---
 
 ### 1) Install
 
@@ -15,6 +17,8 @@ Install the Primate Web Components package.
 ```sh
 npm i @primate/web-components
 ```
+
+---
 
 ### 2) Configure
 
@@ -25,6 +29,8 @@ import config from "primate/config";
 import webComponents from "@primate/web-components";
 export default config({ modules: [webComponents()] });
 ```
+
+---
 
 ### 3) Write a component
 
@@ -44,6 +50,8 @@ Compose a component as a custom element.
 </script>
 
 ```
+
+---
 
 ### 4) Render the component
 

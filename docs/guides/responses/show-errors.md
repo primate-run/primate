@@ -9,7 +9,9 @@ custom errors.
 Throw errors to trigger `+error.ts`; return responses for controlled errors.
 !!!
 
-### 1) Throw error
+---
+
+### Throw error
 
 Triggers error handler.
 
@@ -22,7 +24,9 @@ route.get(() => {
 });
 ```
 
-### 2) Return error response
+---
+
+### Return error response
 
 Controlled error response.
 
@@ -32,7 +36,9 @@ import response from "primate/response";
 route.get(() => response.json({ error: "Bad request" }, { status: 400 }));
 ```
 
-### 3) Error handler
+---
+
+### Error handler
 
 Use `+error.ts` for global handling. Routes placed alongside `+error.ts` or in
 subdirectories in its tree will trigger it upon throwing.

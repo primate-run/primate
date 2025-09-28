@@ -6,16 +6,20 @@ Add SQLite as a database with the `@primate/sqlite` module. Configure it in
 `config/database`; Primate connects to it and provides a unified API.
 
 !!!
-SQLite is file-based or in-memory; no server needed.
+SQLite is file-based or in-memory, no server needed.
 !!!
+
+---
 
 ### 1) Install
 
 Install the Primate SQLite package.
 
 ```sh
-npm i @primate/sqlite
+npm install @primate/sqlite
 ```
+
+---
 
 ### 2) Configure
 
@@ -28,6 +32,8 @@ export default sqlite({
   database: "/tmp/app.db", // or ":memory:" for in-memory
 });
 ```
+
+---
 
 ### 3) Create a store
 
@@ -46,6 +52,8 @@ export default store({
   email: string,
 });
 ```
+
+---
 
 ### 4) Use the store
 

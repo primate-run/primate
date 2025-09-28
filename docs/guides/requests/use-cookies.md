@@ -5,6 +5,8 @@ name: Use cookies
 Access cookies from the request object. Cookies are parsed from the `Cookie`
 header.
 
+---
+
 ### Read cookies
 
 Access cookies via `request.cookies`.
@@ -18,6 +20,8 @@ route.get(request => {
   return { sessionId };
 });
 ```
+
+---
 
 ### Set cookies
 

@@ -4,6 +4,8 @@ name: Use Handlebars templates
 
 Add Handlebars templating with the `@primate/handlebars` module.
 
+---
+
 ### 1) Install
 
 Install the Primate Handlebars package.
@@ -11,6 +13,8 @@ Install the Primate Handlebars package.
 ```sh
 npm i @primate/handlebars
 ```
+
+---
 
 ### 2) Configure
 
@@ -22,6 +26,8 @@ import handlebars from "@primate/handlebars";
 export default config({ modules: [handlebars()] });
 ```
 
+---
+
 ### 3) Write a template
 
 Compose a template in Handlebars.
@@ -30,6 +36,8 @@ Compose a template in Handlebars.
 <!-- components/Welcome.hbs -->
 <h1>Hello, {{name}}!</h1>
 ```
+
+---
 
 ### 4) Render the template
 

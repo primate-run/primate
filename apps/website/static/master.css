@@ -325,6 +325,11 @@ a.button {
   display: none;
 }
 
+.guide article,
+.blog article {
+  width: 1160px;
+}
+
 article {
   grid-column: 2;
   /* middle/content track */

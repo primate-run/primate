@@ -5,6 +5,8 @@ name: Use headers
 Access HTTP headers from the request object. Headers are parsed from the
 request.
 
+---
+
 ### Read headers
 
 Access headers via `request.headers`.
@@ -19,6 +21,8 @@ route.get((request) => {
   return { userAgent, contentType };
 });
 ```
+
+---
 
 ### Set headers in response
 

@@ -1,3 +1,0 @@
----
-name: Work with layouts
----

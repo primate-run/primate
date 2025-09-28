@@ -125,7 +125,7 @@
           the hood, no runtime boilerplate.
         </p>
         <div class="feature__actions">
-          <a class="button" href="/docs/runtime">Docs</a>
+          <a class="button" href="/docs/platform">Docs</a>
         </div>
       </div>
       <div class="feature__demo">{@html examples.runtime}</div>
@@ -141,10 +141,10 @@
           native builds — with more coming.
         </p>
         <div class="feature__actions">
-          <a class="button" href="/docs/databases">Databases</a>
+          <a class="button" href="/docs/database">Databases</a>
           <a class="button" href="/docs/i18n">i18n</a>
           <a class="button" href="/docs/sessions">Sessions</a>
-          <a class="button" href="/docs/native">Native</a>
+          <a class="button" href="/docs/target/native">Native</a>
         </div>
       </div>
       <div class="feature__demo">{@html examples.i18n}</div>
@@ -360,7 +360,7 @@
 
   .feature__demo {
     grid-area: demo;
-    background:#2e3440;
+    background: #2e3440;
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 1.2rem;

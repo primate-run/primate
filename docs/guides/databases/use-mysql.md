@@ -9,13 +9,17 @@ Add MySQL as a database with the `@primate/mysql` module. Configure it in
 Ensure MySQL is running and accessible.
 !!!
 
+---
+
 ### 1) Install
 
 Install the Primate MySQL package.
 
 ```sh
-npm i @primate/mysql
+npm install @primate/mysql
 ```
+
+---
 
 ### 2) Configure
 
@@ -32,6 +36,8 @@ export default mysql({
   // password: "pass",
 });
 ```
+
+---
 
 ### 3) Create a store
 
@@ -50,6 +56,8 @@ export default store({
   email: string,
 });
 ```
+
+---
 
 ### 4) Use the store
 

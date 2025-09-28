@@ -4,6 +4,8 @@ name: Use Eta templates
 
 Add Eta templating with the `@primate/eta` module.
 
+---
+
 ### 1) Install
 
 Install the Primate Eta package.
@@ -11,6 +13,8 @@ Install the Primate Eta package.
 ```sh
 npm i @primate/eta
 ```
+
+---
 
 ### 2) Configure
 
@@ -22,6 +26,8 @@ import eta from "@primate/eta";
 export default config({ modules: [eta()] });
 ```
 
+---
+
 ### 3) Write a template
 
 Compose a template in Eta.
@@ -30,6 +36,8 @@ Compose a template in Eta.
 <!-- components/Welcome.eta -->
 <h1>Hello, <%= it.name %>!</h1>
 ```
+
+---
 
 ### 4) Render the template
 

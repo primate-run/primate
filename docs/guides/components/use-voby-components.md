@@ -4,6 +4,8 @@ name: Use Voby components
 
 Add Voby components with the `@primate/voby` module.
 
+---
+
 ### 1) Install
 
 Install the Primate Voby package along with Voby.
@@ -11,6 +13,8 @@ Install the Primate Voby package along with Voby.
 ```sh
 npm i @primate/voby voby
 ```
+
+---
 
 ### 2) Configure
 
@@ -21,6 +25,8 @@ import config from "primate/config";
 import voby from "@primate/voby";
 export default config({ modules: [voby()] });
 ```
+
+---
 
 ### 3) Write a component
 
@@ -34,6 +40,8 @@ export default function Welcome({ name }: { name: string }) {
   return <h1>Hello, {$(name)}!</h1>;
 }
 ```
+
+---
 
 ### 4) Render the component
 

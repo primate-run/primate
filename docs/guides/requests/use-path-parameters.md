@@ -9,52 +9,34 @@ URL-decoded.
 Use `.get()` for required params, `.try()` for optional.
 !!!
 
-### 1) Define route with params
+---
+
+### Define route with params
 
 Use brackets in route filename.
 
-```ts
-// routes/user/[id].ts
-import route from "primate/route";
+[s=guides/requests/use-path-parameters/define-route-with-params]
 
-route.get(request => {
-  const id = request.path.get("id");
-  return { id };
-});
-```
+---
 
-### 2) Access parameters
+### Access parameters
 
 Read params via `request.path`.
 
-```ts
-route.get(request => {
-  const id = request.path.get("id"); // throws if missing
-  const name = request.path.try("name"); // null if missing
-  return { id, name };
-});
-```
+[s=guides/requests/use-path-parameters/access-parameters]
 
-### 3) Multiple params
+---
+
+### Multiple params
 
 Stack brackets for nested params.
 
-```ts
-// routes/user/[id]/posts/[post_id].ts
-route.get(request => {
-  const id = request.path.get("id");
-  const postId = request.path.get("post_id");
-  return { id, postId };
-});
-```
+[s=guides/requests/use-path-parameters/multiple-params]
 
-### 4) Optional params
+---
+
+### Optional params
 
 Use double brackets for optional.
 
-```ts
-// routes/user/[[name]].ts
-route.get((request) => {
-  const name = request.path.try("name") ?? "guest";
-  return { name };
-});
+[s=guides/requests/use-path-parameters/optional-params]

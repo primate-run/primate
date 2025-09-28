@@ -9,7 +9,9 @@ schemas.
 Validate all input sources for security.
 !!!
 
-### 1) Validate query params
+---
+
+### Validate query params
 
 Schema for query string.
 
@@ -28,7 +30,9 @@ route.get(request => {
 });
 ```
 
-### 2) Validate path params
+---
+
+### Validate path params
 
 Schema for path parameters.
 
@@ -43,7 +47,9 @@ route.get(request => {
 });
 ```
 
-### 3) Validate headers
+---
+
+### Validate headers
 
 Schema for headers.
 

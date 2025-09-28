@@ -4,6 +4,8 @@ name: Use Svelte components
 
 Add Svelte components with the `@primate/svelte` module.
 
+---
+
 ### 1) Install
 
 Install the Primate Svelte package along with Svelte.
@@ -11,6 +13,8 @@ Install the Primate Svelte package along with Svelte.
 ```sh
 npm i @primate/svelte svelte
 ```
+
+---
 
 ### 2) Configure
 
@@ -21,6 +25,8 @@ import config from "primate/config";
 import svelte from "@primate/svelte";
 export default config({ modules: [svelte()] });
 ```
+
+---
 
 ### 3) Write a component
 
@@ -34,6 +40,8 @@ Compose a component in Svelte.
 
 <h1>Hello, {name}!</h1>
 ```
+
+---
 
 ### 4) Render the component
 

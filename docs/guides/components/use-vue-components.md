@@ -4,6 +4,8 @@ name: Use Vue components
 
 Add Vue components with the `@primate/vue` module.
 
+---
+
 ### 1) Install
 
 Install the Primate Vue package along with Vue.
@@ -11,6 +13,8 @@ Install the Primate Vue package along with Vue.
 ```sh
 npm i @primate/vue vue
 ```
+
+---
 
 ### 2) Configure
 
@@ -21,6 +25,8 @@ import config from "primate/config";
 import vue from "@primate/vue";
 export default config({ modules: [vue()] });
 ```
+
+---
 
 ### 3) Write a component
 
@@ -36,6 +42,8 @@ Compose a component in Vue SFC.
 defineProps<{ name: string }>();
 </script>
 ```
+
+---
 
 ### 4) Render the component
 

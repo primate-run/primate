@@ -12,39 +12,24 @@ install dependencies into `vendor` via
 up.
 !!!
 
+---
+
 ### 1) Install
 
 Install the Primate Ruby package as well as the `primate-run` gem.
 
-```sh
-npm i @primate/ruby && bundle install primate-run
-```
+[s=guides/backends/add-a-ruby-backend/install]
 
 ### 2) Configure
 
 Load the Ruby module in your configuration.
 
-```ts
-import config from "primate/config";
-import ruby from "@primate/ruby";
-export default config({ modules: [ruby()] });
-```
+[s=guides/backends/add-a-ruby-backend/configure]
+
+---
 
 ### 3) Write a route
 
 Compose a route in Ruby.
 
-```rb
-// routes/index.rb
-
-require 'primate/route'
-
-Route.get do |request|
-  "Hello from Ruby"
-end
-
-
-Route.post do |request|
-  { ok: true }
-end
-```
+[s=guides/backends/add-a-ruby-backend/write-a-route]

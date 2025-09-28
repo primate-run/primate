@@ -10,6 +10,8 @@ This assumes you have [installed and loaded](/guides/load-modules)
 `@primate/html` in your config file.
 !!!
 
+---
+
 The HTML frontend will automatically extract `<style>` and `<script>` tags and
 bundle them into the rest of your application.
 
