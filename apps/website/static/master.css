@@ -325,8 +325,11 @@ a.button {
   display: none;
 }
 
-.guide article,
 .blog article {
+  width: 960px;
+}
+
+.guide article {
   width: 1160px;
 }
 
