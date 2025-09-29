@@ -149,9 +149,9 @@ module Text
 
 from "primate/request" include Request
 
-use Request.{ type Request, module Body }
+use Request.{ type Request }
 
-provide let post = (request: Request) => Body.text(request)
+provide let post = (request: Request) => Response.text(request)
 ```
 
 #### Binary Data
@@ -201,12 +201,7 @@ from "option" include Option
 from "json" include Json
 from "bytes" include Bytes
 
-use Request.{
-  type Request,
-  module Body,
-  module BodyFieldsElement,
-  type FileLike
-}
+use Request.{ type Request, module Body, module BodyField, type File }
 use Json.{ type Json }
 
 provide let post = (request: Request) => {
@@ -215,7 +210,7 @@ provide let post = (request: Request) => {
   // Process regular fields
   let regularFields = Map.reduce((acc, key, value) => {
     match (value) {
-      BodyFieldsElementString(str) => [(key, JsonString(str)), ...acc],
+      BodyFieldString(str) => [(key, JsonString(str)), ...acc],
       _ => acc
     }
   }, [], fields)
@@ -223,7 +218,7 @@ provide let post = (request: Request) => {
   // Process file fields
   let fileFields = Map.reduce((acc, key, value) => {
     match (value) {
-      BodyFieldsElementFile({ name, mimeType, bytes }) => {
+      BodyFieldFile({ name, mimeType, bytes }) => {
         let content = Bytes.toString(bytes)
         let fileInfo = JsonObject([
           ("name", JsonString(name)),
@@ -433,6 +428,17 @@ provide let get = (request: Request) => {
 - `Store.has(store, id)` - check if record exists
 - `Store.count(store)` - count records
 - `Store.clear(store)` - clear all records
+
+### Using JSPI
+
+Grain stores use JSPI, JavaScript promise integration, to be able to use async
+code as if it were sync from Wasm. This currently only support in Node (with a
+flag) and Deno.
+
+In Node, instead of `npx primate`, you currently need to run
+`node --experimental-wasm-jspi node_modules/primate/lib/bin.js`.
+
+Deno can be used normally - `deno -A run npm:primate`.
 
 ## WebSocket Support
 
