@@ -1,8 +1,8 @@
 <div align="center">
 <img src="https://raw.githubusercontent.com/prmtrun/primate/master/assets/logo.svg" alt="Primate" width="60"/>
 <h1>Primate</h1>
-<a href="https://primate.run/docs"><img src="https://img.shields.io/badge/docs-555555?style=for-the-badge"></a>
-&nbsp;<a href="https://primate.run/docs/quickstart"><img src="https://img.shields.io/badge/npx%20primate%20init-a16836?style=for-the-badge"></a>
+<a href="https://primate.run/docs"><img src="https://img.shields.io/badge/docs-A52A2A?style=for-the-badge"></a>
+&nbsp;<a href="https://primate.run/docs/quickstart"><img src="https://img.shields.io/badge/npx%20primate%20init-A65B60?style=for-the-badge"></a>
 &nbsp;<a href="https://primate.run/chat"><img src="https://img.shields.io/discord/1256590312177012806?style=for-the-badge&label=chat&logoColor=fff&color=5865f2"></a>
 </div>
 <br>
