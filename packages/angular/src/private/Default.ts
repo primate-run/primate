@@ -1,5 +1,8 @@
 import create_root from "#create-root";
 import Runtime from "#Runtime";
+import { enableProdMode } from "@angular/core";
+import type NextServe from "@primate/core/NextServe";
+import type ServeApp from "@primate/core/ServeApp";
 import * as ts from "typescript";
 
 export default class Default extends Runtime {
@@ -54,7 +57,14 @@ export default class Default extends Runtime {
         },
       });
 
-      return result.outputText;
+      // hinder treeshaking
+      return `import "@angular/compiler";\n${result.outputText}`;
     },
   };
+
+  async serve(app: ServeApp, next: NextServe) {
+    app.mode === "production" && enableProdMode();
+
+    return super.serve(app, next);
+  }
 }
