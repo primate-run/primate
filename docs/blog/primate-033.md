@@ -10,7 +10,7 @@ backend support, and a new website.
 
 !!!
 If you're new to Primate, we recommend reading the [Quickstart] page to get a
-fresh idea.
+quick idea.
 !!!
 
 ## Full TypeScript rewrite
@@ -86,8 +86,8 @@ route.get(() => {
   }
 
   const data = session.get();
-  // TypeScript knows: data.userId is string, data.role is "admin" | "user"
-  return `Welcome back, user ${data.userId} with role ${data.role}`;
+  // TypeScript knows: data.userId is string
+  return `Welcome back, user ${data.userId}`;
 });
 ```
 
