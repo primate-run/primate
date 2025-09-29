@@ -169,8 +169,8 @@ HTTP verb. Handlers map requests to responses.
 [s=routing/route-handlers]
 
 ### Disable body parsing
-Handlers receive a parsed request body based on `Content-Type`. To access the
-**raw** body, pass `{ parseBody: false }` in the route options.
+Handlers receive a parsed request body based on `Content-Type`. To keep the
+request body unparsed, pass `{ parseBody: false }` in the route options.
 
 [s=routing/route-handlers-unparsed-body]
 

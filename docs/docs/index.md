@@ -53,7 +53,7 @@ core with common capabilities:
 * [Databases and ORMs](/docs/stores)
 * [Session management](/docs/sessions)
 * [Internationalization (i18n)](/docs/i18n)
-* [Native app builds (desktop)](/docs/desktop)
+* [Native app builds (desktop)](/docs/target/native)
 
 Everything you need to build real apps is supported out of the box.
 
