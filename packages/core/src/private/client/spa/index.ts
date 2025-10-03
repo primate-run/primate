@@ -165,6 +165,12 @@ const go = async (href: string, updater: Updater<any>, event?: Event) => {
 };
 
 export default <T extends Dict>(updater: Updater<T>) => {
+  globalThis.addEventListener("pageshow", event => {
+    if (event.persisted) {
+      globalThis.location.reload();
+    }
+  });
+
   globalThis.addEventListener("load", _ => {
     history.scrollRestoration = "manual";
     if (globalThis.location.hash !== "") {
