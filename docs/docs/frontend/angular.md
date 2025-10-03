@@ -12,7 +12,7 @@ provides the server implementation itself.
 ### Install
 
 ```bash
-npm install @primate/angular @angular/core @angular/common
+npm install @primate/angular @angular/core @angular/common @angular/compiler
 ```
 
 !!!

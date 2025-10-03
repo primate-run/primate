@@ -65,7 +65,7 @@ const DATABASE_OPTIONS: { label: string; value: Database }[] = [
 
 // peer deps per frontend (npm names)
 const FRONTEND_PEER_DEPS: Record<Frontend, string[]> = {
-  angular: [],
+  angular: ["@angular/core", "@angular/common", "@angular/compiler"],
   eta: [],
   html: [],
   htmx: [],
@@ -397,18 +397,31 @@ function buildInstallCommand(runtime: Runtime, packages: { dependencies: string[
 
   const cd = `cd ${shQuote(dir)} && `;
   if (runtime === "bun") {
-    const depCmd = dependencies.length > 0 ? `bun add ${dependencies.join(" ")}` : "";
-    const devCmd = devDependencies.length > 0 ? `bun add -d ${devDependencies.join(" ")}` : "";
+    const depCmd = dependencies.length > 0
+      ? `bun add ${dependencies.join(" ")}`
+      : "";
+    const devCmd = devDependencies.length > 0
+      ? `bun add -d ${devDependencies.join(" ")}`
+      : "";
     const commands = [depCmd, devCmd].filter(Boolean);
     return { print: cd + commands.join(" && "), run: "" };
   }
   if (runtime === "deno") {
-    const inner = `deno add ${allPkgs.map((p) => `npm:${p}`).join(" ")}`;
-    return { print: cd + inner, run: "" };
+    const depCmd = dependencies.length > 0
+      ? `deno add ${dependencies.map(d => `npm:${d}`).join(" ")}`
+      : "";
+    const devCmd = devDependencies.length > 0
+      ? `deno add -D ${devDependencies.map(d => `npm:${d}`).join(" ")}`
+      : "";
+    const commands = [depCmd, devCmd].filter(Boolean);
+    return { print: cd + commands.join(" && "), run: "" };
   }
-  // default: Node
-  const depCmd = dependencies.length > 0 ? `npm install ${dependencies.join(" ")}` : "";
-  const devCmd = devDependencies.length > 0 ? `npm install -D ${devDependencies.join(" ")}` : "";
+  const depCmd = dependencies.length > 0 ?
+    `npm install ${dependencies.join(" ")}`
+    : "";
+  const devCmd = devDependencies.length > 0
+    ? `npm install -D ${devDependencies.join(" ")}`
+    : "";
   const commands = [depCmd, devCmd].filter(Boolean);
   return { print: cd + commands.join(" && "), run: "" };
 }
