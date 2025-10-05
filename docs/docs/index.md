@@ -19,7 +19,7 @@ won't easily move to another.
 
 Primate avoids this trap. You can use your favorite frontend with a backend that
 works the same way across all of them. You can even combine different frontends
-in one project, or migrate gradually without rewriting your server.
+in one project, or migrate gradually without rewriting the whole application.
 
 ## The power of WebAssembly
 
