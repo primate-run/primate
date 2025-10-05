@@ -52,8 +52,8 @@ different routes, but every route must be uniquely handled by one backend.
 |`user.ts`|matches `/user`|
 |[user/\[name\].ts]|matches `/user/*` — `*` is anything *except* a `/`|
 |[user/\[\[name\]\].ts]|matches `/user` *and* `/user/*` — `*` is anything *except* a `/`|
-|[user/\[...name\].ts]|matches `/user/*` — `*` is anything *including* a `/`|
-|[user/\[\[...name\]\].ts]|matches `/user/*` — `*` is anything *including* a `/`|
+|[user/\[...name\].ts]|matches `/user/*` — `*` is anything *including* zero or more `/`|
+|[user/\[\[...name\]\].ts]|matches `/user` *and* `/user/*` — `*` is anything *including* zero or more `/`|
 |[+layout.ts](/docs/routes#layouts)|route layouts for routes in same directory and below|
 |[+guard.ts](/docs/routing#guards)|route guard for routes in same directory and below|
 |[+error.ts](/docs/routing#error-files)|route error file for routes in same directory|
