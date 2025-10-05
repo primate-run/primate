@@ -468,11 +468,6 @@ article a.deeplink {
   color: var(--caption-bg);
 }
 
-.hero img {
-  width: 60px;
-  margin-bottom: 10px;
-}
-
 .logos img {
   width: 24px;
 }
@@ -508,102 +503,6 @@ article li {
 }
 
 header a:hover {
-  color: var(--primary);
-}
-
-.hero .header {
-  padding: calc(var(--prs-page-padding-side) * 1.25);
-  display: flex;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.hero .header .flank {
-  flex: 1;
-}
-
-.hero .header .middle {
-  text-align: center;
-}
-
-.hero .footer {
-  background: #f7fafd;
-  border-top: 1px solid #c2cdd6;
-  padding: 30px 0;
-}
-
-.dark .hero .footer {
-  background: #080502;
-  border-top: 1px solid #3d3229;
-}
-
-.hero .footer .heading {
-  margin-bottom: 10px;
-}
-
-.hero .footer li {
-  margin-bottom: 5px;
-}
-
-.hero .header h1 {
-  font-size: 50px;
-  margin-bottom: 15px;
-}
-
-.hero .header h2 {
-  margin-top: 0;
-  margin-left: 7px;
-  margin-bottom: 24px;
-}
-
-.hero .buttons {
-  display: flex;
-  justify-content: center;
-}
-
-.hero .buttons .clip {
-  display: flex;
-  align-items: center;
-}
-
-main.hero {
-  display: block;
-}
-
-.hero .buttons a,
-.hero .buttons button {
-  padding: .5rem 1rem;
-  font-size: 1.4rem;
-  margin: 0 1rem;
-  z-index: 1;
-}
-
-.hero .buttons button,
-.hero .buttons button:hover,
-.hero .buttons svg {
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.hero .buttons a.primary {
-  background-color: var(--primary);
-  color: #fff;
-  border: 1px solid var(--primary);
-  margin-left: 7px;
-  border-radius: 3px;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.hero .buttons button {
-  background-color: var(--caption-bg);
-  height: 33px;
-  box-sizing: border-box;
-  font-family: droid-sans-mono, sans-serif;
-  font-size: 12px;
-}
-
-.hero .buttons .prompt {
   color: var(--primary);
 }
 
@@ -666,68 +565,14 @@ article .tabbed {
   display: none;
 }
 
-.hero .table {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-}
-
-.hero table a {
-  color: var(--primary);
-}
-
-.hero table a:hover {
-  text-decoration: underline;
-}
-
-.hero .table>div,
-.hero>h1 {
-  padding: 0 30px;
-}
-
-.hero .table h1 {
-  font-size: 36px;
-  margin-bottom: 15px;
-}
-
-.hero .table p {
-  font-size: 18px;
-}
-
 p {
   line-height: 30px;
 }
 
-.hero .logos img {
-  height: 24px;
-  width: auto;
-  margin-right: 5px;
-}
-
-.hero .interim-title {
-  text-align: center;
-  color: var(--heading);
-  font-size: 24px;
-  text-transform: uppercase;
-  margin: 50px 0;
-}
-
-.hero .table a {
-  color: var(--primary);
-}
-
-.hero .table a:hover {
-  text-decoration: underline;
-}
-
-.dark .hero .logos .invertible {
-  filter: invert(1);
-}
-
-.hero .comparison {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 50px;
-  padding: 0 30px;
+pre.shiki,
+pre.shiki code,
+pre.shiki .line {
+  tab-size: 2;
 }
 
 .controls {

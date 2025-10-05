@@ -1,0 +1,11 @@
+module TextResponse
+
+from "primate/request" include Request
+from "primate/response" include Response
+
+use Response.{ type Response }
+use Request.{ type Request }
+
+provide let post = (request: Request) => {
+  Response.text("Hello from Grain!", { status: 201 })
+}

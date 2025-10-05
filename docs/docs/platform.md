@@ -97,7 +97,7 @@ blank where a platform is not yet wired up.
 | Web                   | ✓    | ✓    | ✓   |
 | Desktop (linux-x64)   |      |      | ✓   |
 | Desktop (darwin-x64)  |      |      |     |
-| Desktop (darwin-arm)  |      |      |     |
+| Desktop (darwin-arm64)|      |      |     |
 | Desktop (windows-x64) |      |      | ✓   |
 
 ### Backends

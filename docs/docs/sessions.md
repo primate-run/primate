@@ -53,6 +53,22 @@ library, Pema.
 ### Example
 
 ```ts
+import session from "primate/config/session";
+import pema from "pema";
+import string from "pema/string";
+import number from "pema/number";
+
+export default session({
+  cookie: {
+    name: "my_session",
+    httpOnly: true,
+    sameSite: "Lax",
+  },
+  schema: pema({
+    userId: number,
+    username: string,
+  }),
+});
 ```
 
 ## Session facade

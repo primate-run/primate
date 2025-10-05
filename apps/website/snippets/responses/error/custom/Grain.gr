@@ -1,0 +1,10 @@
+module ErrorOptions
+
+from "primate/request" include Request
+from "primate/response" include Response
+
+use Response.{ type Response }
+use Request.{ type Request }
+
+provide let get = (request: Request) =>
+  Response.error(status = Some(500))

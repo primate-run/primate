@@ -2,6 +2,7 @@ import response from "primate/response";
 import Status from "primate/response/Status";
 import route from "primate/route";
 
-route.post(request => {
-  return response.text("Hello from TypeScript!", { status: Status.CREATED });
-});
+route.get(() => response.json([
+  { name: "Donald" },
+  { name: "John" },
+], { status: Status.CREATED }));

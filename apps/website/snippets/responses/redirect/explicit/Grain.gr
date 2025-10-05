@@ -1,0 +1,12 @@
+module RedirectStatus
+
+from "primate/request" include Request
+from "primate/response" include Response
+
+use Response.{ type Response, type HTTPStatus }
+use Request.{ type Request }
+
+provide let get = (request: Request) =>
+  Response.redirect("https://primate.run", status = Some(SeeOther))
+
+provide let post = (request: Request) => Response.redirect("/login")

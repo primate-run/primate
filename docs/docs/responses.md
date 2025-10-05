@@ -7,7 +7,7 @@ aspects of the response.
 |Return value|Handler|Response|Notes|
 |-|-|-|-|
 |`string`|[text](#text)|`200 text/plain`|Serve plain text|
-|`object`|[json](#text)|`200 application/json`|Serve JSON|
+|`object`|[json](#json)|`200 application/json`|Serve JSON|
 |`Blob`·`File`·`FileRef`|[binary](#binary)|`200 application/octet-stream`|Stream contents|
 |`URL`|[redirect](#redirect)|`302`|Redirect to URL|
 |—|[view](#view)|`200 text/html`|Serve frontend component|

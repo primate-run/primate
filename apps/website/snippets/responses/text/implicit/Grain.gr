@@ -1,0 +1,7 @@
+module Hello
+
+from "primate/request" include Request
+
+use Request.{ type Request }
+
+provide let get = (request: Request) => "Hello from Grain!"

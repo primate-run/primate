@@ -103,10 +103,10 @@ original request.
 
 |Option|Default|Description|
 |-|-|-|
-|[cookie.httponly](#cookie-http-only)|`true`|esbuild options|
+|[cookie.httponly](#cookie-http-only)|`true`|mark cookie as `HttpOnly`|
 |[cookie.name](#cookie-name)|`"session_id"`|name of the session cookie|
-|[cookie.path](#cookie-path)|`"/"`|cookie website path|
-|[cookie.samesite](#cookie-same-site)|`"Lax"`|cookie website path|
+|[cookie.path](#cookie-path)|`"/"`|path for which the cookie is valid|
+|[cookie.samesite](#cookie-samesite)|`"Lax"`|`SameSite` cookie policy|
 |[manager](#manager)|`InMemorySessionManager`|the session manager class|
 
 ### `cookie.httpOnly`
@@ -118,7 +118,7 @@ The name of the session cookie.
 ### `cookie.path`
 The session cookie path (paths on which the cookie is loaded).
 
-### `cookie.sameSIte`
+### `cookie.sameSite`
 The level of security to use in sending the session cookies when browsing
 between websites.
 
@@ -137,11 +137,11 @@ that resets when the app restarts.
 |[defaultLocale](#default-locale)|undefined|default locale|
 |[locales](#locales)|[]|list of locales|
 |[currency](#currency)|`"USD"`|active currency|
-|[persist](#persist)|`"cookie"`|locale persistance mode|
+|[persist](#persist)|`"cookie"`|locale persistence mode|
 
 ### `defaultLocale`
 
-The default locale to use, must one one from the `locales` list.
+The default locale to use, must be one from the `locales` list.
 
 ### `locales`
 

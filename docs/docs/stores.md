@@ -114,7 +114,7 @@ route.post(async request => {
 
   const created = await Post.insert(body);
 
-  return view("posts/created.jsx", { post: created });
+  return response.view("posts/created.jsx", { post: created });
 });
 ```
 

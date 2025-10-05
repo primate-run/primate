@@ -188,7 +188,7 @@ paths. Instead, they influence how routes in their directory (and below) behave.
 | [+error.ts](#error-files) | Handle errors thrown by routes       | ✗         |
 
 !!!
-"Recursive" means the file affects the current directory **and all
+*Recursive* means the file affects the current directory **and all
 subdirectories**. Special files don't map to paths and don't stack arbitrarily
 — see each section for composition and precedence.
 !!!

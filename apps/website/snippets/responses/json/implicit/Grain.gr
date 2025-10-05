@@ -1,0 +1,13 @@
+module JsonResponse
+
+from "primate/request" include Request
+from "json" include Json
+
+use Request.{ type Request }
+use Json.{ type Json }
+
+provide let get = (request: Request) =>
+  JsonArray([
+    JsonObject([("name", JsonString("Donald"))]),
+    JsonObject([("name", JsonString("John"))])
+  ])

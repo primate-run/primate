@@ -1,7 +1,6 @@
 module Redirected
 
 from "primate/request" include Request
-from "primate/response" include Response
 
 use Request.{ type Request }
 
