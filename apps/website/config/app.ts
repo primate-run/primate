@@ -8,15 +8,14 @@ import { createHighlighter } from "shiki";
 import Priss from "../modules/Priss.ts";
 
 const sorting = [
+  // package managers
+  "npm",
+  "pnpm",
+  "Yarn",
   // runtime
   "Node",
   "Deno",
   "Bun",
-  // package managers
-  "npm",
-  "pnpm",
-  "Bun",
-  "Yarn",
   // frontend
   "React",
   "Angular",
@@ -71,6 +70,7 @@ const highlighter = await createHighlighter({
     "shell",
     "json",
     "http",
+    "css",
   ],
   themes: ["plastic", "vesper", "nord", "min-dark", "min-light", "catppuccin-frappe"],
 });
