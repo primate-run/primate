@@ -19,14 +19,16 @@ const backmap: Dict<string> = {
   voby: "voby",
   vue: "vue",
   webc: "webc",
+  tsx: "react",
+  jsx: "react",
 };
 
 function no_frontend(component: string) {
   const extension = new FileRef(component).fullExtension.slice(1);
   const hasPkg = extension in backmap;
   const error = "No frontend for {0}";
-  const fix = hasPkg ? "" : ", did you configure {1}?";
-  const pkgname = hasPkg ? "" : `@primate/${backmap[extension]}`;
+  const fix = hasPkg ? ", did you configure {1}?" : "";
+  const pkgname = hasPkg ? `@primate/${backmap[extension]}` : "";
 
   throw fail(`${error}${fix}`, component, pkgname);
 }
