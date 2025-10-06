@@ -32,6 +32,7 @@ const toContextString = (array: string[]) => array
 const BIND_CONTEXTS = [
   "config",
   "routes",
+  "lib",
   "components",
   "stores",
   "locales",

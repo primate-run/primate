@@ -32,6 +32,8 @@ import string from "pema/string";
 type Layout = (app: ServeApp, transfer: Dict, request: RequestFacade)
   => Component;
 
+const contexts = ["lib", "components"];
+
 async function normalize(path: string) {
   return `p_${await hash(path)}`;
 }
@@ -234,17 +236,17 @@ export default abstract class FrontendModule<
           }
 
           const components_filter = new RegExp(`^${name}:components`);
+          const components_base = app.root.join(location.components);
 
           build.onResolve({ filter: components_filter }, ({ path }) => {
             return { namespace: `${name}`, path };
           });
           build.onLoad({ filter: components_filter }, async () => {
-            const components = await app.root
-              .join(location.components)
+            const components = await components_base
               .collect(c => fileExtensions.includes(c.fullExtension));
             let contents = "";
             for (const component of components) {
-              const { path } = component.debase(component.directory, "/");
+              const { path } = component.debase(components_base, "/");
               contents += `export { default as ${await normalize(path)} }
                 from "#component/${path}";\n`;
             }
@@ -280,12 +282,11 @@ export default abstract class FrontendModule<
   init<T extends App>(app: T, next: Next<T>) {
     this.fileExtensions.forEach(e => {
       app.bind(e, async (file, { context }) => {
-        assert(context === "components",
-          `${this.name}: only components supported`);
+        assert(contexts.includes(context), `${this.name}: only components or lib supported`);
 
         if (this.compile.server) {
-          const original = file.debase(app.runpath("stage", "components"));
-          const source = app.path.components.join(original);
+          const original = file.debase(app.runpath("stage", context));
+          const source = app.path[context].join(original);
           const code = await this.compile.server(await source.text());
           const bundled = await bundle({
             code,

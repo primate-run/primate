@@ -5,6 +5,8 @@ export default {
   build: "build",
   // client build
   client: "client",
+  // component library
+  lib: "lib",
   // renderable components
   components: "components",
   // config

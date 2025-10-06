@@ -202,6 +202,11 @@ const post = async (app: BuildApp) => {
     `export { default } from "#stage/config${file}";`,
   );
 
+  // component library
+  await app.stage(app.path.lib, "lib", file => `
+    export * from "#stage/lib${file}";
+  `);
+
   // stage components
   await app.stage(app.path.components, "components", file => `
     import * as component from "#stage/component${file}";
@@ -281,10 +286,12 @@ const post = async (app: BuildApp) => {
       "#database/*": "./config/database/*.js",
       "#session": "./config/session.js",
       "#i18n": "./config/i18n.js",
+      "#lib/*": "./lib/*.js",
       "#component/*": "./components/*.js",
       "#locale/*": "./locales/*.js",
       "#module/*": "./modules/*.js",
       "#route/*": "./routes/*.js",
+      "#stage/lib/*": "./stage/lib/*.js",
       "#stage/component/*": "./stage/components/*.js",
       "#stage/locale/*": "./stage/locales/*.js",
       "#stage/config/*": "./stage/config/*.js",

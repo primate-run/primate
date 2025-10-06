@@ -11,8 +11,19 @@
     "erasableSyntaxOnly": true,
     "exactOptionalPropertyTypes": true,
     "allowImportingTsExtensions": true,
+    "jsx": "react-jsx",
     "paths": {
       "#route/*": ["routes/*"],
+      "#lib/*": [
+        "lib/*.tsx",
+        "lib/*.jsx",
+        "lib/*.vue",
+        "lib/*.svelte",
+        "lib/*.component.ts",
+        "lib/*.ts",
+        "lib/*.js",
+        "lib/*"
+      ],
       "#component/*": [
         "components/*.tsx",
         "components/*.jsx",

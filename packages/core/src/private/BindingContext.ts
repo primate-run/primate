@@ -1,4 +1,5 @@
 type BindingContext =
+  | "lib"
   | "components"
   | "config"
   | "locales"

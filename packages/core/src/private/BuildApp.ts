@@ -38,11 +38,15 @@ export default class BuildApp extends App {
           contents: "",
           resolveDir: this.root.path,
         },
+        conditions: ["style", "browser", "default", "module"],
         resolveExtensions: [".ts", ".js", ...extensions],
         tsconfigRaw: {
           compilerOptions: {
             baseUrl: "${configDir}",
             paths: {
+              "#lib/*": [
+                "lib/*", ...extensions.map(e => `lib/*${e}`),
+              ],
               "#component/*": [
                 "components/*", ...extensions.map(e => `components/*${e}`),
               ],
