@@ -1,3 +1,4 @@
+import DefaultType from "#DefaultType";
 import error from "#error";
 import schemafail from "#error/schemafail";
 import GenericType from "#GenericType";
@@ -11,6 +12,7 @@ import join from "#path/join";
 import next from "#path/next";
 import rebase from "#path/rebase";
 import PrimitiveType from "#PrimitiveType";
+import type DefaultTrait from "#trait/Default";
 import type OptionalTrait from "#trait/Optional";
 import type Validator from "#Validator";
 import length from "#validator/length";
@@ -33,7 +35,7 @@ const is = <T>(x: unknown, validator: (t: unknown) => boolean): x is T =>
 
 export default class ArrayType<T extends Parsed<unknown>>
   extends GenericType<T, Infer<T>[], "ArrayType">
-  implements OptionalTrait {
+  implements OptionalTrait, DefaultTrait<Infer<T>[]> {
   #item: T;
   #validators: Validator<Array<Infer<T>>>[];
 
@@ -49,6 +51,10 @@ export default class ArrayType<T extends Parsed<unknown>>
 
   optional() {
     return new OptionalType(this);
+  }
+
+  default(value: (() => Infer<T>[]) | Infer<T>[]) {
+    return new DefaultType(this, value);
   }
 
   derive(_next: Next<Array<Infer<T>>>): this {

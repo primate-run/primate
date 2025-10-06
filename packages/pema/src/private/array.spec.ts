@@ -104,6 +104,14 @@ test.case("sparse", assert => {
   }
 });
 
+test.case("default", assert => {
+  const sd = array(string).default(["a", "b"]);
+  assert(sd.parse(undefined)).equals(["a", "b"]).type<string[]>();
+  assert(sd.parse(["x"])).equals(["x"]).type<string[]>();
+  const nd = array(number).default([1, 2]);
+  assert(() => nd.parse(["nope"])).throws();
+});
+
 test.case("deep", assert => {
   const rc = array(s);
   assert(rc.parse([as])).equals([as]).type<string[][]>();
