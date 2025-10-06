@@ -15,7 +15,7 @@ Create a `tailwind.config.js` file.
 
 [s=blog/tailwind-support/tailwind-config]
 
-Finally, activate the Tailwind Primate module.
+Activate the Tailwind Primate module.
 
 [s=blog/tailwind-support/config]
 
