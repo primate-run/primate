@@ -92,7 +92,7 @@
 <Icons />
 <header>
   <a class="home" href="/">
-    <img src="/logo.svg" alt="Primate Logo"  />
+    <img src="/logo.svg" alt="Primate Logo" />
     <span>Primate</span>
   </a>
 

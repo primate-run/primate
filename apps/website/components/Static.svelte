@@ -4,15 +4,15 @@
 
   export let content, toc, app, path;
 
-  let previous, next, sidebar;
+  let previous, next, sidebar, title;
   $: {
     sidebar = app.theme.sidebar;
     const flattened = sidebar.flatMap((item) => item.items);
     const index = flattened.findIndex((item) => item.href === path);
     previous = flattened[index - 1];
     next = flattened[index + 1];
+    title = toc[0].text;
   }
-  const [{ text: title }] = toc;
 </script>
 
 <Header {app} {title} />
