@@ -244,7 +244,6 @@ ${frontendImports}
 ${backendImports}
 
 export default config({
-  runtime: "${c.runtime}",
   modules: [
     ${modules.join(",\n    ")}
   ],
