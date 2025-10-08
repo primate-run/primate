@@ -6,6 +6,9 @@ import wrap from "@primate/core/route/wrap";
 import assert from "@rcompat/assert";
 import FileRef from "@rcompat/fs/FileRef";
 import execute from "@rcompat/stdio/execute";
+import string from "pema/string";
+
+const Version = string.regex(/^0\.7\.\d+$/);
 
 const dirname = import.meta.dirname;
 const postlude_file = FileRef.join(dirname, "bootstrap", "postlude.gr");
@@ -54,7 +57,9 @@ export default class Default extends Runtime {
     return sections.join(" ");
   }
 
-  build(app: BuildApp, next: NextBuild) {
+  async build(app: BuildApp, next: NextBuild) {
+    Version.parse((await execute("grain --version")).split("\n")[0]);
+
     app.bind(this.fileExtension, async (route, { build, context }) => {
       assert(context === "routes", "grain: only route files are supported");
       const text = await route.text();
