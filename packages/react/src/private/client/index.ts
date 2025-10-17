@@ -4,14 +4,11 @@ import ReactHead from "@primate/react/Head";
 import type Dict from "@rcompat/type/Dict";
 import { createElement, type ReactNode } from "react";
 import { createRoot, hydrateRoot, type Container } from "react-dom/client";
-
-// @ts-expect-error esbuild vfs
-import * as components from "react:components";
-// @ts-expect-error esbuild vfs
-import root_component from "react:root";
+import root_view from "react:root";
+import * as views from "react:views";
 
 type Data = ClientData<{
-  components: string[];
+  views: string[];
   props: Dict[];
 }>;
 
@@ -29,7 +26,7 @@ const make_root = {
 };
 
 const make_props = (data: ClientData<Data>) => ({
-  components: data.components.map(name => components[name]),
+  views: data.views.map(name => views[name]),
   props: data.props,
   request: {
     ...data.request,
@@ -38,13 +35,13 @@ const make_props = (data: ClientData<Data>) => ({
 });
 
 export default class React {
-  static mount(component: string, data: ClientData<Data>) {
+  static mount(_view: string, data: ClientData<Data>) {
     const root = make_root[data.ssr ? "ssr" : "csr"](body,
-      createElement(root_component, make_props(data)));
+      createElement(root_view, make_props(data) as any));
 
     if (data.spa) {
       window.addEventListener("DOMContentLoaded", _ => spa<Data>(_data => {
-        root.render(createElement(root_component, make_props(_data)));
+        root.render(createElement(root_view, make_props(_data) as any));
       }));
     }
   }

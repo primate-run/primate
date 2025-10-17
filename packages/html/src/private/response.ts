@@ -8,8 +8,8 @@ const REMOVE = /<(?<tag>script|style)>.*?<\/\k<tag>>/gus;
 
 export default function response(m: Module): ViewResponse {
   return (name, props = {}, options = {}) => async app => {
-    const component = app.component(name);
-    const rendered = await m.render(component, props);
+    const view = app.loadView(name);
+    const rendered = await m.render(view, props);
     const { csp = {}, headers, ...rest } = options;
     const { script_src: xScriptSrc = [], style_src: xStyleSrc = [] } = csp;
     const scripts = await Promise.all([...rendered.body.matchAll(SCRIPT)]

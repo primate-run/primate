@@ -58,8 +58,8 @@ export default class PrissModule extends Module {
   }
 
   async build(app: BuildApp, next: NextBuild) {
-    const components = app.path.components;
-    const entries = await components.join("content", "blog").list();
+    const views = app.path.views;
+    const entries = await views.join("content", "blog").list();
     const jsons = (await Promise.all(entries
       .filter(({ path }) => path.endsWith(".json"))
       .map(async file => ({
@@ -75,8 +75,8 @@ export default class PrissModule extends Module {
     await app.runpath("blog", "entries.json").writeJSON(jsons);
 
     // collect guide categories and names
-    const base = components.join("content", "guides");
-    const guides = await components.join("content", "guides").collect();
+    const base = views.join("content", "guides");
+    const guides = await views.join("content", "guides").collect();
     const categories = new Map<string, { name: string; path: string }[]>();
     for (const guide of guides) {
       const name = ((await guide.text()).split("\n")[1].slice("name: ".length));

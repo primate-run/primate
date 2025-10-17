@@ -8,8 +8,8 @@ export default class Runtime extends FrontendModule<Renderer> {
   defaultExtensions = [".vue"];
   layouts = true;
   client = true;
-  render: Render<Renderer> = async (component, props) => {
-    const app = createSSRApp(component, { p: { ...props } });
+  render: Render<Renderer> = async (view, props) => {
+    const app = createSSRApp(view, { p: { ...props } });
     const html = await renderToString(app);
     return { body: `<div id="app">${html}</div>` };
   };

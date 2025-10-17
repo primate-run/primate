@@ -13,11 +13,11 @@ type Post = {
 
 route.get(request => {
   return async app => {
-    const directory = app.root.join(`components/${base}`);
+    const directory = app.root.join(`views/${base}`);
     const posts = (await directory.collect())
       .map(post => ({
         href: post.base,
-        ...app.component<Post>(`${base}/${post.base}.md`),
+        ...app.loadView<Post>(`${base}/${post.base}.md`),
       }))
       .toSorted((a, b) => a.meta.epoch < b.meta.epoch ? 1 : - 1);
     const config = request.config;

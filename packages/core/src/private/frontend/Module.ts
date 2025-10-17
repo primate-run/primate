@@ -1,12 +1,12 @@
 import type App from "#App";
-import AppError from "#AppError";
 import type BuildApp from "#BuildApp";
 import type ClientData from "#client/Data";
+import fail from "#fail";
 import bundle from "#frontend/bundle-server";
-import type Component from "#frontend/Component";
 import type Render from "#frontend/Render";
-import type ServerComponent from "#frontend/ServerComponent";
 import type ServerData from "#frontend/ServerData";
+import type ServerView from "#frontend/ServerView";
+import type View from "#frontend/View";
 import type ViewResponse from "#frontend/ViewResponse";
 import inline from "#inline";
 import location from "#location";
@@ -30,16 +30,16 @@ import boolean from "pema/boolean";
 import string from "pema/string";
 
 type Layout = (app: ServeApp, transfer: Dict, request: RequestFacade)
-  => Component;
+  => View;
 
-const contexts = ["lib", "components"];
+const contexts = ["views", "components"];
 
 async function normalize(path: string) {
   return `p_${await hash(path)}`;
 }
 
 export default abstract class FrontendModule<
-  S = ServerComponent,
+  S = ServerView,
 > extends Module {
   // Whether this frontend supports client code (CSR)
   abstract client: boolean;
@@ -47,8 +47,8 @@ export default abstract class FrontendModule<
   abstract layouts: boolean;
   abstract defaultExtensions: string[];
   #options: typeof FrontendModule.options;
-  render: Render<S> = async (component, props) =>
-    ({ body: await (component as ServerComponent)(props) });
+  render: Render<S> = async (view, props) =>
+    ({ body: await (view as ServerView)(props) });
   root?: {
     create: (depth: number, i18n_active: boolean) => string;
   };
@@ -96,13 +96,13 @@ export default abstract class FrontendModule<
   }
 
   #load(name: string, props: Dict, app: ServeApp) {
-    const component = app.component(name)!;
-    return { component, name, props };
+    const view = app.loadView(name)!;
+    return { view, name, props };
   };
 
   async #render(server: ServerData<S>, client: ClientData, app: ServeApp) {
     const { body, head = "", headers = {} } = this.ssr
-      ? await this.render(server.component, server.props)
+      ? await this.render(server.view, server.props)
       : { body: "", head: "" };
 
     if (!this.client) {
@@ -127,15 +127,15 @@ export default abstract class FrontendModule<
     return normalize(name);
   }
 
-  respond: ViewResponse = (component, props = {}, options = {}) =>
+  respond: ViewResponse = (view, props = {}, options = {}) =>
     async (app, { as_layout, layouts = [] } = {}, request) => {
       if (as_layout) {
-        return this.#load(component, props, app);
+        return this.#load(view, props, app);
       }
-      const components = (await Promise.all((layouts as Layout[])
+      const views = (await Promise.all((layouts as Layout[])
         .map(layout => layout(app, { as_layout: true }, request))))
-        /* set the actual page as the last component */
-        .concat(this.#load(component, props, app));
+        /* set the actual page as the last view */
+        .concat(this.#load(view, props, app));
 
       const $request = {
         context: request.context,
@@ -147,13 +147,13 @@ export default abstract class FrontendModule<
       };
       const $props = this.layouts
         ? {
-          components: await map(components, ({ name }) => normalize(name)),
-          props: components.map(c => c.props),
+          views: await map(views, ({ name }) => normalize(name)),
+          props: views.map(c => c.props),
           request: $request,
         }
         : { props, request: $request };
       const client: ClientData = {
-        component: this.layouts ? "root" : await normalize(component),
+        view: this.layouts ? "root" : await normalize(view),
         spa: this.spa,
         ssr: this.ssr,
         ...$props,
@@ -169,15 +169,15 @@ export default abstract class FrontendModule<
       try {
         const server = this.layouts
           ? {
-            component: app.component<S>(`${this.rootname}.js`),
+            view: app.loadView<S>(`${this.rootname}.js`),
             props: {
-              components: components.map(c => c.component),
-              props: components.map(c => c.props),
+              views: views.map(c => c.view),
+              props: views.map(c => c.props),
               request: $request,
             },
           }
           : {
-            component: app.component<S>(component),
+            view: app.loadView<S>(view),
             props,
             request: $request,
           };
@@ -186,8 +186,8 @@ export default abstract class FrontendModule<
 
         return app.view({ body, head, headers, ...options });
       } catch (error) {
-        const path = `${location.components}/${component}`;
-        throw new AppError("error in component {0}\n{1}", path, error);
+        const path = `${location.views}/${view}`;
+        throw fail("error in view{0}\n{1}", path, error);
       }
     };
 
@@ -235,20 +235,20 @@ export default abstract class FrontendModule<
             });
           }
 
-          const components_filter = new RegExp(`^${name}:components`);
-          const components_base = app.root.join(location.components);
+          const views_filter = new RegExp(`^${name}:views`);
+          const views_base = app.root.join(location.views);
 
-          build.onResolve({ filter: components_filter }, ({ path }) => {
+          build.onResolve({ filter: views_filter }, ({ path }) => {
             return { namespace: `${name}`, path };
           });
-          build.onLoad({ filter: components_filter }, async () => {
-            const components = await components_base
+          build.onLoad({ filter: views_filter }, async () => {
+            const views = await views_base
               .collect(c => fileExtensions.includes(c.fullExtension));
             let contents = "";
-            for (const component of components) {
-              const { path } = component.debase(components_base, "/");
+            for (const view of views) {
+              const { path } = view.debase(views_base, "/");
               contents += `export { default as ${await normalize(path)} }
-                from "#component/${path}";\n`;
+                from "#view/${path}";\n`;
             }
             return { contents, resolveDir: app.root.path };
           });
@@ -282,21 +282,21 @@ export default abstract class FrontendModule<
   init<T extends App>(app: T, next: Next<T>) {
     this.fileExtensions.forEach(e => {
       app.bind(e, async (file, { context }) => {
-        assert(contexts.includes(context), `${this.name}: only components or lib supported`);
+        assert(contexts.includes(context),
+          `${this.name}: only components supported`);
 
         if (this.compile.server) {
-          const original = file.debase(app.runpath("stage", context));
-          const source = app.path[context].join(original);
-          const code = await this.compile.server(await source.text());
+          const code = await this.compile.server(await file.text());
           const bundled = await bundle({
             code,
-            source,
+            source: file,
             root: app.root,
             extensions: this.fileExtensions,
             compile: async s => this.compile.server!(s),
           });
-          await file.append(".js").write(bundled);
+          return bundled;
         }
+        return await file.text();
       });
     });
     return next(app);

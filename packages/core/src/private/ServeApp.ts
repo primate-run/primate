@@ -7,7 +7,7 @@ import DevModule from "#builtin/DevModule";
 import HandleModule from "#builtin/HandleModule";
 import type CSP from "#CSP";
 import fail from "#fail";
-import type ServerComponent from "#frontend/ServerComponent";
+import type ServerView from "#frontend/ServerView";
 import type ViewOptions from "#frontend/ViewOptions";
 import type ViewResponse from "#frontend/ViewResponse";
 import hash from "#hash";
@@ -103,7 +103,7 @@ type Import = {
 export default class ServeApp extends App {
   #init: ServeInit;
   #server?: Server;
-  #components: PartialDict<Import>;
+  #views: PartialDict<Import>;
   #csp: CSP = {};
   #assets: Asset[] = [];
   #stores: Dict;
@@ -120,7 +120,7 @@ export default class ServeApp extends App {
     super(new FileRef(rootfile).directory, init.config, init.mode);
 
     this.#init = init;
-    this.#components = Object.fromEntries(init.components ?? []);
+    this.#views = Object.fromEntries(init.views ?? []);
     this.#stores = Object.fromEntries((init.stores?.map(([k, s]) =>
       [k, s.default])) ?? []);
 
@@ -201,13 +201,14 @@ export default class ServeApp extends App {
     return this.#i18n_config;
   }
 
-  component<T = ServerComponent>(name: string) {
-    const base = name.slice(0, name.lastIndexOf((".")));
-    const component = this.#components[base];
-    if (component === undefined) {
-      throw fail("missing component {0}", `${location.components}/${name}`);
+  loadView<T = ServerView>(name: string) {
+    const f = new FileRef(name);
+    const base = f.path.slice(0, -f.fullExtension.length);
+    const view = this.#views[base];
+    if (view === undefined) {
+      throw fail("missing view component {0}", `${location.views}/${name}`);
     }
-    return (component!.default ?? component) as T;
+    return (view!.default ?? view) as T;
   };
 
   headers(csp = {}) {

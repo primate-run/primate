@@ -1,19 +1,16 @@
 import type ClientData from "@primate/core/client/Data";
 import spa from "@primate/core/client/spa";
 import type Dict from "@rcompat/type/Dict";
-
-// @ts-expect-error esbuild vfs
-import * as components from "poly:components";
-// @ts-expect-error esbuild vfs
 import root from "poly:root";
+import * as views from "poly:views";
 
 type Data = ClientData<{
-  components: string[];
+  views: string[];
   props: Dict[];
 }>;
 
 const make_props = (data: ClientData<Data>) => ({
-  components: data.components.map(name => components[name]),
+  views: data.views.map(name => views[name]),
   props: data.props,
   request: {
     ...data.request,
@@ -22,7 +19,7 @@ const make_props = (data: ClientData<Data>) => ({
 });
 
 export default class PolyClient {
-  static mount(_component: string, data: ClientData<Data>) {
+  static mount(_view: string, data: ClientData<Data>) {
     const _root = new root({
       hydrate: data.ssr ? "true" : "false",
       props: make_props(data),

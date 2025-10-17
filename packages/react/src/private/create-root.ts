@@ -1,10 +1,10 @@
 export default (length: number, i18n_active: boolean) => {
   const n = length - 1;
   const body = Array.from({ length: n }, (_, i) => i - 1)
-    .reduceRight((child, _, i) => `components[${i + 1}] !== undefined
-        ? createElement(components[${i}], {request, ...props[${i}]}, ${child})
-        : createElement(components[${i}], {request, ...props[${i}]})
-    `, `createElement(components[${n}], {request, ...props[${n}]})`);
+    .reduceRight((child, _, i) => `views[${i + 1}] !== undefined
+        ? createElement(views[${i}], {request, ...props[${i}]}, ${child})
+        : createElement(views[${i}], {request, ...props[${i}]})
+    `, `createElement(views[${n}], {request, ...props[${n}]})`);
 
   const i18n_imports = i18n_active
     ? `
@@ -22,12 +22,7 @@ export default (length: number, i18n_active: boolean) => {
     import HeadContext from "@primate/react/context/head";
     import platform from "@primate/react/platform";${i18n_imports}
 
-    export default ({
-      components,
-      props,
-      request,
-      push_heads: value,
-    }) => {
+    export default ({ views, props, request, push_heads: value }) => {
       const [context, setContext] = useState(request.context);
       const $value = { context, setContext };
       const tree = ${tree};

@@ -7,8 +7,8 @@ export default class Runtime extends FrontendModule<PolyComponent> {
   defaultExtensions = [".poly", ".svelte"];
   client = true;
   layouts = true;
-  render: Render<PolyComponent> = (component, props) => {
-    const { head, html } = component.render(props);
+  render: Render<PolyComponent> = (view, props) => {
+    const { head, html } = view.render(props);
     return { body: html, head };
   };
 }

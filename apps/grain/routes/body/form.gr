@@ -20,7 +20,7 @@ provide let post = (request: Request) => {
   for (let mut i = 0; i < fieldsCount; i += 1) {
     let field = Array.get(i, fields)
     match (field) {
-      (name, BodyFieldsElementString(value)) => {
+      (name, BodyFieldString(value)) => {
         pairs = [(name, JsonString(value)), ...pairs]
       },
       _ => throw UnexpectedBodyType

@@ -27,12 +27,12 @@ export default async function bundleServer(init: Init): Promise<string> {
         return { contents, loader: "js", resolveDir: file.directory.path };
       });
 
-      // externalise anything not relative nor "#component/"
+      // externalise anything not relative nor "#view/"
       build.onResolve({ filter: /.*/ }, args => {
         const p = args.path;
         const relative = p.startsWith("./") || p.startsWith("../");
-        const components = p.startsWith("#component/");
-        if (!relative && !components) return { path: p, external: true };
+        const views = p.startsWith("#view/");
+        if (!relative && !views) return { path: p, external: true };
         return null;
       });
     },

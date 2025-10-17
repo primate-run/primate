@@ -10,6 +10,6 @@ type Options = {
   context: BindingContext;
 };
 
-type Binder = (file: FileRef, options: Options) => MaybePromise<void>;
+type Binder = (file: FileRef, options: Options) => MaybePromise<string>;
 
 export type { Binder as default };

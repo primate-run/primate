@@ -8,12 +8,12 @@ export default class Runtime extends FrontendModule<Component> {
   defaultExtensions = [".jsx", ".tsx"];
   client = true;
   layouts = true;
-  render: Render<Component> = (component, props) => {
+  render: Render<Component> = (view, props) => {
     const heads: string[] = [];
     const push_heads = (sub_heads: string[]) => {
       heads.push(...sub_heads);
     };
-    const body = renderToString(() => component({ ...props, push_heads }));
+    const body = renderToString(() => view({ ...props, push_heads }));
 
     if (heads.filter(head => head.startsWith("<title")).length > 1) {
       const error = "May only contain one <title> across component hierarchy";

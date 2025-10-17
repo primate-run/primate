@@ -1,19 +1,17 @@
 export default (depth: number, i18n_active: boolean) => {
   const n = depth - 1;
 
-  // Build the nested component structure more carefully
-  const buildComponent = (index: number): string => {
-    if (index === n) {
-      // Base case: render the deepest component
-      return `h(p.components[${index}], p.props[${index}] || {})`;
-    } else {
-      // Recursive case: render component with child
-      const child = buildComponent(index + 1);
-      return `h(p.components[${index}], p.props[${index}] || {}, () => [${child}])`;
+  const build_view = (index: number): string => {
+    // anchor case: render the deepest view
+    if (index === n) return `h(p.views[${index}], p.props[${index}] || {})`;
+    else {
+      // recursive case: render view with child
+      const child = build_view(index + 1);
+      return `h(p.views[${index}], p.props[${index}] || {}, () => [${child}])`;
     }
   };
 
-  const body = depth > 0 ? buildComponent(0) : "h(\"div\")";
+  const body = depth > 0 ? build_view(0) : "h(\"div\")";
 
   const vueImports =
     `import {

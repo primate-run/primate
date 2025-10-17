@@ -1,6 +1,6 @@
-declare module "angular:components" {
-  import type Dict from "@rcompat/type/Dict";
+declare module "angular:views" {
   import type { Type } from "@angular/core";
+  import type Dict from "@rcompat/type/Dict";
   const map: Dict<Type>;
   export = map;
 }
@@ -8,5 +8,5 @@ declare module "angular:components" {
 declare module "angular:root" {
   import type { Type } from "@angular/core";
   const root: Type;
-  export = root;
+  export default root;
 }

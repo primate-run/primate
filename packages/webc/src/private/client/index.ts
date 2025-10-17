@@ -1,11 +1,13 @@
 import type Dict from "@rcompat/type/Dict";
 
-// @ts-expect-error esbuild vfs
-import * as components from "webc:components";
+import * as views from "webc:views";
+
+type Props = {
+  props: Dict;
+};
 
 export default class WebComponentsClient {
-  static mount(component: string, props: Dict) {
-    globalThis.document.body
-      .appendChild(new components[component](props.props));
+  static mount(view: string, props: Props) {
+    globalThis.document.body.appendChild(new views[view](props.props));
   }
 }

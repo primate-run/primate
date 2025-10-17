@@ -164,7 +164,7 @@ export default async function init() {
   // scaffold dirs
   await target.create({ recursive: true });
   await target.join("routes").create({ recursive: true });
-  await target.join("components").create({ recursive: true });
+  await target.join("views").create({ recursive: true });
   if (db) await target.join("stores").create({ recursive: true });
 
   // files

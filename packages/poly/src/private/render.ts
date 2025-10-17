@@ -1,4 +1,4 @@
-type Func = (component: {
+type Func = (view: {
   render(...args: any[]): {
     head: string;
     html: string;
@@ -8,7 +8,7 @@ type Func = (component: {
   head: string;
 };
 
-export default ((component, ...args) => {
-  const { head, html } = component.render(...args);
+export default ((view, ...args) => {
+  const { head, html } = view.render(...args);
   return { body: html, head };
 }) as Func;

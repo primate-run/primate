@@ -9,6 +9,6 @@ export default class Runtime extends FrontendModule {
   defaultExtensions = [".jsx", ".tsx"];
   layouts = false;
   client = false;
-  render = async (component: any, props: Dict) =>
-    renderToString(createElement(component, props));
+  render = async (views: any, props: Dict) =>
+    renderToString(createElement(views, props));
 }

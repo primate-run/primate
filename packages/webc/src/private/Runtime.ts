@@ -5,22 +5,22 @@ import type Next from "@primate/core/Next";
 import type FileRef from "@rcompat/fs/FileRef";
 
 export default class Runtime extends FrontendModule {
-  #components?: FileRef;
+  #views?: FileRef;
   name = "webc";
   defaultExtensions = [".webc"];
   layouts = false;
   client = true;
 
-  render: Render = (_component, _props) => {
+  render: Render = (_view, _props) => {
     return { body: "", head: "" };
   };
 
-  get components() {
-    return this.#components;
+  get views() {
+    return this.#views;
   }
 
   init<T extends App>(app: T, next: Next<T>) {
-    this.#components = app.path.components;
+    this.#views = app.path.views;
 
     return super.init(app, next);
   }

@@ -11,12 +11,12 @@ export default class Runtime extends FrontendModule<Component> {
   defaultExtensions = [".jsx", ".tsx"];
   client = true;
   layouts = true;
-  render: Render<Component> = (component, props) => {
+  render: Render<Component> = (view, props) => {
     const heads: string[] = [];
     const push_heads = (sub_heads: string[]) => {
       heads.push(...sub_heads);
     };
-    const body = renderToString(createElement(component,
+    const body = renderToString(createElement(view,
       { ...props, push_heads }));
 
     if (heads.filter(head => head.startsWith("<title")).length > 1) {

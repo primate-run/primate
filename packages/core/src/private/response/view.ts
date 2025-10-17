@@ -23,29 +23,29 @@ const backmap: Dict<string> = {
   jsx: "react",
 };
 
-function no_frontend(component: string) {
-  const extension = new FileRef(component).fullExtension.slice(1);
+function no_frontend(view: string) {
+  const extension = new FileRef(view).fullExtension.slice(1);
   const hasPkg = extension in backmap;
   const error = "No frontend for {0}";
   const fix = hasPkg ? ", did you configure {1}?" : "";
   const pkgname = hasPkg ? `@primate/${backmap[extension]}` : "";
 
-  throw fail(`${error}${fix}`, component, pkgname);
+  throw fail(`${error}${fix}`, view, pkgname);
 }
 
 /**
- * Render a component using a frontend for the given filename extension
- * @param component path to component
- * @param props props for component
+ * Render a view component using a frontend for the given filename extension
+ * @param view path to view
+ * @param props props for view
  * @param options rendering options
  * @return Response rendering function
  */
-const view = (function viewResponse(component, props, options) {
+const view = (function viewResponse(name, props, options) {
   return (app, transfer, request) => extensions
-    .map(extension => app.frontends[new FileRef(component)[extension]])
+    .map(extension => app.frontends[new FileRef(name)[extension]])
     .find(extension => extension !== undefined)
-    ?.(component, props, options)(app, transfer, request)
-    ?? no_frontend(component);
+    ?.(name, props, options)(app, transfer, request)
+    ?? no_frontend(name);
 }) as ViewResponse;
 
 export default view;

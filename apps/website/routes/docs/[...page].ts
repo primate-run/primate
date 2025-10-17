@@ -6,7 +6,7 @@ route.get(request => {
   const page = request.path.get("page");
 
   return app => {
-    const { html, toc } = app.component<Component>(`content/docs/${page}.md`);
+    const { html, toc } = app.loadView<Component>(`content/docs/${page}.md`);
     const props = {
       app: request.config,
       content: html,

@@ -1,7 +1,7 @@
 import type Dict from "@rcompat/type/Dict";
 
 type ClientData<T extends Dict = Dict> = {
-  component: string;
+  view: string;
   request: Dict;
   spa: boolean;
   ssr: boolean;

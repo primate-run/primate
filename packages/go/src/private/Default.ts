@@ -1,9 +1,9 @@
 import Runtime from "#Runtime";
-import AppError from "@primate/core/AppError";
 import type BuildApp from "@primate/core/BuildApp";
+import fail from "@primate/core/fail";
+import location from "@primate/core/location";
 import log from "@primate/core/log";
 import type NextBuild from "@primate/core/NextBuild";
-import wrap from "@primate/core/route/wrap";
 import assert from "@rcompat/assert";
 import user from "@rcompat/env/user";
 import type FileRef from "@rcompat/fs/FileRef";
@@ -57,30 +57,28 @@ globalThis.PRMT_SESSION = {
 };
 
 ${(runtime as "bun" | "deno" | "node") === "bun"
-    ? `import route_path from "${path}" with { type: "file" };
-const go_route = await Bun.file(route_path).arrayBuffer();`
-    :
-    `import FileRef from "primate/runtime/FileRef";
-
+    ? `import route_path from "./${path}" with { type: "file" };
+const binary = await Bun.file(route_path).arrayBuffer();`
+    : `import FileRef from "primate/runtime/FileRef";
 const buffer = await FileRef.arrayBuffer(import.meta.url+"/../${path}");
-const go_route = new Uint8Array(buffer);`
+const binary = new Uint8Array(buffer);`
   }
+
 
 env();
 
 // Run Go once to register routes and get available verbs
 const go = new globalThis.Go();
-const result = await WebAssembly.instantiate(go_route, go.importObject);
+const result = await WebAssembly.instantiate(binary, go.importObject);
 go.run(result.instance);
-
 const verbs = globalThis.__primate_verbs || [];
 
 for (const verb of verbs) {
   route[verb.toLowerCase()](async request => {
     const requested = await toRequest(request);
-    const freshGo = new globalThis.Go();
-    return WebAssembly.instantiate(go_route, {...freshGo.importObject}).then(freshResult => {
-      freshGo.run(freshResult.instance);
+    const _go = new globalThis.Go();
+    return WebAssembly.instantiate(binary, {..._go.importObject}).then(_result => {
+      _go.run(_result.instance);
       return to_response(globalThis.__primate_handle(verb, requested));
     });
   });
@@ -92,9 +90,7 @@ const go_wrapper = (code: string) => {
     console.warn("Go file does not import \"github.com/primate-run/go/route\" - skipping route registration");
     return code;
   }
-
   return `${code}
-
 func main() {
     route.Commit()
     select{}
@@ -103,26 +99,30 @@ func main() {
 
 export default class Default extends Runtime {
   build(app: BuildApp, next: NextBuild) {
-    app.bind(this.fileExtension, async (route, { build, context }) => {
+    app.bind(this.fileExtension, async (route, { context }) => {
       assert(context === "routes", "go: only route files are supported");
 
-      const code = await route.text();
+      const relative = route.debase(app.path.routes);
+      const basename = relative.path.slice(1, -relative.extension.length);
+      const code = go_wrapper(await route.text());
+      const build_go_file = app.runpath(location.routes, `${basename}.go`);
+      await build_go_file.directory.create({ recursive: true });
+      await build_go_file.write(code);
 
-      // wrap user code with main function if they imported our route package
-      await route.write(go_wrapper(code));
-
-      const wasm = route.bare(".wasm");
-      const js_code = wrap(js_wrapper(wasm.name), route, build);
-
-      await route.append(".js").write(js_code);
-
+      const wasm = app.runpath(location.routes, `${basename}.wasm`);
       try {
         log.info("compiling {0} to WebAssembly", route);
-        // compile .go to .wasm using user's go.mod from project root
-        await execute(run(wasm, route), { cwd: `${route.directory}`, env });
+        await execute(run(wasm, build_go_file), {
+          cwd: build_go_file.directory.path,
+          env,
+        });
       } catch (error) {
-        throw new AppError("Error in module {0}\n{1}", route, error);
+        throw fail("error in module {0}\n{1}", route, error);
       }
+
+      await build_go_file.remove();
+
+      return js_wrapper(wasm.name);
     });
 
     return next(app);

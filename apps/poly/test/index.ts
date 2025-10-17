@@ -1,13 +1,9 @@
 import test from "primate/test";
 
-const expected = `
-+</button> 
-0</div> <h3>Switch language</h3> 
-<div>
-  <a>English</a>
-</div> <div>
-  <a>German</a>
-</div>
+const expected = `<h3>Switch language</h3>
+ <button>English</button> <button>
+  German
+</button>
 `;
 
 test.get("/", response => {

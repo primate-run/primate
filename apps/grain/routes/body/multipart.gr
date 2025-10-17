@@ -8,7 +8,7 @@ from "json" include Json
 use Request.{ type BodyField, type Request, module Body, module BodyField }
 use Json.{ type Json }
 
-let toFieldStrings = (field: (String, BodyFieldsElement)) => {
+let toFieldStrings = (field: (String, BodyField)) => {
   let (name, fieldValue) = field
   let value = BodyField.string(fieldValue)
   (name, JsonString(value))

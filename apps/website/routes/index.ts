@@ -9,7 +9,7 @@ route.get(request => {
     const examples = Object.fromEntries(example_names
       .map(section => [
         section,
-        app.component<Component>(`content/home/${section}.md`).html]));
+        app.loadView<Component>(`content/home/${section}.md`).html]));
     const guides = await app.root.join("guides.json").json();
     const props = { app: request.config, examples, guides };
     const options = { placeholders: request.placeholders };

@@ -2,19 +2,16 @@ import type ClientData from "@primate/core/client/Data";
 import spa from "@primate/core/client/spa";
 import type Dict from "@rcompat/type/Dict";
 import { hydrate, mount } from "svelte";
-
-// @ts-expect-error esbuild vfs
-import * as components from "svelte:components";
-// @ts-expect-error esbuild vfs
 import root from "svelte:root";
+import * as views from "svelte:views";
 
 type Data = ClientData<{
-  components: string[];
+  views: string[];
   props: Dict[];
 }>;
 
 const make_props = (data: ClientData<Data>) => ({
-  components: data.components.map(name => components[name]),
+  views: data.views.map(name => views[name]),
   props: data.props,
   request: {
     ...data.request,
@@ -24,8 +21,8 @@ const make_props = (data: ClientData<Data>) => ({
 });
 
 export default class SvelteClient {
-  static mount(_component: string, data: ClientData<Data>) {
-    const _root = (data.ssr ? hydrate : mount)(root, {
+  static mount(_view: string, data: ClientData<Data>) {
+    const _root: Dict = (data.ssr ? hydrate : mount)(root, {
       props: {
         p: make_props(data),
       },

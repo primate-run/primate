@@ -5,7 +5,6 @@ import location from "#location";
 import type Mode from "#Mode";
 import type Module from "#Module";
 import reducer from "#reducer";
-import wrap from "#route/wrap";
 import TargetManager from "#target/Manager";
 import assert from "@rcompat/assert";
 import transform from "@rcompat/build/sync/transform";
@@ -32,8 +31,8 @@ const toContextString = (array: string[]) => array
 const BIND_CONTEXTS = [
   "config",
   "routes",
-  "lib",
   "components",
+  "views",
   "stores",
   "locales",
   "modules",
@@ -41,27 +40,20 @@ const BIND_CONTEXTS = [
 
 function generate_bindings(_app: App): Dict<Binder> {
   return {
-    ".js": async (file, { build, context }) => {
+    ".js": (file, { context }) => {
       const error = `js: only ${toContextString(BIND_CONTEXTS)} are supported`;
       assert(BIND_CONTEXTS.includes(context), error);
-      const code = context === "routes"
-        ? wrap(await file.text(), file, build)
-        : await file.text();
-
-      await file.append(".js").write(code);
-
+      return file.text();
     },
-    ".json": () => {
+    ".json": (file) => {
       // just copy the JSON for now
+      return file.text();
     },
-    ".ts": async (file, { build, context }) => {
+    ".ts": async (file, { context }) => {
       const error = `ts: only ${toContextString(BIND_CONTEXTS)} are supported`;
       assert(BIND_CONTEXTS.includes(context), error);
 
-      const code = context === "routes"
-        ? wrap(compile(await file.text()), file, build)
-        : compile(await file.text());
-      await file.append(".js").write(code);
+      return compile(await file.text());
     },
   };
 }
@@ -139,6 +131,18 @@ export default class App {
       ;
   }
 
+  basename(file: FileRef, directory: FileRef) {
+    const relative = file.debase(directory);
+    const extensions = this.extensions
+      .toSorted((a, b) => a.length > b.length ? -1 : 1);
+    for (const extension of extensions) {
+      if (relative.path.endsWith(extension)) {
+        return relative.path.slice(1, -extension.length);
+      }
+    }
+    return relative.bare().path.slice(1);
+  }
+
   get<T>(key: symbol) {
     return this.#kv.get(key) as T;
   }
@@ -163,4 +167,5 @@ export default class App {
     }
     this.#bindings.push([extension, binder]);
   }
+
 }

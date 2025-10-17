@@ -1,9 +1,9 @@
 import Runtime from "#Runtime";
 import type BuildApp from "@primate/core/BuildApp";
+import fail from "@primate/core/fail";
 import log from "@primate/core/log";
 import type NextBuild from "@primate/core/NextBuild";
 import verbs from "@primate/core/request/verbs";
-import wrap from "@primate/core/route/wrap";
 import assert from "@rcompat/assert";
 import type FileRef from "@rcompat/fs/FileRef";
 
@@ -18,8 +18,8 @@ const detect_routes = (code: string): string[] => {
 };
 
 const js_wrapper = async (fileRef: FileRef, routes: string[]) => {
-  const userRubyRaw = await fileRef.text();
-  const userRuby = userRubyRaw.replace(/`/g, "\\`");
+  const original_ruby = await fileRef.text();
+  const user_ruby = original_ruby.replace(/`/g, "\\`");
 
   return `
 import route from "primate/route";
@@ -47,7 +47,7 @@ await vm.evalAsync(\`
 \`);
 
 const environment = await vm.evalAsync(\`
-${userRuby}
+${user_ruby}
 
 ${routes.map(route => `
 def run_${route.toUpperCase()}(js_request, helpers, session_obj)
@@ -72,20 +72,17 @@ route.${route.toLowerCase()}(async request => {
 
 export default class Default extends Runtime {
   async build(app: BuildApp, next: NextBuild) {
-    app.bind(this.fileExtension, async (route, { build, context }) => {
+    app.bind(this.fileExtension, async (route, { context }) => {
       assert(context === "routes", "ruby: only route files are supported");
 
-      const src = await route.text();
-      const routes = detect_routes(src);
-      if (routes.length === 0) {
-        log.warn("No routes detected in {0}. Use Route.get, Route.post, etc.", route);
-        return;
-      }
+      const code = await route.text();
+      const routes = detect_routes(code);
+      if (routes.length === 0) throw fail("no routes detected in {0}", route);
 
-      log.info("Found routes in {0}: {1}", route, routes.join(", "));
+      log.info("found routes in {0}: {1}", route, routes.join(", "));
 
-      const jsCode = wrap(await js_wrapper(route, routes), route, build);
-      await route.append(".js").write(jsCode);
+      const js_code = await js_wrapper(route, routes);
+      return js_code;
     });
 
     return next(app);

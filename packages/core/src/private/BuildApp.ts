@@ -11,6 +11,9 @@ import type MaybePromise from "@rcompat/type/MaybePromise";
 
 const s = Symbol("primate.Build");
 
+type Loader = (source: string, file: FileRef) => MaybePromise<string>;
+type Resolver = (basename: string, file: FileRef) => string;
+
 export default class BuildApp extends App {
   frontends: Map<string, string> = new Map();
   #postbuild: (() => void)[] = [];
@@ -44,8 +47,8 @@ export default class BuildApp extends App {
           compilerOptions: {
             baseUrl: "${configDir}",
             paths: {
-              "#lib/*": [
-                "lib/*", ...extensions.map(e => `lib/*${e}`),
+              "#view/*": [
+                "views/*", ...extensions.map(e => `views/*${e}`),
               ],
               "#component/*": [
                 "components/*", ...extensions.map(e => `components/*${e}`),
@@ -93,46 +96,65 @@ export default class BuildApp extends App {
     this.build.export(code);
   }
 
-  async stage(directory: FileRef, context: BindingContext,
-    importer: (file: FileRef) => MaybePromise<string>) {
-    if (!await directory.exists()) {
+  async compile(
+    directory: FileRef,
+    context: BindingContext,
+    options: {
+      loader?: Loader;
+      resolver?: Resolver;
+    } = {},
+  ) {
+    if (!await directory.exists()) return;
+
+    const files = await directory.collect(({ path }) =>
+      this.extensions.some(e => path.endsWith(e)) && !path.endsWith(".d.ts"));
+
+    for (const file of files) {
+      await this.#compileFile(file, context, directory, options);
+    }
+  }
+
+  async #compileFile(
+    file: FileRef,
+    context: BindingContext,
+    directory: FileRef,
+    options: {
+      loader?: Loader;
+      resolver?: Resolver;
+    },
+  ) {
+    const binder = this.binder(file);
+    if (binder === undefined) {
+      log.info("no binder found for {0}", file.path);
       return;
     }
-    if (!await this.runpath("stage").exists()) {
-      await this.runpath("stage").create();
+
+    // call the binder to compile
+    const compiled = await binder(file, {
+      build: { id: this.id, stage: this.runpath("stage") },
+      context,
+    });
+
+    if (!compiled) {
+      log.warn("binder returned no output for {0}", file.path);
+      return;
     }
-    const base = this.runpath("stage", context);
-    if (!await base.exists()) {
-      await base.create();
-    }
-    const build_directory = this.runpath(directory.name);
-    await build_directory.create();
 
-    for (const file of await directory.collect(({ path }) => /^.*$/.test(path))) {
-      const debased = file.debase(directory);
-      const target = base.join(debased);
-      if (!await target.directory.exists()) {
-        await target.directory.create({ recursive: true });
-      }
+    // apply loader if provided
+    const transformed = options.loader
+      ? await options.loader(compiled, file)
+      : compiled;
 
-      const binder = this.binder(file);
-      if (binder === undefined) {
-        log.info("no binder found for {0}", file.path);
-        continue;
-      }
+    const basename = this.basename(file, directory);
+    const resolved = options.resolver
+      ? options.resolver(basename, file)
+      : basename;
 
-      // copy to build/stage/${directory}
-      await file.copy(target);
-      await binder(target, {
-        build: { id: this.id, stage: this.runpath("stage") },
-        context,
-      });
+    const target = this.runpath(context, `${resolved}.js`);
 
-      // actual
-      const runtime_file = build_directory.join(debased.bare(".js"));
-      await runtime_file.directory.create();
-      runtime_file.write(await importer(debased));
-    }
+    // write to final location
+    await target.directory.create({ recursive: true });
+    await target.write(transformed);
   }
 
   depth(): number {

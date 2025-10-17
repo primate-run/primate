@@ -8,8 +8,8 @@ export default class Runtime extends FrontendModule<Component> {
   defaultExtensions = [".svelte"];
   layouts = true;
   client = true;
-  render: Render<Component> = (component, props) => {
-    const { head, html } = render(component, { props: { p: { ...props } } });
+  render: Render<Component> = (view, props) => {
+    const { head, html } = render(view, { props: { p: { ...props } } });
     return { body: html, head };
   };
 }

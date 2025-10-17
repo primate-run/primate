@@ -1,7 +1,7 @@
 import type Dict from "@rcompat/type/Dict";
 
-type ServerData<T> = {
-  component: T;
+type ServerData<V> = {
+  view: V;
   props: Dict;
 };
 

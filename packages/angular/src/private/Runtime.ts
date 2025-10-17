@@ -28,7 +28,7 @@ export default class Runtime extends FrontendModule<Type<any>> {
   layouts = true;
   client = true;
 
-  render: Render<Type<any>> = async (RootComponent, props) => {
+  render: Render<Type<any>> = async (view, props) => {
     const providers = [
       importProvidersFrom(BrowserModule),
       provideServerRendering(),
@@ -40,7 +40,7 @@ export default class Runtime extends FrontendModule<Type<any>> {
       },
     ];
     const bootstrap = (context: BootstrapContext) =>
-      bootstrapApplication(RootComponent, { providers }, context);
+      bootstrapApplication(view, { providers }, context);
 
     const html = await renderApplication(bootstrap, {
       document: `<${root}></${root}>`,

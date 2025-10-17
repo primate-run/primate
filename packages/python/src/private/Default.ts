@@ -1,11 +1,10 @@
 import Runtime from "#Runtime";
 import type BuildApp from "@primate/core/BuildApp";
 import type NextBuild from "@primate/core/NextBuild";
-import wrap from "@primate/core/route/wrap";
 import assert from "@rcompat/assert";
 import FileRef from "@rcompat/fs/FileRef";
 
-const js_wrapper = async (fileRef: FileRef, packages: string[]) => {
+const wrapper = async (fileRef: FileRef, packages: string[]) => {
   const userPythonRaw = await fileRef.text();
   const user_code = userPythonRaw.replace(/`/g, "\\`").replace(/\\/g, "\\\\");
 
@@ -97,11 +96,10 @@ export default class Default extends Runtime {
         ;
     }
 
-    app.bind(this.fileExtension, async (route, { build, context }) => {
+    app.bind(this.fileExtension, async (route, { context }) => {
       assert(context === "routes", "python: only route files are supported");
 
-      const code = wrap(await js_wrapper(route, packages), route, build);
-      await route.append(".js").write(code);
+      return await wrapper(route, packages);
     });
 
     return next(app);

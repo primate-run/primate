@@ -44,7 +44,7 @@ export default class TargetManager {
 
   add(target: Target) {
     if (this.has(target.name)) {
-      throw fail("Cannot add target {0} twice", target.name);
+      throw fail("cannot add target {0} twice", target.name);
     }
     this.#targets.push(target);
   }

@@ -2,22 +2,22 @@ import type ClientData from "@primate/core/client/Data";
 import spa from "@primate/core/client/spa";
 import type Dict from "@rcompat/type/Dict";
 import { createSSRApp } from "vue";
-import * as components from "vue:components";
 import root from "vue:root";
+import * as views from "vue:views";
 
 type Data = ClientData<{
-  components: string[];
+  views: string[];
   props: Dict[];
 }>;
 
 export default class VueClient {
-  static mount(_component: string, data: ClientData<Data>) {
+  static mount(_view: string, data: ClientData<Data>) {
     const resolve = (names: string[]) =>
-      names.map((n) => (components as Record<string, any>)[n]);
+      names.map((n) => (views as Record<string, any>)[n]);
 
     let app = createSSRApp(root, {
       p: {
-        components: resolve(data.components),
+        views: resolve(data.views),
         props: data.props,
         request: data.request,
         update: undefined,
@@ -31,7 +31,7 @@ export default class VueClient {
           app.unmount();
           app = createSSRApp(root, {
             p: {
-              components: resolve(next.components),
+              views: resolve(next.views),
               props: next.props,
               request: next.request,
               update,

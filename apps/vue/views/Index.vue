@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, nextTick } from "vue";
 import t from "#i18n";
-import Link from "#component/Link.vue";
+import Link from "#component/Link";
 
 interface Post { id?: string | number; [k: string]: any }
 

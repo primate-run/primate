@@ -12,7 +12,7 @@ export default class Tailwind extends Module {
 
   static schema = pema({
     content: array(string).default([
-      "./lib/**/*.{tsx,jsx,ts,js}",
+      "./views/**/*.{tsx,jsx,ts,js}",
       "./components/**/*.{tsx,jsx,ts,js}",
       "./routes/**/*.{tsx,jsx,ts,js}",
     ]),

@@ -14,16 +14,16 @@ import {
 import type ClientData from "@primate/core/client/Data";
 import spa from "@primate/core/client/spa";
 import type Dict from "@rcompat/type/Dict";
-import * as components from "angular:components";
 import root from "angular:root";
+import * as views from "angular:views";
 
 type Data = ClientData<{
-  components: string[];
+  views: string[];
   props: Dict[];
 }>;
 
 const make_props = (data: ClientData<Data>) => ({
-  components: data.components.map(name => components[name]),
+  views: data.views.map(name => views[name]),
   props: data.props,
   request: {
     ...data.request,
@@ -37,7 +37,7 @@ export default class AngularClient {
   static #root: ComponentRef<any>;
   static #zone: NgZone;
 
-  static async mount(_component: string, data: ClientData<Data>) {
+  static async mount(_view: string, data: ClientData<Data>) {
     const providers = [];
 
     // Add hydration provider for SSR
@@ -48,7 +48,7 @@ export default class AngularClient {
     // Add zone.js change detection
     providers.push(provideZoneChangeDetection({ eventCoalescing: true }));
 
-    // Create the root component props
+    // Create the root view props
     const props = make_props(data);
 
     // Bootstrap the application

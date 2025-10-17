@@ -352,13 +352,13 @@ provide let view = (
 
   let viewOptionsStr = Result.expect("Invalid Json", Json.toString(viewOptions))
   let viewOptionsLength = String.byteLength(viewOptionsStr)
-  
+
   let buffer = Buffer.make(
     4 + 4 + viewNameLength + 4 + propsLength + 4 + viewOptionsLength
   )
 
   Buffer.addUint32(_RESPONSE_VIEW, buffer)
-  
+
   // view
   Buffer.addUint32(Uint32.fromNumber(viewNameLength), buffer)
   Buffer.addString(name, buffer)
@@ -473,7 +473,7 @@ provide let send = (kind: WasmI32) => {
   use WasmI32.{ (+) as (+.) }
   use Tags.{ _GRAIN_STRING_HEAP_TAG, _GRAIN_BYTES_HEAP_TAG, _GRAIN_ADT_HEAP_TAG }
   let tag = getValueTypeTag(kind)
-  
+
   // Check for a JSON object
   if (tag ==. _GRAIN_ADT_HEAP_TAG) {
     GC.incRef(kind)
@@ -515,14 +515,6 @@ provide let send = (kind: WasmI32) => {
   }
 
  throw InvalidPayloadException
-}
-
-provide let file = (
-  path: String,
-) => {
-  fail "Not implemented"
-  // TODO: Return a file descriptor
-  void
 }
 
 provide let ws = (

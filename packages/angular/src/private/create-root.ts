@@ -51,7 +51,7 @@ ${i18n_imports}
 
 type Dict = Record<string, any>;
 type RootProps = {
-  components: any[];
+  views: any[];
   props: Dict[];
   request: any;
   update?: () => void
@@ -84,11 +84,11 @@ export default class RootComponent implements OnDestroy {
   get p(): RootProps { return this.#p; }
   get P(): RootProps { return this.#p; }
 
-  // is there a component at index i?
-  has(i: number) { return !!this.P?.components?.[i]; }
+  // is there a view at index i?
+  has(i: number) { return !!this.P?.views?.[i]; }
 
-  // component type for index i
-  comp(i: number) { return this.P?.components?.[i]; }
+  // view type for index i
+  comp(i: number) { return this.P?.views?.[i]; }
 
   // per-layer inputs without slot
   inputs(i: number) {

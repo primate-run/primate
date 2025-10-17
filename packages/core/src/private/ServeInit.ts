@@ -16,7 +16,7 @@ type BuildFiles = {
 
 type ServeInit = {
   assets: Asset[];
-  components?: [string, Import][];
+  views?: [string, Import][];
   stores?: [string, Import][];
   config: Config;
   files: BuildFiles;

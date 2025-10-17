@@ -4,7 +4,7 @@ import route from "primate/route";
 
 route.get(request => {
   return async (app) => {
-    const { html, toc } = app.component<Component>("content/docs/index.md");
+    const { html, toc } = app.loadView<Component>("content/docs/index.md");
     const props = {
       app: request.config,
       content: html,

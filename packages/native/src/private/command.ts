@@ -1,4 +1,4 @@
-import AppError from "@primate/core/AppError";
+import fail from "@primate/core/fail";
 import runtime from "@rcompat/runtime";
 
 const commands = {
@@ -7,10 +7,9 @@ const commands = {
 } as const;
 
 function which(target: string) {
-  if (target in commands) {
-    return commands[target as keyof typeof commands];
-  }
-  throw new AppError("unsupported runtime {0}", target);
+  if (target in commands) return commands[target as keyof typeof commands];
+
+  throw fail("unsupported runtime {0}", target);
 };
 
 type Init = {

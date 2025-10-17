@@ -2,14 +2,14 @@ export default (depth: number, i18n_active: boolean) => {
   const n = depth - 1;
   const body = Array.from({ length: n }, (_, i) => i - 1)
     .reduceRight((child, _, i) => `
-      {#if components[${i + 1}]}
-        <svelte:component this={components[${i}]} {request} {...props[${i}]}>
+      {#if views[${i + 1}]}
+        <svelte:component this={views[${i}]} {request} {...props[${i}]}>
           ${child}
         </svelte:component>
       {:else}
-        <svelte:component this={components[${i}]} {request} {...props[${i}]}/>
+        <svelte:component this={views[${i}]} {request} {...props[${i}]}/>
       {/if}
-    `, `<svelte:component this={components[${n}]} {request} {...props[${n}]}/>`,
+    `, `<svelte:component this={views[${n}]} {request} {...props[${n}]}/>`,
     );
 
   const i18nImports = i18n_active
@@ -28,7 +28,7 @@ export default (depth: number, i18n_active: boolean) => {
       import context_name from "@primate/poly/context-name";
       ${i18nImports}
 
-      export let components;
+      export let views;
       export let props;
       export let request;
       export let update = () => undefined;

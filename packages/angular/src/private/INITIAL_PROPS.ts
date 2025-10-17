@@ -2,7 +2,7 @@ import { InjectionToken } from "@angular/core";
 import type Dict from "@rcompat/type/Dict";
 
 type RootProps = {
-  components: any[];
+  views: any[];
   props: Dict[]; request: any;
   update?: () => void;
 };

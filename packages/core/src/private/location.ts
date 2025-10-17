@@ -27,4 +27,8 @@ export default {
   stores: "stores",
   // locales
   locales: "locales",
+  // views
+  views: "views",
+  // hooks
+  hooks: "hooks",
 } as const;

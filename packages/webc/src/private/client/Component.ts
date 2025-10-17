@@ -1,6 +1,6 @@
 import type Dict from "@rcompat/type/Dict";
 
-export default abstract class Component extends HTMLElement {
+export default class Component extends HTMLElement {
   #props: Dict;
   #component?: string;
   static tag: string = "";
@@ -37,7 +37,9 @@ export default abstract class Component extends HTMLElement {
     this.mounted(root);
   }
 
-  abstract render(props: Dict): string;
+  render(props: Dict): string {
+    return "";
+  }
 
   mounted(_: ShadowRoot) {
     // noop

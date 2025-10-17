@@ -1,9 +1,10 @@
-import AppError from "#AppError";
 import type BuildApp from "#BuildApp";
+import fail from "#fail";
 import location from "#location";
 import log from "#log";
 import reducer from "#reducer";
 import $router from "#request/router";
+import wrap from "#route/wrap";
 import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
 import json from "@rcompat/package/json";
@@ -17,11 +18,11 @@ const pre = async (app: BuildApp) => {
   await app.path.build.remove();
   await app.path.build.create();
 
-  await Promise.all(["server", "client", "components"]
+  await Promise.all(["server", "client", "views"]
     .map(directory => app.runpath(directory).create()));
 
   // this has to occur before post, so that layout depth is available for
-  // compiling root components
+  // compiling root views
   // bindings should have been registered during `init`
   const router = await $router(app.path.routes, app.extensions);
   app.set(s_layout_depth, router.depth("layout"));
@@ -38,37 +39,43 @@ const pre = async (app: BuildApp) => {
   return app;
 };
 
-async function indexDatabase(base: FileRef) {
-  const export_from = "export { default } from";
-  const default_database = `${export_from} "#stage/config/database/index.js";`;
-
-  // app/config/database does not exist
-  if (!await base.exists()) return default_database;
+async function index_database(base: FileRef) {
+  // app/config/database does not exist -> use prelayered default
+  if (!await base.exists()) return "";
 
   const databases = await base.list();
   const n = databases.length;
 
-  // none in app/config/database -> fallback
-  if (n === 0) return default_database;
-
-  // index database file found, will be overwritten in next step
-  if (databases.some(d => d.base === "index")) return "";
+  // none in app/config/database -> use prelayered default
+  if (n === 0) return "";
 
   const names = databases.map(d => d.name);
 
-  // app/config/database/default.ts -> use
-  const ts = names.includes("default.ts");
-  if (ts) return `${export_from} "#stage/config/database/default.ts";`;
+  // index database file found, will be overwritten in next step -> do nothing
+  if (names.includes("index.ts") || names.includes("index.js")) {
+    return ""; // empty string means: don't generate, user provided own
+  }
 
-  // app/config/database/default.js -> use
-  const js = names.includes("default.js");
-  if (js) return `${export_from} "#stage/config/database/default.js";`;
+  // app/config/default.ts -> reexport
+  if (names.includes("default.ts")) {
+    return "export { default } from \"./default.js\";";
+  }
 
-  // one in app/config/database -> default
-  if (n === 1) return `${export_from} "#stage/config/database/${names[0]}";`;
+  // app/config/default.js -> reexport
+  if (names.includes("default.js")) {
+    return "export { default } from \"./default.js\";";
+  }
 
-  throw new AppError(
-    "Multiple database drivers; add index or default.(ts|js). Found: {0}",
+  // exactly one in app/config/database -> reexport that
+  if (n === 1) {
+    const onlyFile = names[0];
+    const withoutExt = onlyFile.replace(/\.(ts|js)$/, ".js");
+    return `export { default } from "./${withoutExt}";`;
+  }
+
+  // multiple files, none is index or default -> error
+  throw fail(
+    "multiple database drivers, add index or default.(ts|js); found {0}",
     names.join(", "),
   );
 }
@@ -107,25 +114,25 @@ export default store;`;
   await build_directory.join("stores.js").write(stores_js);
 };
 
-const write_components = async (build_directory: FileRef, app: BuildApp) => {
-  const d2 = app.runpath(location.components);
+const write_views = async (build_directory: FileRef, app: BuildApp) => {
+  const d2 = app.runpath(location.views);
   const e = await Promise.all((await FileRef.collect(d2, file =>
     js_re.test(file.path)))
     .map(async path => `${path}`.replace(d2.toString(), _ => "")));
-  const components_js = `
-const component = [];
+  const views_js = `
+const view = [];
 ${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
-    `import * as component${i} from "${FileRef.webpath(`#component/${bare}`)}";
-component.push(["${FileRef.webpath(bare)}", component${i}]);`,
+    `import * as view${i} from "${FileRef.webpath(`#view/${bare}`)}";
+view.push(["${FileRef.webpath(bare)}", view${i}]);`,
   ).join("\n")}
 
 ${app.roots.map((root, i) => `
 import * as root${i} from "${FileRef.webpath(`../server/${root.name}`)}";
-component.push(["${root.name.slice(0, -".js".length)}", root${i}]);
+view.push(["${root.name.slice(0, -".js".length)}", root${i}]);
 `).join("\n")}
 
-export default component;`;
-  await build_directory.join("components.js").write(components_js);
+export default view;`;
+  await build_directory.join("views.js").write(views_js);
 };
 
 const write_bootstrap = async (app: BuildApp, mode: string, i18n_active: boolean) => {
@@ -136,7 +143,7 @@ ${app.server_build.map(name => `${name}s`).map(name =>
     `import ${name} from "./${app.id}/${name}.js";
      files.${name} = ${name};`,
   ).join("\n")}
-import components from "./${app.id}/components.js";
+import views from "./${app.id}/views.js";
 import stores from "./${app.id}/stores.js";
 import target from "./target.js";
 import session from "#session";
@@ -154,7 +161,7 @@ const app = await serve(import.meta.url, {
   ...target,
   config,
   files,
-  components,
+  views,
   stores,
   mode: "${mode}",
   session_config: session[s_config],
@@ -169,51 +176,60 @@ export default app;
 const post = async (app: BuildApp) => {
   const defaults = FileRef.join(import.meta.url, "../../defaults");
 
-  await app.stage(app.path.routes, "routes", file => dedent`
-    export * from "#stage/route${file}";
-  `);
+  await app.compile(app.path.routes, "routes", {
+    loader: (source, file) => {
+      const path = app.basename(file, app.path.routes);
+      return wrap(source, path, app.id);
+    },
+  });
 
-  await app.stage(app.path.stores, "stores", file => dedent`
-    import database from "#database";
-    import store from "#stage/store${file}";
-    import wrap from "primate/database/wrap";
+  await app.compile(app.path.stores, "stores", {
+    resolver: basename => `${basename}.original`, // First pass: save original
+  });
 
-    export default await wrap("${file.base}", store, database);
-  `);
+  if (await app.path.stores.exists()) {
+    const stores = await app.path.stores.collect(({ path }) =>
+      app.extensions.some(e => path.endsWith(e)),
+    );
+
+    for (const file of stores) {
+      const basename = app.basename(file, app.path.stores);
+      const wrapper = dedent`
+        import database from "#database";
+        import store from "./${basename}.original.js";
+        import wrap from "primate/database/wrap";
+        export default wrap("${basename}", store, database);
+      `;
+
+      const target = app.runpath("stores", `${basename}.js`);
+      await target.write(wrapper);
+    }
+  }
 
   const configs = FileRef.join(dirname, "../../private/config/config");
   const database_base = app.path.config.join("database");
 
-  await app.stage(configs, "config", async file => {
-    if (file.path === "/database/index.js") return indexDatabase(database_base);
-
-    return `export { default } from "#stage/config${file}";`;
+  // prelayer config default
+  await app.compile(configs, "config", {
+    loader: async (source, file) => {
+      const relative = file.debase(configs);
+      if (relative.path === "/database/index.js") {
+        const indexContent = await index_database(database_base);
+        // if empty, user provided own index -> use the compiled source
+        return indexContent || source;
+      }
+      return source;
+    },
   });
 
-  await app.stage(app.path.modules, "modules", file =>
-    `export { default } from "#stage/module${file}";`);
+  await app.compile(app.path.modules, "modules");
+  await app.compile(app.path.locales, "locales");
+  await app.compile(app.path.config, "config");
 
-  // stage locales
-  await app.stage(app.path.locales, "locales", file =>
-    `export { default } from "#stage/locale${file}";`);
-
-  // stage app config after locales so #locale imports can be resolved
-  await app.stage(app.path.config, "config", file =>
-    `export { default } from "#stage/config${file}";`,
-  );
-
-  // component library
-  await app.stage(app.path.lib, "lib", file => `
-    export * from "#stage/lib${file}";
-  `);
-
-  // stage components
-  await app.stage(app.path.components, "components", file => `
-    import * as component from "#stage/component${file}";
-
-    export * from "#stage/component${file}";
-    export default component?.default;
-  `);
+  // reusable components
+  await app.compile(app.path.components, "components");
+  // view components
+  await app.compile(app.path.views, "views");
 
   // copy framework pages
   await defaults.copy(app.runpath(location.server, location.pages));
@@ -271,7 +287,7 @@ const post = async (app: BuildApp) => {
   // TODO: remove after rcompat automatically creates directories
   await build_directory.create();
 
-  await write_components(build_directory, app);
+  await write_views(build_directory, app);
   await write_stores(build_directory, app);
   await write_directories(build_directory, app);
   await write_bootstrap(app, app.mode, app.i18n_active);
@@ -286,18 +302,11 @@ const post = async (app: BuildApp) => {
       "#database/*": "./config/database/*.js",
       "#session": "./config/session.js",
       "#i18n": "./config/i18n.js",
-      "#lib/*": "./lib/*.js",
+      "#view/*": "./views/*.js",
       "#component/*": "./components/*.js",
       "#locale/*": "./locales/*.js",
       "#module/*": "./modules/*.js",
       "#route/*": "./routes/*.js",
-      "#stage/lib/*": "./stage/lib/*.js",
-      "#stage/component/*": "./stage/components/*.js",
-      "#stage/locale/*": "./stage/locales/*.js",
-      "#stage/config/*": "./stage/config/*.js",
-      "#stage/module/*": "./stage/modules/*.js",
-      "#stage/route/*": "./stage/routes/*.js",
-      "#stage/store/*": "./stage/stores/*.js",
       "#store/*": "./stores/*.js",
     },
   };
