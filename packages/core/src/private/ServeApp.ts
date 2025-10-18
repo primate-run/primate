@@ -77,14 +77,14 @@ const render_head = (assets: Asset[], head?: string) => {
     && asset.type !== "js",
   );
 
-  return rest.toSorted(({ type }) => -1 * Number(type === "importmap"))
+  return fonts.map(font =>
+    tags.font({ href: font.src, type: "font/woff2" } as Font),
+  ).join("\n").concat("\n", rest.toSorted(({ type }) => -1 * Number(type === "importmap"))
     .map(({ code, inline, integrity, src, type }) =>
       type === "style"
         ? tags.style({ code, href: src, inline } as Style)
         : tags.script({ code, inline, integrity, src, type } as Script),
-    ).join("\n").concat("\n", head ?? "").concat("\n", fonts.map(font =>
-      tags.font({ href: font.src, type: "font/woff2" } as Font),
-    ).join("\n"));
+    ).join("\n")).concat("\n", head ?? "");
 };
 
 const s_http = Symbol("s_http");
