@@ -80,11 +80,21 @@ export default class I18NModule extends Module {
 
     // only cookie-persistance is server-supported
     if (this.#persist !== "cookie")
-      return new Response(null, { status: Status.NO_CONTENT });
+      return new Response(null, {
+        headers: {
+          "Content-Length": String(0),
+        },
+        status: Status.NO_CONTENT
+      });
 
     // only accept configured locales
     if (!this.#configured(requested))
-      return new Response(null, { status: Status.NO_CONTENT });
+      return new Response(null, {
+        headers: {
+          "Content-Length": String(0),
+        },
+        status: Status.NO_CONTENT
+      });
 
     const header = cookie(COOKIE_NAME, requested, {
       secure: this.#secure,
@@ -93,7 +103,10 @@ export default class I18NModule extends Module {
     });
 
     return new Response(null, {
-      headers: { "set-cookie": header },
+      headers: {
+        "Set-Cookie": header,
+        "Content-Length": String(0),
+      },
       status: Status.NO_CONTENT,
     });
   }

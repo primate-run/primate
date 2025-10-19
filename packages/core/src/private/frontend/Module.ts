@@ -160,8 +160,13 @@ export default abstract class FrontendModule<
       };
 
       if (this.spa && request.headers.get("Accept") === APPLICATION_JSON) {
-        return new Response(JSON.stringify(client), {
-          headers: { ...app.headers(), "Content-Type": APPLICATION_JSON },
+        const json_body = JSON.stringify(client);
+        return new Response(json_body, {
+          headers: {
+            ...app.headers(),
+            "Content-Type": APPLICATION_JSON,
+            "Content-Length": String(app.body_length(json_body)),
+          },
           status: options.status ?? Status.OK,
         });
       }

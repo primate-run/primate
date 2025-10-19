@@ -100,6 +100,10 @@ function toNormalized(relative: string, base?: string | URL): string {
 export default (location: string, status?: Redirection): ResponseFunction =>
   // no body
   app => app.respond(null, {
-    headers: { Location: location },
+    headers: {
+      "Content-Length": String(0),
+      Location: location,
+      "Cache-Control": 'no-cache',
+    },
     status: status ?? Status.FOUND,
   });

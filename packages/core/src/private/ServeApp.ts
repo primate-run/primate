@@ -243,15 +243,23 @@ export default class ServeApp extends App {
     return this.loader().page(page);
   }
 
+  body_length(body: BodyInit | null): number {
+    if (body == null) return 0;
+    if (typeof body === 'string') return new TextEncoder().encode(body).length;
+    return 0;
+  }
+
   respond(body: BodyInit | null, init?: ResponseInit) {
     const { headers, status } = pema({
       headers: record(string, string),
       status: uint.values(Status).default(Status.OK),
     }).parse(init);
-
+    const body_length = this.body_length(body);
     return new Response(body, {
       headers: {
-        "Content-Type": TEXT_HTML, ...this.headers(), ...headers,
+        "Content-Type": TEXT_HTML,
+        ...this.headers(),
+        ...body_length ? { ...headers, "Content-Length": String(body_length) } : headers,
       }, status: status as number,
     });
   };
@@ -325,7 +333,13 @@ export default class ServeApp extends App {
         return await handle(parse(request));
       } catch (error) {
         log.error(error);
-        return new Response(null, { status: Status.INTERNAL_SERVER_ERROR });
+        return new Response(null, {
+          headers: {
+            "Content-Length": String(0),
+            "Cache-Control": 'no-cache',
+          },
+          status: Status.INTERNAL_SERVER_ERROR
+        });
       }
     }, this.get<Conf>(s_http));
     log.system("started {0}", this.url);
