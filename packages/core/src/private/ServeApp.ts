@@ -244,9 +244,7 @@ export default class ServeApp extends App {
   }
 
   body_length(body: BodyInit | null): number {
-    if (body == null) return 0;
-    if (typeof body === 'string') return new TextEncoder().encode(body).length;
-    return 0;
+    return typeof body === 'string' ? Buffer.byteLength(body, 'utf8') : 0;
   }
 
   respond(body: BodyInit | null, init?: ResponseInit) {
