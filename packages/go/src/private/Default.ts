@@ -1,4 +1,5 @@
 import Runtime from "#Runtime";
+import AppError from "@primate/core/AppError";
 import type BuildApp from "@primate/core/BuildApp";
 import fail from "@primate/core/fail";
 import location from "@primate/core/location";
@@ -11,18 +12,22 @@ import runtime from "@rcompat/runtime";
 import execute from "@rcompat/stdio/execute";
 import which from "@rcompat/stdio/which";
 
-const command = await which("go");
-const env = {
+const COMMAND = await which("go");
+const ENV = {
   GOARCH: "wasm",
-  GOCACHE: (await execute(`${command} env GOCACHE`, {})).replaceAll("\n", ""),
+  GOCACHE: (await execute(`${COMMAND} env GOCACHE`, {})).replaceAll("\n", ""),
   GOOS: "js",
   HOME: user.HOME,
 };
+const REPO = "github.com/primate-run/go";
+const TAG = "0.1";
+const [MAJOR, MINOR] = TAG.split(".").map(Number);
 
 const run = (wasm: FileRef, go: FileRef) =>
-  `${command} build -o ${wasm.name} ${go.name}`;
+  `${COMMAND} build -o ${wasm.name} ${go.name}`;
 
-const js_wrapper = (path: string) => `
+function wrapper(path: string) {
+  return `
 import env from "@primate/go/env";
 import toRequest from "@primate/go/to-request";
 import to_response from "@primate/go/to-response";
@@ -57,12 +62,12 @@ globalThis.PRMT_SESSION = {
 };
 
 ${(runtime as "bun" | "deno" | "node") === "bun"
-    ? `import route_path from "./${path}" with { type: "file" };
+      ? `import route_path from "./${path}" with { type: "file" };
 const binary = await Bun.file(route_path).arrayBuffer();`
-    : `import FileRef from "primate/runtime/FileRef";
+      : `import FileRef from "primate/runtime/FileRef";
 const buffer = await FileRef.arrayBuffer(import.meta.url+"/../${path}");
 const binary = new Uint8Array(buffer);`
-  }
+    }
 
 
 env();
@@ -84,10 +89,11 @@ for (const verb of verbs) {
   });
 }
 `;
+};
 
-const go_wrapper = (code: string) => {
-  if (!code.includes("github.com/primate-run/go/route")) {
-    console.warn("Go file does not import \"github.com/primate-run/go/route\" - skipping route registration");
+function postlude(code: string) {
+  if (!code.includes(`${REPO}/route`)) {
+    log.warn("Go file does not import {0} - skipping route registration", REPO);
     return code;
   }
   return `${code}
@@ -97,14 +103,38 @@ func main() {
 }`;
 };
 
+async function check_version() {
+  try {
+    const version = await execute(`go list -m -f '{{.Version}}' ${REPO}`);
+    const trimmed = version.trim();
+
+    const version_match = trimmed.match(/^v?(\d+)\.(\d+)\.(\d+)/);
+    if (!version_match) throw fail("invalid version format: {0}", trimmed);
+
+    const [, major, minor] = version_match.map(Number);
+
+    if (major !== MAJOR || minor !== MINOR) {
+      throw fail("installed version {0} not in range {1}", trimmed, TAG);
+    }
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+
+    console.log(error);
+
+    throw fail("{0} dependency not found - run 'go get {0}@v{1}.0'", REPO, TAG);
+  }
+}
+
 export default class Default extends Runtime {
-  build(app: BuildApp, next: NextBuild) {
+  async build(app: BuildApp, next: NextBuild) {
+    await check_version();
+
     app.bind(this.fileExtension, async (route, { context }) => {
       assert(context === "routes", "go: only route files are supported");
 
       const relative = route.debase(app.path.routes);
       const basename = relative.path.slice(1, -relative.extension.length);
-      const code = go_wrapper(await route.text());
+      const code = postlude(await route.text());
       const build_go_file = app.runpath(location.routes, `${basename}.go`);
       await build_go_file.directory.create({ recursive: true });
       await build_go_file.write(code);
@@ -114,7 +144,7 @@ export default class Default extends Runtime {
         log.info("compiling {0} to WebAssembly", route);
         await execute(run(wasm, build_go_file), {
           cwd: build_go_file.directory.path,
-          env,
+          env: ENV,
         });
       } catch (error) {
         throw fail("error in module {0}\n{1}", route, error);
@@ -122,7 +152,7 @@ export default class Default extends Runtime {
 
       await build_go_file.remove();
 
-      return js_wrapper(wasm.name);
+      return wrapper(wasm.name);
     });
 
     return next(app);
