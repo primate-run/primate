@@ -1,5 +1,6 @@
 import Runtime from "#Runtime";
 import AppError from "@primate/core/AppError";
+import TAG from "@primate/core/backend/TAG";
 import type BuildApp from "@primate/core/BuildApp";
 import fail from "@primate/core/fail";
 import location from "@primate/core/location";
@@ -20,7 +21,6 @@ const ENV = {
   HOME: user.HOME,
 };
 const REPO = "github.com/primate-run/go";
-const TAG = "0.1";
 const [MAJOR, MINOR] = TAG.split(".").map(Number);
 
 const run = (wasm: FileRef, go: FileRef) =>

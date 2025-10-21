@@ -1,5 +1,6 @@
 import Runtime from "#Runtime";
 import AppError from "@primate/core/AppError";
+import TAG from "@primate/core/backend/TAG";
 import type BuildApp from "@primate/core/BuildApp";
 import fail from "@primate/core/fail";
 import log from "@primate/core/log";
@@ -10,7 +11,6 @@ import type FileRef from "@rcompat/fs/FileRef";
 import execute from "@rcompat/stdio/execute";
 
 const GEM = "primate-run";
-const TAG = "0.1";
 const [MAJOR, MINOR] = TAG.split(".").map(Number);
 
 const detect_routes = (code: string): string[] => {

@@ -1,13 +1,20 @@
 import Runtime from "#Runtime";
+import AppError from "@primate/core/AppError";
+import TAG from "@primate/core/backend/TAG";
 import type BuildApp from "@primate/core/BuildApp";
+import fail from "@primate/core/fail";
+import log from "@primate/core/log";
 import type NextBuild from "@primate/core/NextBuild";
 import assert from "@rcompat/assert";
 import FileRef from "@rcompat/fs/FileRef";
+import execute from "@rcompat/stdio/execute";
+
+const PACKAGE = "primate-run";
+const [MAJOR, MINOR] = TAG.split(".").map(Number);
 
 const wrapper = async (fileRef: FileRef, packages: string[]) => {
   const userPythonRaw = await fileRef.text();
   const user_code = userPythonRaw.replace(/`/g, "\\`").replace(/\\/g, "\\\\");
-
   return `
 import route from "primate/route";
 import to_request from "@primate/python/to-request";
@@ -43,18 +50,16 @@ const wrapped_session = {
 
 const python = await pyodide();
 const messageCallback = () => {};
-
 await python.loadPackage("micropip", { messageCallback });
 const micropip = python.pyimport("micropip");
-await micropip.install("primate-run", { messageCallback });
-${packages.map(p => `await micropip.install("${p}", { messageCallback });`).join("\n")}
+await micropip.install("${PACKAGE}~=${TAG}.0", { messageCallback });
+${packages.map(p => `await micropip.install("${p}", { messageCallback });`)
+      .join("\n")}
 
 await python.runPython(\`${user_code}\`);
 
-// Get the registry of registered route function names
 const registry = python.runPython("Route.registry()").toJs();
 
-// Create route handler functions
 await python.runPython(\`
 \${Object.keys(registry).map(route => \`
 def run_\${route.toUpperCase()}(js_request, helpers_obj, session_obj):
@@ -64,10 +69,8 @@ def run_\${route.toUpperCase()}(js_request, helpers_obj, session_obj):
 \`).join("\\n")}
 \`);
 
-// Create route handlers for each registered route
 for (const [verb, func_name] of Object.entries(registry)) {
   const route_fn = python.globals.get(\`run_\${verb.toUpperCase()}\`);
-
   route[verb.toLowerCase()](async request => {
     try {
       const converted_request = await to_request(request);
@@ -82,23 +85,51 @@ for (const [verb, func_name] of Object.entries(registry)) {
 `;
 };
 
+function package_not_found() {
+  return fail("package not found - run 'pip install {0}~={1}.0'", PACKAGE, TAG);
+}
+
+function pkg_mismatch(major: number, minor: number) {
+  return fail("installed {0} package version {1}.{2}.x not in range ~> {3}.x",
+    PACKAGE, major, minor, TAG);
+}
+
+async function check_version() {
+  try {
+    const output = await execute(`pip show ${PACKAGE} 2>/dev/null`);
+
+    const version_match = output.match(/Version:\s*(\d+)\.(\d+)\.(\d+)/);
+
+    if (!version_match) throw package_not_found();
+
+    const [, major, minor] = version_match.map(Number);
+
+    if (major !== MAJOR || minor !== MINOR) throw pkg_mismatch(major, minor);
+
+    log.info("using {0} package {1}.{2}.x", PACKAGE, major, minor);
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+
+    throw package_not_found();
+  }
+}
+
 export default class Default extends Runtime {
   async build(app: BuildApp, next: NextBuild) {
+    await check_version();
+
     const requirements_txt = app.root.join("requirements.txt");
     let packages: string[] = [];
-
     if (await requirements_txt.exists()) {
       const requirements = await FileRef.text(requirements_txt);
       packages = requirements
         .split("\n")
         .filter(line => line.trim() && !line.startsWith("#"))
-        .map(p => p.trim())
-        ;
+        .map(p => p.trim());
     }
 
     app.bind(this.fileExtension, async (route, { context }) => {
       assert(context === "routes", "python: only route files are supported");
-
       return await wrapper(route, packages);
     });
 
