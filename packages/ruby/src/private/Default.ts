@@ -1,4 +1,5 @@
 import Runtime from "#Runtime";
+import AppError from "@primate/core/AppError";
 import type BuildApp from "@primate/core/BuildApp";
 import fail from "@primate/core/fail";
 import log from "@primate/core/log";
@@ -6,8 +7,12 @@ import type NextBuild from "@primate/core/NextBuild";
 import verbs from "@primate/core/request/verbs";
 import assert from "@rcompat/assert";
 import type FileRef from "@rcompat/fs/FileRef";
+import execute from "@rcompat/stdio/execute";
 
-/** find which HTTP verbs are present in the Ruby file */
+const GEM = "primate-run";
+const TAG = "0.1";
+const [MAJOR, MINOR] = TAG.split(".").map(Number);
+
 const detect_routes = (code: string): string[] => {
   const found: string[] = [];
   for (const verb of verbs) {
@@ -17,10 +22,9 @@ const detect_routes = (code: string): string[] => {
   return found;
 };
 
-const js_wrapper = async (fileRef: FileRef, routes: string[]) => {
+const wrapper = async (fileRef: FileRef, routes: string[]) => {
   const original_ruby = await fileRef.text();
   const user_ruby = original_ruby.replace(/`/g, "\\`");
-
   return `
 import route from "primate/route";
 import to_request from "@primate/ruby/to-request";
@@ -70,19 +74,50 @@ route.${route.toLowerCase()}(async request => {
 `;
 };
 
+function gem_not_found() {
+  return fail("missing {0}, run 'gem install {0} -v \"~> {1}.0\"'", GEM, TAG);
+}
+
+function gem_mismatch(major: number, minor: number) {
+  return fail("installed {0} gem version {1}.{2}.x not in range {3}.x",
+    GEM, major, minor, `~> ${TAG}`);
+}
+
+async function check_version() {
+  try {
+    const output = await execute(`gem list ${GEM} --exact 2>/dev/null`);
+
+    const version_match = output.match(/primate-run\s+\((\d+)\.(\d+)\.(\d+)\)/);
+
+    if (!version_match) throw gem_not_found();
+
+    const [, major, minor] = version_match.map(Number);
+
+    if (major !== MAJOR || minor !== MINOR) throw gem_mismatch(major, minor);
+
+    log.info("using {0} gem {1}.{2}.x", GEM, major, minor);
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+
+    throw gem_not_found();
+  }
+}
+
 export default class Default extends Runtime {
   async build(app: BuildApp, next: NextBuild) {
+    await check_version();
+
     app.bind(this.fileExtension, async (route, { context }) => {
       assert(context === "routes", "ruby: only route files are supported");
 
       const code = await route.text();
       const routes = detect_routes(code);
+
       if (routes.length === 0) throw fail("no routes detected in {0}", route);
 
       log.info("found routes in {0}: {1}", route, routes.join(", "));
 
-      const js_code = await js_wrapper(route, routes);
-      return js_code;
+      return await wrapper(route, routes);
     });
 
     return next(app);
