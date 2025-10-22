@@ -34,10 +34,11 @@ export default class Loader {
     return this.#pages[name];
   }
 
-  asset(file: FileRef) {
+  async asset(file: FileRef) {
     return new Response(file.stream(), {
       headers: {
         "Content-Type": resolve(file.name),
+        "Content-Length": String(await file.byteLength()),
       },
       status: Status.OK,
     });
@@ -46,13 +47,13 @@ export default class Loader {
   async serve(pathname: string) {
     const client_file = this.#root.join(`client/${pathname}`);
     if (await client_file.isFile()) {
-      return this.asset(client_file);
+      return await this.asset(client_file);
     }
     if (pathname.startsWith(this.static_root)) {
       const assetname = pathname.slice(this.static_root.length);
       const static_file = this.#root.join(`static/${assetname}`);
       if (await static_file.isFile()) {
-        return this.asset(static_file);
+        return await this.asset(static_file);
       }
     }
   }
