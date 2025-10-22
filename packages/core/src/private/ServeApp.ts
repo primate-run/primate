@@ -36,6 +36,7 @@ import serve from "@rcompat/http/serve";
 import type Server from "@rcompat/http/Server";
 import Status from "@rcompat/http/Status";
 import entries from "@rcompat/record/entries";
+import utf8ByteLength from "@rcompat/string/utf8-bytelength";
 import type Dict from "@rcompat/type/Dict";
 import type PartialDict from "@rcompat/type/PartialDict";
 import pema from "pema";
@@ -244,7 +245,7 @@ export default class ServeApp extends App {
   }
 
   body_length(body: BodyInit | null): number {
-    return typeof body === 'string' ? Buffer.byteLength(body, 'utf8') : 0;
+    return typeof body === "string" ? utf8ByteLength(body) : 0;
   }
 
   respond(body: BodyInit | null, init?: ResponseInit) {
