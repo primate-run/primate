@@ -108,15 +108,19 @@ management.
 
 ```svelte
 <script lang="ts">
-  let count = 0;
-  $: doubled = count * 2;
+  import { writable } from 'svelte/store';
+
+  const count = writable(0);
+  const doubled = writable(0);
+
+  $: doubled.set($count * 2);
 </script>
 
 <div>
-  <button on:click={() => count--}>-</button>
-  <span>{count}</span>
-  <button on:click={() => count++}>+</button>
-  <p>Doubled: {doubled}</p>
+  <button on:click={() => count.update(n => n - 1)}>-</button>
+  <span>{$count}</span>
+  <button on:click={() => count.update(n => n + 1)}>+</button>
+  <p>Doubled: {$doubled}</p>
 </div>
 ```
 
