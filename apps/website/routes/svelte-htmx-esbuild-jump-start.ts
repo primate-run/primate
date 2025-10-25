@@ -1,4 +1,4 @@
-import redirect from "primate/response/redirect";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => redirect("/guide/getting-started#quick-start"));
+route.get(() => response.redirect("/guide/getting-started#quick-start"));

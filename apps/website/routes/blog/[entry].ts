@@ -1,12 +1,12 @@
 import type Component from "@primate/markdown/Component";
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(request => {
   const entry = request.path.get("entry");
   return async (app) => {
     const { html, meta } = app.loadView<Component>(`content/blog/${entry}.md`);
-    return view("BlogEntry.svelte", {
+    return response.view("BlogEntry.svelte", {
       app: request.config,
       content: html,
       meta,

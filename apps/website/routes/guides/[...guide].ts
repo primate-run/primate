@@ -1,5 +1,5 @@
 import type Component from "@primate/markdown/Component";
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(request => {
@@ -13,7 +13,7 @@ route.get(request => {
       content: html,
       meta,
     };
-    return view("Guide.svelte", props, {
+    return response.view("Guide.svelte", props, {
       placeholders: request.placeholders,
     })(app, {}, request);
   };

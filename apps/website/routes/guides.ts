@@ -7,6 +7,6 @@ route.get(request => {
     const props = { app: request.config, guides };
     const options = { placeholders: request.placeholders };
 
-    return response.view("GuidesPage.svelte", props, options)(app, ...args);
+    return response.view("Guides.svelte", props, options)(app, ...args);
   };
 });

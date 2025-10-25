@@ -1,6 +1,6 @@
 import FileRef from "@rcompat/fs/FileRef";
 import xml from "@rcompat/http/mime/extension/xml";
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 const description = "The universal web framework";
@@ -15,5 +15,5 @@ route.get(async () => {
     partial: true,
   };
 
-  return view("blog.rss.hbs", props, options);
+  return response.view("blog.rss.hbs", props, options);
 });

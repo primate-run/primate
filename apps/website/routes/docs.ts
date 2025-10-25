@@ -1,5 +1,5 @@
 import type Component from "@primate/markdown/Component";
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(request => {
@@ -11,7 +11,7 @@ route.get(request => {
       path: "/" + request.url.pathname.slice("/docs/".length),
       toc,
     };
-    return view("Static.svelte", props, {
+    return response.view("Static.svelte", props, {
       placeholders: request.placeholders,
     })(app, {}, request);
   };
