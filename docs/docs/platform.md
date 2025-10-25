@@ -41,7 +41,7 @@ bunx --bun primate build
 deno run -A npm:primate build
 ```
 
-### Serve a build
+### Serve a Build
 
 ```bash
 # Node
@@ -67,7 +67,7 @@ const base = new FileRef("static");
 const file = base.join("logo.svg");
 ```
 
-### HTTP status
+### HTTP Status
 
 ```ts
 import Status from "@rcompat/http/Status";
@@ -75,7 +75,7 @@ import Status from "@rcompat/http/Status";
 return new Response("ok", { status: Status.OK });
 ```
 
-### MIME types
+### MIME Types
 
 ```ts
 import mime from "@rcompat/mime/text/plain";
@@ -85,12 +85,13 @@ const known = mime;            // "text/plain"
 const byExt = resolve(".svg"); // "image/svg+xml"
 ```
 
-## Runtime support
+## Runtime Support
 
-Primate targets full interop across runtimes and targets. Some cells are
-blank where a platform is not yet wired up.
+Primate aims for complete interoperability across various runtimes
+and targets. In the table below, some cells are left blank where
+a platform has not yet been wired up.
 
-### Build targets
+### Build Targets
 
 | Target                | Node | Deno | Bun |
 | --------------------- | ---- | ---- | --- |
