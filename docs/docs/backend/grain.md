@@ -1,7 +1,8 @@
 # Grain
 
 Primate runs [Grain][Documentation] with WebAssembly compilation,
-strongly-typed validation, sessions, and server-side routing.
+support for sessions, server-side routing, Primate stores, and
+real-time communication via websockets.
 
 ## Setup
 
