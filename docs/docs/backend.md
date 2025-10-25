@@ -34,7 +34,7 @@ Pyodide for Python).
 
 ## Language Categories
 
-### Systems Languages
+### Pre-Compiled Languages
 
 *Go*, *Grain*
 
