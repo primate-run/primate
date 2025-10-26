@@ -3,15 +3,15 @@
 require 'primate/route'
 
 Route.post do |request|
-  fields = request.body.fields
+  form = request.body.form
 
   baz = begin
-    Integer(fields["baz"].to_s, 10)
+    Integer(form["baz"].to_s, 10)
   rescue ArgumentError, TypeError
     0
   end
 
-  foo = fields["foo"].to_s
+  foo = form["foo"].to_s
 
   greeting = request.body.files.find { |f| f.field == "greeting" }
 

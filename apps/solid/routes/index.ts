@@ -1,4 +1,4 @@
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 const posts = [{
@@ -7,5 +7,5 @@ const posts = [{
 }];
 
 route.get(() => {
-  return view("Index.tsx", { posts });
+  return response.view("Index.tsx", { posts });
 });

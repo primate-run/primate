@@ -2,9 +2,7 @@ import type RequestBody from "@primate/core/request/RequestBody";
 import type RequestFacade from "@primate/core/request/RequestFacade";
 import type Dict from "@rcompat/type/Dict";
 
-async function bridgeFields(body: RequestBody) {
-  const fields = body.fields();
-
+async function bridge_form(body: RequestBody) {
   const meta: Dict = Object.create(null);
   const files: Array<{
     bytes: Uint8Array;
@@ -16,19 +14,17 @@ async function bridgeFields(body: RequestBody) {
 
   const pending: Promise<void>[] = [];
 
-  for (const [k, v] of Object.entries(fields)) {
-    if (typeof v === "string") {
-      meta[k] = v;
-      continue;
-    }
+  for (const [k, v] of Object.entries(body.form())) {
+    meta[k] = v;
+  }
 
-    // v is File
+  for (const [k, v] of Object.entries(body.files())) {
     const name = v.name;
     const type = v.type;
     const size = v.size;
     meta[k] = { name, size, type };
 
-    // Precompute bytes so Go can call a SYNC getter
+    // precompute bytes so Go can call a SYNC getter
     pending.push(
       v.arrayBuffer().then(buffer => {
         files.push({
@@ -46,9 +42,9 @@ async function bridgeFields(body: RequestBody) {
   const jsonStr = JSON.stringify(meta);
 
   return {
-    fieldsSync: () => jsonStr,
+    formSync: () => jsonStr,
     filesSync: () => files,
-    type: "fields" as const,
+    type: "form" as const,
   };
 }
 
@@ -65,8 +61,8 @@ async function bridgeBody(body: RequestBody) {
       const jsonStr = JSON.stringify(val);
       return { jsonSync: () => jsonStr, type };
     }
-    case "fields": {
-      return await bridgeFields(body);
+    case "form": {
+      return await bridge_form(body);
     }
     case "binary": {
       const blob: Blob = body.binary();

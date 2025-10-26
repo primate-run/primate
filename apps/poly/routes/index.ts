@@ -1,4 +1,4 @@
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 const posts = [{
@@ -6,4 +6,4 @@ const posts = [{
   title: "First post",
 }];
 
-route.get(() => view("Index.poly", { posts }));
+route.get(() => response.view("Index.poly", { posts }));

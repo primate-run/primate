@@ -1,4 +1,4 @@
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => view("Form.component.ts"));
+route.get(() => response.view("Form.component.ts"));

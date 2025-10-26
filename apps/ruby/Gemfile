@@ -5,4 +5,4 @@ group :development do
   gem "rbs"
 end
 
-gem "primate-run", "~> 0.1.0"
+gem "primate-run", "~> 0.2.0"

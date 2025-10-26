@@ -12,7 +12,7 @@ export default class SessionHandle<Data> {
   constructor(id?: string, data?: Data, schema?: Schema<Data>) {
     maybe(id).uuid();
     maybe(data).record();
-    maybe(schema).record();
+    maybe(schema).object();
     maybe(schema?.parse).function();
 
     assert(

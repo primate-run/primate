@@ -1,6 +1,6 @@
 import pema from "pema";
 import string from "pema/string";
-import Status from "primate/response/Status";
+import Status from "primate/http/Status";
 import route from "primate/route";
 
 const Header = pema({

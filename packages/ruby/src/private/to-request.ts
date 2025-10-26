@@ -40,49 +40,45 @@ function toDict(obj: Record<string, unknown> | URLSearchParams): Dict {
   return out;
 }
 
-async function bridgeFields(body: RequestBody) {
-  const fields = body.fields(); // can be strings or File
+async function bridge_form(body: RequestBody) {
   const plain: Record<string, string> = Object.create(null);
   const files: FileEntry[] = [];
   const pending: Promise<void>[] = [];
 
-  for (const [k, v] of Object.entries(fields)) {
-    if (typeof v === "string") {
-      plain[k] = v;
-    } else {
-      // v is File
-      const name = v.name;
-      const type = v.type;
-      const size = v.size;
-      // Do NOT include file metadata in fields; put files into filesSync.
-      pending.push(
-        v.arrayBuffer().then(buffer => {
-          files.push({
-            bytes: new Uint8Array(buffer),
-            field: k,
-            name,
-            size,
-            type,
-          });
-        }),
-      );
-    }
+  for (const [k, v] of Object.entries(body.form())) {
+    plain[k] = v;
+  }
+  const form = JSON.stringify(plain);
+
+  for (const [k, v] of Object.entries(body.files())) {
+    const name = v.name;
+    const type = v.type;
+    const size = v.size;
+    pending.push(
+      v.arrayBuffer().then(buffer => {
+        files.push({
+          bytes: new Uint8Array(buffer),
+          field: k,
+          name,
+          size,
+          type,
+        });
+      }),
+    );
   }
 
   await Promise.all(pending);
 
-  // Provide a body adapter with a .call(name) API
-  const jsonStr = JSON.stringify(plain);
   return {
-    fields: () => jsonStr,
+    form: () => form,
     files: () => files,
   };
 }
 
 async function bridgeBody(body: RequestBody) {
-  let fields, buffer: Uint8Array<ArrayBuffer>, blob: Blob;
-  if (body.type === "fields") {
-    fields = await bridgeFields(body);
+  let form, buffer: Uint8Array<ArrayBuffer>, blob: Blob;
+  if (body.type === "form") {
+    form = await bridge_form(body);
   }
   if (body.type === "binary") {
     blob = body.binary();
@@ -93,8 +89,8 @@ async function bridgeBody(body: RequestBody) {
     json: () => {
       return JSON.stringify(body.json());
     },
-    fields: () => fields!.fields(),
-    files: () => fields!.files(),
+    form: () => form!.form(),
+    files: () => form!.files(),
     binary: () => {
       const mime = blob.type || "application/octet-stream";
       return {
@@ -109,14 +105,14 @@ async function bridgeBody(body: RequestBody) {
 export default async function to_request(request: RequestFacade) {
   const body = await bridgeBody(request.body);
 
-  // These MUST be plain objects of strings, not JSON strings
+  // these must be plain objects of strings, not JSON strings
   const cookies = toDict(request.cookies.toJSON());
   const headers = toDict(request.headers.toJSON());
   const path = toDict(request.path.toJSON());
   const query = toDict(request.query.toJSON());
 
-  // Build the plain-url object Ruby expects
-  const u = request.url as unknown as URL; // RequestFacade.url should be URL-like
+  // build the plain-url object Ruby expects
+  const u = request.url as unknown as URL;
   const url = plainUrl(new URL(String(u)));
 
   return {

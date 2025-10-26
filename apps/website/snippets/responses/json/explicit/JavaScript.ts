@@ -1,5 +1,5 @@
 import response from "primate/response";
-import Status from "primate/response/Status";
+import Status from "primate/http/Status";
 import route from "primate/route";
 
 route.get(() => response.json([

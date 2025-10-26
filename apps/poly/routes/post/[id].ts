@@ -1,6 +1,6 @@
 import assert from "@rcompat/assert";
 import int from "pema/int";
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 const posts = [{
@@ -9,9 +9,9 @@ const posts = [{
 }];
 
 route.get(request => {
-  const _id = int.parse(+request.path.id!);
+  const _id = int.parse(request.path.get("id"));
   const post = posts.find(({ id }) => id === _id);
   assert(post !== undefined);
 
-  return view("ViewPost.poly", { post });
+  return response.view("ViewPost.poly", { post });
 });

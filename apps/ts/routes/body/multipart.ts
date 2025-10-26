@@ -1,3 +1,3 @@
 import route from "primate/route";
 
-route.post(request => request.body.fields());
+route.post(request => request.body.form());

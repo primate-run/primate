@@ -1,4 +1,4 @@
+import response from "primate/response";
 import route from "primate/route";
-import view from "primate/response/view";
 
-route.get(() => view("About.tsx"));
+route.get(() => response.view("About.tsx"));

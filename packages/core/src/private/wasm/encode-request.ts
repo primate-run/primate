@@ -8,9 +8,9 @@ import I32_SIZE from "#wasm/I32_SIZE";
 import stringSize from "#wasm/stringsize";
 import urlSize from "#wasm/urlsize";
 import BufferView from "@rcompat/bufferview";
+import type MaybePromise from "@rcompat/type/MaybePromise";
 import type PartialDict from "@rcompat/type/PartialDict";
 import encodeBuffer from "./encode-buffer.js";
-import MaybePromise from "@rcompat/type/MaybePromise";
 
 const SECTION_HEADER_SIZE = I32_SIZE;
 
@@ -23,7 +23,7 @@ const COOKIES_SECTION = 5;
 
 const BODY_KIND_NULL = 0;
 const BODY_KIND_TEXT = 1;
-const BODY_KIND_FIELDS = 2;
+const BODY_KIND_FORM = 2;
 const BODY_KIND_BINARY = 3;
 const BODY_KIND_JSON = 4;
 
@@ -40,19 +40,19 @@ const sizeOfBodySection = (body: RequestBody) => {
   if (body.type === "text")
     return size + stringSize(body.text());
 
-  if (body.type === "fields") {
+  if (body.type === "form") {
     size += I32_SIZE; // entry count
 
-    const fields = body.fields();
-
-    for (const [key, value] of Object.entries(fields)) {
+    for (const [key, value] of Object.entries(body.form())) {
       size += stringSize(key);
-      size += I32_SIZE // value kind
-        + (
-          typeof value === "string"
-            ? stringSize(value)
-            : filesize(value)
-        );
+      size += I32_SIZE; // value kind
+      size += stringSize(value);
+    }
+
+    for (const [key, value] of Object.entries(body.files())) {
+      size += stringSize(key);
+      size += I32_SIZE; // value kind
+      size += filesize(value);
     }
 
     return size;
@@ -65,11 +65,9 @@ const sizeOfBodySection = (body: RequestBody) => {
     return size;
   }
 
-  if (body.type === "json") {
-    const json = body.json();
-    size += stringSize(JSON.stringify(json));
-    return size;
-  }
+  const json = body.json();
+  size += stringSize(JSON.stringify(json));
+  return size;
 
   throw new Error("Invalid RequestLike body");
 };
@@ -108,20 +106,20 @@ const encodeMapSection = (header: number, map: PartialDict<string>, view: Buffer
 type BlobLike = {
   type: string;
   bytes(): MaybePromise<Uint8Array>;
-}
+};
 
 type FileLike = {
   name: string;
   type: string;
   bytes(): MaybePromise<Uint8Array>;
-}
+};
 
 const encodeBlob = async (file: BlobLike, view: BufferView) => {
   const type = file.type;
   const bytes = await file.bytes();
   encodeString(type, view);
   encodeBuffer(bytes, view);
-}; 
+};
 
 const encodeFile = async (file: FileLike, view: BufferView) => {
   const name = file.name;
@@ -172,29 +170,27 @@ const encodeSectionUrl = (url: URL, view: BufferView) => {
  */
 const encodeSectionBody = async (body: RequestBody, view: BufferView) => {
   view.writeU32(BODY_SECTION);
-  
+
   if (body.type === "text") {
     const text = body.text();
     view.writeU32(BODY_KIND_TEXT);
     encodeString(text, view);
-  } else if (body.type === "fields") {
-    const fields = body.fields();
-    const entries = Object.entries(body.fields());
-    const entryCount = entries.length;
+  } else if (body.type === "form") {
+    const entries = Object.entries(body.form());
 
-    view.writeU32(BODY_KIND_FIELDS);
-    view.writeU32(entryCount);
+    view.writeU32(BODY_KIND_FORM);
+    view.writeU32(entries.length);
 
-    for (const [key, value] of Object.entries(fields)) {
+    for (const [key, value] of entries) {
       encodeString(key, view);
 
-      if (typeof value === "string") {
-        view.writeU32(BODY_KIND_MAP_VALUE_STRING);
-        encodeString(value, view);
-      } else {
-        view.writeU32(BODY_KIND_MAP_VALUE_BLOB);
-        await encodeFile(value, view);
-      }
+      view.writeU32(BODY_KIND_MAP_VALUE_STRING);
+      encodeString(value, view);
+    }
+    for (const [key, value] of Object.entries(body.files())) {
+      encodeString(key, view);
+      view.writeU32(BODY_KIND_MAP_VALUE_BLOB);
+      await encodeFile(value, view);
     }
   } else if (body.type === "binary") {
     view.writeU32(BODY_KIND_BINARY);

@@ -1,4 +1,4 @@
-import error from "primate/response/error";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => error({ body: "JavaScript error" }));
+route.get(() => response.error({ body: "JavaScript error" }));

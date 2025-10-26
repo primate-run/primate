@@ -32,9 +32,9 @@ route.get(() => new Response("Not found", { status: 404 }));
 ```ts
 // routes/+error.ts
 import route from "primate/route";
-import redirect from "primate/response/redirect";
+import response from "primate/response";
 
-route.get(() => redirect("/")); // or return a rendered error view
+route.get(() => response.redirect("/")); // or return a rendered error view
 ```
 
 ---

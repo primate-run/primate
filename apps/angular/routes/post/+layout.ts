@@ -1,4 +1,5 @@
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => view("Layout.component.ts", { user: { name: "John" } }));
+route.get(() => response.view("Layout.component.ts",
+  { user: { name: "John" } }));

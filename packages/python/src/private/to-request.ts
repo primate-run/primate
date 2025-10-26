@@ -40,46 +40,43 @@ function toDict(obj: Record<string, unknown> | URLSearchParams): Dict {
   return out;
 }
 
-async function bridgeFields(body: RequestBody) {
-  const fields = body.fields(); // can be strings or File
-  const plain: Record<string, string> = Object.create(null);
+async function bridge_form(body: RequestBody) {
+  const form: Dict<string> = Object.create(null);
   const files: FileEntry[] = [];
   const pending: Promise<void>[] = [];
 
-  for (const [k, v] of Object.entries(fields)) {
-    if (typeof v === "string") {
-      plain[k] = v;
-    } else {
-      // v is File
-      const name = v.name;
-      const type = v.type;
-      const size = v.size;
-      pending.push(
-        v.arrayBuffer().then(buffer => {
-          files.push({
-            bytes: new Uint8Array(buffer),
-            field: k,
-            name,
-            size,
-            type,
-          });
-        }),
-      );
-    }
+  for (const [k, v] of Object.entries(body.form())) {
+    form[k] = v;
+  }
+  for (const [k, v] of Object.entries(body.files())) {
+    const name = v.name;
+    const type = v.type;
+    const size = v.size;
+    pending.push(
+      v.arrayBuffer().then(buffer => {
+        files.push({
+          bytes: new Uint8Array(buffer),
+          field: k,
+          name,
+          size,
+          type,
+        });
+      }),
+    );
   }
 
   await Promise.all(pending);
 
   return {
-    fields: () => plain,
+    form: () => form,
     files: () => files,
   };
 }
 
 async function bridgeBody(body: RequestBody) {
-  let fields, buffer: Uint8Array<ArrayBuffer>, blob: Blob;
-  if (body.type === "fields") {
-    fields = await bridgeFields(body);
+  let form, buffer: Uint8Array<ArrayBuffer>, blob: Blob;
+  if (body.type === "form") {
+    form = await bridge_form(body);
   }
   if (body.type === "binary") {
     blob = body.binary();
@@ -90,8 +87,8 @@ async function bridgeBody(body: RequestBody) {
     json: () => {
       return JSON.stringify(body.json());
     },
-    fields: () => fields!.fields(),
-    files: () => fields!.files(),
+    form: () => form!.form(),
+    files: () => form!.files(),
     binary: () => {
       const mime = blob.type || "application/octet-stream";
       return {

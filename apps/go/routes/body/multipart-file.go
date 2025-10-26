@@ -6,22 +6,22 @@ import (
 )
 
 var _ = route.Post(func(request route.Request) any {
-	fields, err := request.Body.Fields()
-	// plain fields (baz, foo, greeting meta already in fields JSON)
+	form, err := request.Body.Form()
+	// plain fields (baz, foo, greeting meta already in form JSON)
 	if err != nil {
 		return map[string]any{"error": err.Error()}
 	}
 
 	// baz: "1" -> 1 (match TS pema u8 coercion)
 	var baz int64
-	if s, ok := fields["baz"].(string); ok {
+	if s, ok := form["baz"].(string); ok {
 		if v, err := strconv.ParseInt(s, 10, 64); err == nil {
 			baz = v
 		}
 	}
 
 	// foo stays string
-	foo, _ := fields["foo"].(string)
+	foo, _ := form["foo"].(string)
 
 	// 2) File bytes (from filesSync)
 	files, err := request.Body.Files()

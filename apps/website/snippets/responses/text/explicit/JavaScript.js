@@ -1,5 +1,5 @@
+import Status from "primate/http/Status";
 import response from "primate/response";
-import Status from "primate/response/Status";
 import route from "primate/route";
 
 route.post(request => {

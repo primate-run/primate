@@ -1,7 +1,7 @@
 import pema from "pema";
 import string from "pema/string";
+import Status from "primate/http/Status";
 import response from "primate/response";
-import Status from "primate/response/Status";
 import route from "primate/route";
 
 const Cookie = pema({

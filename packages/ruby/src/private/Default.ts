@@ -85,9 +85,8 @@ function gem_mismatch(major: number, minor: number) {
 
 async function check_version() {
   try {
-    const output = await execute(`gem list ${GEM} --exact 2>/dev/null`);
-
-    const version_match = output.match(/primate-run\s+\((\d+)\.(\d+)\.(\d+)\)/);
+    const output = await execute(`gem specification ${GEM} version 2>/dev/null`);
+    const version_match = output.match(/(\d+)\.(\d+)\.(\d+)/);
 
     if (!version_match) throw gem_not_found();
 

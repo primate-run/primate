@@ -1,4 +1,4 @@
-import Status from "primate/response/Status";
+import Status from "primate/http/Status";
 import route from "primate/route";
 
 route.get(() => new Response("Hi!", {

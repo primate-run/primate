@@ -1,18 +1,18 @@
 import fail from "#fail";
 import json from "@rcompat/http/mime/application/json";
 import binary from "@rcompat/http/mime/application/octet-stream";
-import form from "@rcompat/http/mime/application/x-www-form-urlencoded";
-import formData from "@rcompat/http/mime/multipart/form-data";
+import www_form from "@rcompat/http/mime/application/x-www-form-urlencoded";
+import form_data from "@rcompat/http/mime/multipart/form-data";
 import text from "@rcompat/http/mime/text/plain";
 import type Dict from "@rcompat/type/Dict";
 import type JSONValue from "@rcompat/type/JSONValue";
 import type Schema from "@rcompat/type/Schema";
 
-type Fields = Dict<FormDataEntryValue>;
+type Form = Dict<string>;
 
 type Parsed =
   | { type: "binary"; value: Blob }
-  | { type: "fields"; value: Fields }
+  | { type: "form"; value: Dict<string> }
   | { type: "json"; value: JSONValue }
   | { type: "none"; value: null }
   | { type: "text"; value: string }
@@ -21,18 +21,24 @@ type Parsed =
 type ParseReturn<S> =
   S extends { parse: (v: unknown) => infer R } ? R : never;
 
-async function fromForm(request: Request) {
-  const fields: Fields = Object.create(null);
+async function anyform(request: Request) {
+  const form: Dict<string> = Object.create(null);
+  const files: Dict<File> = Object.create(null);
 
   for (const [key, value] of (await request.formData()).entries()) {
-    fields[key] = value;
+    if (typeof value === "string") {
+      form[key] = value;
+    } else {
+      files[key] = value;
+    }
   }
 
-  return fields;
+  return { form, files };
 };
 
 export default class RequestBody {
   #parsed: Parsed;
+  #files: Dict<File>;
 
   static async parse(request: Request, url: URL): Promise<RequestBody> {
     const raw = request.headers.get("content-type") ?? "none";
@@ -43,9 +49,11 @@ export default class RequestBody {
       switch (type) {
         case binary:
           return new RequestBody({ type: "binary", value: await request.blob() });
-        case form:
-        case formData:
-          return new RequestBody({ type: "fields", value: await fromForm(request) });
+        case www_form:
+        case form_data: {
+          const { form, files } = await anyform(request);
+          return new RequestBody({ type: "form", value: form }, files);
+        }
         case json:
           return new RequestBody({ type: "json", value: await request.json() });
         case text:
@@ -65,8 +73,9 @@ export default class RequestBody {
     return new RequestBody({ type: "none", value: null });
   }
 
-  constructor(p: Parsed) {
-    this.#parsed = p;
+  constructor(parsed: Parsed, files: Dict<File> = {}) {
+    this.#parsed = parsed;
+    this.#files = files;
   }
 
   get type() {
@@ -92,15 +101,23 @@ export default class RequestBody {
     return schema ? schema.parse(value) : value;
   }
 
-  fields(): Fields;
-  fields<S extends Schema<unknown>>(schema: S): ParseReturn<S>;
-  fields(schema?: Schema<unknown>) {
-    if (this.type !== "fields") {
-      this.#throw("form fields");
+  form(): Form;
+  form<S extends Schema<unknown>>(schema: S): ParseReturn<S>;
+  form(schema?: Schema<unknown>) {
+    if (this.type !== "form") {
+      this.#throw("form");
     }
 
-    const value = this.#value<Fields>();
+    const value = this.#value<Form>();
     return schema ? schema.parse(value) : value;
+  }
+
+  files(): Dict<File> {
+    if (this.type !== "form") {
+      this.#throw("form");
+    }
+
+    return this.#files;
   }
 
   text() {

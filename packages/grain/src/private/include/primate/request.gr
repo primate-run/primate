@@ -42,13 +42,13 @@ provide enum BodyField {
   BodyFieldFile(File),
 }
 
-provide type BodyFields = Map<String, BodyField>
+provide type BodyForm = Map<String, BodyField>
 
 
 provide enum Body {
   BodyNull,
   BodyString(String),
-  BodyFields(BodyFields),
+  BodyForm(BodyForm),
   BodyBlob(Blob),
   BodyJson(Json)
 }
@@ -153,7 +153,7 @@ let rec getBodyElement = (offset: Number, payload: Bytes) => {
     2ul => {
       let (offset, count) = readUint32(offset, payload)
       let (offset, map) = getBodyField(Uint32.toNumber(count), offset, payload, Map.make())
-      (offset, BodyFields(map))
+      (offset, BodyForm(map))
     },
     // const BODY_KIND_BLOB = 3;
     3ul => {
@@ -167,7 +167,7 @@ let rec getBodyElement = (offset: Number, payload: Bytes) => {
     },
     _ => throw InvalidRequestEncoding
   }
-} and getBodyField = (count: Number, offset: Number, payload: Bytes, map: BodyFields) => {
+} and getBodyField = (count: Number, offset: Number, payload: Bytes, map: BodyForm) => {
   match (count) {
     0 => (offset, map),
     _ => {
@@ -246,7 +246,7 @@ provide module Body {
   }
   provide let fields = (request: Request) => {
     match (request.body) {
-      BodyFields(map) => map,
+      BodyForm(map) => map,
       _ => throw UnexpectedBodyType
     }
   }

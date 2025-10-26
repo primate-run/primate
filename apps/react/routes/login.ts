@@ -1,6 +1,6 @@
 import pema from "pema";
 import string from "pema/string";
-import view from "primate/response/view";
+import response from "primate/response";
 import route from "primate/route";
 
 const LoginSchema = pema({
@@ -8,7 +8,7 @@ const LoginSchema = pema({
   password: string.min(8),
 });
 
-route.get(() => view("LoginForm.tsx"));
+route.get(() => response.view("LoginForm.tsx"));
 
 route.post(async request => {
   const body = request.body.json(LoginSchema);

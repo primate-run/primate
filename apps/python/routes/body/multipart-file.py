@@ -3,7 +3,7 @@ from primate import Route
 
 @Route.post
 def handle_post(request):
-    fields = request.body.fields()
+    fields = request.body.form()
 
     try:
         baz = int(str(fields.get("baz", "")))

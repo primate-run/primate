@@ -136,7 +136,7 @@ export default class BuildApp extends App {
     });
 
     if (!compiled) {
-      log.warn("binder returned no output for {0}", file.path);
+      log.info("binder returned empty output for {0}", file.path);
       return;
     }
 

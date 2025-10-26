@@ -1,4 +1,4 @@
-import Status from "primate/response/Status";
+import Status from "primate/http/Status";
 import test from "primate/test";
 
 const expected = `<h1>Posts</h1>`;
