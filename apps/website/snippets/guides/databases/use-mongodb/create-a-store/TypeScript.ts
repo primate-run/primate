@@ -1,9 +1,8 @@
-import primary from "pema/primary";
-import string from "pema/string";
+import p from "pema";
 import store from "primate/store";
 
 export default store({
-  id: primary,
-  name: string,
-  email: string.email(),
+  id: p.primary,
+  name: p.string,
+  email: p.string.email(),
 });

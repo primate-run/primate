@@ -1,12 +1,10 @@
-import pema from "pema";
-import string from "pema/string";
-import u8 from "pema/u8";
+import p from "pema";
 import route from "primate/route";
 
-const schema = pema({
-  baz: u8,
-  foo: string,
-  //  greeting: file,
+const schema = p({
+  baz: p.u8,
+  foo: p.string,
+  //  greeting: p.file,
 }).coerce;
 
 route.post(async request => {

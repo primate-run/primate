@@ -1,14 +1,12 @@
-import pema from "pema";
-import int from "pema/int";
-import string from "pema/string";
+import p from "pema";
 import route from "primate/route";
 
-const Query = pema({
-  page: int.coerce.min(1).default(1),
-  search: string.min(1),
+const QuerySchema = p({
+  page: p.int.coerce.min(1).default(1),
+  search: p.string.min(1),
 });
 
 route.get(request => {
-  const { page, search } = request.query.parse(Query);
+  const { page, search } = request.query.parse(QuerySchema);
   return `Searching '${search}' (page ${page})`;
 });

@@ -1,4 +1,4 @@
-import uint from "pema/uint";
+import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
 
@@ -6,7 +6,7 @@ const sockets = new Set<any>();
 
 route.get(request => {
   // limit the number of messages a client can send
-  const limit = uint.coerce.default(20).parse(request.query.get("limit"));
+  const limit = p.uint.coerce.default(20).parse(request.query.get("limit"));
   let n = 1;
   return response.ws({
     close(socket) {

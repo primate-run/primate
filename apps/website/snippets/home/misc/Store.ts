@@ -1,11 +1,9 @@
-import date from "pema/date";
-import primary from "pema/primary";
-import string from "pema/string";
 import store from "primate/store";
+import p from "pema";
 
 export default store({
-  id: primary,
-  title: string.max(50),
-  body: string,
-  created: date.default(() => new Date()),
+  id: p.primary,
+  title: p.string.max(50),
+  body: p.string,
+  created: p.date.default(() => new Date()),
 });

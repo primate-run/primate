@@ -1,6 +1,5 @@
 import Counter from "#store/Counter";
-import number from "pema/number";
-import string from "pema/string";
+import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
 
@@ -18,10 +17,10 @@ route.get(async () => {
 
 route.post(async request => {
   // validate that an id was provided
-  const id = string.parse(request.query.get("id"));
+  const id = p.string.parse(request.query.get("id"));
 
   // validate that a request body contains a number value
-  const counter = request.body.json(number.coerce);
+  const counter = request.body.json(p.number.coerce);
 
   // update the value in the database
   await Counter.update({ id }, { counter });

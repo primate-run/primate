@@ -1,5 +1,5 @@
 import assert from "@rcompat/assert";
-import int from "pema/int";
+import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
 
@@ -9,7 +9,7 @@ const posts = [{
 }];
 
 route.get(request => {
-  const _id = int.parse(request.path.get("id"));
+  const _id = p.int.parse(request.path.get("id"));
   const post = posts.find(({ id }) => id === _id);
   assert(post !== undefined);
 

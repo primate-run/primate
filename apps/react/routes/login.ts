@@ -1,11 +1,10 @@
-import pema from "pema";
-import string from "pema/string";
+import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
 
-const LoginSchema = pema({
-  email: string.email(),
-  password: string.min(8),
+const LoginSchema = p({
+  email: p.string.email(),
+  password: p.string.min(8),
 });
 
 route.get(() => response.view("LoginForm.tsx"));

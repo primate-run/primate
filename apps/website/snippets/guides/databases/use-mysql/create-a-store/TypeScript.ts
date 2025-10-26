@@ -1,10 +1,8 @@
-// stores/User.ts
+import p from "pema";
 import store from "primate/store";
-import primary from "pema/primary";
-import string from "pema/string";
 
 export default store({
-  id: primary,
-  name: string,
-  email: string,
+  id: p.primary,
+  name: p.string,
+  email: p.string,
 });

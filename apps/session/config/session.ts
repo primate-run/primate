@@ -1,9 +1,8 @@
-import pema from "pema";
-import string from "pema/string";
-import session from "primate/config/session";
 import FileSessionManager from "#config/FileSessionManager";
+import p from "pema";
+import session from "primate/config/session";
 
 export default session({
-  schema: pema({ foo: string }),
+  schema: p({ foo: p.string }),
   manager: new FileSessionManager(),
 });

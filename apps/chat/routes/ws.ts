@@ -1,14 +1,14 @@
-import uint from "pema/uint";
-import ws from "primate/response/ws";
+import p from "pema";
+import response from "primate/response";
 import route from "primate/route";
 
-const sockets = new Set();
+const sockets = new Set<WebSocket>();
 
 route.get(request => {
-  const limit = uint.coerce.default(20).parse(request.query.get("limit"));
+  const limit = p.uint.coerce.default(20).parse(request.query.get("limit"));
 
   let n = 1;
-  return ws({
+  return response.ws({
     close(socket) {
       sockets.delete(socket);
     },
