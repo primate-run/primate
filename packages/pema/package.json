@@ -1,6 +1,6 @@
 {
   "name": "pema",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Primate schema validation",
   "homepage": "https://primate.run/docs/validation",
   "bugs": "https://github.com/primate-run/primate/issues",

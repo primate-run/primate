@@ -1,6 +1,6 @@
 {
   "name": "@primate/mysql",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Primate MySQL database",
   "homepage": "https://primate.run/docs/database/mysql",
   "bugs": "https://github.com/primate-run/primate/issues",
