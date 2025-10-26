@@ -80,7 +80,7 @@ const render_head = (assets: Asset[], head?: string) => {
 
   return fonts.map(font =>
     tags.font({ href: font.src, type: "font/woff2" } as Font),
-  ).join("\n").concat("\n", rest.toSorted(({ type }) => -1 * Number(type === "importmap"))
+  ).join("\n").concat("\n", rest
     .map(({ code, inline, integrity, src, type }) =>
       type === "style"
         ? tags.style({ code, href: src, inline } as Style)
@@ -310,9 +310,7 @@ export default class ServeApp extends App {
 
   async start() {
     this.#assets = await Promise.all(this.#init.assets.map(async asset => {
-      const code = asset.type === "importmap"
-        ? JSON.stringify(asset.code as Dict, null, 2)
-        : asset.code as string;
+      const code = asset.code as string;
       return {
         ...asset,
         code,
@@ -336,9 +334,9 @@ export default class ServeApp extends App {
         return new Response(null, {
           headers: {
             "Content-Length": String(0),
-            "Cache-Control": 'no-cache',
+            "Cache-Control": "no-cache",
           },
-          status: Status.INTERNAL_SERVER_ERROR
+          status: Status.INTERNAL_SERVER_ERROR,
         });
       }
     }, this.get<Conf>(s_http));

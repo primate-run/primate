@@ -109,16 +109,20 @@ export default abstract class FrontendModule<
       return { body, head, headers };
     }
 
-    const code = "import app from \"app\"; app.start();";
-    const inlined = await inline(code, "module");
+    const app_asset = app.assets.find(asset =>
+      asset.src?.includes("app") && asset.src.endsWith(".js"),
+    );
 
+    if (!app_asset) throw fail("Could not find app.js in assets");
+
+    const app_script = `<script type="module" src="${app_asset.src}" integrity="${app_asset.integrity}"></script>`;
     const json_props = JSON.stringify({ frontend: this.name, ...client });
     const hydrated = await inline(json_props, APPLICATION_JSON, "hydration");
-    const script_src = [inlined.integrity, hydrated.integrity];
+    const script_src = [hydrated.integrity, `'${app_asset.integrity}'`];
 
     return {
       body,
-      head: head.concat(inlined.head, hydrated.head),
+      head: head.concat(app_script, hydrated.head),
       headers: app.headers({ "script-src": script_src }),
     };
   }
@@ -166,6 +170,7 @@ export default abstract class FrontendModule<
             ...app.headers(),
             "Content-Type": APPLICATION_JSON,
             "Content-Length": String(app.body_length(json_body)),
+            "Cache-Control": "no-store",
           },
           status: options.status ?? Status.OK,
         });

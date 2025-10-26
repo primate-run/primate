@@ -62,20 +62,6 @@ export default async (app: App) => {
     inline: false,
     }`).join(",\n  ")}];
 
-    ${app_js === undefined ? "" : dedent`
-      const imports = {
-       app: "${FileRef.join("/", client_imports.find($import =>
-    $import.src.includes("app") && $import.src.endsWith(".js"))!.src)
-        .webpath()}"
-      };
-      // importmap
-      assets.push({
-        inline: true,
-        code: { imports },
-        type: "importmap",
-      });
-    `}
-
     const page_imports = {};
     ${pages.map((page, i) => dedent`
       import page${i} from "${FileRef.webpath(`./${location.server}/${location.pages}/${page}`)}" with { type: "file" };

@@ -1,7 +1,7 @@
 // @ts-expect-error esbuild vfs
 import * as frontends from "#frontends";
 
-export default class ClientApp {
+class ClientApp {
   start() {
     const hydration = document.getElementById("hydration")?.textContent;
 
@@ -11,3 +11,6 @@ export default class ClientApp {
     }
   }
 }
+
+const app = new ClientApp();
+app.start();

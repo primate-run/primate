@@ -1,3 +1,1 @@
-import App from "@primate/core/client/App";
-
-export default new App();
+import "@primate/core/client/app";

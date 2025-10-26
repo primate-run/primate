@@ -165,6 +165,11 @@ const go = async (href: string, updater: Updater<any>, event?: Event) => {
 };
 
 export default <T extends Dict>(updater: Updater<T>) => {
+  if (document.contentType === "application/json") {
+    location.reload();
+    return;
+  }
+
   globalThis.addEventListener("pageshow", event => {
     if (event.persisted) {
       globalThis.location.reload();

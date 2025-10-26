@@ -43,17 +43,6 @@ const web: Target = {
   inline: false,
   }`).join(",\n  ")}];
 
-  const imports = {
-    app: "${client_imports.find(({ src }) =>
-          src.includes("app") && src.endsWith(".js"))!.src}"
-  };
-  // importmap
-  assets.push({
-    inline: true,
-    code: { imports },
-    type: "importmap",
-  });
-
   const pages = {
     ${pages_str}
   };

@@ -251,7 +251,7 @@ const post = async (app: BuildApp) => {
     app.build.export(`import "./${location.static}${src}";`);
   }));
 
-  app.build.export("export { default } from \"primate/client/app\";");
+  app.build.export("import \"primate/client/app\";");
 
   app.build.plugin({
     name: "@primate/core/frontend",
