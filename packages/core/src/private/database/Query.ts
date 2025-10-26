@@ -1,5 +1,5 @@
+import type Schema from "#database/Schema";
 import type StoreSchema from "pema/StoreSchema";
-import type DataRecord from "#database/DataRecord";
 
 type X<T> = {
   [K in keyof T]: T[K]
@@ -9,7 +9,7 @@ type Filter<T, P extends keyof T> = X<Pick<T, Extract<P, keyof T>>>;
 
 export default class Query<
   T extends StoreSchema,
-  P extends keyof DataRecord<T> = keyof DataRecord<T>,
+  P extends keyof Schema<T> = keyof Schema<T>,
 > {
   #schema: T;
   #projection?: P[];
@@ -23,7 +23,7 @@ export default class Query<
     return this as unknown as Query<T, K>;
   }
 
-  async run(): Promise<Filter<DataRecord<T>, P>>{
+  async run(): Promise<Filter<Schema<T>, P>> {
     return this.#schema.infer as any;
   }
 }

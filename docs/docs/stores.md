@@ -180,18 +180,18 @@ Create an extended version:
 import Base from "#store/User";
 
 export default Base.extend(User => {
-  type R = typeof User.R;
+  const Schema = User.Schema;
 
   return {
-    findByAge(age: R["age"]) {
+    findByAge(age: typeof Schema.age) {
       return User.find({ age });
     },
 
-    findByNamePrefix(prefix: R["name"]) {
+    findByNamePrefix(prefix: typeof Schema.name) {
       return User.find({ name: { $like: `${prefix}%` } });
     },
 
-    async updateAge(id: R["id"], age: R["age"]) {
+    async updateAge(id: typeof Schema.id, age: typeof Schema.age) {
       return User.update(id, { age });
     },
 
@@ -220,20 +220,19 @@ route.get(async () => {
 
 ### Extension types
 
-Access field types with `typeof <param>.R.<fieldName>`. If you extract this
-into a type, you'll use `R[fieldName]`.
+Access field types with `typeof <param>.Schema.<fieldName>`.
 
 ```ts
 User => {
-  type R = typeof User.R;
+  const Schema = User.Schema;
 
   return {
     // id: string (primary key)
-    findById(id: R["id"]) {
+    findById(id: typeof Schema.id) {
       return User.get(id);
     },
     // name: string
-    updateName(id: R["id"], name: R["name"]) {
+    updateName(id: typeof Schema.id, name: typeof Schema.name) {
       return User.update(id, { name });
     },
   };

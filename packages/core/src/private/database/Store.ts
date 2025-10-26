@@ -1,6 +1,6 @@
 import type Changes from "#database/Changes";
 import type Database from "#database/Database";
-import type DataRecord from "#database/DataRecord";
+import type Schema from "#database/Schema";
 import wrap from "#database/symbol/wrap";
 import type Types from "#database/Types";
 import fail from "#fail";
@@ -80,7 +80,7 @@ export default class DatabaseStore<S extends StoreSchema>
   #database?: Database;
   #name?: string;
 
-  declare readonly R: DataRecord<S>;
+  declare readonly Schema: Schema<S>;
 
   constructor(schema: S, config: Config = {}) {
     this.#schema = schema;
@@ -207,7 +207,7 @@ export default class DatabaseStore<S extends StoreSchema>
    * @throws If no record with the given id exists.
    * @returns The record for the given id.
    */
-  async get(id: Id): Promise<DataRecord<S>> {
+  async get(id: Id): Promise<Schema<S>> {
     is(id).string();
 
     const records = await this.database.read(this.#as, {
@@ -219,7 +219,7 @@ export default class DatabaseStore<S extends StoreSchema>
 
     if (records.length === 0) throw fail("no record with id {0}", id);
 
-    return this.#type.parse(records[0]) as DataRecord<S>;
+    return this.#type.parse(records[0]) as Schema<S>;
   }
 
   /**
@@ -228,7 +228,7 @@ export default class DatabaseStore<S extends StoreSchema>
    * @param id Record id.
    * @returns The record if found, otherwise `undefined`.
    */
-  async try(id: Id): Promise<DataRecord<S> | undefined> {
+  async try(id: Id): Promise<Schema<S> | undefined> {
     try {
       return await this.get(id);
     } catch {
@@ -246,7 +246,7 @@ export default class DatabaseStore<S extends StoreSchema>
    * @throws If a record with the same id already exists or validation fails.
    * @returns The inserted record with id.
    */
-  async insert(record: Insertable<S>): Promise<DataRecord<S>> {
+  async insert(record: Insertable<S>): Promise<Schema<S>> {
     is(record).record();
 
     return this.database.create(this.#as, { record: this.#type.parse(record) });
@@ -381,29 +381,29 @@ export default class DatabaseStore<S extends StoreSchema>
    * @param options Query options.
    * @returns Matching records, possibly projected/limited/sorted.
    */
-  find(criteria: Criteria<S>): Promise<Filter<DataRecord<S>>[]>;
+  find(criteria: Criteria<S>): Promise<Filter<Schema<S>>[]>;
   find(
     criteria: Criteria<S>,
     options: {
       limit?: number;
       select?: undefined;
-      sort?: Sort<DataRecord<S>>;
+      sort?: Sort<Schema<S>>;
     }
-  ): Promise<Filter<DataRecord<S>>[]>;
-  find<F extends Select<DataRecord<S>>>(
+  ): Promise<Filter<Schema<S>>[]>;
+  find<F extends Select<Schema<S>>>(
     criteria: Criteria<S>,
     options?: {
       limit?: number;
       select?: F;
-      sort?: Sort<DataRecord<S>>;
+      sort?: Sort<Schema<S>>;
     }
-  ): Promise<Filter<DataRecord<S>, F>[]>;
-  async find<F extends Select<DataRecord<S>>>(
+  ): Promise<Filter<Schema<S>, F>[]>;
+  async find<F extends Select<Schema<S>>>(
     criteria: Criteria<S>,
     options?: {
       limit?: number;
-      select?: Select<DataRecord<S>>;
-      sort?: Sort<DataRecord<S>>;
+      select?: Select<Schema<S>>;
+      sort?: Sort<Schema<S>>;
     },
   ) {
     is(criteria).record();
@@ -420,7 +420,7 @@ export default class DatabaseStore<S extends StoreSchema>
       sort: options?.sort as Dict<"asc" | "desc">,
     });
 
-    return result as Filter<DataRecord<S>, F>[];
+    return result as Filter<Schema<S>, F>[];
   };
 
   toJSON() {

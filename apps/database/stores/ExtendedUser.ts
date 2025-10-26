@@ -1,10 +1,8 @@
 import Base from "#store/User";
 
 export default Base.extend(User => {
-  type R = typeof User.R;
-
   return {
-    findManyById(id: R["id"]) {
+    findManyById(id: typeof User.Schema.id) {
       return User.find({ id });
     },
   };
