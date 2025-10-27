@@ -144,7 +144,7 @@ export default store({
   age: u8.range(0, 120),
   lastname: string.optional(),
 }).extend(User => ({
-  findByAge(age: typeof User.R.age) {
+  findByAge(age: typeof User.Schema.age) {
     return User.find({ age });
   },
 
