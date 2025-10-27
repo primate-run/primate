@@ -166,15 +166,15 @@ export default store({
   age: uint.range(13, 120),
   created: date.default(() => new Date()),
 }).extend(User => ({
-  type R = typeof User.R;
+  const U = User.Schema;
 
-  findByEmail(email: R["email"]) {
+  findByEmail(email: typeof U.email) {
     return User.find({ email });
   },
 
-  updateProfile(id: R["id"], updates: {
-    name?: R["name"];
-    email?: R["email"];
+  updateProfile(id: typeof U.id, updates: {
+    name?: typeof U.name;
+    email?: typeof U.email;
   }) {
     return User.update({ id }, updates);
   }
