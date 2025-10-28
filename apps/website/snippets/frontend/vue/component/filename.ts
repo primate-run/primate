@@ -1,1 +1,1 @@
-export default () => "components/Counter.vue";
+export default () => "views/Counter.vue";

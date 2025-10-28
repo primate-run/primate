@@ -1,1 +1,1 @@
-export default () => "components/Counter.tsx";
+export default () => "views/Counter.tsx";

@@ -1,3 +1,3 @@
 import type FileRef from "@rcompat/fs/FileRef";
 
-export default (file: FileRef) => `components/Translated${file.fullExtension}`;
+export default (file: FileRef) => `views/Translated${file.fullExtension}`;

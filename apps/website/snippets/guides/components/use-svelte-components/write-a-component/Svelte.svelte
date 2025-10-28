@@ -1,4 +1,3 @@
-<!-- components/Welcome.svelte -->
 <script>
   export let name;
 </script>

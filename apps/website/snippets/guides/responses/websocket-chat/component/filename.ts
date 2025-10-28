@@ -1,1 +1,1 @@
-export default () => "components/index.html";
+export default () => "views/index.html";

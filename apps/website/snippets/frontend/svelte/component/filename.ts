@@ -1,1 +1,1 @@
-export default () => "components/Counter.svelte";
+export default () => "views/Counter.svelte";
