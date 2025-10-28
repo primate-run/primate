@@ -22,6 +22,7 @@ import RequestBag from "#request/RequestBag";
 import RequestBody from "#request/RequestBody";
 import type RequestFacade from "#request/RequestFacade";
 import type Verb from "#request/Verb";
+import type RouteHandler from "#route/Handler";
 import router from "#route/router";
 import type ServeInit from "#ServeInit";
 import SessionModule from "#session/SessionModule";
@@ -369,11 +370,8 @@ export default class ServeApp extends App {
       .map(([key, value]) => [key, value.map(v => {
         const verbs = router.get(v);
         const routeHandler = verbs[verb];
-        if (routeHandler === undefined) {
-          throw fail("route {0} has no {1} verb", route.path, verb);
-        }
-        return routeHandler.handler;
-      })])
+        return routeHandler?.handler;
+      }).filter(Boolean) as RouteHandler[]])
       .get();
 
     const verbs = router.get(route.path)!;
