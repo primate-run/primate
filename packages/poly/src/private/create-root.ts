@@ -1,5 +1,5 @@
 export default (depth: number, i18n_active: boolean) => {
-  const n = depth - 1;
+  const n = depth;
   const body = Array.from({ length: n }, (_, i) => i - 1)
     .reduceRight((child, _, i) => `
       {#if views[${i + 1}]}

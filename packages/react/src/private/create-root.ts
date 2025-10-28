@@ -1,5 +1,5 @@
 export default (length: number, i18n_active: boolean) => {
-  const n = length - 1;
+  const n = length;
   const body = Array.from({ length: n }, (_, i) => i - 1)
     .reduceRight((child, _, i) => `views[${i + 1}] !== undefined
         ? createElement(views[${i}], {request, ...props[${i}]}, ${child})
