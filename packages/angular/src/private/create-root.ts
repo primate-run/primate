@@ -1,7 +1,7 @@
 import root_selector from "#root-selector";
 
 export default (depth: number, i18n_active: boolean) => {
-  const n = depth - 1;
+  const n = depth;
 
   const layer = (i: number, child: string | null) => {
     const slot = `slot_${i}`;

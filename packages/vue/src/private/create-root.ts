@@ -1,5 +1,5 @@
 export default (depth: number, i18n_active: boolean) => {
-  const n = depth - 1;
+  const n = depth;
 
   const build_view = (index: number): string => {
     // anchor case: render the deepest view
