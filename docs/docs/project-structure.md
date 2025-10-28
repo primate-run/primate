@@ -8,14 +8,15 @@ and files used in a Primate app.
 | Directory                     | Purpose                                              |
 | ----------------------------- | ---------------------------------------------------- |
 | `build`                       | build artefacts — add to `.gitignore`                |
-| [views](/docs/views)          | frontend views                                       |
 | [config](/docs/configuration) | configuration files                                  |
+| `components`                  | reusable components                                  |
 | [locales](/docs/i18n#locales) | I18N locales                                         |
 | `node_modules`                | install artefacts — add to `.gitignore`              |
-| pages                         | app and error HTML template pages                    |
+| `pages`                       | app and error HTML template pages                    |
 | [routes](/docs/routing)       | filesystem-based routes                              |
-| static                        | static assets — image, font, global JS and CSS files |
+| `static`                      | static assets — image, font, global JS and CSS files |
 | [stores](/docs/stores)        | data stores                                          |
+| [views](/docs/views)          | frontend views                                       |
 
 ## Files
 
