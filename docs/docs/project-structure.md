@@ -19,7 +19,7 @@ and files used in a Primate app.
 
 ## Files
 
-|                     |                                                      |
+| File                | Purpose                                              |
 | ------------------- | ---------------------------------------------------- |
 | `package.json`      | dependency management                                |
 | `.gitignore`        | add `build`, `node_modules` and any other transients |
@@ -33,7 +33,7 @@ and files used in a Primate app.
 
 Reside inside `config`. May be authored in Javascript or TypeScript.
 
-|                                                   |                           |
+| File                                              | Purpose                   |
 | ------------------------------------------------- | ------------------------- |
 | [app.ts](/docs/configuration#app-ts)              | app options               |
 | [session.ts](/docs/configuration#session-ts)      | session shape and options |
@@ -46,7 +46,7 @@ Files inside the `routes` directory registered to a [backend](/docs/backend)
 based on their extension. You may use different backends in your app for
 different routes, but every route must be uniquely handled by one backend.
 
-|                                        |                                                                                |
+| File                                   | Purpose                                                                        |
 | -------------------------------------- | ------------------------------------------------------------------------------ |
 | `index.ts`                             | matches `/`                                                                    |
 | `user.ts`                              | matches `/user`                                                                |
@@ -70,7 +70,7 @@ Files inside the `views` directory registered to a
 different frontends in your app for different views, but every view
 must be uniquely handled by one frontend.
 
-|                  |                                                 |
+| File             | Purpose                                         |
 | ---------------- | ----------------------------------------------- |
 | `*.jsx`          | [React], [Solid] or [Voby] views                |
 | `*.tsx`          | typed [React], [Solid] or [Voby] views          |
@@ -93,17 +93,17 @@ must be uniquely handled by one frontend.
 Files inside the `stores` directory, representing [data stores](/docs/stores).
 May be authored in JavaScript or TypeScript.
 
-|                                                            |     |
-| ---------------------------------------------------------- | --- |
-| `User.ts` — import using `#store/User` in routes           |
-| `auth/User.ts` — import using `#store/auth/User` in routes |
+| File           | Purpose                                   |
+| -------------- | ----------------------------------------- |
+| `User.ts`      | import using `#store/User` in routes      |
+| `auth/User.ts` | import using `#store/auth/User` in routes |
 
 ## Locale files
 
 Files inside the `locales` directory, for [I18N](/docs/i18n).
 
-|                                                  |     |
-| ------------------------------------------------ | --- |
-| `en-US.ts` — locale for English (United States)  |
-| `en-UK.ts` — locale for English (United Kingdom) |
-| `de-DE.ts` — locale for German (Germany)         |
+| File         | Purpose                             |
+| ------------ | ----------------------------------- |
+| `en-US.ts` — | locale for English (United States)  |
+| `en-UK.ts` — | locale for English (United Kingdom) |
+| `de-DE.ts` — | locale for German (Germany)         |
