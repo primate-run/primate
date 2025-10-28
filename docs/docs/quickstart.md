@@ -4,7 +4,7 @@ The easiest way to get started with Primate is to run it.
 
 [s=quickstart/shell]
 
-This boots an app from the current directory and serves any *route* files
+This boots an app from the current directory and serves any _route_ files
 under `routes`. Let's create one:
 
 [s=quickstart/route]
@@ -36,16 +36,16 @@ Add the frontend to your config:
 
 [s=add-frontend/config]
 
-Then create a `components` directory and a component — here, a simple counter:
+Then create a `views` directory and a view — here is a simple counter:
 
-[s=add-frontend/component]
+[s=add-frontend/views]
 
 !!!
 Primate supports [many frontends](/docs/frontend); the quickstart only shows a
 few.
 !!!
 
-Serve the component from a route with the `view` handler:
+Serve the view from a route with the `view` handler:
 
 [s=add-frontend/route]
 
@@ -112,11 +112,12 @@ Use pema's `coerce` to turn web inputs into typed values before validation.
 ## Wrap up
 
 With just a few files, you now have an app that can:
-* Map requests to routes
-* Render views with multiple frontends
-* Run code in different backends
-* Persist data in a database
-* Validate inputs end-to-end
+
+- Map requests to routes
+- Render views with multiple frontends
+- Run code in different backends
+- Persist data in a database
+- Validate inputs end-to-end
 
 ## Next steps
 
@@ -124,6 +125,6 @@ At this point, you've built a minimal but complete app. From here, you can
 scaffold a project, explore real examples, or dive deeper into the docs — and
 start building production-ready apps.
 
-* **Scaffold with init** — Run `npx primate init` for a guided setup.
-* **Explore examples** — Browse example apps in the docs and repo.
-* **Dive deeper** — Check out guides and API docs.
+- **Scaffold with init** — Run `npx primate init` for a guided setup.
+- **Explore examples** — Browse example apps in the docs and repo.
+- **Dive deeper** — Check out guides and API docs.
