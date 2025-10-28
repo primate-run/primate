@@ -1,4 +1,4 @@
+import response from "primate/response";
 import route from "primate/route";
-import view from "primate/view";
 
-route.get(() => view("Counter.jsx", { start: 10 }));
+route.get(() => response.view("Counter.jsx", { start: 10 }));
