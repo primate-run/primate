@@ -34,8 +34,10 @@ type Layout = (app: ServeApp, transfer: Dict, request: RequestFacade)
 
 const contexts = ["views", "components"];
 
-async function normalize(path: string) {
-  return `p_${await hash(path)}`;
+async function normalize(path: string, frontend: string) {
+  const file = new FileRef(path);
+  const basename = path.slice(0, -file.fullExtension.length);
+  return `p_${await hash(`${basename}.${frontend}`)}`;
 }
 
 export default abstract class FrontendModule<
@@ -128,7 +130,7 @@ export default abstract class FrontendModule<
   }
 
   normalize(name: string) {
-    return normalize(name);
+    return normalize(name, this.name);
   }
 
   respond: ViewResponse = (view, props = {}, options = {}) =>
@@ -151,13 +153,13 @@ export default abstract class FrontendModule<
       };
       const $props = this.layouts
         ? {
-          views: await map(views, ({ name }) => normalize(name)),
+          views: await map(views, ({ name }) => this.normalize(name)),
           props: views.map(c => c.props),
           request: $request,
         }
         : { props, request: $request };
       const client: ClientData = {
-        view: this.layouts ? "root" : await normalize(view),
+        view: this.layouts ? "root" : await this.normalize(view),
         spa: this.spa,
         ssr: this.ssr,
         ...$props,
@@ -210,6 +212,7 @@ export default abstract class FrontendModule<
   publish(app: BuildApp) {
     if (this.compile.client) {
       const { compile, css, fileExtensions, name, root } = this;
+      const _normalize = this.normalize.bind(this);
 
       if (this.client) {
         fileExtensions.forEach(fe => app.frontends.set(name, fe));
@@ -257,7 +260,8 @@ export default abstract class FrontendModule<
             let contents = "";
             for (const view of views) {
               const { path } = view.debase(views_base, "/");
-              contents += `export { default as ${await normalize(path)} }
+
+              contents += `export { default as ${await _normalize(path)} }
                 from "#view/${path}";\n`;
             }
             return { contents, resolveDir: app.root.path };
@@ -289,6 +293,10 @@ export default abstract class FrontendModule<
     }
   }
 
+  #create_wrapper(view: string) {
+    return `export default "${view}";`;
+  }
+
   init<T extends App>(app: T, next: Next<T>) {
     this.fileExtensions.forEach(e => {
       app.bind(e, async (file, { context }) => {
@@ -304,6 +312,18 @@ export default abstract class FrontendModule<
             extensions: this.fileExtensions,
             compile: async s => this.compile.server!(s),
           });
+
+          if (context === "views") {
+            const relative = file.debase(app.root.join(location.views));
+            const basename = relative.path.slice(1, -relative.fullExtension.length);
+
+            const internal = app.runpath(location.views, `${basename}.internal.js`);
+            await internal.directory.create({ recursive: true });
+            await internal.write(bundled);
+
+            return this.#create_wrapper(relative.path.slice(1));
+          }
+
           return bundled;
         }
         return await file.text();

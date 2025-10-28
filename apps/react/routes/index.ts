@@ -1,3 +1,4 @@
+import Index from "#view/Index";
 import response from "primate/response";
 import route from "primate/route";
 
@@ -6,4 +7,4 @@ const posts = [{
   title: "First post",
 }];
 
-route.get(() => response.view("Index.tsx", { posts }));
+route.get(() => response.view(Index, { posts, title: "test" }));

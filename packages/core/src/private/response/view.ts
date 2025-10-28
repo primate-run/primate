@@ -1,7 +1,8 @@
 import fail from "#fail";
-import type ViewResponse from "#frontend/ViewResponse";
+import type ViewOptions from "#frontend/ViewOptions";
 import FileRef from "@rcompat/fs/FileRef";
 import type Dict from "@rcompat/type/Dict";
+import type ResponseFunction from "./ResponseFunction.js";
 
 const extensions = ["extension", "fullExtension"] as const;
 
@@ -30,9 +31,24 @@ function no_frontend(view: string) {
   const fix = hasPkg ? ", did you configure {1}?" : "";
   const pkgname = hasPkg ? `@primate/${backmap[extension]}` : "";
 
-  throw fail(`${error}${fix}`, view, pkgname);
+  return fail(`${error}${fix}`, view, pkgname);
 }
 
+function view<Props>(
+  component: (props: Props) => any,
+  props: Props,
+  options?: ViewOptions,
+): ResponseFunction;
+function view(
+  component: () => any,
+  props?: Dict,
+  options?: ViewOptions,
+): ResponseFunction;
+function view(
+  name: string,
+  props?: Dict,
+  options?: ViewOptions,
+): ResponseFunction;
 /**
  * Render a view component using a frontend for the given filename extension
  * @param view path to view
@@ -40,12 +56,18 @@ function no_frontend(view: string) {
  * @param options rendering options
  * @return Response rendering function
  */
-const view = (function viewResponse(name, props, options) {
-  return (app, transfer, request) => extensions
-    .map(extension => app.frontends[new FileRef(name)[extension]])
-    .find(extension => extension !== undefined)
-    ?.(name, props, options)(app, transfer, request)
-    ?? no_frontend(name);
-}) as ViewResponse;
+function view(name: any, props?: Dict, options?: ViewOptions): ResponseFunction {
+  const _name: string = name;
+  return (app, transfer, request) => {
+    const found_view = extensions
+      .map(extension => app.frontends[new FileRef(_name)[extension]])
+      .find(extension => extension !== undefined)
+      ?.(_name, props, options)(app, transfer, request);
+    if (found_view !== undefined) {
+      return found_view;
+    }
+    throw no_frontend(_name);
+  };
+}
 
 export default view;

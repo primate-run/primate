@@ -25,14 +25,16 @@ const make_root = {
     hydrateRoot(dom_node, react_node),
 };
 
-const make_props = (data: ClientData<Data>) => ({
-  views: data.views.map(name => views[name]),
-  props: data.props,
-  request: {
-    ...data.request,
-    url: new URL(location.href),
-  },
-});
+function make_props(data: ClientData<Data>) {
+  return {
+    views: data.views.map(name => views[name]),
+    props: data.props,
+    request: {
+      ...data.request,
+      url: new URL(location.href),
+    },
+  };
+}
 
 export default class React {
   static mount(_view: string, data: ClientData<Data>) {

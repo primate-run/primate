@@ -1,7 +1,8 @@
+import ViewPost from "#view/ViewPost";
 import assert from "@rcompat/assert";
+import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
-import p from "pema";
 
 const posts = [{
   id: 1,
@@ -13,5 +14,5 @@ route.get(request => {
   const post = posts.find(_post => _post.id === id);
   assert(post !== undefined);
 
-  return response.view("ViewPost.tsx", { post });
+  return response.view(ViewPost, { post });
 });

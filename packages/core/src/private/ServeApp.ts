@@ -204,7 +204,8 @@ export default class ServeApp extends App {
 
   loadView<T = ServerView>(name: string) {
     const f = new FileRef(name);
-    const base = f.path.slice(0, -f.fullExtension.length);
+    const root = name.startsWith("root") ? "" : ".internal";
+    const base = `${f.path.slice(0, -f.fullExtension.length)}${root}`;
     const view = this.#views[base];
     if (view === undefined) {
       throw fail("missing view component {0}", `${location.views}/${name}`);

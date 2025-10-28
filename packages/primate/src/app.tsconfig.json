@@ -24,6 +24,14 @@
         "components/*.ts",
         "components/*.js"
       ],
+      "#view/*": [
+        "views/*",
+        "views/*.tsx",
+        "views/*.jsx",
+        "views/*.component.ts",
+        "views/*.ts",
+        "views/*.js"
+      ],
       "#hook/*": ["hooks/*", "hooks/*.ts", "hooks/*.js"],
       "#lib/*": ["lib/*", "lib/*.ts", "lib/*.js"],
       "#store/*": ["stores/*", "stores/*.ts", "stores/*.js"],

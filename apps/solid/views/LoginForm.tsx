@@ -1,14 +1,12 @@
 import { createSignal } from "solid-js";
 
-interface Props {}
-
-export default function LoginForm(props: Props) {
+export default function LoginForm() {
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
-  const [errors, setErrors] = createSignal<{email?: string; password?: string}>({});
+  const [errors, setErrors] = createSignal<{ email?: string; password?: string }>({});
 
   const validateForm = () => {
-    const newErrors: {email?: string; password?: string} = {};
+    const newErrors: { email?: string; password?: string } = {};
 
     if (!email()) {
       newErrors.email = "Email is required";
@@ -63,7 +61,7 @@ export default function LoginForm(props: Props) {
             padding: "0.5rem",
             "border": "1px solid #ccc",
             "border-radius": "4px",
-            "font-size": "1rem"
+            "font-size": "1rem",
           }}
         />
         {errors().email && <p style={{ color: "red", "font-size": "0.875rem", "margin-top": "0.25rem" }}>{errors().email}</p>}
@@ -80,7 +78,7 @@ export default function LoginForm(props: Props) {
             padding: "0.5rem",
             "border": "1px solid #ccc",
             "border-radius": "4px",
-            "font-size": "1rem"
+            "font-size": "1rem",
           }}
         />
         {errors().password && <p style={{ color: "red", "font-size": "0.875rem", "margin-top": "0.25rem" }}>{errors().password}</p>}
@@ -97,7 +95,7 @@ export default function LoginForm(props: Props) {
           border: "none",
           "border-radius": "4px",
           "font-size": "1rem",
-          cursor: (!email() || !password()) ? "not-allowed" : "pointer"
+          cursor: (!email() || !password()) ? "not-allowed" : "pointer",
         }}
       >
         Submit
