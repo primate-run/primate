@@ -24,14 +24,15 @@ export default config({
 
 Create an HTML view in `views`.
 
-```html caption=views/hello.html
+```html
 <!-- views/hello.html -->
 <p>Hello, world!</p>
 ```
 
-Serve it in a route with `response.view`, passing in the name of the file you just created.
+Serve it in a route with `response.view`, passing in the name of the file you
+just created.
 
-```js caption=routes/hello.js
+```js
 // routes/hello.js
 import response from "primate/response";
 import route from "primate/route";
@@ -43,7 +44,7 @@ route.get(() => response.view("hello.html"));
 replacing `%body%` with the view's contents. If `pages/app.html` doesn't
 exist, Primate will use its default fallback file.
 
-```html caption=pages/app.html
+```html
 <!-- pages/app.html -->
 <!DOCTYPE html>
 <html>
@@ -77,10 +78,10 @@ HTML page served to a client requesting `GET /hello`.
 
 It is sometimes necessary to serve a bare view without a fully-fledged
 page, especially if you're replacing some parts of the page on the frontend
-(say, using HTMX). To this end, you can use the `partial` option of the `view`
+(e.g., using HTMX). To this end, you can use the `partial` option of the `view`
 handler.
 
-```js caption=routes/partial-hello.js
+```js
 import response from "primate/response";
 import route from "primate/route";
 
@@ -90,6 +91,6 @@ route.get(() => response.view("hello.html", {}, { partial: true }));
 Using the same `hello.html` view specified as above, a client requesting
 `GET /partial-hello` will see the following response.
 
-```html caption=response body at GET /partial-hello
+```html
 <p>Hello, world!</p>
 ```

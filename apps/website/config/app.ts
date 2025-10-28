@@ -429,6 +429,10 @@ export default config({
                 title: "Responses",
               },
               {
+                href: "/views",
+                title: "Views",
+              },
+              {
                 href: "/validation",
                 title: "Validation",
               },

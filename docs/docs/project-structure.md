@@ -93,17 +93,17 @@ must be uniquely handled by one frontend.
 Files inside the `stores` directory, representing [data stores](/docs/stores).
 May be authored in JavaScript or TypeScript.
 
-| File           | Purpose                                   |
-| -------------- | ----------------------------------------- |
-| `User.ts`      | import using `#store/User` in routes      |
-| `auth/User.ts` | import using `#store/auth/User` in routes |
+| File      | Purpose                                                    |
+| --------- | ---------------------------------------------------------- |
+| `User.ts` | ORM for `user` table (import with `#store/User` in routes) |
+| `Post.ts` | ORM for `post` table (import with `#store/Post` in routes) |
 
 ## Locale files
 
 Files inside the `locales` directory, for [I18N](/docs/i18n).
 
-| File         | Purpose                             |
-| ------------ | ----------------------------------- |
-| `en-US.ts` — | locale for English (United States)  |
-| `en-UK.ts` — | locale for English (United Kingdom) |
-| `de-DE.ts` — | locale for German (Germany)         |
+| File       | Purpose                             |
+| ---------- | ----------------------------------- |
+| `en-US.ts` | locale for English (United States)  |
+| `en-UK.ts` | locale for English (United Kingdom) |
+| `de-DE.ts` | locale for German (Germany)         |
