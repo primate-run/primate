@@ -371,7 +371,7 @@ export default class ServeApp extends App {
         const verbs = router.get(v);
         const routeHandler = verbs[verb];
         return routeHandler?.handler;
-      }).filter(Boolean) as RouteHandler[]])
+      }).filter(Boolean).toReversed() as RouteHandler[]])
       .get();
 
     const verbs = router.get(route.path)!;
