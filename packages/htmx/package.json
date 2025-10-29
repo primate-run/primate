@@ -1,6 +1,6 @@
 {
   "name": "@primate/htmx",
-  "version": "0.21.0",
+  "version": "0.22.0-pre",
   "description": "Primate HTMX frontend",
   "homepage": "https://primate.run/docs/frontend/htmx",
   "bugs": "https://github.com/primate-run/primate/issues",

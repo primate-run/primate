@@ -1,6 +1,6 @@
 {
   "name": "@primate/marko",
-  "version": "0.3.0",
+  "version": "0.6.0-pre",
   "description": "Primate Marko frontend",
   "homepage": "https://primate.run/docs/frontend/marko",
   "bugs": "https://github.com/primate-run/primate/issues",

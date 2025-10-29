@@ -1,6 +1,6 @@
 {
   "name": "@primate/go",
-  "version": "0.3.0",
+  "version": "0.4.0-pre",
   "description": "Primate Go backend",
   "homepage": "https://primate.run/docs/backend/go",
   "bugs": "https://github.com/primate-run/primate/issues",

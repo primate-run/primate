@@ -18,14 +18,15 @@
     "knip": "knip"
   },
   "devDependencies": {
+    "@rcompat/package": "^0.23.0",
     "@rcompat/test": "^0.5.0",
     "@rcompat/type": "^0.6.1",
     "@types/deno": "^2.3.0",
-    "@types/node": "^24.3.1",
+    "@types/node": "^24.9.2",
     "apekit": "^0.0.40",
     "esbuild": "^0.25.9",
     "eslint": "^9.35.0",
-    "knip": "^5.64.1",
+    "knip": "^5.66.4",
     "proby": "^0.4.0",
     "typescript": "^5.9.2"
   }
