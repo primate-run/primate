@@ -5,16 +5,10 @@ export default {
   build: "build",
   // client build
   client: "client",
-  // component library
-  lib: "lib",
-  // renderable components
-  components: "components",
   // config
   config: "config",
   // error rendering template
   error_html: "error.html",
-  // custom modules
-  modules: "modules",
   // HTML pages
   pages: "pages",
   // hierarchical routes
@@ -29,6 +23,4 @@ export default {
   locales: "locales",
   // views
   views: "views",
-  // hooks
-  hooks: "hooks",
 } as const;

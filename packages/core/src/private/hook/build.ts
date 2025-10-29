@@ -1,4 +1,5 @@
 import type BuildApp from "#BuildApp";
+import DEFAULT_PATHS from "#DEFAULT_PATHS";
 import fail from "#fail";
 import location from "#location";
 import log from "#log";
@@ -147,7 +148,7 @@ import views from "./${app.id}/views.js";
 import stores from "./${app.id}/stores.js";
 import target from "./target.js";
 import session from "#session";
-import config from "#config";
+import config from "#config/app";
 import s_config from "primate/symbol/config";
 
 ${i18n_active ? `
@@ -222,12 +223,17 @@ const post = async (app: BuildApp) => {
     },
   });
 
-  await app.compile(app.path.modules, "modules");
   await app.compile(app.path.locales, "locales");
   await app.compile(app.path.config, "config");
 
-  // reusable components
-  await app.compile(app.path.components, "components");
+  const default_keys = Object.keys(DEFAULT_PATHS);
+  for (const [k, v] of Object.entries(app.paths)) {
+    if (!default_keys.includes(k) && k.endsWith("*") && v[0].endsWith("/*")) {
+      const directory = v[0].slice(0, -"/*".length);
+      await app.compile(app.root.join(directory), directory);
+    }
+  }
+
   // view components
   await app.compile(app.path.views, "views");
 
@@ -292,23 +298,22 @@ const post = async (app: BuildApp) => {
   await write_directories(build_directory, app);
   await write_bootstrap(app, app.mode, app.i18n_active);
 
+  const _imports: Dict<string> = {};
+
+  for (const [alias, targets] of Object.entries(app.paths)) {
+    const key = alias.replace(/\/\*$/, "/*");
+    const target = targets[0];
+
+    const _target = target.endsWith("*")
+      ? `${target}.js`
+      : target.split(".").slice(0, -1).join(".").concat(".js");
+    _imports[key] = `./${_target}`;
+  }
+
   const manifest_data = {
     ...await (await json()).json() as Dict,
     type: "module",
-    imports: {
-      "#config": "./config/app.js",
-      "#config/*": "./config/*.js",
-      "#database": "./config/database/index.js",
-      "#database/*": "./config/database/*.js",
-      "#session": "./config/session.js",
-      "#i18n": "./config/i18n.js",
-      "#view/*": "./views/*.js",
-      "#component/*": "./components/*.js",
-      "#locale/*": "./locales/*.js",
-      "#module/*": "./modules/*.js",
-      "#route/*": "./routes/*.js",
-      "#store/*": "./stores/*.js",
-    },
+    imports: _imports,
   };
   // create package.json
   await app.path.build.join("package.json").writeJSON(manifest_data);

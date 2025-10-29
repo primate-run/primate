@@ -1,4 +1,3 @@
-import type BindingContext from "#BindingContext";
 import type FileRef from "@rcompat/fs/FileRef";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 
@@ -7,7 +6,7 @@ type Options = {
     id: string;
     stage: FileRef;
   };
-  context: BindingContext;
+  context: string;
 };
 
 type Binder = (file: FileRef, options: Options) => MaybePromise<string>;

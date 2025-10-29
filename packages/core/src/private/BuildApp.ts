@@ -1,12 +1,13 @@
 import App from "#App";
-import type BindingContext from "#BindingContext";
 import build from "#hook/build";
 import location from "#location";
 import log from "#log";
+import resolve_paths from "#paths";
 import s_layout_depth from "#symbol/layout-depth";
 import Build from "@rcompat/build";
 import type FileRef from "@rcompat/fs/FileRef";
 import cache from "@rcompat/kv/cache";
+import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 
 const s = Symbol("primate.Build");
@@ -21,14 +22,21 @@ export default class BuildApp extends App {
   #server_build: string[] = ["route"];
   #id = crypto.randomUUID().slice(0, 8);
   #i18n_active = false;
+  #paths!: Dict<string[]>;
 
   async buildInit() {
     log.system("starting {0} build in {1} mode", this.target.name, this.mode);
+
+    this.#paths = await resolve_paths(this.root, this.config("paths"));
     await build(this);
   }
 
   get id() {
     return this.#id;
+  }
+
+  get paths() {
+    return this.#paths;
   }
 
   get build() {
@@ -45,27 +53,8 @@ export default class BuildApp extends App {
         resolveExtensions: [".ts", ".js", ...extensions],
         tsconfigRaw: {
           compilerOptions: {
-            baseUrl: "${configDir}",
-            paths: {
-              "#view/*": [
-                "views/*", ...extensions.map(e => `views/*${e}`),
-              ],
-              "#component/*": [
-                "components/*", ...extensions.map(e => `components/*${e}`),
-              ],
-              "#static/*": ["./static/*.js", "./static/*.ts"],
-              "#i18n": ["config/i18n.ts", "config/i18n.js"],
-              "#store/*": ["stores/*"],
-              "#locale/*": ["locales/*"],
-              "#config/*": ["config/*"],
-              "#session": ["config/session.ts", "config/session.js"],
-              "#database": [
-                "config/database/index.ts",
-                "config/database/index.js",
-                "config/database/default.ts",
-                "config/database/default.js",
-              ],
-            },
+            baseUrl: this.root.path,
+            paths: this.#paths,
           },
         },
       }, this.mode === "development" ? "development" : "production"),
@@ -98,7 +87,7 @@ export default class BuildApp extends App {
 
   async compile(
     directory: FileRef,
-    context: BindingContext,
+    context: string,
     options: {
       loader?: Loader;
       resolver?: Resolver;
@@ -110,13 +99,13 @@ export default class BuildApp extends App {
       this.extensions.some(e => path.endsWith(e)) && !path.endsWith(".d.ts"));
 
     for (const file of files) {
-      await this.#compileFile(file, context, directory, options);
+      await this.#compile_file(file, context, directory, options);
     }
   }
 
-  async #compileFile(
+  async #compile_file(
     file: FileRef,
-    context: BindingContext,
+    context: string,
     directory: FileRef,
     options: {
       loader?: Loader;

@@ -33,10 +33,8 @@
         "views/*.js"
       ],
       "#hook/*": ["hooks/*", "hooks/*.ts", "hooks/*.js"],
-      "#lib/*": ["lib/*", "lib/*.ts", "lib/*.js"],
       "#store/*": ["stores/*", "stores/*.ts", "stores/*.js"],
       "#locale/*": ["locales/*", "locales/*.ts", "locales/*.js"],
-      "#module/*": ["modules/*", "modules/*.ts", "modules/*.js"],
       "#config/*": ["config/*", "config/*.ts", "config/*.js"],
       "#static/*": ["static/*", "static/*.ts", "static/*.js"],
       "#database/*": ["config/database/*.ts", "config/database/*.js"],
@@ -57,13 +55,9 @@
     "${configDir}/views",
     "${configDir}/components",
     "${configDir}/hooks",
-    "${configDir}/lib",
     "${configDir}/stores",
-    "${configDir}/modules",
     "${configDir}/test",
-    "${configDir}/static",
-    "${configDir}/primate.config.js",
-    "${configDir}/primate.config.ts"
+    "${configDir}/static"
   ],
   "exclude": ["node_modules"]
 }

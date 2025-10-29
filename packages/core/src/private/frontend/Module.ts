@@ -16,7 +16,6 @@ import type NextBuild from "#module/NextBuild";
 import type NextServe from "#module/NextServe";
 import type RequestFacade from "#request/RequestFacade";
 import type ServeApp from "#ServeApp";
-import assert from "@rcompat/assert";
 import map from "@rcompat/async/map";
 import hash from "@rcompat/crypto/hash";
 import FileRef from "@rcompat/fs/FileRef";
@@ -31,8 +30,6 @@ import string from "pema/string";
 
 type Layout = (app: ServeApp, transfer: Dict, request: RequestFacade)
   => View;
-
-const contexts = ["views", "components"];
 
 async function normalize(path: string, frontend: string) {
   const file = new FileRef(path);
@@ -300,9 +297,6 @@ export default abstract class FrontendModule<
   init<T extends App>(app: T, next: Next<T>) {
     this.fileExtensions.forEach(e => {
       app.bind(e, async (file, { context }) => {
-        assert(contexts.includes(context),
-          `${this.name}: only components supported`);
-
         if (this.compile.server) {
           const code = await this.compile.server(await file.text());
           const bundled = await bundle({
