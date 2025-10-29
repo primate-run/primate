@@ -28,16 +28,15 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/build": "^0.14.0",
-    "@rcompat/fs": "^0.21.1",
+    "@rcompat/fs": "^0.22.0",
     "@rcompat/runtime": "^0.6.0"
   },
   "peerDependencies": {
+    "@types/react": "19",
+    "@types/react-dom": "19",
     "primate": "workspace:^",
     "react": "19",
-    "react-dom": "19",
-    "@types/react": "19",
-    "@types/react-dom": "19"
-
+    "react-dom": "19"
   },
   "type": "module",
   "imports": {

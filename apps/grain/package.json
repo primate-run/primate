@@ -13,7 +13,7 @@
     "@primate/grain": "workspace:^",
     "@primate/html": "workspace:^",
     "@primate/sqlite": "workspace:^",
-    "@rcompat/fs": "^0.21.1",
+    "@rcompat/fs": "^0.22.0",
     "@rcompat/type": "^0.6.1",
     "pema": "workspace:^",
     "primate": "workspace:^"

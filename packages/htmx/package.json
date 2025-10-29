@@ -25,7 +25,7 @@
     "@primate/core": "workspace:^",
     "@primate/html": "workspace:^",
     "@rcompat/assert": "^0.3.1",
-    "@rcompat/fs": "^0.21.1",
+    "@rcompat/fs": "^0.22.0",
     "@rcompat/html": "^0.6.0",
     "@rcompat/record": "^0.9.1",
     "@rcompat/string": "^0.10.0",

@@ -12,9 +12,9 @@
     "@primate/solid": "workspace:^",
     "@primate/sqlite": "workspace:^",
     "@rcompat/assert": "^0.3.1",
-    "babel-preset-solid": "^1.9.9",
+    "babel-preset-solid": "^1.9.10",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "solid-js": "^1.9.9"
+    "solid-js": "^1.9.10"
   }
 }

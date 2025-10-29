@@ -10,9 +10,9 @@
     "@primate/core": "workspace:^",
     "@primate/markdown": "workspace:^",
     "@primate/poly": "workspace:^",
-    "@rcompat/fs": "^0.21.1",
+    "@rcompat/fs": "^0.22.0",
     "@rcompat/http": "^0.15.1",
-    "@rcompat/package": "^0.22.0",
+    "@rcompat/package": "^0.23.0",
     "@rcompat/record": "^0.9.1",
     "@rcompat/string": "^0.10.0",
     "poly": "^0.7.2",
@@ -20,8 +20,8 @@
     "shiki": "^3.12.2"
   },
   "devDependencies": {
-    "@angular/common": "^20.3.2",
-    "@angular/core": "^20.3.2",
+    "@angular/common": "^20.3.9",
+    "@angular/core": "^20.3.9",
     "@primate/angular": "workspace:^",
     "@primate/go": "workspace:^",
     "@primate/grain": "workspace:^",
