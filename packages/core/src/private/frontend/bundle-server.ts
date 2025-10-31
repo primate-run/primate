@@ -7,10 +7,11 @@ type Init = {
   root: FileRef;
   extensions: string[];
   compile: (src: string, file?: FileRef) => Promise<string>;
+  bundle: string[];
 };
 
-export default async function bundleServer(init: Init): Promise<string> {
-  const { code, source, root, extensions, compile } = init;
+export default async function bundle_server(init: Init): Promise<string> {
+  const { code, source, root, extensions, compile, bundle } = init;
 
   const filter = new RegExp(
     `(${extensions.map(e => e.replace(".", "\\.")).join("|")})$`,
@@ -32,7 +33,8 @@ export default async function bundleServer(init: Init): Promise<string> {
         const p = args.path;
         const relative = p.startsWith("./") || p.startsWith("../");
         const views = p.startsWith("#view/");
-        if (!relative && !views) return { path: p, external: true };
+        if (!relative && !views && !bundle.includes(p))
+          return { path: p, external: true };
         return null;
       });
     },

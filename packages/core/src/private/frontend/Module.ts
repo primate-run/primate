@@ -54,7 +54,7 @@ export default abstract class FrontendModule<
   compile: {
     client?: (text: string, file: FileRef, root: boolean) =>
       MaybePromise<{ css?: null | string; js: string }>;
-    server?: (text: string) => MaybePromise<string>;
+    server?: (text: string, file?: FileRef) => MaybePromise<string>;
   } = {};
   css?: {
     filter: RegExp;
@@ -114,10 +114,10 @@ export default abstract class FrontendModule<
 
     if (!app_asset) throw fail("Could not find app.js in assets");
 
-    const app_script = `<script type="module" src="${app_asset.src}" integrity="${app_asset.integrity}"></script>`;
+    const app_script = `<script type="module" src="${app_asset.src}"></script>`;
     const json_props = JSON.stringify({ frontend: this.name, ...client });
     const hydrated = await inline(json_props, APPLICATION_JSON, "hydration");
-    const script_src = [hydrated.integrity, `'${app_asset.integrity}'`];
+    const script_src = [hydrated.integrity];
 
     return {
       body,
@@ -196,7 +196,7 @@ export default abstract class FrontendModule<
         return app.view({ body, head, headers, ...options });
       } catch (error) {
         const path = `${location.views}/${view}`;
-        throw fail("error in view{0}\n{1}", path, error);
+        throw fail("error in view {0}\n{1}", path, error);
       }
     };
 
@@ -298,13 +298,14 @@ export default abstract class FrontendModule<
     this.fileExtensions.forEach(e => {
       app.bind(e, async (file, { context }) => {
         if (this.compile.server) {
-          const code = await this.compile.server(await file.text());
+          const code = await this.compile.server(await file.text(), file);
           const bundled = await bundle({
             code,
             source: file,
             root: app.root,
             extensions: this.fileExtensions,
-            compile: async s => this.compile.server!(s),
+            compile: async (s, f) => this.compile.server!(s, f),
+            bundle: app.config("bundle"),
           });
 
           if (context === "views") {
@@ -330,7 +331,8 @@ export default abstract class FrontendModule<
     // compile root server
     if (this.root !== undefined && this.compile.server !== undefined) {
       const filename = `${this.rootname}.js`;
-      const root = await this.compile.server(this.root.create(app.depth(), app.i18n_active));
+      const root = await this.compile.server(
+        this.root.create(app.depth(), app.i18n_active));
       const path = app.runpath(location.server, filename);
       await path.write(root);
       app.addRoot(path);

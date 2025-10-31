@@ -4,7 +4,7 @@ import p from "pema";
 
 export default p({
   build: p.record(p.string, p.unknown).optional(),
-  paths: p.record(p.string, p.array(p.string)).optional(),
+  bundle: p.array(p.string).default([]),
   http: {
     csp: p.record(p.string, p.array(p.string)).optional(),
     headers: p.record(p.string, p.string).optional(),

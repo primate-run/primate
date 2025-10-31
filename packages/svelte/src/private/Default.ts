@@ -1,6 +1,7 @@
 import create_root from "#create-root";
 import Runtime from "#Runtime";
-import { compile } from "svelte/compiler";
+import type FileRef from "@rcompat/fs/FileRef";
+import { compile, compileModule } from "svelte/compiler";
 
 export default class Default extends Runtime {
   root = {
@@ -10,11 +11,20 @@ export default class Default extends Runtime {
     filter: /\.sveltecss$/,
   };
   compile = {
-    client: (text: string) => {
+    client: (text: string, file: FileRef) => {
       const accessors = true;
-      const { css, js } = compile(text, { accessors, generate: "client" });
+      const { css, js } = file.path.endsWith(".js") // runes in .svelte.[j|t]s
+        ? compileModule(text, { generate: "client" })
+        : compile(text, { accessors, generate: "client" })
+        ;
       return { css: css?.code ?? "", js: js.code };
     },
-    server: (text: string) => compile(text, { generate: "server" }).js.code,
+    server: (text: string, file?: FileRef) => {
+      const { js } = file?.path.endsWith(".js") // runes in .svelte.[j|t]s
+        ? compileModule(text, { generate: "server" })
+        : compile(text, { generate: "server" })
+        ;
+      return js.code;
+    },
   };
 }

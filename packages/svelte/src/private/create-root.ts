@@ -37,12 +37,10 @@ export default (depth: number, i18n_active: boolean) => {
 
       export let p;
 
-      // expose full request context to children (unchanged)
       setContext(context_name, p.request.context);
 
       ${i18nInit}
 
-      // let the platform hook push heads after updates (unchanged)
       afterUpdate(p.update);
     </script>
 
