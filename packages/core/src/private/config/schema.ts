@@ -1,6 +1,6 @@
 import Module from "#Module";
 import FileRef from "@rcompat/fs/FileRef";
-import pema from "pema";
+import p from "pema";
 import array from "pema/array";
 import boolean from "pema/boolean";
 import constructor from "pema/constructor";
@@ -10,8 +10,9 @@ import uint from "pema/uint";
 import union from "pema/union";
 import unknown from "pema/unknown";
 
-export default pema({
+export default p({
   build: record(string, unknown).optional(),
+  bundle: p.array(p.string).default([]),
   http: {
     csp: record(string, array(string)).optional(),
     headers: record(string, string).optional(),

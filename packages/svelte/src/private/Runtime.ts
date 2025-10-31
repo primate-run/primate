@@ -5,7 +5,7 @@ import { render } from "svelte/server";
 
 export default class Runtime extends FrontendModule<Component> {
   name = "svelte";
-  defaultExtensions = [".svelte"];
+  defaultExtensions = [".svelte.js", ".svelte.ts", ".svelte"];
   layouts = true;
   client = true;
   render: Render<Component> = (view, props) => {
