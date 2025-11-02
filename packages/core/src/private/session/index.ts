@@ -1,32 +1,38 @@
+import type DatabaseStore from "#database/Store";
 import configSchema from "#session/schema";
 import type SessionFacade from "#session/SessionFacade";
 import local_storage from "#session/storage";
 import s_config from "#symbol/config";
-import type Schema from "@rcompat/type/Schema";
+import type InferStore from "pema/InferStore";
+import type StoreSchema from "pema/StoreSchema";
 
 type ConfigInput = typeof configSchema.input;
 
-type InferSchema<S> = S extends
-  { parse(input: unknown): infer T } ? T : unknown;
+type X<T> = { [K in keyof T]: T[K] } & {};
+type Infer<S extends StoreSchema> = X<Omit<InferStore<S>, "id" | "session_id">>;
 
-// schema provided: infer T
-export default function session<S extends Schema<any>>(
-  config: { schema: S } & Partial<ConfigInput>
-): SessionFacade<InferSchema<S>>;
+// Overload 1: store provided -> typed
+export default function session<S extends StoreSchema>(
+  config: { store: DatabaseStore<S> } & Partial<ConfigInput>,
+): SessionFacade<Infer<S>>;
 
-// schema omitted: T = unknown
+// Overload 2: store omitted -> unknown
 export default function session(
-  config?: Omit<Partial<ConfigInput>, "schema">
+  Infer?: Omit<Partial<ConfigInput>, "store">,
 ): SessionFacade<unknown>;
 
-export default function session<T>(
-  config?: Partial<ConfigInput> & { schema?: Schema<T> },
-): SessionFacade<T> {
+export default function session<S extends StoreSchema>(
+  config?: Partial<ConfigInput> & { store?: DatabaseStore<S> },
+): SessionFacade<any> {
   const parsed = configSchema.parse(config ?? {});
-  const schema: Schema<T> | undefined = config?.schema;
+  const store = parsed.store; // Use parsed store (includes default)
 
-  // bind the ALS store to this T (unknown at runtime; fine)
+  // type is inferred from provided store, or unknown for default
+  type T = S extends StoreSchema ? Infer<S> : unknown;
+
+  // bind the ALS store to this T
   const storage = local_storage<T>();
+
   const current = () => {
     const s = storage.getStore();
     if (!s) throw new Error("Session handle not available in this context");
@@ -55,7 +61,9 @@ export default function session<T>(
     destroy() {
       current().destroy();
     },
-    get [s_config]() { return { ...parsed, schema }; },
+    get [s_config]() {
+      return { ...parsed, store };
+    },
   };
 
   return facade;

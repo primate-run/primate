@@ -90,7 +90,7 @@ export default class DatabaseStore<S extends StoreSchema>
     this.#name = config.name;
     this.#database = config.database;
     this.#nullables = new Set(
-      Object.entries(this.#type.schema)
+      Object.entries(this.#type.properties)
         .filter(([, v]) => v.nullable)
         .map(([k]) => k),
     );
@@ -134,7 +134,7 @@ export default class DatabaseStore<S extends StoreSchema>
     };
   }
 
-  get schema() {
+  get collection() {
     const database = this.database;
     const name = this.name;
     const schema = this.#schema;
@@ -146,6 +146,14 @@ export default class DatabaseStore<S extends StoreSchema>
 
   get infer() {
     return undefined as unknown as InferStore<S>;
+  }
+
+  get schema() {
+    return this.#schema;
+  }
+
+  get type() {
+    return this.#type;
   }
 
   [wrap](name: string, database: Database) {

@@ -1,8 +1,6 @@
-import FileSessionManager from "#config/FileSessionManager";
-import p from "pema";
 import session from "primate/config/session";
+import Session from "#store/Session";
 
 export default session({
-  schema: p({ foo: p.string }),
-  manager: new FileSessionManager(),
+  store: Session,
 });

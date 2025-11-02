@@ -105,7 +105,7 @@ const instantiate = async (args: Init) => {
   const storeIdsByName = new Map(Object.keys(storesByName).map((e, i) => [e, i]));
   const stores = new Map<StoreID, DatabaseStore<StoreSchema>>(
     Array.from(storeIdsByName.entries())
-    .map(([name, id]) => [id as StoreID, storesByName[name]]),
+      .map(([name, id]) => [id as StoreID, storesByName[name]]),
   );
 
   // default payload is set to an empty buffer via setPayloadBuffer
@@ -142,13 +142,13 @@ const instantiate = async (args: Init) => {
 
   /**
    * Check to see if a session exists.
-   * 
+   *
    * @returns {1 | 0}
    */
   const sessionExists = () => {
     return session().exists ? 1 : 0;
   };
-  
+
   /**
    * Set the current session.
    */
@@ -223,7 +223,7 @@ const instantiate = async (args: Init) => {
 
   /**
    * Count the number of records that match the query.
-   * 
+   *
    * @param {StoreID} id - The ID of the store.
    * @returns {STORE_OPERATION_RESULT}
    */
@@ -239,9 +239,9 @@ const instantiate = async (args: Init) => {
 
   /**
    * Delete a record by it's id.
-   * 
+   *
    * @param {StoreID} id - The ID of the store.
-   * @returns {STORE_OPERATION_RESULT} 
+   * @returns {STORE_OPERATION_RESULT}
    */
   const storeDelete = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
@@ -258,8 +258,8 @@ const instantiate = async (args: Init) => {
 
   /**
    * Get a store by it's "import", and return it to wasm.
-   * 
-   * @returns {STORE_OPERATION_RESULT} 
+   *
+   * @returns {STORE_OPERATION_RESULT}
    */
   const storeImport = () => {
     const storeName = decodeString(new BufferView(received));
@@ -273,7 +273,7 @@ const instantiate = async (args: Init) => {
 
   /**
    * Find records in a store.
-   * 
+   *
    * @param {StoreID} id - The id of the store.
    * @returns {STORE_OPERATION_RESULT}
    */
@@ -295,7 +295,7 @@ const instantiate = async (args: Init) => {
 
   /**
    * Get a record by it's id.
-   * 
+   *
    * @param {StoreID} id - The id of the store.
    * @returns {STORE_OPERATION_RESULT}
    */
@@ -317,7 +317,7 @@ const instantiate = async (args: Init) => {
 
   /**
    * Check if a record exists based on a record id.
-   * 
+   *
    * @param {StoreID} id - The id of the store.
    * @returns {STORE_OPERATION_RESULT}
    */
@@ -337,7 +337,7 @@ const instantiate = async (args: Init) => {
 
   /**
    * Insert a record into a store.
-   * 
+   *
    * @param {StoreID} id - The id of the store.
    * @returns {STORE_OPERATION_RESULT}
    */
@@ -357,7 +357,7 @@ const instantiate = async (args: Init) => {
 
   /**
    * Update a record in a store by it's id.
-   * 
+   *
    * @param {StoreID} id - The id of the store.
    * @returns {STORE_OPERATION_RESULT}
    */
@@ -370,7 +370,7 @@ const instantiate = async (args: Init) => {
       const changes = decodeJson(view);
       await store.update(id, changes);
       return STORE_OPERATION_SUCCESS;
-    } catch(ex) {
+    } catch (ex) {
       return STORE_SCHEMA_INVALID_RECORD_ERROR;
     }
   }, storeOperationNotSupported);
@@ -378,8 +378,8 @@ const instantiate = async (args: Init) => {
   const storeClear = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
-    await store.schema.delete();
-    await store.schema.create();
+    await store.collection.delete();
+    await store.collection.create();
     return STORE_OPERATION_SUCCESS;
   }, storeOperationNotSupported);
 
@@ -409,7 +409,7 @@ const instantiate = async (args: Init) => {
   };
 
   const bytes = await wasmFileRef.arrayBuffer();
-  
+
   const memory = new WebAssembly.Memory({ initial: 64 });
 
   const instantiateDeno = async () => {
@@ -445,11 +445,11 @@ const instantiate = async (args: Init) => {
     wasiSnapshotPreview1.start(wasm.instance);
     return wasm;
   };
-  
+
   const wasm = typeof Deno !== "undefined"
-  ? await instantiateDeno()
-  : await defaultInstantiate();
-  
+    ? await instantiateDeno()
+    : await defaultInstantiate();
+
   const exports = wasm.instance.exports as Exports<TRequest, TResponse>;
 
   const api: API = {};
@@ -462,7 +462,7 @@ const instantiate = async (args: Init) => {
   } as Instantiation<TRequest, TResponse>;
   for (const method of verbs) {
     if (method in exports && typeof exports[method] === "function") {
-      
+
       type ExportedWasmMethodFunc = AnyWasmFunction<readonly [WasmRequest], WasmResponse>
       const methodFunc = wrapPromising(exports[method] as ExportedWasmMethodFunc) as MethodFunc;
 

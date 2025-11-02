@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@primate/html": "workspace:^",
+    "@primate/sqlite": "workspace:^",
     "@rcompat/assert": "^0.3.1",
     "@rcompat/fs": "^0.22.0",
     "pema": "workspace:^",

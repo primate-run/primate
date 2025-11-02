@@ -1,12 +1,15 @@
+import type DatabaseStore from "#database/Store";
+import fail from "#fail";
 import Module from "#Module";
 import type NextHandle from "#module/NextHandle";
 import type NextServe from "#module/NextServe";
 import type RequestFacade from "#request/RequestFacade";
 import type ServeApp from "#ServeApp";
 import kSerialize from "#session/k-serialize";
-import type SessionManager from "#session/Manager";
 import SessionHandle from "#session/SessionHandle";
 import storage from "#session/storage";
+import p from "pema";
+import type StoreSchema from "pema/StoreSchema";
 
 type CookieOptions = {
   httpOnly: boolean;
@@ -20,50 +23,72 @@ const cookie = (name: string, value: string, options: CookieOptions) => {
   const parts = [`${name}=${value}`];
   parts.push(`Path=${options.path}`);
   parts.push(`SameSite=${options.sameSite}`);
-
   if (options.maxAge !== undefined) parts.push(`Max-Age=${options.maxAge}`);
   if (options.httpOnly) parts.push("HttpOnly");
   if (options.secure) parts.push("Secure");
-
   return parts.join("; ");
 };
 
 export default class SessionModule extends Module {
   name = "builtin/session";
-
   #app: ServeApp;
-  #manager: SessionManager<unknown>;
+  #store: DatabaseStore<StoreSchema>;
   #secure: boolean;
 
   constructor(app: ServeApp) {
     super();
-
     this.#app = app;
     this.#secure = app.secure;
-    this.#manager = app.session.manager;
+    this.#store = app.session.store;
+
+    const props = this.#store.type.properties;
+    if (!("session_id" in props)) {
+      throw fail("Session store must have a session_id field");
+    }
+    try {
+      props.session_id.parse(crypto.randomUUID());
+    } catch {
+      throw fail("Session store session_id must be a string type");
+    }
   }
 
   async serve(app: ServeApp, next: NextServe) {
-    // initialize the session manager
-    await this.#manager.init?.();
-
+    await this.#store.collection.create();
     return next(app);
   }
 
   async handle(request: RequestFacade, next: NextHandle) {
     const { name, ...config } = this.#app.session.cookie;
-
     const sid = request.cookies.try(name);
 
-    const data = sid !== undefined ? await this.#manager.load(sid) : undefined;
-    const id = data !== undefined ? sid : undefined;
+    // Look up session by session_id
+    const existing = sid !== undefined
+      ? await this.#store.find({ session_id: sid }, { limit: 1 })
+      : [];
+    const exists = existing.length > 0;
 
-    const session = new SessionHandle(id, data, this.#app.session.schema);
+    let data: Record<string, unknown> | undefined = undefined;
+    let dbId: string | undefined = undefined;
+
+    if (exists) {
+      const record = existing[0];
+      const { id: _id, session_id: _sid, ...rest } = record;
+      data = rest;
+      dbId = _id as string;
+    }
+
+    const session_type = p.omit(this.#store.type, "id", "session_id");
+
+    const session = new SessionHandle<Record<string, unknown>>(
+      sid,
+      data,
+      session_type,
+    );
 
     const response = await new Promise<Response>((resolve, reject) => {
       storage().run(session, async () => {
         try {
-          resolve(await next(request) as Response);
+          resolve(await next(request));
         } catch (e) {
           reject(e);
         }
@@ -82,10 +107,10 @@ export default class SessionModule extends Module {
       secure: this.#secure,
     };
 
-    // no session existed -> either create or noop (noop already returned)
-    if (id === undefined) {
+    // no session existed -> either create or noop
+    if (!exists) {
       if (!snap.exists) {
-        // stale cookie -> clear; no cookie, noop
+        // stale cookie -> clear
         if (sid !== undefined) {
           response.headers.append("set-cookie", cookie(name, "", {
             ...options, maxAge: 0,
@@ -93,20 +118,21 @@ export default class SessionModule extends Module {
         }
         return response;
       }
-      // safe due to fast-path
-      await this.#manager.create(snap.id!, snap.data!);
+
+      // create new session
+      await this.#store.insert({ session_id: snap.id!, ...snap.data! });
       response.headers.append("set-cookie", cookie(name, snap.id!, options));
       return response;
     }
 
-    // from here: session existed (id is defined)
+    // from here: session existed (dbId is defined)
 
     // fast-path: session exists, same id and not dirty -> noop
-    if (snap.exists && snap.id === id && !snap.dirty) return response;
+    if (snap.exists && snap.id === sid && !snap.dirty) return response;
 
     // current absent -> destroy + clear cookie
     if (!snap.exists) {
-      await this.#manager.destroy(id);
+      await this.#store.delete(dbId!);
       response.headers.append("set-cookie", cookie(name, "", {
         ...options, maxAge: 0,
       }));
@@ -114,16 +140,15 @@ export default class SessionModule extends Module {
     }
 
     // session recreated in route -> destroy old, create new, set cookie
-    if (snap.id !== id) {
-      await this.#manager.destroy(id);
-      await this.#manager.create(snap.id!, snap.data!);
+    if (snap.id !== sid) {
+      await this.#store.delete(dbId!);
+      await this.#store.insert({ session_id: snap.id!, ...snap.data! });
       response.headers.append("set-cookie", cookie(name, snap.id!, options));
       return response;
     }
 
     // dirty -> replace session contents
-    await this.#manager.save(id, snap.data!);
-
+    await this.#store.update(dbId!, snap.data!);
     return response;
   }
 }

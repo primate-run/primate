@@ -77,22 +77,22 @@ export default <D extends Database>(database: D) => {
   }, { database, name: "type" });
 
   const bootstrap = async (tester: () => Promise<void>) => {
-    await User.schema.create();
+    await User.collection.create();
     for (const user of Object.values(users)) {
       await User.insert(user);
     }
     await tester();
-    await User.schema.delete();
+    await User.collection.delete();
   };
 
   const typestrap = async (tester: () => Promise<void>) => {
-    await Type.schema.create();
+    await Type.collection.create();
     await tester();
-    await Type.schema.delete();
+    await Type.collection.delete();
   };
 
   test.case("insert", async assert => {
-    await User.schema.create();
+    await User.collection.create();
 
     const donald = await User.insert({ age: 30, name: "Donald" });
     assert(await User.has(donald.id)).true();
@@ -101,7 +101,7 @@ export default <D extends Database>(database: D) => {
     assert(await User.has(donald.id)).true();
     assert(await User.has(ryan.id)).true();
 
-    await User.schema.delete();
+    await User.collection.delete();
   });
 
   test.case("find - basic query", async assert => {
@@ -717,7 +717,7 @@ export default <D extends Database>(database: D) => {
       name: string,
     }, { database, name: "select" }); // deliberately reserved-like table name
 
-    await Reserved.schema.create();
+    await Reserved.collection.create();
 
     const a = await Reserved.insert({ name: "alpha", order: 1 });
     const b = await Reserved.insert({ name: "beta", order: 2 });
@@ -737,6 +737,6 @@ export default <D extends Database>(database: D) => {
     const d = await Reserved.delete({ id: a.id });
     assert(d).equals(1);
 
-    await Reserved.schema.delete();
+    await Reserved.collection.delete();
   });
 };
