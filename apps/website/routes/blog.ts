@@ -14,7 +14,7 @@ type Post = {
 route.get(request => {
   return async app => {
     const directory = app.root.join(`views/${base}`);
-    const posts = (await directory.collect())
+    const posts = (await directory.collect(f => f.path.endsWith("internal.js")))
       .map(post => ({
         href: post.base,
         ...app.loadView<Post>(`${base}/${post.base}.md`),
