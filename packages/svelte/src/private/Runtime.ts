@@ -12,4 +12,5 @@ export default class Runtime extends FrontendModule<Component> {
     const { head, html } = render(view, { props: { p: { ...props } } });
     return { body: html, head };
   };
+  conditions = ["svelte"];
 }

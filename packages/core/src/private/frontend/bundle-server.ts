@@ -8,6 +8,7 @@ type Init = {
   extensions: string[];
   compile: (src: string, file?: FileRef) => Promise<string>;
   bundle: string[];
+  conditions: string[];
 };
 
 export default async function bundle_server(init: Init): Promise<string> {
@@ -48,7 +49,7 @@ export default async function bundle_server(init: Init): Promise<string> {
     platform: "node",
     format: "esm",
     target: "esnext",
-    conditions: ["node", "default", "apekit"],
+    conditions: ["node", "default", ...init.conditions],
     resolveExtensions: [".ts", ".js", ...extensions],
     plugins: [plugin],
     stdin: {

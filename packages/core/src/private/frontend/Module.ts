@@ -60,6 +60,7 @@ export default abstract class FrontendModule<
   css?: {
     filter: RegExp;
   };
+  conditions: string[] = [];
 
   static schema = pema({
     fileExtensions: array(string).optional(),
@@ -209,10 +210,11 @@ export default abstract class FrontendModule<
 
   publish(app: BuildApp) {
     if (this.compile.client) {
-      const { compile, css, fileExtensions, name, root } = this;
+      const { compile, css, fileExtensions, name, root, conditions } = this;
 
       if (this.client) {
-        fileExtensions.forEach(fe => app.frontends.set(name, fe));
+        app.frontends.set(name, fileExtensions);
+        conditions.forEach(condition => app.conditions.add(condition));
       }
 
       app.build.plugin({
@@ -304,6 +306,7 @@ export default abstract class FrontendModule<
             extensions: this.fileExtensions,
             compile: async (s, f) => this.compile.server!(s, f),
             bundle: app.config("bundle"),
+            conditions: [...(app as unknown as BuildApp).conditions],
           });
           return bundled;
         }
