@@ -3,20 +3,8 @@
   "compilerOptions": {
     "paths": {
       "#route/*": ["routes/*"],
-      "#component/*": [
-        "components/*",
-        "components/*.tsx",
-        "components/*.jsx",
-        "components/*.ts",
-        "components/*.js"
-      ],
-      "#view/*": [
-        "views/*",
-        "views/*.tsx",
-        "views/*.jsx",
-        "views/*.ts",
-        "views/*.js"
-      ],
+      "#component/*": ["components/*", "components/*.ts", "components/*.js"],
+      "#view/*": ["views/*", "views/*.ts", "views/*.js"],
       "#store/*": ["stores/*", "stores/*.ts", "stores/*.js"],
       "#locale/*": ["locales/*", "locales/*.ts", "locales/*.js"],
       "#config/*": ["config/*", "config/*.ts", "config/*.js"],

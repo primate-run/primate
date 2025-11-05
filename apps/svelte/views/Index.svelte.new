@@ -1,9 +1,18 @@
-<script>
+<script lang="ts">
   import t from "#i18n";
-  import Link from "../components/Link";
+  import Link from "../components/Link.svelte";
 
-  export let posts = [],
-    title = "";
+  const {
+    posts,
+    title = "",
+  }: {
+    posts: {
+      id: number;
+      title: string;
+    }[];
+    title: string;
+  } = $props();
+
   let count = 0;
 </script>
 
@@ -11,9 +20,9 @@
   <title>Primate Svelte app</title>
   <meta name="keywords" content={title} />
 </svelte:head>
-<a href="/redirect">redirect</a>
+<a href="/redirect">redirect10</a>
 <h1
-  on:click={() => {
+  onclick={() => {
     console.log("clicked!");
   }}
 >
@@ -23,24 +32,25 @@
   <Link {post} />
 {/each}
 <h3>{$t("counter")}</h3>
+
 <div>
   <button
-    on:click={() => {
+    onclick={() => {
       count = count - 1;
     }}>-</button
   >
   <button
-    on:click={() => {
+    onclick={() => {
       count = count + 1;
     }}>+</button
   >
   {count}
 </div>
 <h3>{$t("switch_language")}</h3>
-<button disabled={$t.loading} on:click={() => t.locale.set("en-US")}
+<button disabled={$t.loading} onclick={() => t.locale.set("en-US")}
   >{$t("english")}</button
 >
-<button disabled={$t.loading} on:click={() => t.locale.set("de-DE")}
+<button disabled={$t.loading} onclick={() => t.locale.set("de-DE")}
   >{$t("german")}</button
 >
 <p>Current locale: {$t.locale.get()}</p>

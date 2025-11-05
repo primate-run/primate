@@ -14,7 +14,6 @@ import hash from "#hash";
 import type I18NConfig from "#i18n/Config";
 import I18NModule from "#i18n/Module";
 import type Loader from "#Loader";
-import location from "#location";
 import log from "#log";
 import reducer from "#reducer";
 import parse from "#request/parse";
@@ -205,13 +204,13 @@ export default class ServeApp extends App {
 
   loadView<T = ServerView>(name: string) {
     const f = new FileRef(name);
-    const root = name.startsWith("root") ? "" : ".internal";
-    const base = `${f.path.slice(0, -f.fullExtension.length)}${root}`;
+    const base = `${f.path.slice(0, -f.fullExtension.length)}`;
     const view = this.#views[base];
-    if (view === undefined) {
-      throw fail("missing view component {0}", `${location.views}/${name}`);
+    if (view === undefined) throw fail("missing view component {0}", name);
+    if (view.default === undefined) {
+      throw fail(`view {0} must export a default component`, name);
     }
-    return (view!.default ?? view) as T;
+    return view.default as T;
   };
 
   headers(csp = {}) {

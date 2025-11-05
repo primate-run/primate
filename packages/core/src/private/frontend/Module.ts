@@ -2,7 +2,6 @@ import type App from "#App";
 import type BuildApp from "#BuildApp";
 import type ClientData from "#client/Data";
 import fail from "#fail";
-import bundle from "#frontend/bundle-server";
 import type Render from "#frontend/Render";
 import type ServerData from "#frontend/ServerData";
 import type ServerView from "#frontend/ServerView";
@@ -10,6 +9,7 @@ import type View from "#frontend/View";
 import type ViewResponse from "#frontend/ViewResponse";
 import inline from "#inline";
 import location from "#location";
+import type Mode from "#Mode";
 import Module from "#Module";
 import type Next from "#module/Next";
 import type NextBuild from "#module/NextBuild";
@@ -59,6 +59,8 @@ export default abstract class FrontendModule<
   css?: {
     filter: RegExp;
   };
+  conditions: string[] = [];
+  #mode: Mode = "development";
 
   static schema = pema({
     fileExtensions: array(string).optional(),
@@ -87,7 +89,7 @@ export default abstract class FrontendModule<
   }
 
   get ssr() {
-    return this.#options.ssr;
+    return this.#mode !== "development" && this.#options.ssr;
   }
 
   get spa() {
@@ -95,6 +97,9 @@ export default abstract class FrontendModule<
   }
 
   #load(name: string, props: Dict, app: ServeApp) {
+    if (this.#mode === "development") {
+      return { view: null, name, props };
+    }
     const view = app.loadView(name)!;
     return { view, name, props };
   };
@@ -174,7 +179,10 @@ export default abstract class FrontendModule<
           status: options.status ?? Status.OK,
         });
       }
-
+      if (this.#mode === "development") {
+        const { head } = await this.#render({ view: null as any, props: {} }, client, app);
+        return app.view({ body: "<div id=\"app\"></div>", head, ...options });
+      }
       try {
         const server = this.layouts
           ? {
@@ -208,11 +216,12 @@ export default abstract class FrontendModule<
 
   publish(app: BuildApp) {
     if (this.compile.client) {
-      const { compile, css, fileExtensions, name, root } = this;
+      const { compile, css, fileExtensions, name, root, conditions } = this;
       const _normalize = this.normalize.bind(this);
 
       if (this.client) {
-        fileExtensions.forEach(fe => app.frontends.set(name, fe));
+        app.frontends.set(name, [...fileExtensions]);
+        conditions.forEach(condition => app.conditions.add(condition));
       }
 
       app.build.plugin({
@@ -295,35 +304,21 @@ export default abstract class FrontendModule<
   }
 
   init<T extends App>(app: T, next: Next<T>) {
+    this.#mode = app.mode;
+
     this.fileExtensions.forEach(e => {
       app.bind(e, async (file, { context }) => {
+        if (context === "views" && this.#mode === "development") return "";
+
+        // production: just compile to JS, don't bundle yet
         if (this.compile.server) {
-          const code = await this.compile.server(await file.text(), file);
-          const bundled = await bundle({
-            code,
-            source: file,
-            root: app.root,
-            extensions: this.fileExtensions,
-            compile: async (s, f) => this.compile.server!(s, f),
-            bundle: app.config("bundle"),
-          });
-
-          if (context === "views") {
-            const relative = file.debase(app.root.join(location.views));
-            const basename = relative.path.slice(1, -relative.fullExtension.length);
-
-            const internal = app.runpath(location.views, `${basename}.internal.js`);
-            await internal.directory.create({ recursive: true });
-            await internal.write(bundled);
-
-            return this.#create_wrapper(relative.path.slice(1));
-          }
-
-          return bundled;
+          return await this.compile.server(await file.text(), file);
         }
+
         return await file.text();
       });
     });
+
     return next(app);
   }
 

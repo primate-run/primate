@@ -1,15 +1,6 @@
 {
+  "extends": "primate/tsconfig",
   "compilerOptions": {
-    "allowJs": true,
-    "baseUrl": "${configDir}",
-    "target": "esnext",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "strict": true,
-    "skipLibCheck": true,
-    "erasableSyntaxOnly": true,
-    "exactOptionalPropertyTypes": true,
-    "allowImportingTsExtensions": true,
     "paths": {
       "#route/*": ["routes/*"],
       "#component/*": [

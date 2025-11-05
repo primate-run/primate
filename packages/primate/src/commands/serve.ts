@@ -10,4 +10,4 @@ const load = async () => {
 };
 
 // serve from build directory
-export default async () => (await load()).join("./build/serve.js").import();
+export default async () => (await load()).join("./build/server.js").import();

@@ -1,5 +1,5 @@
-import Store from "@primate/core/database/Store";
 import assert from "@rcompat/assert";
+import Store from "primate/database/Store";
 import route from "primate/route";
 
 route.get(() => {

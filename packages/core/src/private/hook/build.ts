@@ -1,4 +1,8 @@
 import type BuildApp from "#BuildApp";
+import db_plugin from "#bundle/db";
+import require_plugin from "#bundle/require";
+import stores_plugin from "#bundle/stores";
+import views_plugin from "#bundle/views";
 import DEFAULT_PATHS from "#DEFAULT_PATHS";
 import fail from "#fail";
 import location from "#location";
@@ -9,10 +13,126 @@ import wrap from "#route/wrap";
 import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
 import json from "@rcompat/package/json";
-import dedent from "@rcompat/string/dedent";
+import runtime from "@rcompat/runtime";
 import type Dict from "@rcompat/type/Dict";
+import * as esbuild from "esbuild";
+
+const externals = {
+  node: ["node:"],
+  bun: ["node:", "bun:"],
+  deno: ["node:"],
+};
+const conditions = {
+  node: [],
+  bun: ["bun"],
+  deno: ["deno"],
+};
 
 const dirname = import.meta.dirname;
+
+async function bundle_server(app: BuildApp) {
+  const routes: esbuild.Plugin = {
+    name: "primate/route-wrap",
+    setup(build) {
+      const routes_re = /[/\\]routes[/\\].+\.(ts|js)$/;
+
+      build.onLoad({ filter: routes_re }, async args => {
+        const file = new FileRef(args.path);
+        const source = await file.text();
+
+        const routesRoot = "routes";
+        const relFromRoutes = args.path.split(routesRoot).pop()!;
+        const noExt = relFromRoutes.replace(/\.(ts|js)$/, "");
+        const routePath = noExt.replace(/^[\\/]/, "").replace(/\\/g, "/");
+
+        const wrapped = wrap(source, routePath, app.id);
+
+        return {
+          contents: wrapped,
+          loader: args.path.endsWith(".ts") ? "ts" : "js",
+          resolveDir: file.directory.path,
+        };
+      });
+    },
+  };
+
+  const plugins = [routes];
+  const extensions = app.frontendExtensions;
+
+  if (extensions.length > 0) {
+    const filter = new RegExp(
+      `(${extensions.map(e => e.replace(".", "\\.")).join("|")})$`,
+    );
+
+    const frontends: esbuild.Plugin = {
+      name: "primate/bundle/production",
+      setup(build) {
+        // Compile frontend sources (e.g., .svelte) to JS
+        build.onLoad({ filter }, async args => {
+          const file = new FileRef(args.path);
+          const binder = app.binder(file);
+          if (!binder) return null;
+
+          const contents = await binder(file, {
+            build: { id: app.id, stage: app.runpath("stage") },
+            context: "views",
+          });
+
+          return { contents, loader: "js", resolveDir: file.directory.path };
+        });
+      },
+    };
+
+    plugins.push(frontends);
+  }
+
+  plugins.push(views_plugin(
+    app.path.views.path,
+    app,
+    app.extensions,
+  ));
+
+  plugins.push(require_plugin());
+
+  plugins.push(stores_plugin(
+    app.path.stores.path,
+    async (file) => {
+      const binder = app.binder(file);
+      if (!binder) throw new Error(`No binder for ${file.path}`);
+      return await binder(file, {
+        build: { id: app.id, stage: app.runpath("stage") },
+        context: "stores",
+      });
+    },
+    app.extensions,
+  ));
+
+  plugins.push(db_plugin(app));
+
+  await esbuild.build({
+    entryPoints: [app.path.build.join("serve.js").path],
+    outfile: app.path.build.join("server.js").path,
+    bundle: true,
+    platform: "node",
+    format: "esm",
+    external: [...externals[runtime], "esbuild"],
+    banner: {
+      js: `
+        import { createRequire as __createRequire } from "node:module";
+        const require = __createRequire(import.meta.url);
+      `,
+    },
+    loader: {
+      ".json": "json",
+    },
+    mainFields: ["module", "browser", "main"],
+    resolveExtensions: [".ts", ".js", ...extensions],
+    conditions: ["module", "import", ...conditions[runtime], "default", "node", ...app.conditions],
+    plugins,
+  });
+
+  log.warn("bundled server to {0}", app.path.build.join("server.js"));
+}
 
 const pre = async (app: BuildApp) => {
   // remove build directory in case exists
@@ -82,6 +202,7 @@ async function index_database(base: FileRef) {
 }
 
 const js_re = /^.*.js$/;
+const jts_re = /^.*.[j|t]s$/;
 const write_directories = async (build_directory: FileRef, app: BuildApp) => {
   for (const name of app.server_build) {
     const d = app.runpath(`${name}s`);
@@ -100,9 +221,9 @@ const write_directories = async (build_directory: FileRef, app: BuildApp) => {
 };
 
 const write_stores = async (build_directory: FileRef, app: BuildApp) => {
-  const d2 = app.runpath(location.stores);
+  const d2 = app.path.stores;
   const e = await Promise.all((await FileRef.collect(d2, file =>
-    js_re.test(file.path)))
+    jts_re.test(file.path)))
     .map(async path => `${path}`.replace(d2.toString(), _ => "")));
   const stores_js = `
 const store = [];
@@ -123,7 +244,7 @@ const write_views = async (build_directory: FileRef, app: BuildApp) => {
   const views_js = `
 const view = [];
 ${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
-    `import * as view${i} from "${FileRef.webpath(`#view/${bare}`)}";
+    `import * as view${i} from "${FileRef.webpath(`view:${bare}`)}";
 view.push(["${FileRef.webpath(bare)}", view${i}]);`,
   ).join("\n")}
 
@@ -144,7 +265,10 @@ ${app.server_build.map(name => `${name}s`).map(name =>
     `import ${name} from "./${app.id}/${name}.js";
      files.${name} = ${name};`,
   ).join("\n")}
-import views from "./${app.id}/views.js";
+${app.mode === "development"
+      ? "const views = [];"
+      : `import views from "./${app.id}/views.js";`
+    }
 import stores from "./${app.id}/stores.js";
 import target from "./target.js";
 import session from "#session";
@@ -184,29 +308,6 @@ const post = async (app: BuildApp) => {
     },
   });
 
-  await app.compile(app.path.stores, "stores", {
-    resolver: basename => `${basename}.original`, // First pass: save original
-  });
-
-  if (await app.path.stores.exists()) {
-    const stores = await app.path.stores.collect(({ path }) =>
-      app.extensions.some(e => path.endsWith(e)),
-    );
-
-    for (const file of stores) {
-      const basename = app.basename(file, app.path.stores);
-      const wrapper = dedent`
-        import database from "#database";
-        import store from "./${basename}.original.js";
-        import wrap from "primate/database/wrap";
-        export default wrap("${basename}", store, database);
-      `;
-
-      const target = app.runpath("stores", `${basename}.js`);
-      await target.write(wrapper);
-    }
-  }
-
   const configs = FileRef.join(dirname, "../../private/config/config");
   const database_base = app.path.config.join("database");
 
@@ -235,7 +336,9 @@ const post = async (app: BuildApp) => {
   }
 
   // view components
-  await app.compile(app.path.views, "views");
+  if (app.mode !== "development") {
+    await app.compile(app.path.views, "views");
+  }
 
   // copy framework pages
   await defaults.copy(app.runpath(location.server, location.pages));
@@ -293,7 +396,9 @@ const post = async (app: BuildApp) => {
   // TODO: remove after rcompat automatically creates directories
   await build_directory.create();
 
-  await write_views(build_directory, app);
+  if (app.mode !== "development") {
+    await write_views(build_directory, app);
+  }
   await write_stores(build_directory, app);
   await write_directories(build_directory, app);
   await write_bootstrap(app, app.mode, app.i18n_active);
@@ -322,6 +427,7 @@ const post = async (app: BuildApp) => {
 
   app.cleanup();
 
+  await bundle_server(app);
   return app;
 };
 

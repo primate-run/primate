@@ -9,8 +9,11 @@ export default p({
     path: p.string.startsWith("/").default("/"),
     sameSite: p.union("Strict", "Lax", "None").default("Lax"),
   },
-  store: p.constructor(Store).default(() => new Store({
-    id: p.primary,
-    session_id: p.string.uuid(),
-  }, { database: new InMemoryDatabase(), name: "session" })),
+  store: p.constructor(Store).default(() => {
+    console.log("running");
+    return new Store({
+      id: p.primary,
+      session_id: p.string.uuid(),
+    }, { database: new InMemoryDatabase(), name: "session" });
+  }),
 });

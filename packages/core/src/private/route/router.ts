@@ -6,20 +6,22 @@ import assert from "@rcompat/assert";
 import is from "@rcompat/assert/is";
 import maybe from "@rcompat/assert/maybe";
 
+const stack: string[] = [];
+export const routes = stack;
+
 class Router {
   #routes: Record<string, RoutePath> = {};
-  #stack: string[] = [];
 
   push(route: string) {
-    this.#stack.push(route);
+    stack.push(route);
   }
 
   pop() {
-    this.#stack.pop();
+    stack.pop();
   }
 
   get active() {
-    return this.#stack.at(-1);
+    return stack.at(-1);
   }
 
   add(verb: Verb, handler: RouteHandler, options: RouteOptions = {}) {
