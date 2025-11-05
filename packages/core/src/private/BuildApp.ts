@@ -16,7 +16,8 @@ type Loader = (source: string, file: FileRef) => MaybePromise<string>;
 type Resolver = (basename: string, file: FileRef) => string;
 
 export default class BuildApp extends App {
-  frontends: Map<string, string> = new Map();
+  frontends: Map<string, string[]> = new Map();
+  conditions = new Set<string>();
   #postbuild: (() => void)[] = [];
   #roots: FileRef[] = [];
   #server_build: string[] = ["route"];
@@ -39,8 +40,13 @@ export default class BuildApp extends App {
     return this.#paths;
   }
 
+  get frontendExtensions() {
+    return [...this.frontends.values()].flat();
+  }
+
   get build() {
-    const extensions = [...this.frontends.values()];
+    const conditions = this.conditions.values();
+
     return cache.get(s, () =>
       new Build({
         ...(this.config("build")),
@@ -49,8 +55,8 @@ export default class BuildApp extends App {
           contents: "",
           resolveDir: this.root.path,
         },
-        conditions: ["style", "browser", "default", "module"],
-        resolveExtensions: [".ts", ".js", ...extensions],
+        conditions: ["style", "browser", "default", "module", ...conditions],
+        resolveExtensions: [".ts", ".js", ...this.frontendExtensions],
         tsconfigRaw: {
           compilerOptions: {
             baseUrl: this.root.path,

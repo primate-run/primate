@@ -3,7 +3,7 @@ import response from "primate/response";
 import route from "primate/route";
 import p from "pema";
 
-await Counter.schema.create();
+await Counter.collection.create();
 
 route.get(async () => {
   const counters = await Counter.find({});

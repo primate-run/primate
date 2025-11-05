@@ -37,6 +37,7 @@
     "@rcompat/kv": "^0.3.0",
     "@rcompat/package": "^0.23.0",
     "@rcompat/record": "^0.9.1",
+    "@rcompat/runtime": "^0.6.0",
     "@rcompat/string": "^0.10.1",
     "@rcompat/type": "^0.6.1",
     "pema": "workspace:^"

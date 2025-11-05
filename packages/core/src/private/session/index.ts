@@ -11,12 +11,12 @@ type ConfigInput = typeof configSchema.input;
 type X<T> = { [K in keyof T]: T[K] } & {};
 type Infer<S extends StoreSchema> = X<Omit<InferStore<S>, "id" | "session_id">>;
 
-// Overload 1: store provided -> typed
+// overload 1: store provided -> typed
 export default function session<S extends StoreSchema>(
   config: { store: DatabaseStore<S> } & Partial<ConfigInput>,
 ): SessionFacade<Infer<S>>;
 
-// Overload 2: store omitted -> unknown
+// overload 2: store omitted -> unknown
 export default function session(
   Infer?: Omit<Partial<ConfigInput>, "store">,
 ): SessionFacade<unknown>;
@@ -25,7 +25,7 @@ export default function session<S extends StoreSchema>(
   config?: Partial<ConfigInput> & { store?: DatabaseStore<S> },
 ): SessionFacade<any> {
   const parsed = configSchema.parse(config ?? {});
-  const store = parsed.store; // Use parsed store (includes default)
+  const store = parsed.store;
 
   // type is inferred from provided store, or unknown for default
   type T = S extends StoreSchema ? Infer<S> : unknown;

@@ -13,5 +13,5 @@ route.get(request => {
   const post = posts.find(({ id }) => id === _id);
   assert(post !== undefined);
 
-  return response.view("ViewPost.poly", { post });
+  return response.view("ViewPost.svelte", { post });
 });

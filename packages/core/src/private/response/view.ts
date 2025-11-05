@@ -58,14 +58,12 @@ function view(
  */
 function view(name: any, props?: Dict, options?: ViewOptions): ResponseFunction {
   const _name: string = name;
-  return (app, transfer, request) => {
+  return async (app, transfer, request) => {
     const found_view = extensions
       .map(extension => app.frontends[new FileRef(_name)[extension]])
       .find(extension => extension !== undefined)
       ?.(_name, props, options)(app, transfer, request);
-    if (found_view !== undefined) {
-      return found_view;
-    }
+    if (found_view !== undefined) return found_view;
     throw no_frontend(_name);
   };
 }
