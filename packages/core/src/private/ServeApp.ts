@@ -341,6 +341,7 @@ export default class ServeApp extends App {
         });
       }
     }, this.get<Conf>(s_http));
+
     log.system("started {0}", this.url);
   };
 

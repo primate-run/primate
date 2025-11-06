@@ -10,6 +10,7 @@ import log from "#log";
 import reducer from "#reducer";
 import $router from "#request/router";
 import wrap from "#route/wrap";
+import type ServeApp from "#ServeApp";
 import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
 import json from "@rcompat/package/json";
@@ -65,9 +66,8 @@ async function bundle_server(app: BuildApp) {
     );
 
     const frontends: esbuild.Plugin = {
-      name: "primate/bundle/production",
+      name: "primate/server/bundle",
       setup(build) {
-        // Compile frontend sources (e.g., .svelte) to JS
         build.onLoad({ filter }, async args => {
           const file = new FileRef(args.path);
           const binder = app.binder(file);
@@ -109,12 +109,45 @@ async function bundle_server(app: BuildApp) {
 
   plugins.push(db_plugin(app));
 
-  await esbuild.build({
+  if (app.mode === "development") {
+    let build_n = 0;
+    let serve_app: ServeApp | undefined;
+    plugins.push({
+      name: "primate/server/hot-reload",
+      setup(build) {
+        build.onEnd(async (result) => {
+          // don't do anything on errors
+          if (result.errors.length) return;
+          // we expect a single bundled file
+          const outFile = result.outputFiles?.[0];
+          if (!outFile) return;
+
+          const filename = `server.${build_n}.js`; // or a hash
+          const s = app.path.build.join(filename);
+          await s.write(outFile.text);
+
+          // stop old app
+          if (serve_app !== undefined) {
+            serve_app.stop();
+          }
+          serve_app = (await s.import()).default as ServeApp;
+
+          const stamp = app.runpath("client", "server-stamp.js");
+          await stamp.write(`export default ${build_n};\n`);
+
+          build_n++;
+        });
+      },
+    });
+  }
+
+  const build_options = {
     entryPoints: [app.path.build.join("serve.js").path],
     outfile: app.path.build.join("server.js").path,
     bundle: true,
     platform: "node",
     format: "esm",
+    packages: app.mode === "development" ? "external" : undefined,
     external: [...externals[runtime], "esbuild"],
     banner: {
       js: `
@@ -122,14 +155,18 @@ async function bundle_server(app: BuildApp) {
         const require = __createRequire(import.meta.url);
       `,
     },
-    loader: {
-      ".json": "json",
-    },
-    mainFields: ["module", "browser", "main"],
     resolveExtensions: [".ts", ".js", ...extensions],
     conditions: ["module", "import", ...conditions[runtime], "default", "node", ...app.conditions],
     plugins,
-  });
+    write: app.mode !== "development",
+  };
+  if (app.mode === "development") {
+    const context = await esbuild.context(build_options as never);
+    //await context.rebuild();
+    await context.watch();
+  } else {
+    await esbuild.build(build_options as never);
+  }
 
   log.warn("bundled server to {0}", app.path.build.join("server.js"));
 }
@@ -141,6 +178,8 @@ const pre = async (app: BuildApp) => {
 
   await Promise.all(["server", "client", "views"]
     .map(directory => app.runpath(directory).create()));
+  const stamp = app.runpath("client", "server-stamp.js");
+  await stamp.write("export default 0;\n");
 
   // this has to occur before post, so that layout depth is available for
   // compiling root views
@@ -382,6 +421,18 @@ const post = async (app: BuildApp) => {
       build.onResolve({ filter: /#static/ }, args => {
         const path = args.path.slice(1);
         return { path: app.root.join(path).path };
+      });
+    },
+  });
+
+  app.build.plugin({
+    name: "@primate/core/server-stamp",
+    setup(build) {
+      build.onResolve({ filter: /^server:stamp$/ }, () => {
+        return {
+          path: app.runpath("client", "server-stamp.js").path,
+          sideEffects: true,
+        };
       });
     },
   });
