@@ -141,6 +141,40 @@ async function bundle_server(app: BuildApp) {
     });
   }
 
+  const routes_plugin: esbuild.Plugin = {
+    name: "primate/routes-virtual",
+    setup(build) {
+      build.onResolve({ filter: /^#routes$/ }, () => {
+        console.log("on resolve");
+        return { path: "routes-virtual", namespace: "primate-routes" };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-routes" }, async () => {
+        console.log("on load");
+        const routeFiles = await app.path.routes.collect(f =>
+          f.path.match(/\.(ts|js)$/) !== null,
+        );
+        const contents = `
+const route = [];
+${routeFiles.map((file, i) => {
+          const path = app.basename(file, app.path.routes);
+          return `const route${i} = (await import("#route/${path}")).default;
+route.push(["${path}", route${i}]);`;
+        }).join("\n")}
+export default route;
+`;
+
+        return {
+          contents,
+          loader: "js",
+          resolveDir: app.root.path,
+          watchDirs: [app.path.routes.path],
+        };
+      });
+    },
+  };
+  plugins.push(routes_plugin);
+
   const build_options = {
     entryPoints: [app.path.build.join("serve.js").path],
     outfile: app.path.build.join("server.js").path,
@@ -308,6 +342,8 @@ ${app.mode === "development"
       ? "const views = [];"
       : `import views from "./${app.id}/views.js";`
     }
+import routes from "#routes";
+files.routes = routes;
 import stores from "./${app.id}/stores.js";
 import target from "./target.js";
 import session from "#session";
