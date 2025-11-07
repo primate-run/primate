@@ -10,7 +10,6 @@ export default p({
     sameSite: p.union("Strict", "Lax", "None").default("Lax"),
   },
   store: p.constructor(Store).default(() => {
-    console.log("running");
     return new Store({
       id: p.primary,
       session_id: p.string.uuid(),

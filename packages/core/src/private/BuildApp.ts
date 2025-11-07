@@ -20,7 +20,7 @@ export default class BuildApp extends App {
   conditions = new Set<string>();
   #postbuild: (() => void)[] = [];
   #roots: FileRef[] = [];
-  #server_build: string[] = ["route"];
+  #server_build: string[] = [];
   #id = crypto.randomUUID().slice(0, 8);
   #i18n_active = false;
   #paths!: Dict<string[]>;
