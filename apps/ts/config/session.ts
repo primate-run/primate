@@ -1,3 +1,6 @@
 import session from "primate/config/session";
+import Session from "#store/Session";
 
-export default session<{ foo: string }>();
+export default session({
+  store: Session,
+});
