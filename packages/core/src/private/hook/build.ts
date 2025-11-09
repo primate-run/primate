@@ -1,6 +1,5 @@
 import type BuildApp from "#BuildApp";
 import db_plugin from "#bundle/db";
-import require_plugin from "#bundle/require";
 import stores_plugin from "#bundle/stores";
 import views_plugin from "#bundle/views";
 import DEFAULT_PATHS from "#DEFAULT_PATHS";
@@ -17,6 +16,8 @@ import json from "@rcompat/package/json";
 import runtime from "@rcompat/runtime";
 import type Dict from "@rcompat/type/Dict";
 import * as esbuild from "esbuild";
+import { createRequire } from "node:module";
+const requirer = createRequire(import.meta.url);
 
 const externals = {
   node: ["node:"],
@@ -92,7 +93,7 @@ async function bundle_server(app: BuildApp) {
     app.extensions,
   ));
 
-  plugins.push(require_plugin());
+  //plugins.push(require_plugin());
 
   plugins.push(stores_plugin(
     app.path.stores.path,
@@ -145,12 +146,10 @@ async function bundle_server(app: BuildApp) {
     name: "primate/routes-virtual",
     setup(build) {
       build.onResolve({ filter: /^#routes$/ }, () => {
-        console.log("on resolve");
         return { path: "routes-virtual", namespace: "primate-routes" };
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-routes" }, async () => {
-        console.log("on load");
         const routeFiles = await app.path.routes.collect(f =>
           f.path.match(/\.(ts|js)$/) !== null,
         );
@@ -175,6 +174,91 @@ export default route;
   };
   plugins.push(routes_plugin);
 
+  const native_addon_plugin: esbuild.Plugin = {
+    name: "primate/native-addons",
+    setup(build) {
+      build.onResolve({ filter: /.*/ }, async args => {
+        // only check require calls for non-relative paths
+        if (args.kind === "require-call" && !args.path.startsWith(".") && !args.path.startsWith("/")) {
+          try {
+            // resolve the module from the import location
+            const module_path = requirer.resolve(args.path, {
+              paths: [args.resolveDir],
+            });
+            const module_dir = new FileRef(module_path).directory;
+
+            // check if this module has .node files
+            const node_files = await module_dir.collect(f => f.path.endsWith(".node"));
+
+            if (node_files.length > 0) {
+              const platform = process.platform;
+              const arch = process.arch;
+
+              let nodeFile = node_files.find(f =>
+                f.path.includes(`${platform}-${arch}`),
+              );
+              if (!nodeFile) {
+                nodeFile = node_files.find(f => f.path.includes(platform));
+              }
+              if (!nodeFile) {
+                throw fail("could not find matching binary addon");
+              }
+
+              const addon_name = node_files[0].name;
+              const dest = app.path.build.join("native", addon_name);
+              await dest.directory.create();
+              await node_files[0].copy(dest);
+
+              log.info("copied native addon {0}", addon_name);
+
+              return {
+                path: `./native/${addon_name}`,
+                external: true,
+              };
+            }
+          } catch {
+            // module not found or can't be resolved
+          }
+        }
+
+        return null;
+      });
+    },
+  };
+  plugins.push(native_addon_plugin);
+
+  const ignore_failed_requires: esbuild.Plugin = {
+    name: "primate/ignore-failed-requires",
+    setup(build) {
+      build.onResolve({ filter: /.*/ }, async args => {
+        // skip if we're already in our namespace (prevent recursion)
+        if (args.namespace === "ignore-failed-check") {
+          return null;
+        }
+
+        if (args.kind === "require-call" && !args.path.startsWith(".") && !args.path.startsWith("/")) {
+          try {
+            // resolve in a different namespace to avoid retriggering
+            const result = await build.resolve(args.path, {
+              kind: args.kind,
+              resolveDir: args.resolveDir,
+              namespace: "ignore-failed-check",
+            });
+
+            if (result.errors.length === 0) return null;
+          } catch {
+
+          }
+
+          return { path: args.path, external: true };
+        }
+
+        return null;
+      });
+    },
+  };
+  plugins.push(ignore_failed_requires);
+
   const build_options = {
     entryPoints: [app.path.build.join("serve.js").path],
     outfile: app.path.build.join("server.js").path,
@@ -183,6 +267,9 @@ export default route;
     format: "esm",
     packages: app.mode === "development" ? "external" : undefined,
     external: [...externals[runtime], "esbuild"],
+    loader: {
+      ".json": "json",  // Import JSON as ESM modules
+    },
     banner: {
       js: `
         import { createRequire as __createRequire } from "node:module";
@@ -190,7 +277,7 @@ export default route;
       `,
     },
     resolveExtensions: [".ts", ".js", ...extensions],
-    conditions: ["module", "import", ...conditions[runtime], "default", "node", ...app.conditions],
+    conditions: [...conditions[runtime], "node", "module", "import", "default", ...app.conditions],
     plugins,
     write: app.mode !== "development",
   };
