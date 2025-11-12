@@ -18,7 +18,7 @@
     "@primate/angular": "workspace:^",
     "@primate/sqlite": "workspace:^",
     "@rcompat/assert": "^0.3.1",
-    "@rcompat/fs": "^0.22.0",
+    "@rcompat/fs": "^0.22.3",
     "pema": "workspace:^",
     "primate": "workspace:^"
   }

@@ -10,6 +10,7 @@
     "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
+    "@lucide/svelte": "^0.553.0",
     "@primate/sqlite": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@rcompat/assert": "^0.3.1",
