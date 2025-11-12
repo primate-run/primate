@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@primate/html": "workspace:^",
-    "@rcompat/fs": "^0.22.0",
+    "@rcompat/fs": "^0.22.3",
     "pema": "workspace:^",
     "primate": "workspace:^"
   }

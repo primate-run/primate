@@ -1,7 +1,7 @@
 import markdown from "@primate/markdown";
 import poly from "@primate/poly";
 import FileRef from "@rcompat/fs/FileRef";
-import root from "@rcompat/package/root";
+import root from "@rcompat/fs/project/root";
 import config from "primate/config";
 import type { SpecialLanguage } from "shiki";
 import { createHighlighter } from "shiki";

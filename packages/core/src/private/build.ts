@@ -6,7 +6,7 @@ import fail from "#fail";
 import log from "#log";
 import type Mode from "#Mode";
 import type FileRef from "@rcompat/fs/FileRef";
-import root from "@rcompat/package/root";
+import root from "@rcompat/fs/project/root";
 import empty from "@rcompat/record/empty";
 
 const no_config = (config?: Config) => config === undefined || empty(config);

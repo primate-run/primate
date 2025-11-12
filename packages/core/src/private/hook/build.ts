@@ -12,11 +12,12 @@ import wrap from "#route/wrap";
 import type ServeApp from "#ServeApp";
 import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
-import json from "@rcompat/package/json";
+import pkg from "@rcompat/fs/project/package";
 import runtime from "@rcompat/runtime";
 import type Dict from "@rcompat/type/Dict";
 import * as esbuild from "esbuild";
 import { createRequire } from "node:module";
+
 const requirer = createRequire(import.meta.url);
 
 const externals = {
@@ -31,6 +32,45 @@ const conditions = {
 };
 
 const dirname = import.meta.dirname;
+
+function wasm_plugin(app: BuildApp): esbuild.Plugin {
+  return {
+    name: "primate/wasm",
+    async setup(build) {
+      const manifest: Dict<string> = {};
+      const wasm_dir = app.path.build.join("wasm");
+      await wasm_dir.create();
+
+      build.onResolve({ filter: /\.wasm$/ }, args => {
+        return {
+          path: new FileRef(args.resolveDir).join(args.path).path,
+          namespace: "primate-wasm",
+        };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-wasm" }, async args => {
+        const file = new FileRef(args.path);
+        const hash = await file.hash();
+        const hashname = `${hash}.wasm`;
+
+        await wasm_dir.create();
+        await file.copy(wasm_dir.join(hashname));
+
+        manifest[args.path] = hashname;
+
+        return {
+          contents: `export default "${hashname}";`,
+          loader: "js",
+          resolveDir: app.path.build.path,
+        };
+      });
+
+      build.onEnd(async () => {
+        await wasm_dir.join("manifest.json").writeJSON(manifest);
+      });
+    },
+  };
+}
 
 async function bundle_server(app: BuildApp) {
   const routes: esbuild.Plugin = {
@@ -93,8 +133,6 @@ async function bundle_server(app: BuildApp) {
     app.extensions,
   ));
 
-  //plugins.push(require_plugin());
-
   plugins.push(stores_plugin(
     app.path.stores.path,
     async (file) => {
@@ -127,16 +165,21 @@ async function bundle_server(app: BuildApp) {
           const s = app.path.build.join(filename);
           await s.write(outFile.text);
 
-          // stop old app
-          if (serve_app !== undefined) {
-            serve_app.stop();
+          try {
+            // stop old app
+            if (serve_app !== undefined) {
+              serve_app.stop();
+            }
+            serve_app = (await s.import()).default as ServeApp;
+
+            const stamp = app.runpath("client", "server-stamp.js");
+            await stamp.write(`export default ${build_n};\n`);
+
+            build_n++;
+          } catch (err) {
+            console.error("[primate/server/hot-reload] failed to import", filename);
+            console.error(err);
           }
-          serve_app = (await s.import()).default as ServeApp;
-
-          const stamp = app.runpath("client", "server-stamp.js");
-          await stamp.write(`export default ${build_n};\n`);
-
-          build_n++;
         });
       },
     });
@@ -150,24 +193,25 @@ async function bundle_server(app: BuildApp) {
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-routes" }, async () => {
-        const routeFiles = await app.path.routes.collect(f =>
-          f.path.match(/\.(ts|js)$/) !== null,
+        const route_files = await app.path.routes.collect(f =>
+          f.path.match(/\.(ts|js|py)$/) !== null,
         );
         const contents = `
-const route = [];
-${routeFiles.map((file, i) => {
+          const route = [];
+          ${route_files.map((file, i) => {
           const path = app.basename(file, app.path.routes);
           return `const route${i} = (await import("#route/${path}")).default;
-route.push(["${path}", route${i}]);`;
+            route.push(["${path}", route${i}]);`;
         }).join("\n")}
-export default route;
-`;
+          export default route;
+        `;
 
         return {
           contents,
           loader: "js",
           resolveDir: app.root.path,
           watchDirs: [app.path.routes.path],
+          watchFiles: route_files.map(f => f.path),
         };
       });
     },
@@ -259,6 +303,85 @@ export default route;
   };
   plugins.push(ignore_failed_requires);
 
+  // 1) .py import loader that can also unwrap virtual paths
+  const python_loader: esbuild.Plugin = {
+    name: "primate/python-loader",
+    setup(build) {
+      build.onResolve({ filter: /\.py$/ }, args => {
+        // normalize a few shapes we know can appear
+        if (args.path.startsWith("#route/")) {
+          const rel = args.path.slice("#route/".length);
+          const real = app.path.routes.join(rel).path;
+          return { path: real, namespace: "python-source" };
+        }
+
+        // sometimes the generated JS will say "routes/foo.py"
+        if (args.path.startsWith("routes/")) {
+          const rel = args.path.slice("routes/".length);
+          const real = app.path.routes.join(rel).path;
+          return { path: real, namespace: "python-source" };
+        }
+
+        // absolute or already-correct path
+        return {
+          path: args.path,
+          namespace: "python-source",
+        };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "python-source" }, async args => {
+        const file = new FileRef(args.path);
+        const content = await file.text();
+
+        return {
+          contents: `export default ${JSON.stringify(content)};`,
+          loader: "js",
+          resolveDir: file.directory.path,
+          watchFiles: [file.path],
+        };
+      });
+    },
+  };
+  plugins.push(python_loader);
+
+  // 2) wrap actual route .py files into JS that calls the Python wrapper
+  const python_routes: esbuild.Plugin = {
+    name: "primate/python-route-wrap",
+    setup(build) {
+      const routes_re = /[/\\]routes[/\\].+\.py$/;
+
+      build.onLoad({ filter: routes_re }, async args => {
+        const file = new FileRef(args.path);
+        const binder = app.binder(file);
+        if (!binder) {
+          // fall back to empty module so esbuild doesn't explode
+          return { contents: "export default {};", loader: "js" };
+        }
+
+        const compiled = await binder(file, {
+          build: { id: app.id, stage: app.runpath("stage") },
+          context: "routes",
+        });
+
+        const relFromRoutes = args.path.split("routes").pop()!;
+        const noExt = relFromRoutes.replace(/^[\\/]/, "").replace(/\.py$/, "");
+        const routePath = noExt.replace(/\\/g, "/");
+
+        const wrapped = wrap(compiled, routePath, app.id);
+
+        return {
+          contents: wrapped,
+          loader: "js",
+          resolveDir: file.directory.path,
+          watchFiles: [file.path],
+        };
+      });
+    },
+  };
+  plugins.push(python_routes);
+
+  plugins.push(wasm_plugin(app));
+
   const build_options = {
     entryPoints: [app.path.build.join("serve.js").path],
     outfile: app.path.build.join("server.js").path,
@@ -276,7 +399,7 @@ export default route;
         const require = __createRequire(import.meta.url);
       `,
     },
-    resolveExtensions: [".ts", ".js", ...extensions],
+    resolveExtensions: [".ts", ".js", ...extensions, ".py"],
     conditions: [...conditions[runtime], "node", "module", "import", "default", ...app.conditions],
     plugins,
     write: app.mode !== "development",
@@ -590,7 +713,7 @@ const post = async (app: BuildApp) => {
   }
 
   const manifest_data = {
-    ...await (await json()).json() as Dict,
+    ...await (await pkg()).json() as Dict,
     type: "module",
     imports: _imports,
   };

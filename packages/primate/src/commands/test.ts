@@ -2,7 +2,7 @@ import { tests, type Body, type MockedResponse } from "#test";
 import build from "@primate/core/build";
 import green from "@rcompat/cli/color/green";
 import red from "@rcompat/cli/color/red";
-import root from "@rcompat/package/root";
+import root from "@rcompat/fs/project/root";
 import entries from "@rcompat/record/entries";
 import equals from "@rcompat/test/equals";
 import includes from "@rcompat/test/includes";

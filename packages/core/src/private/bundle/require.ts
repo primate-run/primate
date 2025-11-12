@@ -1,5 +1,5 @@
 import FileRef from "@rcompat/fs/FileRef";
-import root from "@rcompat/package/root";
+import root from "@rcompat/fs/project/root";
 import type { Plugin } from "esbuild";
 import { createRequire } from "node:module";
 
