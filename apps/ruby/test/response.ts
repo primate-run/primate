@@ -12,5 +12,5 @@ test.get("/response/redirect", response => {
 });
 
 test.get("/response/view", response => {
-  response.body.includes("<h1>View</h1>Hello, world.");
+  response.body.includes("<h1>View</h1> Hello, world.");
 });

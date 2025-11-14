@@ -208,7 +208,7 @@ export default class ServeApp extends App {
     const view = this.#views[base];
     if (view === undefined) throw fail("missing view component {0}", name);
     if (view.default === undefined) {
-      throw fail(`view {0} must export a default component`, name);
+      throw fail("view {0} must export a default component", name);
     }
     return view.default as T;
   };

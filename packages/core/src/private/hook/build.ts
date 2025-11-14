@@ -186,7 +186,7 @@ async function bundle_server(app: BuildApp) {
   }
 
   const routes_plugin: esbuild.Plugin = {
-    name: "primate/routes-virtual",
+    name: "primate/virtual/routes",
     setup(build) {
       build.onResolve({ filter: /^#routes$/ }, () => {
         return { path: "routes-virtual", namespace: "primate-routes" };
@@ -194,7 +194,7 @@ async function bundle_server(app: BuildApp) {
 
       build.onLoad({ filter: /.*/, namespace: "primate-routes" }, async () => {
         const route_files = await app.path.routes.collect(f =>
-          f.path.match(/\.(ts|js|py)$/) !== null,
+          f.path.match(/\.(ts|js|py|rb)$/) !== null,
         );
         const contents = `
           const route = [];
@@ -217,6 +217,41 @@ async function bundle_server(app: BuildApp) {
     },
   };
   plugins.push(routes_plugin);
+
+  const virtual_views_plugin: esbuild.Plugin = {
+    name: "primate/virtual/views",
+    setup(build) {
+      build.onResolve({ filter: /^#views/ }, () => {
+        return { path: "views-virtual", namespace: "primate-views" };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-views" }, async () => {
+        const files = await app.path.views.collect();
+        const contents = `
+        const view = [];
+        ${files.map((file, i) => {
+          const path = app.basename(file, app.path.views);
+          return `
+            import * as view${i} from "${FileRef.webpath(`view:${path}`)}";
+            view.push(["${FileRef.webpath(path)}", view${i}]);`;
+        }).join("\n")}
+
+        ${app.roots.map((root, i) => `
+          import * as root${i} from "${FileRef.webpath(`./build/server/${root.name}`)}";
+          view.push(["${root.name.slice(0, -".js".length)}", root${i}]);
+        `).join("\n")}
+
+        export default view;`;
+
+        return {
+          contents,
+          loader: "js",
+          resolveDir: app.root.path,
+        };
+      });
+    },
+  };
+  plugins.push(virtual_views_plugin);
 
   const native_addon_plugin: esbuild.Plugin = {
     name: "primate/native-addons",
@@ -380,6 +415,41 @@ async function bundle_server(app: BuildApp) {
   };
   plugins.push(python_routes);
 
+  const ruby_routes: esbuild.Plugin = {
+    name: "primate/ruby-route-wrap",
+    setup(build) {
+      const routes_re = /[/\\]routes[/\\].+\.rb$/;
+
+      build.onLoad({ filter: routes_re }, async args => {
+        const file = new FileRef(args.path);
+        const binder = app.binder(file);
+
+        if (!binder) return { contents: "export {};", loader: "js" };
+
+        const compiled = await binder(file, {
+          build: { id: app.id, stage: app.runpath("stage") },
+          context: "routes",
+        });
+
+        // now figure out the route path from its location under routes/
+        const relFromRoutes = args.path.split("routes").pop()!;
+        const noExt = relFromRoutes.replace(/^[\\/]/, "").replace(/\.rb$/, "");
+        const routePath = noExt.replace(/\\/g, "/");
+
+        // and wrap it so the router sees the right path
+        const wrapped = wrap(compiled, routePath, app.id);
+
+        return {
+          contents: wrapped,
+          loader: "js",
+          resolveDir: file.directory.path,
+          watchFiles: [file.path],
+        };
+      });
+    },
+  };
+  plugins.push(ruby_routes);
+
   plugins.push(wasm_plugin(app));
 
   const build_options = {
@@ -399,7 +469,7 @@ async function bundle_server(app: BuildApp) {
         const require = __createRequire(import.meta.url);
       `,
     },
-    resolveExtensions: [".ts", ".js", ...extensions, ".py"],
+    resolveExtensions: [".ts", ".js", ...extensions, ".py", ".rb"],
     conditions: [...conditions[runtime], "node", "module", "import", "default", ...app.conditions],
     plugins,
     write: app.mode !== "development",
@@ -420,7 +490,7 @@ const pre = async (app: BuildApp) => {
   await app.path.build.remove();
   await app.path.build.create();
 
-  await Promise.all(["server", "client", "views"]
+  await Promise.all(["server", "client"]
     .map(directory => app.runpath(directory).create()));
   const stamp = app.runpath("client", "server-stamp.js");
   await stamp.write("export default 0;\n");
@@ -519,27 +589,6 @@ export default store;`;
   await build_directory.join("stores.js").write(stores_js);
 };
 
-const write_views = async (build_directory: FileRef, app: BuildApp) => {
-  const d2 = app.runpath(location.views);
-  const e = await Promise.all((await FileRef.collect(d2, file =>
-    js_re.test(file.path)))
-    .map(async path => `${path}`.replace(d2.toString(), _ => "")));
-  const views_js = `
-const view = [];
-${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
-    `import * as view${i} from "${FileRef.webpath(`view:${bare}`)}";
-view.push(["${FileRef.webpath(bare)}", view${i}]);`,
-  ).join("\n")}
-
-${app.roots.map((root, i) => `
-import * as root${i} from "${FileRef.webpath(`../server/${root.name}`)}";
-view.push(["${root.name.slice(0, -".js".length)}", root${i}]);
-`).join("\n")}
-
-export default view;`;
-  await build_directory.join("views.js").write(views_js);
-};
-
 const write_bootstrap = async (app: BuildApp, mode: string, i18n_active: boolean) => {
   const build_start_script = `
 import serve from "primate/serve";
@@ -550,7 +599,7 @@ ${app.server_build.map(name => `${name}s`).map(name =>
   ).join("\n")}
 ${app.mode === "development"
       ? "const views = [];"
-      : `import views from "./${app.id}/views.js";`
+      : "import views from \"#views\";"
     }
 import routes from "#routes";
 files.routes = routes;
@@ -618,11 +667,6 @@ const post = async (app: BuildApp) => {
       const directory = v[0].slice(0, -"/*".length);
       await app.compile(app.root.join(directory), directory);
     }
-  }
-
-  // view components
-  if (app.mode !== "development") {
-    await app.compile(app.path.views, "views");
   }
 
   // copy framework pages
@@ -693,9 +737,6 @@ const post = async (app: BuildApp) => {
   // TODO: remove after rcompat automatically creates directories
   await build_directory.create();
 
-  if (app.mode !== "development") {
-    await write_views(build_directory, app);
-  }
   await write_stores(build_directory, app);
   await write_directories(build_directory, app);
   await write_bootstrap(app, app.mode, app.i18n_active);

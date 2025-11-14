@@ -4,15 +4,17 @@
   "scripts": {
     "start": "npx primate",
     "build": "npx primate build",
+    "serve": "npx primate serve",
     "test": "npx primate test",
     "test:deno": "deno run -A npm:primate test",
     "test:bun": "bun x --bun primate test",
     "ruby:install": "bundle config set --local path 'vendor/bundle' && bundle install"
   },
   "dependencies": {
-    "@primate/html": "workspace:^",
     "@primate/ruby": "workspace:^",
+    "@primate/svelte": "workspace:^",
     "@ruby/head-wasm-wasi": "^2.7.1",
-    "primate": "workspace:^"
+    "primate": "workspace:^",
+    "svelte": "^5.43.3"
   }
 }
