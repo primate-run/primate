@@ -7,5 +7,5 @@ import (
 )
 
 var _ = route.Get(func(_ route.Request) any {
-	return response.View("index.html", core.Dict{"hello": "world"})
+	return response.View("index.svelte", core.Dict{"hello": "world"})
 })

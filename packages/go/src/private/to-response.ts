@@ -1,44 +1,45 @@
 import error from "@primate/core/response/error";
 import redirect from "@primate/core/response/redirect";
-import type ResponseFunction from "@primate/core/response/ResponseFunction";
 import type ResponseLike from "@primate/core/response/ResponseLike";
 import view from "@primate/core/response/view";
-import type Dict from "@rcompat/type/Dict";
 
-type Handler = "error" | "redirect" | "view";
+const handlers = { error, redirect, view };
+type Handler = keyof typeof handlers;
 
-const parse = (input: null | string) =>
-  input === null ? undefined : JSON.parse(input);
+const is_handler = (handler: unknown): handler is Handler =>
+  typeof handler === "string" && Object.keys(handlers).includes(handler);
 
-const handle_handler = (handler: Handler, response: Dict) => {
-  if (handler === "view") {
-    const { component, options, props } = response as {
-      component: string;
-      options: null | string;
-      props: null | string;
-    };
-    return view(component, parse(props), parse(options));
-  }
-  if (handler === "redirect") {
-    const { location, status } = response as {
-      location: string;
-      status: null | Parameters<typeof redirect>[1];
-    };
-    return redirect(location, status === null ? undefined : status);
+export default (response: any): ResponseLike => {
+  if (typeof response === "string") {
+    try {
+      response = JSON.parse(response);
+    } catch {
+      return response;
+    }
   }
 
-  const { options } = response as {
-    options: null | string;
-  };
-  return error(parse(options));
-};
+  if (response && typeof response === "object") {
+    const handler = response.handler;
 
-type ResponseType = (() => { handler: Handler } & Dict) | string;
+    if (is_handler(handler)) {
+      if (handler === "view") {
+        const { component, props, options } = response;
+        return view(
+          component,
+          props ? JSON.parse(props) : {},
+          options ? JSON.parse(options) : {},
+        );
+      }
 
-export default (response: ResponseType): ResponseLike => {
-  if (typeof response === "function") {
-    const { handler, ...args } = response();
-    return handle_handler(handler as Handler, args) as ResponseFunction;
+      if (handler === "redirect") {
+        const { location, status } = response;
+        return redirect(location, status);
+      }
+
+      const { options } = response;
+      return error(options ? JSON.parse(options) : {});
+    }
   }
-  return JSON.parse(response);
+
+  return response;
 };
