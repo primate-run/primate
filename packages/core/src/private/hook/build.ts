@@ -188,14 +188,29 @@ async function bundle_server(app: BuildApp) {
   const routes_plugin: esbuild.Plugin = {
     name: "primate/virtual/routes",
     setup(build) {
+      const routes_path = app.path.routes;
+
       build.onResolve({ filter: /^#routes$/ }, () => {
         return { path: "routes-virtual", namespace: "primate-routes" };
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-routes" }, async () => {
-        const route_files = await app.path.routes.collect(f =>
-          f.path.match(/\.(ts|js|py|rb)$/) !== null,
+        const route_files = await routes_path.collect(f =>
+          f.path.match(/\.(ts|js|py|rb|go)$/) !== null,
         );
+
+        const watchDirs = new Set<string>();
+        const findDirs = async (dir: FileRef) => {
+          watchDirs.add(dir.path);
+          const entries = await dir.list();
+          for (const entry of entries) {
+            if (await entry.isDirectory()) {
+              await findDirs(entry);
+            }
+          }
+        };
+        await findDirs(app.path.routes);
+
         const contents = `
           const route = [];
           ${route_files.map((file, i) => {
@@ -210,7 +225,7 @@ async function bundle_server(app: BuildApp) {
           contents,
           loader: "js",
           resolveDir: app.root.path,
-          watchDirs: [app.path.routes.path],
+          watchDirs: [...watchDirs],
           watchFiles: route_files.map(f => f.path),
         };
       });
@@ -338,7 +353,6 @@ async function bundle_server(app: BuildApp) {
   };
   plugins.push(ignore_failed_requires);
 
-  // 1) .py import loader that can also unwrap virtual paths
   const python_loader: esbuild.Plugin = {
     name: "primate/python-loader",
     setup(build) {
@@ -379,7 +393,6 @@ async function bundle_server(app: BuildApp) {
   };
   plugins.push(python_loader);
 
-  // 2) wrap actual route .py files into JS that calls the Python wrapper
   const python_routes: esbuild.Plugin = {
     name: "primate/python-route-wrap",
     setup(build) {
@@ -450,7 +463,61 @@ async function bundle_server(app: BuildApp) {
   };
   plugins.push(ruby_routes);
 
-  plugins.push(wasm_plugin(app));
+  const go_routes: esbuild.Plugin = {
+    name: "primate/go-route-wrap",
+    setup(build) {
+      const routes_re = /[/\\]routes[/\\].+\.go$/;
+
+      build.onLoad({ filter: routes_re }, async args => {
+        const file = new FileRef(args.path);
+        const binder = app.binder(file);
+
+        if (!binder) return { contents: "export {};", loader: "js" };
+
+        const compiled = await binder(file, {
+          build: { id: app.id, stage: app.runpath("stage") },
+          context: "routes",
+        });
+
+        // figure out the route path from its location under routes/
+        const relFromRoutes = args.path.split("routes").pop()!;
+        const noExt = relFromRoutes.replace(/^[\\/]/, "").replace(/\.go$/, "");
+        const routePath = noExt.replace(/\\/g, "/");
+
+        const wasmPath = app.runpath("wasm", `${routePath}.wasm`).path;
+        // wrap it so the router sees the right path
+        const wrapped = wrap(compiled, routePath, app.id);
+
+        return {
+          contents: wrapped,
+          loader: "js",
+          resolveDir: file.directory.path,
+          watchFiles: [file.path, wasmPath],
+        };
+      });
+    },
+  };
+  plugins.push(go_routes);
+
+  //  plugins.push(wasm_plugin(app));
+  //
+  const wasm_rewrite: esbuild.Plugin = {
+    name: "primate/wasm/rewrite",
+    setup(build) {
+      const re = /^#wasm\/(.+)\.wasm$/;
+
+      build.onResolve({ filter: re }, (args) => {
+        const match = re.exec(args.path);
+        if (!match) return;
+
+        return {
+          path: app.runpath("wasm", match[1]).path + ".wasm",
+          namespace: "file",
+        };
+      });
+    },
+  };
+  plugins.push(wasm_rewrite);
 
   const build_options = {
     entryPoints: [app.path.build.join("serve.js").path],
@@ -469,7 +536,7 @@ async function bundle_server(app: BuildApp) {
         const require = __createRequire(import.meta.url);
       `,
     },
-    resolveExtensions: [".ts", ".js", ...extensions, ".py", ".rb"],
+    resolveExtensions: [".ts", ".js", ...extensions, ".py", ".rb", ".go"],
     conditions: [...conditions[runtime], "node", "module", "import", "default", ...app.conditions],
     plugins,
     write: app.mode !== "development",
@@ -634,13 +701,6 @@ export default app;
 
 const post = async (app: BuildApp) => {
   const defaults = FileRef.join(import.meta.url, "../../defaults");
-
-  await app.compile(app.path.routes, "routes", {
-    loader: (source, file) => {
-      const path = app.basename(file, app.path.routes);
-      return wrap(source, path, app.id);
-    },
-  });
 
   const configs = FileRef.join(dirname, "../../private/config/config");
   const database_base = app.path.config.join("database");

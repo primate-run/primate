@@ -1,14 +1,2 @@
-github.com/primate-run/go v0.1.3 h1:jppKNy3DJJ7XlxLjg2L11OL8eVwmKNykCD/mAYgMNKg=
-github.com/primate-run/go v0.1.3/go.mod h1:yHjK7rekflvLfd+9uYIJtfAIJ89z/fp73waDKCZdEkk=
-github.com/primate-run/go v0.1.4 h1:Q5IK0RDIQt0X5FyTgoJz86zPm0Or/hOtHqlxiHvSz1E=
-github.com/primate-run/go v0.1.4/go.mod h1:yHjK7rekflvLfd+9uYIJtfAIJ89z/fp73waDKCZdEkk=
-github.com/primate-run/go v0.1.5 h1:4kWjndrQDyUF6/YTZ5itVpWZ7GEZ8tETa+sL8J2jjT0=
-github.com/primate-run/go v0.1.5/go.mod h1:yHjK7rekflvLfd+9uYIJtfAIJ89z/fp73waDKCZdEkk=
-github.com/primate-run/go v0.1.6 h1:XOkFIWoHiwaT7LHTGzQFXgWB+KtoI7iIGivNJ1cvA6w=
-github.com/primate-run/go v0.1.6/go.mod h1:yHjK7rekflvLfd+9uYIJtfAIJ89z/fp73waDKCZdEkk=
-github.com/primate-run/go v0.1.7 h1:6gqsN/8Np2C5aLknrlJqJoVkY9lgw32t35WFVsUfESo=
-github.com/primate-run/go v0.1.7/go.mod h1:yHjK7rekflvLfd+9uYIJtfAIJ89z/fp73waDKCZdEkk=
-github.com/primate-run/go v0.1.8 h1:/VOJa/RTLwlbEUnaWs6p2+q3AeyyHoVPD44wNGBPUG4=
-github.com/primate-run/go v0.1.8/go.mod h1:yHjK7rekflvLfd+9uYIJtfAIJ89z/fp73waDKCZdEkk=
-github.com/primate-run/go v0.2.0 h1:AmV6fAAot4tUsFfaIvO8Uc6vhdWKrVDNwJWnWlI12u4=
-github.com/primate-run/go v0.2.0/go.mod h1:yHjK7rekflvLfd+9uYIJtfAIJ89z/fp73waDKCZdEkk=
+github.com/primate-run/go v0.3.0 h1:Zw/6lz8MklkSDWBusSUab3EDzSwqjaf9E3+NqMbc+QA=
+github.com/primate-run/go v0.3.0/go.mod h1:yHjK7rekflvLfd+9uYIJtfAIJ89z/fp73waDKCZdEkk=

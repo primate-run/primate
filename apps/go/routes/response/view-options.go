@@ -9,7 +9,7 @@ import (
 type dict = core.Dict
 
 var _ = route.Get(func(_ route.Request) any {
-	return response.View("index.html",
+	return response.View("index.svelte",
 		dict{"hello": "world"},
 		dict{"partial": true},
 	)
