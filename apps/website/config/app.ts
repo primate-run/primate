@@ -1,18 +1,19 @@
-import markdown from "@primate/markdown";
-import poly from "@primate/poly";
-import FileRef from "@rcompat/fs/FileRef";
-import root from "@rcompat/fs/project/root";
-import config from "primate/config";
-import type { SpecialLanguage } from "shiki";
-import { createHighlighter } from "shiki";
 import type BuildApp from "@primate/core/BuildApp";
 import Module from "@primate/core/Module";
 import type NextBuild from "@primate/core/NextBuild";
 import type NextHandle from "@primate/core/NextHandle";
 import type NextServe from "@primate/core/NextServe";
 import type ServeApp from "@primate/core/ServeApp";
+import handlebars from "@primate/handlebars";
+import markdown from "@primate/markdown";
+import svelte from "@primate/svelte";
+import type FileRef from "@rcompat/fs/FileRef";
+import root from "@rcompat/fs/project/root";
 import Status from "@rcompat/http/Status";
+import config from "primate/config";
 import type RequestFacade from "primate/RequestFacade";
+import { createHighlighter } from "shiki";
+import grain from "./grain.json" with { type: "json" };
 
 const cookie = (name: string, value: string, secure: boolean) =>
   `${name}=${value};HttpOnly;Path=/;${secure};SameSite=Strict`;
@@ -66,20 +67,7 @@ const Priss = class extends Module {
 
   async build(app: BuildApp, next: NextBuild) {
     const views = app.path.views;
-    const entries = await views.join("content", "blog").list();
-    const jsons = (await Promise.all(entries
-      .filter(({ path }) => path.endsWith(".json"))
-      .map(async file => ({
-        description: (await file.directory.join(`${file.base}.md`).text())
-          .split("\n\n")[0],
-        link: `${blog_base}/${file.base}`,
-        ...(await file.json<{ epoch: number; title: string }>()),
-      }))))
-      .toSorted((a, b) => Math.sign(b.epoch - a.epoch))
-      .map(({ description, link, title }) => ({ description, link, title }))
-      ;
     await app.runpath("blog").create();
-    await app.runpath("blog", "entries.json").writeJSON(jsons);
 
     // collect guide categories and names
     const base = views.join("content", "guides");
@@ -164,9 +152,6 @@ const sorting = [
   "Component",
 ];
 
-const grain = await FileRef.join(import.meta.dirname, "grain.js")
-  .json<SpecialLanguage>();
-
 function trim(filename: string) {
   return /^\d-/.test(filename) ? filename.slice(2) : filename;
 }
@@ -230,6 +215,7 @@ export default config({
     },
   },
   modules: [
+    handlebars(),
     markdown({
       marked: {
         hooks: {
@@ -377,7 +363,7 @@ export default config({
         return replaced;
       },
     }),
-    poly(),
+    svelte(),
     new Priss({
       blog: true,
       description: "The universal web framework",

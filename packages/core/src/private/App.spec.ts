@@ -1,4 +1,4 @@
-import App from "#App";
+import BuildApp from "#BuildApp";
 import config from "#config/index";
 import FileRef from "@rcompat/fs/FileRef";
 import test from "@rcompat/test";
@@ -8,7 +8,7 @@ const testConfig = config({
   modules: [],
 });
 
-class TestApp extends App {
+class TestApp extends BuildApp {
   constructor() {
     super(root, testConfig, "testing");
     this.bind(".component.ts", () => "");

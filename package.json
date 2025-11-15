@@ -23,7 +23,7 @@
     "@rcompat/type": "^0.6.1",
     "@types/deno": "^2.5.0",
     "@types/node": "^24.9.2",
-    "apekit": "^0.0.40",
+    "apekit": "^0.0.41",
     "esbuild": "^0.25.11",
     "eslint": "^9.38.0",
     "knip": "^5.66.4",

@@ -526,7 +526,7 @@ async function bundle_server(app: BuildApp) {
     platform: "node",
     format: "esm",
     packages: app.mode === "development" ? "external" : undefined,
-    external: [...externals[runtime], "esbuild"],
+    external: [...externals[runtime]],
     loader: {
       ".json": "json",  // Import JSON as ESM modules
     },
@@ -537,7 +537,7 @@ async function bundle_server(app: BuildApp) {
       `,
     },
     resolveExtensions: [".ts", ".js", ...extensions, ".py", ".rb", ".go"],
-    conditions: [...conditions[runtime], "node", "module", "import", "default", ...app.conditions],
+    conditions: [...conditions[runtime], "node", "module", "import", "runtime", "default", ...app.conditions],
     plugins,
     write: app.mode !== "development",
   };
@@ -664,10 +664,7 @@ ${app.server_build.map(name => `${name}s`).map(name =>
     `import ${name} from "./${app.id}/${name}.js";
      files.${name} = ${name};`,
   ).join("\n")}
-${app.mode === "development"
-      ? "const views = [];"
-      : "import views from \"#views\";"
-    }
+import views from "#views";
 import routes from "#routes";
 files.routes = routes;
 import stores from "./${app.id}/stores.js";

@@ -89,7 +89,7 @@ export default abstract class FrontendModule<
   }
 
   get ssr() {
-    return this.#mode !== "development" && this.#options.ssr;
+    return this.#options.ssr && (this.#mode !== "development" || !this.client);
   }
 
   get spa() {
@@ -97,9 +97,7 @@ export default abstract class FrontendModule<
   }
 
   #load(name: string, props: Dict, app: ServeApp) {
-    if (this.#mode === "development") {
-      return { view: null, name, props };
-    }
+    if (!this.ssr) return { view: null, name, props };
     const view = app.loadView(name)!;
     return { view, name, props };
   };
@@ -179,8 +177,10 @@ export default abstract class FrontendModule<
           status: options.status ?? Status.OK,
         });
       }
-      if (this.#mode === "development") {
-        const { head } = await this.#render({ view: null as any, props: {} }, client, app);
+      if (!this.ssr) {
+        const { head } = await this.#render({ view: null as any, props: {} },
+          client,
+          app);
         return app.view({ body: "<div id=\"app\"></div>", head, ...options });
       }
       try {
@@ -299,16 +299,16 @@ export default abstract class FrontendModule<
     }
   }
 
-  #create_wrapper(view: string) {
-    return `export default "${view}";`;
-  }
-
   init<T extends App>(app: T, next: Next<T>) {
     this.#mode = app.mode;
 
+    return next(app);
+  }
+
+  prebuild(app: BuildApp) {
     this.fileExtensions.forEach(e => {
       app.bind(e, async (file, { context }) => {
-        if (context === "views" && this.#mode === "development") return "";
+        if (context === "views" && !this.ssr) return "";
 
         // production: just compile to JS, don't bundle yet
         if (this.compile.server) {
@@ -318,11 +318,11 @@ export default abstract class FrontendModule<
         return await file.text();
       });
     });
-
-    return next(app);
   }
 
   async build(app: BuildApp, next: NextBuild) {
+    this.prebuild(app);
+
     // compile root server
     if (this.root !== undefined && this.compile.server !== undefined) {
       const filename = `${this.rootname}.js`;

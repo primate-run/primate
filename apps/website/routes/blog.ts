@@ -1,3 +1,4 @@
+import views from "#views";
 import type Component from "@primate/markdown/Component";
 import response from "primate/response";
 import route from "primate/route";
@@ -13,11 +14,12 @@ type Post = {
 
 route.get(request => {
   return async app => {
-    const directory = app.root.join(`views/${base}`);
-    const posts = (await directory.collect(f => f.path.endsWith("internal.js")))
+    const blog_posts =
+      views.map(([a]) => a).filter(a => a.startsWith("content/blog"));
+    const posts = blog_posts
       .map(post => ({
-        href: post.base,
-        ...app.loadView<Post>(`${base}/${post.base}.md`),
+        href: post.slice(base.length + 1),
+        ...app.loadView<Post>(`${post}.md`),
       }))
       .toSorted((a, b) => a.meta.epoch < b.meta.epoch ? 1 : - 1);
     const config = request.config;

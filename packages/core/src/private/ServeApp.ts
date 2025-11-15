@@ -204,9 +204,12 @@ export default class ServeApp extends App {
 
   loadView<T = ServerView>(name: string) {
     const f = new FileRef(name);
-    const base = `${f.path.slice(0, -f.fullExtension.length)}`;
+    const extension = Object.keys(this.#frontends).find(frontend =>
+      f.path.endsWith(frontend));
+    if (extension === undefined) throw fail("unknown extension for view {0}", name);
+    const base = `${f.path.slice(0, -extension.length)}`;
     const view = this.#views[base];
-    if (view === undefined) throw fail("missing view component {0}", name);
+    if (view === undefined) throw fail("no view {0}", name);
     if (view.default === undefined) {
       throw fail("view {0} must export a default component", name);
     }

@@ -3,7 +3,7 @@ import FileRef from "@rcompat/fs/FileRef";
 import type * as esbuild from "esbuild";
 
 export default function views(
-  viewsPath: string,
+  views_path: string,
   app: BuildApp,
   extensions: string[],
 ): esbuild.Plugin {
@@ -26,12 +26,12 @@ export default function views(
         const name = args.path;
 
         for (const ext of extensions) {
-          const file = new FileRef(`${viewsPath}/${name}${ext}`);
+          const file = new FileRef(`${views_path}/${name}${ext}`);
           if (await file.exists()) {
             return {
               contents: `export default "${name}${ext}";`,
               loader: "js",
-              resolveDir: viewsPath,
+              resolveDir: views_path,
             };
           }
         }
@@ -39,7 +39,7 @@ export default function views(
         return {
           contents: `export default "${name}";`,
           loader: "js",
-          resolveDir: viewsPath,
+          resolveDir: views_path,
         };
       });
 
@@ -47,7 +47,7 @@ export default function views(
         const name = args.path.slice("view:".length);
 
         for (const ext of extensions) {
-          const file = new FileRef(`${viewsPath}/${name}${ext}`);
+          const file = new FileRef(`${views_path}/${name}${ext}`);
           if (await file.exists()) {
             return { path: file.path, namespace: "primate-view-original" };
           }
