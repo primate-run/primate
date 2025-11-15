@@ -8,8 +8,7 @@ compiles them to WebAssembly and wires them like JS routes.
 !!!
 Manage your Primate Ruby app as you would a normal Ruby project. Make sure you
 install dependencies into `vendor` via
-`bundle config set --local path 'vendor/bundle'`, so dass Primate can pick them
-up.
+`bundle config set --local path 'vendor/bundle'`, so Primate can pick them up.
 !!!
 
 ---
