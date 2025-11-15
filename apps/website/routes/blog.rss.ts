@@ -1,15 +1,25 @@
-import FileRef from "@rcompat/fs/FileRef";
+import views from "#views";
 import xml from "@rcompat/http/mime/extension/xml";
 import response from "primate/response";
 import route from "primate/route";
 
 const description = "The universal web framework";
-
-const entries_path = ["blog", "entries.json"];
-const entries = new FileRef(import.meta.url).up(2).join(...entries_path);
+const base = "content/blog";
+const blog_base = "https://primate.run/blog";
 
 route.get(async () => {
-  const props = { description, entries: await entries.json() };
+  const blog_posts = views
+    .filter(([a]) => a.startsWith(base))
+    .map(([a, b]) => {
+      const meta = b.default.meta;
+      return {
+        link: `${blog_base}/${a.slice(base.length + 1)}`,
+        title: meta.title,
+        description: meta.title,
+      };
+    });
+  ;
+  const props = { description, entries: blog_posts };
   const options = {
     headers: { "Content-Type": xml },
     partial: true,
