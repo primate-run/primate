@@ -48,5 +48,5 @@ Use `response.view` in a route to render the template.
 import route from "primate/route";
 import response from "primate/response";
 
-route.get(() => response.view("Welcome.marko"));
+route.get(() => response.view("Welcome.marko", { name: "World" }));
 ```
