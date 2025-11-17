@@ -37,7 +37,7 @@ async function run(
   cookie: string | undefined,
   route: () => unknown | Promise<unknown>) {
   const request = { cookies: { try: () => cookie } } as any;
-  return await new SessionModule(app(store)).handle(request,
+  return await new SessionModule(true, config(store)).handle(request,
     async () => {
       const response = { headers: new MultiHeaders() } as any;
       await route();
@@ -52,9 +52,8 @@ function session<T>() {
   return h;
 }
 
-function app(store: Store<any>): any {
+function config(store: Store<any>): any {
   return {
-    secure: true,
     session: {
       store,
       cookie: {

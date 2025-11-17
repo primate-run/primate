@@ -2,7 +2,6 @@ import type BuildApp from "#BuildApp";
 import db_plugin from "#bundle/db";
 import stores_plugin from "#bundle/stores";
 import views_plugin from "#bundle/views";
-import DEFAULT_PATHS from "#DEFAULT_PATHS";
 import fail from "#fail";
 import location from "#location";
 import log from "#log";
@@ -12,65 +11,23 @@ import wrap from "#route/wrap";
 import type ServeApp from "#ServeApp";
 import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
-import pkg from "@rcompat/fs/project/package";
 import runtime from "@rcompat/runtime";
 import type Dict from "@rcompat/type/Dict";
 import * as esbuild from "esbuild";
 import { createRequire } from "node:module";
 
 const requirer = createRequire(import.meta.url);
-
 const externals = {
   node: ["node:"],
   bun: ["node:", "bun:"],
   deno: ["node:"],
 };
 const conditions = {
-  node: [],
-  bun: ["bun"],
-  deno: ["deno"],
+  node: ["node"],
+  bun: ["bun", "node"],
+  deno: ["deno", "node"],
 };
-
 const dirname = import.meta.dirname;
-
-function wasm_plugin(app: BuildApp): esbuild.Plugin {
-  return {
-    name: "primate/wasm",
-    async setup(build) {
-      const manifest: Dict<string> = {};
-      const wasm_dir = app.path.build.join("wasm");
-      await wasm_dir.create();
-
-      build.onResolve({ filter: /\.wasm$/ }, args => {
-        return {
-          path: new FileRef(args.resolveDir).join(args.path).path,
-          namespace: "primate-wasm",
-        };
-      });
-
-      build.onLoad({ filter: /.*/, namespace: "primate-wasm" }, async args => {
-        const file = new FileRef(args.path);
-        const hash = await file.hash();
-        const hashname = `${hash}.wasm`;
-
-        await wasm_dir.create();
-        await file.copy(wasm_dir.join(hashname));
-
-        manifest[args.path] = hashname;
-
-        return {
-          contents: `export default "${hashname}";`,
-          loader: "js",
-          resolveDir: app.path.build.path,
-        };
-      });
-
-      build.onEnd(async () => {
-        await wasm_dir.join("manifest.json").writeJSON(manifest);
-      });
-    },
-  };
-}
 
 async function bundle_server(app: BuildApp) {
   const routes: esbuild.Plugin = {
@@ -135,14 +92,6 @@ async function bundle_server(app: BuildApp) {
 
   plugins.push(stores_plugin(
     app.path.stores.path,
-    async (file) => {
-      const binder = app.binder(file);
-      if (!binder) throw new Error(`No binder for ${file.path}`);
-      return await binder(file, {
-        build: { id: app.id, stage: app.runpath("stage") },
-        context: "stores",
-      });
-    },
     app.extensions,
   ));
 
@@ -185,12 +134,57 @@ async function bundle_server(app: BuildApp) {
     });
   }
 
-  const routes_plugin: esbuild.Plugin = {
+  const virtual_pages_plugin: esbuild.Plugin = {
+    name: "primate/virtual/pages",
+    setup(build) {
+      build.onResolve({ filter: /^app:pages$/ }, () => {
+        return { path: "pages-virtual", namespace: "primate-pages" };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-pages" }, async () => {
+        const html = /^.*\.html$/ui;
+        const is_html = (file: FileRef) => html.test(file.path);
+
+        const defaults = FileRef.join(import.meta.url, "../../defaults");
+
+        const pages: Dict<FileRef> = {};
+
+        for (const file of await defaults.collect(is_html)) pages[file.name] = file;
+
+        if (await app.path.pages.exists()) {
+          for (const file of await app.path.pages.collect(is_html)) pages[file.name] = file;
+        }
+
+        const entries = await Promise.all(
+          Object.entries(pages).map(async ([name, file]) => {
+            const text = await file.text();
+            return `"${name}": ${JSON.stringify(text)}`;
+          }),
+        );
+
+        const contents = `
+          const pages = {
+            ${entries.join(",\n")}
+          };
+          export default pages;
+        `;
+
+        return {
+          contents,
+          loader: "js",
+          resolveDir: app.root.path,
+        };
+      });
+    },
+  };
+  plugins.push(virtual_pages_plugin);
+
+  const virtual_routes_plugin: esbuild.Plugin = {
     name: "primate/virtual/routes",
     setup(build) {
       const routes_path = app.path.routes;
 
-      build.onResolve({ filter: /^#routes$/ }, () => {
+      build.onResolve({ filter: /^app:routes$/ }, () => {
         return { path: "routes-virtual", namespace: "primate-routes" };
       });
 
@@ -231,17 +225,38 @@ async function bundle_server(app: BuildApp) {
       });
     },
   };
-  plugins.push(routes_plugin);
+  plugins.push(virtual_routes_plugin);
+
+  const virtual_roots_plugin: esbuild.Plugin = {
+    name: "primate/virtual/roots",
+    setup(build) {
+      build.onResolve({ filter: /^app:root\// }, args => {
+        const name = args.path.slice("app:root/".length);
+        return { path: name, namespace: "primate-roots" };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-roots" }, args => {
+        const contents = app.roots[args.path];
+
+        if (!contents) throw new Error(`no root registered for ${args.path}`);
+
+        return { contents, loader: "js", resolveDir: app.root.path };
+      });
+    },
+  };
+
+  plugins.push(virtual_roots_plugin);
 
   const virtual_views_plugin: esbuild.Plugin = {
     name: "primate/virtual/views",
     setup(build) {
-      build.onResolve({ filter: /^#views/ }, () => {
+      build.onResolve({ filter: /^app:views/ }, () => {
         return { path: "views-virtual", namespace: "primate-views" };
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-views" }, async () => {
         const files = await app.path.views.collect();
+        const roots = Object.keys(app.roots);
         const contents = `
         const view = [];
         ${files.map((file, i) => {
@@ -251,9 +266,9 @@ async function bundle_server(app: BuildApp) {
             view.push(["${FileRef.webpath(path)}", view${i}]);`;
         }).join("\n")}
 
-        ${app.roots.map((root, i) => `
-          import * as root${i} from "${FileRef.webpath(`./build/server/${root.name}`)}";
-          view.push(["${root.name.slice(0, -".js".length)}", root${i}]);
+        ${roots.map((filename, i) => `
+          import * as root${i} from "app:root/${filename}";
+          view.push(["${filename}", root${i}]);
         `).join("\n")}
 
         export default view;`;
@@ -267,6 +282,39 @@ async function bundle_server(app: BuildApp) {
     },
   };
   plugins.push(virtual_views_plugin);
+
+  const virtual_stores_plugin: esbuild.Plugin = {
+    name: "primate/virtual/stores",
+    setup(build) {
+      build.onResolve({ filter: /^app:stores$/ }, () => {
+        return { path: "stores-virtual", namespace: "primate-stores" };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-stores" }, async () => {
+        const d2 = app.path.stores;
+        const e = await Promise.all(
+          (await FileRef.collect(d2, file => jts_re.test(file.path)))
+            .map(async path => `${path}`.replace(d2.toString(), _ => "")),
+        );
+
+        const contents = `
+        const stores = {};
+        ${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
+          `import * as store${i} from "${FileRef.webpath(`#store/${bare}`)}";
+           stores["${FileRef.webpath(bare)}"] = store${i}.default;`,
+        ).join("\n")}
+        export default stores;
+      `;
+
+        return {
+          contents,
+          loader: "js",
+          resolveDir: app.root.path,
+        };
+      });
+    },
+  };
+  plugins.push(virtual_stores_plugin);
 
   const native_addon_plugin: esbuild.Plugin = {
     name: "primate/native-addons",
@@ -499,8 +547,6 @@ async function bundle_server(app: BuildApp) {
   };
   plugins.push(go_routes);
 
-  //  plugins.push(wasm_plugin(app));
-  //
   const wasm_rewrite: esbuild.Plugin = {
     name: "primate/wasm/rewrite",
     setup(build) {
@@ -518,6 +564,52 @@ async function bundle_server(app: BuildApp) {
     },
   };
   plugins.push(wasm_rewrite);
+
+  const config_alias: esbuild.Plugin = {
+    name: "primate/config-alias",
+    setup(build) {
+      build.onResolve({ filter: /^app:config$/ }, async () => {
+        const ts = app.path.config.join("app.ts");
+        if (await ts.exists()) return { path: ts.path };
+
+        const js = app.path.config.join("app.js");
+        if (await js.exists()) return { path: js.path };
+
+        return {
+          path: "app-config-default",
+          namespace: "primate-config-default",
+        };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-config-default" }, () => {
+        const contents = `
+          import config from "primate/config";
+          export default config();
+        `;
+
+        return {
+          contents,
+          loader: "js",
+          resolveDir: app.root.path,
+        };
+      });
+
+      build.onResolve({ filter: /^app:config:(.+)$/ }, async args => {
+        const name = args.path.slice("app:config:".length);
+
+        const ts = app.path.config.join(`${name}.ts`);
+        if (await ts.exists()) return { path: ts.path };
+
+        const js = app.path.config.join(`${name}.js`);
+        if (await js.exists()) return { path: js.path };
+
+        // should never happen because we only import when session_active is
+        // true, but if it does, fail loudly.
+        throw fail(`missing config for ${name} in app/config`);
+      });
+    },
+  };
+  plugins.push(config_alias);
 
   const build_options = {
     entryPoints: [app.path.build.join("serve.js").path],
@@ -537,7 +629,12 @@ async function bundle_server(app: BuildApp) {
       `,
     },
     resolveExtensions: [".ts", ".js", ...extensions, ".py", ".rb", ".go"],
-    conditions: [...conditions[runtime], "node", "module", "import", "runtime", "default", ...app.conditions],
+    absWorkingDir: app.root.path,
+    tsconfig: app.root.join("tsconfig.json").path,
+    conditions: [
+      ...conditions[runtime],
+      "module", "import", "runtime", "default",
+      ...app.conditions],
     plugins,
     write: app.mode !== "development",
   };
@@ -557,8 +654,7 @@ const pre = async (app: BuildApp) => {
   await app.path.build.remove();
   await app.path.build.create();
 
-  await Promise.all(["server", "client"]
-    .map(directory => app.runpath(directory).create()));
+  await Promise.all(["client"].map(directory => app.runpath(directory).create()));
   const stamp = app.runpath("client", "server-stamp.js");
   await stamp.write("export default 0;\n");
 
@@ -568,14 +664,13 @@ const pre = async (app: BuildApp) => {
   const router = await $router(app.path.routes, app.extensions);
   app.set(s_layout_depth, router.depth("layout"));
 
-  const i18n_config_path = app.path.config.join("i18n.ts");
-  const i18n_config_js_path = app.path.config.join("i18n.js");
+  const i18n_ts = app.path.config.join("i18n.ts");
+  const i18n_js = app.path.config.join("i18n.js");
+  app.i18n_active = await i18n_ts.exists() || await i18n_js.exists();
 
-  // minimal effort: check if i18n.ts exists (heavier effort during serve)
-  const has_i18n_config = await i18n_config_path.exists()
-    || await i18n_config_js_path.exists();
-
-  app.i18n_active = has_i18n_config;
+  const session_ts = app.path.config.join("session.ts");
+  const session_js = app.path.config.join("session.js");
+  app.session_active = await session_ts.exists() || await session_js.exists();
 
   return app;
 };
@@ -621,74 +716,47 @@ async function index_database(base: FileRef) {
   );
 }
 
-const js_re = /^.*.js$/;
 const jts_re = /^.*.[j|t]s$/;
-const write_directories = async (build_directory: FileRef, app: BuildApp) => {
-  for (const name of app.server_build) {
-    const d = app.runpath(`${name}s`);
-    const e = await Promise.all((await FileRef.collect(d, file =>
-      js_re.test(file.path)))
-      .map(async path => `${path}`.replace(d.toString(), _ => "")));
-    const files_js = `
-    const ${name} = [];
-    ${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
-      `const ${name}${i} = (await import("${FileRef.webpath(`#${name}/${bare}`)}")).default;
-    ${name}.push(["${FileRef.webpath(bare)}", ${name}${i}]);`,
-    ).join("\n")}
-    export default ${name};`;
-    await build_directory.join(`${name}s.js`).write(files_js);
-  }
-};
 
-const write_stores = async (build_directory: FileRef, app: BuildApp) => {
-  const d2 = app.path.stores;
-  const e = await Promise.all((await FileRef.collect(d2, file =>
-    jts_re.test(file.path)))
-    .map(async path => `${path}`.replace(d2.toString(), _ => "")));
-  const stores_js = `
-const store = [];
-${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
-    `import * as store${i} from "${FileRef.webpath(`#store/${bare}`)}";
-store.push(["${FileRef.webpath(bare)}", store${i}]);`,
-  ).join("\n")}
-
-export default store;`;
-  await build_directory.join("stores.js").write(stores_js);
-};
-
-const write_bootstrap = async (app: BuildApp, mode: string, i18n_active: boolean) => {
+const write_bootstrap = async (app: BuildApp, mode: string) => {
   const build_start_script = `
 import serve from "primate/serve";
-const files = {};
-${app.server_build.map(name => `${name}s`).map(name =>
-    `import ${name} from "./${app.id}/${name}.js";
-     files.${name} = ${name};`,
-  ).join("\n")}
-import views from "#views";
-import routes from "#routes";
-files.routes = routes;
-import stores from "./${app.id}/stores.js";
+import Loader from "primate/Loader";
+import views from "app:views";
+import routes from "app:routes";
+import pages from "app:pages";
 import target from "./target.js";
-import session from "#session";
-import config from "#config/app";
 import s_config from "primate/symbol/config";
+${app.session_active ? `
+import session from "app:config:session";
+const session_config = session[s_config];
+` : `
+const session_config = undefined;
+`}
+import config from "app:config";
 
-${i18n_active ? `
-import t from "#i18n";
-const i18n_config = t[s_config];
+${app.i18n_active ? `
+import i18n from "app:config:i18n";
+const i18n_config = i18n[s_config];
 ` : `
 const i18n_config = undefined;
 `}
 
+const loader = new Loader({
+  pages,
+  rootfile: import.meta.url,
+  static_root: config.http.static.root,
+});
+
 const app = await serve(import.meta.url, {
   ...target,
   config,
-  files,
+  routes,
   views,
-  stores,
   mode: "${mode}",
-  session_config: session[s_config],
+  session_config,
   i18n_config,
+  loader,
 });
 
 export default app;
@@ -697,8 +765,6 @@ export default app;
 };
 
 const post = async (app: BuildApp) => {
-  const defaults = FileRef.join(import.meta.url, "../../defaults");
-
   const configs = FileRef.join(dirname, "../../private/config/config");
   const database_base = app.path.config.join("database");
 
@@ -717,21 +783,6 @@ const post = async (app: BuildApp) => {
 
   await app.compile(app.path.locales, "locales");
   await app.compile(app.path.config, "config");
-
-  const default_keys = Object.keys(DEFAULT_PATHS);
-  for (const [k, v] of Object.entries(app.paths)) {
-    if (!default_keys.includes(k) && k.endsWith("*") && v[0].endsWith("/*")) {
-      const directory = v[0].slice(0, -"/*".length);
-      await app.compile(app.root.join(directory), directory);
-    }
-  }
-
-  // copy framework pages
-  await defaults.copy(app.runpath(location.server, location.pages));
-  // copy pages to build
-  if (await app.path.pages.exists()) {
-    await app.path.pages.copy(app.runpath(location.server, location.pages));
-  }
 
   if (await app.path.static.exists()) {
     // copy static files to build/static
@@ -790,33 +841,7 @@ const post = async (app: BuildApp) => {
   // a target needs to create an `assets.js` that exports assets
   await app.target.run();
 
-  const build_directory = app.path.build.join(app.id);
-  // TODO: remove after rcompat automatically creates directories
-  await build_directory.create();
-
-  await write_stores(build_directory, app);
-  await write_directories(build_directory, app);
-  await write_bootstrap(app, app.mode, app.i18n_active);
-
-  const _imports: Dict<string> = {};
-
-  for (const [alias, targets] of Object.entries(app.paths)) {
-    const key = alias.replace(/\/\*$/, "/*");
-    const target = targets[0];
-
-    const _target = target.endsWith("*")
-      ? `${target}.js`
-      : target.split(".").slice(0, -1).join(".").concat(".js");
-    _imports[key] = `./${_target}`;
-  }
-
-  const manifest_data = {
-    ...await (await pkg()).json() as Dict,
-    type: "module",
-    imports: _imports,
-  };
-  // create package.json
-  await app.path.build.join("package.json").writeJSON(manifest_data);
+  await write_bootstrap(app, app.mode);
 
   log.system("build written to {0}", app.path.build);
 

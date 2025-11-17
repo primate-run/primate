@@ -10,20 +10,16 @@ type Import = {
   default: unknown;
 } & Dict;
 
-type BuildFiles = {
-  routes: [string, { default: any }][];
-};
-
 type ServeInit = {
   assets: Asset[];
   views?: [string, Import][];
   stores?: [string, Import][];
   config: Config;
-  files: BuildFiles;
+  routes: [string, { default: any }][];
   loader: Loader;
   mode: Mode;
   target: string;
-  session_config: SessionConfig;
+  session_config?: SessionConfig;
   i18n_config?: I18NConfig;
 };
 

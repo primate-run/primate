@@ -5,6 +5,7 @@ import type NextHandle from "#module/NextHandle";
 import type NextServe from "#module/NextServe";
 import type RequestFacade from "#request/RequestFacade";
 import type ServeApp from "#ServeApp";
+import type Config from "#session/Config";
 import kSerialize from "#session/k-serialize";
 import SessionHandle from "#session/SessionHandle";
 import storage from "#session/storage";
@@ -31,15 +32,15 @@ const cookie = (name: string, value: string, options: CookieOptions) => {
 
 export default class SessionModule extends Module {
   name = "builtin/session";
-  #app: ServeApp;
   #store: DatabaseStore<StoreSchema>;
   #secure: boolean;
+  #config: Config;
 
-  constructor(app: ServeApp) {
+  constructor(secure: boolean, config: Config) {
     super();
-    this.#app = app;
-    this.#secure = app.secure;
-    this.#store = app.session.store;
+    this.#secure = secure;
+    this.#config = config;
+    this.#store = config.store;
 
     const props = this.#store.type.properties;
     if (!("session_id" in props)) {
@@ -58,7 +59,7 @@ export default class SessionModule extends Module {
   }
 
   async handle(request: RequestFacade, next: NextHandle) {
-    const { name, ...config } = this.#app.session.cookie;
+    const { name, ...config } = this.#config.cookie;
     const sid = request.cookies.try(name);
 
     // Look up session by session_id

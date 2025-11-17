@@ -3,7 +3,6 @@ import type * as esbuild from "esbuild";
 
 export default function stores_plugin(
   storesPath: string,
-  binder: (file: FileRef) => Promise<string>,
   extensions: string[],
 ): esbuild.Plugin {
   return {
@@ -42,16 +41,9 @@ export default wrap("${name}", storeSchema, database);
         for (const ext of extensions) {
           const file = new FileRef(`${storesPath}/${name}${ext}`);
           if (await file.exists()) {
-            return { path: file.path, namespace: "primate-store-original" };
+            return { path: file.path };
           }
         }
-      });
-
-      build.onLoad({ filter: /.*/, namespace: "primate-store-original" }, async args => {
-        const file = new FileRef(args.path);
-        const compiled = await binder(file);
-
-        return { contents: compiled, loader: "js", resolveDir: file.directory.path };
       });
     },
   };
