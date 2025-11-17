@@ -3,7 +3,5 @@ import ServeApp from "#ServeApp";
 import type ServeInit from "#ServeInit";
 
 export default async (root: string, options: ServeInit) => {
-  const app = await new ServeApp(root, options)
-    .init(options.target) as ServeApp;
-  return serve(app);
+  return serve(await new ServeApp(root, options).init() as ServeApp);
 };
