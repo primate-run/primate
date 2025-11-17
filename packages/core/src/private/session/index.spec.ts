@@ -54,14 +54,12 @@ function session<T>() {
 
 function config(store: Store<any>): any {
   return {
-    session: {
-      store,
-      cookie: {
-        name: "sid",
-        httpOnly: true,
-        path: "/",
-        sameSite: "Lax" as const,
-      },
+    store,
+    cookie: {
+      name: "sid",
+      httpOnly: true,
+      path: "/",
+      sameSite: "Lax" as const,
     },
   };
 }

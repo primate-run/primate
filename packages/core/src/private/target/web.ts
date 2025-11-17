@@ -1,8 +1,6 @@
 import location from "#location";
 import type Target from "#target/Target";
 
-const html = /^.*.html$/ui;
-
 const web: Target = {
   name: "web",
   runner: async app => {

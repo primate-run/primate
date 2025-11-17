@@ -118,7 +118,12 @@ export default class ServeApp extends App {
   };
   #i18n_config?: I18NConfig;
   constructor(rootfile: string, init: ServeInit) {
-    super(new FileRef(rootfile).directory, init.config, init.mode);
+    const dir = new FileRef(rootfile).directory;
+    super(dir, init.config, {
+      mode: init.mode,
+      target: init.target,
+      dir: dir.path,
+    });
 
     this.#init = init;
     this.#views = Object.fromEntries(init.views ?? []);

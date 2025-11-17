@@ -6,4 +6,5 @@ export { default as ObjectType } from "#ObjectType";
 export { default as OptionalType } from "#OptionalType";
 export { default as PureType } from "#PureType";
 export { default as TupleType } from "#TupleType";
+export { default as UndefinedType } from "#UndefinedType";
 

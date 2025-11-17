@@ -1,8 +1,6 @@
 export default {
   // default rendering template
   app_html: "app.html",
-  // build environment
-  build: "build",
   // client build
   client: "client",
   // config
@@ -13,8 +11,6 @@ export default {
   pages: "pages",
   // hierarchical routes
   routes: "routes",
-  // server build
-  server: "server",
   // static assets
   static: "static",
   // stores

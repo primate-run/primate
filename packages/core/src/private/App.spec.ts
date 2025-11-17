@@ -4,13 +4,17 @@ import FileRef from "@rcompat/fs/FileRef";
 import test from "@rcompat/test";
 
 const root = new FileRef("/test/project");
-const testConfig = config({
+const test_config = config({
   modules: [],
 });
 
 class TestApp extends BuildApp {
   constructor() {
-    super(root, testConfig, "testing");
+    super(root, test_config, {
+      mode: "testing",
+      target: "web",
+      dir: "build",
+    });
     this.bind(".component.ts", () => "");
     this.bind(".vue", () => "");
     this.bind(".svelte", () => "");

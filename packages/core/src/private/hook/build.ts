@@ -11,6 +11,7 @@ import wrap from "#route/wrap";
 import type ServeApp from "#ServeApp";
 import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
+import pkg from "@rcompat/fs/project/package";
 import runtime from "@rcompat/runtime";
 import type Dict from "@rcompat/type/Dict";
 import * as esbuild from "esbuild";
@@ -611,6 +612,8 @@ async function bundle_server(app: BuildApp) {
   };
   plugins.push(config_alias);
 
+  const nodePaths = [app.root.join("node_modules").path];
+
   const build_options = {
     entryPoints: [app.path.build.join("serve.js").path],
     outfile: app.path.build.join("server.js").path,
@@ -628,6 +631,7 @@ async function bundle_server(app: BuildApp) {
         const require = __createRequire(import.meta.url);
       `,
     },
+    nodePaths,
     resolveExtensions: [".ts", ".js", ...extensions, ".py", ".rb", ".go"],
     absWorkingDir: app.root.path,
     tsconfig: app.root.join("tsconfig.json").path,
@@ -649,10 +653,21 @@ async function bundle_server(app: BuildApp) {
   log.warn("bundled server to {0}", app.path.build.join("server.js"));
 }
 
+const {
+  version
+} = await (await pkg(import.meta.url)).json() as { version: string };
+
 const pre = async (app: BuildApp) => {
+  const dot_primate = app.path.build.join(".primate");
+  if (await app.path.build.exists() && !await dot_primate.exists()) {
+    const message = "{0} exists but does not contain a previous build";
+    throw fail(message, app.path.build.path);
+  }
   // remove build directory in case exists
   await app.path.build.remove();
   await app.path.build.create();
+  // touch a .primate file to indicate this is a Primate build directory
+  await dot_primate.write(version);
 
   await Promise.all(["client"].map(directory => app.runpath(directory).create()));
   const stamp = app.runpath("client", "server-stamp.js");
