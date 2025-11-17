@@ -5,56 +5,14 @@ import location from "#location";
 import log from "#log";
 import resolve_paths from "#paths";
 import s_layout_depth from "#symbol/layout-depth";
-import assert from "@rcompat/assert";
 import Build from "@rcompat/build";
-import transform from "@rcompat/build/sync/transform";
 import type FileRef from "@rcompat/fs/FileRef";
 import cache from "@rcompat/kv/cache";
 import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 
-const ts_options = {
-  loader: "ts",
-  tsconfigRaw: {
-    compilerOptions: {
-      experimentalDecorators: true,
-    },
-  },
-} as const;
-const compile = (code: string) => transform(code, ts_options).code;
-
-const toContextString = (array: string[]) => array
-  .map(member => member.endsWith("s") ? member.slice(0, -1) : member)
-  .join(", ");
-
-const BIND_CONTEXTS = [
-  "config",
-  "routes",
-  "components",
-  "views",
-  "stores",
-  "locales",
-  "modules",
-];
 const s = Symbol("primate.Build");
 
-const generate_bindings: Dict<Binder> = {
-  ".js": (file, { context }) => {
-    const error = `js: only ${toContextString(BIND_CONTEXTS)} are supported`;
-    assert(BIND_CONTEXTS.includes(context), error);
-    return file.text();
-  },
-  ".json": (file) => {
-    // just copy the JSON for now
-    return file.text();
-  },
-  ".ts": async (file, { context }) => {
-    const error = `ts: only ${toContextString(BIND_CONTEXTS)} are supported`;
-    assert(BIND_CONTEXTS.includes(context), error);
-
-    return compile(await file.text());
-  },
-};
 type Loader = (source: string, file: FileRef) => MaybePromise<string>;
 type Resolver = (basename: string, file: FileRef) => string;
 
@@ -62,12 +20,12 @@ export default class BuildApp extends App {
   frontends: Map<string, string[]> = new Map();
   conditions = new Set<string>();
   #postbuild: (() => void)[] = [];
-  #roots: FileRef[] = [];
-  #server_build: string[] = [];
+  #roots: Dict<string> = {};
   #id = crypto.randomUUID().slice(0, 8);
   #i18n_active = false;
+  #session_active = false;
   #paths!: Dict<string[]>;
-  #bindings: [string, Binder][] = Object.entries(generate_bindings);
+  #bindings: [string, Binder][] = [];
 
   async buildInit() {
     log.system("starting {0} build in {1} mode", this.target.name, this.mode);
@@ -77,7 +35,8 @@ export default class BuildApp extends App {
   }
 
   get extensions() {
-    return this.#bindings.map(([extension]) => extension);
+    const builtin = [".ts", ".js", ".json"];
+    return [...builtin, ...this.#bindings.map(([extension]) => extension)];
   }
 
   get id() {
@@ -115,16 +74,12 @@ export default class BuildApp extends App {
     );
   }
 
-  get server_build() {
-    return this.#server_build;
-  }
-
-  addRoot(root: FileRef) {
-    this.#roots.push(root);
+  addRoot(name: string, source: string) {
+    this.#roots[name] = source;
   }
 
   get roots() {
-    return [...this.#roots];
+    return this.#roots;
   }
 
   binder(file: FileRef) {
@@ -237,5 +192,13 @@ export default class BuildApp extends App {
 
   set i18n_active(active: boolean) {
     this.#i18n_active = active;
+  }
+
+  get session_active() {
+    return this.#session_active;
+  }
+
+  set session_active(active: boolean) {
+    this.#session_active = active;
   }
 }

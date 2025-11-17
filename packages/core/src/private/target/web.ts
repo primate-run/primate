@@ -1,6 +1,5 @@
 import location from "#location";
 import type Target from "#target/Target";
-import FileRef from "@rcompat/fs/FileRef";
 
 const html = /^.*.html$/ui;
 
@@ -20,17 +19,8 @@ const web: Target = {
           type,
         };
       });
-    const d = app.runpath(location.server, location.pages);
-    const pages = await Promise.all(
-      (await FileRef.collect(d, file => html.test(file.path)))
-        .map(async file => `${file.debase(d)}`.slice(1)));
-    const pages_str = pages.map(page =>
-      `"${page}": await load_text(import.meta.url,
-    "${FileRef.webpath(`../${location.server}/${location.pages}/${page}`)}"),`)
-      .join("\n");
 
     const assets_scripts = `
-  import Loader from "primate/Loader";
   import load_text from "primate/load-text";
 
   ${client_imports.map(({ path }, i) =>
@@ -43,17 +33,8 @@ const web: Target = {
   inline: false,
   }`).join(",\n  ")}];
 
-  const pages = {
-    ${pages_str}
-  };
-
   export default {
     assets,
-    loader: new Loader({
-      pages,
-      rootfile: import.meta.url,
-      static_root: "${app.config("http.static.root")}",
-    }),
     target: "web",
   };
 `;

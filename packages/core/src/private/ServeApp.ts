@@ -113,7 +113,7 @@ export default class ServeApp extends App {
   #builtins: {
     dev?: DevModule;
     handle: HandleModule;
-    session: SessionModule;
+    session?: SessionModule;
     i18n?: I18NModule;
   };
   #i18n_config?: I18NConfig;
@@ -144,12 +144,12 @@ export default class ServeApp extends App {
         guard: { recursive: true },
         layout: { recursive: true },
       },
-    }, init.files.routes.map(s => s[0]));
+    }, init.routes.map(s => s[0]));
 
     this.#builtins = {
       dev: init.mode === "development" ? new DevModule(this) : undefined,
       handle: new HandleModule(this),
-      session: new SessionModule(this),
+      session: init.session_config ? new SessionModule(this.secure, init.session_config) : undefined,
       i18n: init.i18n_config ? new I18NModule(init.i18n_config) : undefined,
     };
   };
@@ -190,10 +190,6 @@ export default class ServeApp extends App {
     return { ...this.#frontends };
   }
 
-  get files() {
-    return this.#init.files;
-  }
-
   get stores() {
     return this.#stores;
   }
@@ -203,11 +199,10 @@ export default class ServeApp extends App {
   }
 
   loadView<T = ServerView>(name: string) {
-    const f = new FileRef(name);
-    const extension = Object.keys(this.#frontends).find(frontend =>
-      f.path.endsWith(frontend));
-    if (extension === undefined) throw fail("unknown extension for view {0}", name);
-    const base = `${f.path.slice(0, -extension.length)}`;
+    const f = new FileRef(name).path;
+    const frontends = Object.keys(this.frontends);
+    const extension = frontends.find(frontend => f.endsWith(frontend));
+    const base = extension === undefined ? name : f.slice(0, -extension.length);
     const view = this.#views[base];
     if (view === undefined) throw fail("no view {0}", name);
     if (view.default === undefined) {
@@ -404,8 +399,4 @@ export default class ServeApp extends App {
       },
     };
   }
-
-  get session() {
-    return this.#init.session_config;
-  };
 }

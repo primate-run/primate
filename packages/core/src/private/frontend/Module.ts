@@ -186,7 +186,7 @@ export default abstract class FrontendModule<
       try {
         const server = this.layouts
           ? {
-            view: app.loadView<S>(`${this.rootname}.js`),
+            view: app.loadView<S>(this.rootname),
             props: {
               views: views.map(c => c.view),
               props: views.map(c => c.props),
@@ -325,12 +325,9 @@ export default abstract class FrontendModule<
 
     // compile root server
     if (this.root !== undefined && this.compile.server !== undefined) {
-      const filename = `${this.rootname}.js`;
-      const root = await this.compile.server(
+      const source = await this.compile.server(
         this.root.create(app.depth(), app.i18n_active));
-      const path = app.runpath(location.server, filename);
-      await path.write(root);
-      app.addRoot(path);
+      app.addRoot(this.rootname, source);
     }
 
     this.publish(app);
