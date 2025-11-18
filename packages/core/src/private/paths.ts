@@ -1,4 +1,3 @@
-import DEFAULT_PATHS from "#DEFAULT_PATHS";
 import fail from "#fail";
 import log from "#log";
 import type FileRef from "@rcompat/fs/FileRef";
@@ -24,16 +23,16 @@ async function resolve(root: FileRef, config_paths?: Dict<string[]>) {
       }
 
       // merge with defaults (user paths override)
-      return { ...DEFAULT_PATHS, ...ts_paths };
+      return { ...ts_paths };
 
     } catch {
       log.warn("Failed to parse tsconfig.json, falling back to config");
     }
   }
 
-  if (config_paths) return { ...DEFAULT_PATHS, ...config_paths };
+  if (config_paths !== undefined) return config_paths;
 
-  return DEFAULT_PATHS;
+  return {};
 }
 
 export default resolve;

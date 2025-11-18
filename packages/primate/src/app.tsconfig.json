@@ -4,13 +4,11 @@
     "baseUrl": "${configDir}",
     "target": "esnext",
     "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true,
-    "customConditions": ["apekit"],
     "erasableSyntaxOnly": true,
     "exactOptionalPropertyTypes": true,
-    "allowImportingTsExtensions": true,
-    "jsx": "react-jsx"
+    "allowImportingTsExtensions": true
   }
 }
