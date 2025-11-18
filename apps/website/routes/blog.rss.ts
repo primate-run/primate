@@ -1,5 +1,5 @@
-import views from "#views";
 import xml from "@rcompat/http/mime/extension/xml";
+import views from "app:views";
 import response from "primate/response";
 import route from "primate/route";
 

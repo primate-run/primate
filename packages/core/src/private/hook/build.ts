@@ -1,7 +1,4 @@
 import type BuildApp from "#BuildApp";
-import db_plugin from "#bundle/db";
-import stores_plugin from "#bundle/stores";
-import views_plugin from "#bundle/views";
 import fail from "#fail";
 import location from "#location";
 import log from "#log";
@@ -16,7 +13,6 @@ import runtime from "@rcompat/runtime";
 import type Dict from "@rcompat/type/Dict";
 import * as esbuild from "esbuild";
 import { createRequire } from "node:module";
-
 const requirer = createRequire(import.meta.url);
 const externals = {
   node: ["node:"],
@@ -28,36 +24,38 @@ const conditions = {
   bun: ["bun", "node"],
   deno: ["deno", "node"],
 };
-const dirname = import.meta.dirname;
 
 async function bundle_server(app: BuildApp) {
-  const routes: esbuild.Plugin = {
-    name: "primate/route-wrap",
+  const plugins: esbuild.Plugin[] = [];
+  const extensions = app.frontendExtensions;
+
+  const node_imports_plugin: esbuild.Plugin = {
+    name: "primate/node-imports",
     setup(build) {
-      const routes_re = /[/\\]routes[/\\].+\.(ts|js)$/;
+      build.onResolve({ filter: /^#/ }, async args => {
+        // only touch imports coming from @primate/core sources
+        if (!args.importer || !args.importer.startsWith(core_root + "/")) {
+          return null;
+        }
 
-      build.onLoad({ filter: routes_re }, async args => {
-        const file = new FileRef(args.path);
-        const source = await file.text();
+        try {
+          // anchor resolution at core_root we use our package.json "imports"
+          const module_path = requirer.resolve(args.path, {
+            paths: [core_root],
+          });
 
-        const routesRoot = "routes";
-        const relFromRoutes = args.path.split(routesRoot).pop()!;
-        const noExt = relFromRoutes.replace(/\.(ts|js)$/, "");
-        const routePath = noExt.replace(/^[\\/]/, "").replace(/\\/g, "/");
-
-        const wrapped = wrap(source, routePath, app.id);
-
-        return {
-          contents: wrapped,
-          loader: args.path.endsWith(".ts") ? "ts" : "js",
-          resolveDir: file.directory.path,
-        };
+          return {
+            path: module_path,
+            namespace: "file",
+          };
+        } catch {
+        }
+        // next
+        return null;
       });
     },
   };
-
-  const plugins = [routes];
-  const extensions = app.frontendExtensions;
+  plugins.push(node_imports_plugin);
 
   if (extensions.length > 0) {
     const filter = new RegExp(
@@ -67,7 +65,7 @@ async function bundle_server(app: BuildApp) {
     const frontends: esbuild.Plugin = {
       name: "primate/server/bundle",
       setup(build) {
-        build.onLoad({ filter }, async args => {
+        build.onLoad({ filter, namespace: "file" }, async args => {
           const file = new FileRef(args.path);
           const binder = app.binder(file);
           if (!binder) return null;
@@ -85,18 +83,219 @@ async function bundle_server(app: BuildApp) {
     plugins.push(frontends);
   }
 
-  plugins.push(views_plugin(
-    app.path.views.path,
-    app,
-    app.extensions,
-  ));
+  const views_plugin: esbuild.Plugin = {
+    name: "primate/server/views",
+    setup(build) {
+      build.onResolve({ filter: /.*/ }, async args => {
+        // only care about our wrapped route modules
+        if (args.namespace !== "primate-route") return null;
 
-  plugins.push(stores_plugin(
-    app.path.stores.path,
-    app.extensions,
-  ));
+        // avoid recursion when we call build.resolve ourselves
+        if (args.pluginData === "primate-view-inner") return null;
 
-  plugins.push(db_plugin(app));
+        // let esbuild resolve this import as usual
+        const result = await build.resolve(args.path, {
+          resolveDir: args.resolveDir,
+          kind: args.kind,
+          pluginData: "primate-view-inner",
+        });
+
+        // couldn't resolve, don't interfere
+        if (result.errors.length > 0 || !result.path) return null;
+
+        const resolved = new FileRef(result.path);
+
+        // must live under app.path.views (e.g. app/views/...)
+        const views_root = app.path.views.path;
+        if (!resolved.path.startsWith(views_root + "/")) return null;
+
+        return {
+          path: resolved.debase(app.path.views).path.replace(/^[\\/]/, ""),
+          namespace: "primate-view-wrapper",
+        };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-view-wrapper" }, async args => {
+        const name = args.path;
+
+        return {
+          contents: `export default ${JSON.stringify(name)};`,
+          loader: "js",
+          resolveDir: app.path.views.path,
+        };
+      });
+
+      build.onResolve({ filter: /^view:/ }, async args => {
+        const name = args.path.slice("view:".length);
+
+        for (const ext of app.extensions) {
+          const file = new FileRef(`${app.path.views.path}/${name}${ext}`);
+          if (await file.exists()) {
+            return { path: file.path, namespace: "primate-view-original" };
+          }
+        }
+
+        return null;
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-view-original" }, async args => {
+        const file = new FileRef(args.path);
+        const binder = app.binder(file);
+        if (!binder) return null;
+        const contents = await binder(file, {
+          build: { id: app.id, stage: app.runpath("stage") },
+          context: "views",
+        });
+
+        return { contents, loader: "js", resolveDir: file.directory.path };
+      });
+    },
+  };
+  plugins.push(views_plugin);
+
+  const stores_plugin: esbuild.Plugin = {
+    name: "primate/server/stores",
+    setup(build) {
+      build.onResolve({ filter: /^app:store\// }, args => {
+        const name = args.path.slice("app:store/".length).replace(/\.(js|ts)$/, "");
+        return { path: name, namespace: "primate-store-wrapper" };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-store-wrapper" }, args => {
+        const name = args.path;
+        return {
+          contents: `
+            import database from "app:database";
+            import wrap from "primate/database/wrap";
+            import schema from "store:${name}";
+            export default wrap("${name}", schema, database);
+          `,
+          loader: "js",
+          resolveDir: app.path.stores.path,
+        };
+      });
+
+      build.onResolve({ filter: /^store:/ }, async args => {
+        const name = args.path.slice("store:".length);
+
+        for (const ext of app.extensions) {
+          const file = new FileRef(`${app.path.stores.path}/${name}${ext}`);
+          if (await file.exists()) {
+            // special namespace to bypass auto-wrap
+            return { path: file.path, namespace: "primate-store-raw" };
+          }
+        }
+
+        return null;
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-store-raw" }, async args => {
+        const file = new FileRef(args.path);
+        const source = await file.text();
+        return {
+          contents: source,
+          loader: args.path.endsWith(".ts") ? "ts" : "js",
+          resolveDir: file.directory.path,
+          watchFiles: [file.path],
+        };
+      });
+    },
+  };
+
+  plugins.push(stores_plugin);
+
+  const store_autowrap_plugin: esbuild.Plugin = {
+    name: "primate/store/autowrap",
+    setup(build) {
+      build.onLoad({ filter: /.*/ }, async args => {
+        // only touch the default namespace
+        if (args.namespace !== "file") return null;
+
+        // only TS/JS
+        if (!/\.([tj]s)$/.test(args.path)) return null;
+
+        const file = new FileRef(args.path);
+        const storesRoot = app.path.stores.path;
+
+        // only files under app/stores
+        if (!file.path.startsWith(storesRoot + "/")) return null;
+
+        // compute logical name: stores/foo/bar.ts → "foo/bar"
+        const name = file
+          .debase(app.path.stores)
+          .path.replace(/^[\\/]/, "")
+          .replace(/\.(ts|js)$/, "");
+
+        const contents = `export { default } from "app:store/${name}";`;
+
+        return {
+          contents,
+          loader: "js",
+          resolveDir: app.root.path,
+        };
+      });
+    },
+  };
+
+  plugins.push(store_autowrap_plugin);
+
+  const db_plugin: esbuild.Plugin = {
+    name: "primate/database-default",
+    setup(build) {
+      build.onResolve({ filter: /^app:database$/ }, () => {
+        return { path: "database-default", namespace: "primate-database" };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-database" }, async () => {
+        const base = app.path.config.join("database");
+
+        const default_db = {
+          contents: `
+            import DefaultDatabase from "primate/database/default";
+            export default new DefaultDatabase();
+          `,
+          loader: "js" as const,
+          resolveDir: app.root.path,
+        };
+
+        if (!await base.exists()) return default_db;
+
+        const dbs = await base.collect(f =>
+          f.name.endsWith(".ts") || f.name.endsWith(".js"),
+        );
+        const n = dbs.length;
+
+        if (n === 0) return default_db;
+
+        const by_name: Dict<FileRef> = {};
+        for (const d of dbs) by_name[d.name] = d;
+
+        const pick = (stem: string): FileRef | undefined =>
+          by_name[`${stem}.ts`] ?? by_name[`${stem}.js`];
+
+        let db: FileRef | undefined = pick("index");
+
+        if (db === undefined) db = pick("default");
+
+        if (db === undefined) {
+          if (dbs.length === 1) db = dbs[0];
+          else throw fail(
+            "multiple database drivers, add index or default.(t|j)s; found {0}",
+            dbs.map(f => f.name).join(", "),
+          );
+        }
+
+        const contents = `export { default } from ${JSON.stringify(db.path)};`;
+
+        return {
+          contents,
+          loader: "js",
+          resolveDir: app.root.path,
+        };
+      });
+    },
+  };
+  plugins.push(db_plugin);
 
   if (app.mode === "development") {
     let build_n = 0;
@@ -111,15 +310,13 @@ async function bundle_server(app: BuildApp) {
           const outFile = result.outputFiles?.[0];
           if (!outFile) return;
 
-          const filename = `server.${build_n}.js`; // or a hash
+          const filename = `server.${build_n}.js`;
           const s = app.path.build.join(filename);
           await s.write(outFile.text);
 
           try {
             // stop old app
-            if (serve_app !== undefined) {
-              serve_app.stop();
-            }
+            if (serve_app !== undefined) serve_app.stop();
             serve_app = (await s.import()).default as ServeApp;
 
             const stamp = app.runpath("client", "server-stamp.js");
@@ -127,7 +324,7 @@ async function bundle_server(app: BuildApp) {
 
             build_n++;
           } catch (err) {
-            console.error("[primate/server/hot-reload] failed to import", filename);
+            fail("[primate/server/hot-reload] failed to import {0}", filename);
             console.error(err);
           }
         });
@@ -180,6 +377,11 @@ async function bundle_server(app: BuildApp) {
   };
   plugins.push(virtual_pages_plugin);
 
+  const is_route_file = (f: FileRef) =>
+    !f.name.endsWith("~") &&
+    !f.name.startsWith(".") &&
+    f.path.match(/\.(ts|js|py|rb|go)$/) !== null;
+
   const virtual_routes_plugin: esbuild.Plugin = {
     name: "primate/virtual/routes",
     setup(build) {
@@ -190,10 +392,7 @@ async function bundle_server(app: BuildApp) {
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-routes" }, async () => {
-        const route_files = await routes_path.collect(f =>
-          f.path.match(/\.(ts|js|py|rb|go)$/) !== null,
-        );
-
+        const route_files = await routes_path.collect(is_route_file);
         const watchDirs = new Set<string>();
         const findDirs = async (dir: FileRef) => {
           watchDirs.add(dir.path);
@@ -210,7 +409,7 @@ async function bundle_server(app: BuildApp) {
           const route = [];
           ${route_files.map((file, i) => {
           const path = app.basename(file, app.path.routes);
-          return `const route${i} = (await import("#route/${path}")).default;
+          return `const route${i} = (await import("app:route/${path}")).default;
             route.push(["${path}", route${i}]);`;
         }).join("\n")}
           export default route;
@@ -227,6 +426,91 @@ async function bundle_server(app: BuildApp) {
     },
   };
   plugins.push(virtual_routes_plugin);
+
+const app_route_plugin: esbuild.Plugin = {
+  name: "primate/app-route",
+  setup(build) {
+    build.onResolve({ filter: /^app:route\// }, args => {
+      const rel = args.path.slice("app:route/".length);
+      return { path: rel, namespace: "primate-route" };
+    });
+
+    build.onLoad({ filter: /.*/, namespace: "primate-route" }, async args => {
+      const rel = args.path;
+      const base = app.path.routes.join(rel);
+
+      const exts = [".ts", ".js", ".py", ".rb", ".go"];
+      let file: FileRef | undefined;
+      let ext: string | undefined;
+
+      for (const e of exts) {
+        const candidate = new FileRef(base.path + e);
+        if (await candidate.exists()) {
+          file = candidate;
+          ext = e;
+          break;
+        }
+      }
+
+      if (!file || !ext) {
+        throw fail(
+          `cannot find route source for "${rel}" under ${app.path.routes.path}`,
+        );
+      }
+
+      // normalise "routes/foo.ext" → "foo" for the router path
+      const relFromRoutes = file.path.split("routes").pop()!;
+      const noExt = relFromRoutes.replace(/^[\\/]/, "").replace(/\.(ts|js|py|rb|go)$/, "");
+      const routePath = noExt.replace(/\\/g, "/");
+
+      // TS/JS: just wrap the original source
+      if (ext === ".ts" || ext === ".js") {
+        const source = await file.text();
+        const wrapped = wrap(source, routePath, app.id);
+
+        return {
+          contents: wrapped,
+          loader: ext === ".ts" ? "ts" : "js",
+          resolveDir: file.directory.path,
+          watchFiles: [file.path],
+        };
+      }
+
+      // py/rb/go: use binder + wrap, like your existing plugins
+
+      const binder = app.binder(file);
+      if (!binder) {
+        // same fallback you had in python/ruby/go plugins
+        return {
+          contents: "export default {};",
+          loader: "js",
+          resolveDir: file.directory.path,
+          watchFiles: [file.path],
+        };
+      }
+
+      const compiled = await binder(file, {
+        build: { id: app.id, stage: app.runpath("stage") },
+        context: "routes",
+      });
+
+      const wrapped = wrap(compiled, routePath, app.id);
+
+      const watchFiles =
+        ext === ".go"
+          ? [file.path, app.runpath("wasm", `${routePath}.wasm`).path]
+          : [file.path];
+
+      return {
+        contents: wrapped,
+        loader: "js",
+        resolveDir: file.directory.path,
+        watchFiles,
+      };
+    });
+  },
+};
+plugins.push(app_route_plugin);
 
   const virtual_roots_plugin: esbuild.Plugin = {
     name: "primate/virtual/roots",
@@ -301,7 +585,7 @@ async function bundle_server(app: BuildApp) {
         const contents = `
         const stores = {};
         ${e.map(path => path.slice(1, -".js".length)).map((bare, i) =>
-          `import * as store${i} from "${FileRef.webpath(`#store/${bare}`)}";
+          `import * as store${i} from "${FileRef.webpath(`app:store/${bare}`)}";
            stores["${FileRef.webpath(bare)}"] = store${i}.default;`,
         ).join("\n")}
         export default stores;
@@ -402,170 +686,6 @@ async function bundle_server(app: BuildApp) {
   };
   plugins.push(ignore_failed_requires);
 
-  const python_loader: esbuild.Plugin = {
-    name: "primate/python-loader",
-    setup(build) {
-      build.onResolve({ filter: /\.py$/ }, args => {
-        // normalize a few shapes we know can appear
-        if (args.path.startsWith("#route/")) {
-          const rel = args.path.slice("#route/".length);
-          const real = app.path.routes.join(rel).path;
-          return { path: real, namespace: "python-source" };
-        }
-
-        // sometimes the generated JS will say "routes/foo.py"
-        if (args.path.startsWith("routes/")) {
-          const rel = args.path.slice("routes/".length);
-          const real = app.path.routes.join(rel).path;
-          return { path: real, namespace: "python-source" };
-        }
-
-        // absolute or already-correct path
-        return {
-          path: args.path,
-          namespace: "python-source",
-        };
-      });
-
-      build.onLoad({ filter: /.*/, namespace: "python-source" }, async args => {
-        const file = new FileRef(args.path);
-        const content = await file.text();
-
-        return {
-          contents: `export default ${JSON.stringify(content)};`,
-          loader: "js",
-          resolveDir: file.directory.path,
-          watchFiles: [file.path],
-        };
-      });
-    },
-  };
-  plugins.push(python_loader);
-
-  const python_routes: esbuild.Plugin = {
-    name: "primate/python-route-wrap",
-    setup(build) {
-      const routes_re = /[/\\]routes[/\\].+\.py$/;
-
-      build.onLoad({ filter: routes_re }, async args => {
-        const file = new FileRef(args.path);
-        const binder = app.binder(file);
-        if (!binder) {
-          // fall back to empty module so esbuild doesn't explode
-          return { contents: "export default {};", loader: "js" };
-        }
-
-        const compiled = await binder(file, {
-          build: { id: app.id, stage: app.runpath("stage") },
-          context: "routes",
-        });
-
-        const relFromRoutes = args.path.split("routes").pop()!;
-        const noExt = relFromRoutes.replace(/^[\\/]/, "").replace(/\.py$/, "");
-        const routePath = noExt.replace(/\\/g, "/");
-
-        const wrapped = wrap(compiled, routePath, app.id);
-
-        return {
-          contents: wrapped,
-          loader: "js",
-          resolveDir: file.directory.path,
-          watchFiles: [file.path],
-        };
-      });
-    },
-  };
-  plugins.push(python_routes);
-
-  const ruby_routes: esbuild.Plugin = {
-    name: "primate/ruby-route-wrap",
-    setup(build) {
-      const routes_re = /[/\\]routes[/\\].+\.rb$/;
-
-      build.onLoad({ filter: routes_re }, async args => {
-        const file = new FileRef(args.path);
-        const binder = app.binder(file);
-
-        if (!binder) return { contents: "export {};", loader: "js" };
-
-        const compiled = await binder(file, {
-          build: { id: app.id, stage: app.runpath("stage") },
-          context: "routes",
-        });
-
-        // now figure out the route path from its location under routes/
-        const relFromRoutes = args.path.split("routes").pop()!;
-        const noExt = relFromRoutes.replace(/^[\\/]/, "").replace(/\.rb$/, "");
-        const routePath = noExt.replace(/\\/g, "/");
-
-        // and wrap it so the router sees the right path
-        const wrapped = wrap(compiled, routePath, app.id);
-
-        return {
-          contents: wrapped,
-          loader: "js",
-          resolveDir: file.directory.path,
-          watchFiles: [file.path],
-        };
-      });
-    },
-  };
-  plugins.push(ruby_routes);
-
-  const go_routes: esbuild.Plugin = {
-    name: "primate/go-route-wrap",
-    setup(build) {
-      const routes_re = /[/\\]routes[/\\].+\.go$/;
-
-      build.onLoad({ filter: routes_re }, async args => {
-        const file = new FileRef(args.path);
-        const binder = app.binder(file);
-
-        if (!binder) return { contents: "export {};", loader: "js" };
-
-        const compiled = await binder(file, {
-          build: { id: app.id, stage: app.runpath("stage") },
-          context: "routes",
-        });
-
-        // figure out the route path from its location under routes/
-        const relFromRoutes = args.path.split("routes").pop()!;
-        const noExt = relFromRoutes.replace(/^[\\/]/, "").replace(/\.go$/, "");
-        const routePath = noExt.replace(/\\/g, "/");
-
-        const wasmPath = app.runpath("wasm", `${routePath}.wasm`).path;
-        // wrap it so the router sees the right path
-        const wrapped = wrap(compiled, routePath, app.id);
-
-        return {
-          contents: wrapped,
-          loader: "js",
-          resolveDir: file.directory.path,
-          watchFiles: [file.path, wasmPath],
-        };
-      });
-    },
-  };
-  plugins.push(go_routes);
-
-  const wasm_rewrite: esbuild.Plugin = {
-    name: "primate/wasm/rewrite",
-    setup(build) {
-      const re = /^#wasm\/(.+)\.wasm$/;
-
-      build.onResolve({ filter: re }, (args) => {
-        const match = re.exec(args.path);
-        if (!match) return;
-
-        return {
-          path: app.runpath("wasm", match[1]).path + ".wasm",
-          namespace: "file",
-        };
-      });
-    },
-  };
-  plugins.push(wasm_rewrite);
-
   const config_alias: esbuild.Plugin = {
     name: "primate/config-alias",
     setup(build) {
@@ -604,13 +724,30 @@ async function bundle_server(app: BuildApp) {
         const js = app.path.config.join(`${name}.js`);
         if (await js.exists()) return { path: js.path };
 
-        // should never happen because we only import when session_active is
-        // true, but if it does, fail loudly.
+        // should never happen as we only import when session_active is true
         throw fail(`missing config for ${name} in app/config`);
       });
     },
   };
   plugins.push(config_alias);
+
+  const wasm_rewrite: esbuild.Plugin = {
+    name: "primate/wasm/rewrite",
+    setup(build) {
+      const re = /^app:wasm\/(.+)\.wasm$/;
+      build.onResolve({ filter: re }, args => {
+        const match = re.exec(args.path);
+        if (!match) return;
+
+        return {
+          path: app.runpath("wasm", match[1]).path + ".wasm",
+          namespace: "file",
+        };
+      });
+    },
+  };
+
+  plugins.push(wasm_rewrite);
 
   const nodePaths = [app.root.join("node_modules").path];
 
@@ -623,7 +760,7 @@ async function bundle_server(app: BuildApp) {
     packages: app.mode === "development" ? "external" : undefined,
     external: [...externals[runtime]],
     loader: {
-      ".json": "json",  // Import JSON as ESM modules
+      ".json": "json",
     },
     banner: {
       js: `
@@ -644,7 +781,6 @@ async function bundle_server(app: BuildApp) {
   };
   if (app.mode === "development") {
     const context = await esbuild.context(build_options as never);
-    //await context.rebuild();
     await context.watch();
   } else {
     await esbuild.build(build_options as never);
@@ -653,9 +789,9 @@ async function bundle_server(app: BuildApp) {
   log.warn("bundled server to {0}", app.path.build.join("server.js"));
 }
 
-const {
-  version
-} = await (await pkg(import.meta.url)).json() as { version: string };
+const core_pkg = await pkg(import.meta.url);
+const core_root = core_pkg.directory.path;
+const { version } = await core_pkg.json() as { version: string };
 
 const pre = async (app: BuildApp) => {
   const dot_primate = app.path.build.join(".primate");
@@ -663,7 +799,7 @@ const pre = async (app: BuildApp) => {
     const message = "{0} exists but does not contain a previous build";
     throw fail(message, app.path.build.path);
   }
-  // remove build directory in case exists
+  // remove build directory if exists
   await app.path.build.remove();
   await app.path.build.create();
   // touch a .primate file to indicate this is a Primate build directory
@@ -690,48 +826,7 @@ const pre = async (app: BuildApp) => {
   return app;
 };
 
-async function index_database(base: FileRef) {
-  // app/config/database does not exist -> use prelayered default
-  if (!await base.exists()) return "";
-
-  const databases = await base.list();
-  const n = databases.length;
-
-  // none in app/config/database -> use prelayered default
-  if (n === 0) return "";
-
-  const names = databases.map(d => d.name);
-
-  // index database file found, will be overwritten in next step -> do nothing
-  if (names.includes("index.ts") || names.includes("index.js")) {
-    return ""; // empty string means: don't generate, user provided own
-  }
-
-  // app/config/default.ts -> reexport
-  if (names.includes("default.ts")) {
-    return "export { default } from \"./default.js\";";
-  }
-
-  // app/config/default.js -> reexport
-  if (names.includes("default.js")) {
-    return "export { default } from \"./default.js\";";
-  }
-
-  // exactly one in app/config/database -> reexport that
-  if (n === 1) {
-    const onlyFile = names[0];
-    const withoutExt = onlyFile.replace(/\.(ts|js)$/, ".js");
-    return `export { default } from "./${withoutExt}";`;
-  }
-
-  // multiple files, none is index or default -> error
-  throw fail(
-    "multiple database drivers, add index or default.(ts|js); found {0}",
-    names.join(", "),
-  );
-}
-
-const jts_re = /^.*.[j|t]s$/;
+const jts_re = /\.[jt]s$/;
 
 const write_bootstrap = async (app: BuildApp, mode: string) => {
   const build_start_script = `
@@ -780,24 +875,7 @@ export default app;
 };
 
 const post = async (app: BuildApp) => {
-  const configs = FileRef.join(dirname, "../../private/config/config");
-  const database_base = app.path.config.join("database");
-
-  // prelayer config default
-  await app.compile(configs, "config", {
-    loader: async (source, file) => {
-      const relative = file.debase(configs);
-      if (relative.path === "/database/index.js") {
-        const indexContent = await index_database(database_base);
-        // if empty, user provided own index -> use the compiled source
-        return indexContent || source;
-      }
-      return source;
-    },
-  });
-
   await app.compile(app.path.locales, "locales");
-  await app.compile(app.path.config, "config");
 
   if (await app.path.static.exists()) {
     // copy static files to build/static
@@ -817,10 +895,10 @@ const post = async (app: BuildApp) => {
   app.build.plugin({
     name: "@primate/core/frontend",
     setup(build) {
-      build.onResolve({ filter: /#frontends/ }, ({ path }) => {
+      build.onResolve({ filter: /app:frontends/ }, ({ path }) => {
         return { namespace: "frontends", path };
       });
-      build.onLoad({ filter: /#frontends/ }, async () => {
+      build.onLoad({ filter: /app:frontends/ }, async () => {
         const contents = [...app.frontends.keys()].map(name =>
           `export { default as ${name} } from "@primate/${name}";`).join("\n");
         return { contents, resolveDir: app.root.path };
@@ -831,8 +909,8 @@ const post = async (app: BuildApp) => {
   app.build.plugin({
     name: "@primate/core/alias",
     setup(build) {
-      build.onResolve({ filter: /#static/ }, args => {
-        const path = args.path.slice(1);
+      build.onResolve({ filter: /app:static/ }, args => {
+        const path = args.path.slice("app:static/".length);
         return { path: app.root.join(path).path };
       });
     },
@@ -853,7 +931,7 @@ const post = async (app: BuildApp) => {
   // start the build
   await app.build.start();
 
-  // a target needs to create an `assets.js` that exports assets
+  // run unique target code
   await app.target.run();
 
   await write_bootstrap(app, app.mode);

@@ -1,4 +1,4 @@
-import views from "#views";
+import views from "app:views";
 import type Component from "@primate/markdown/Component";
 import response from "primate/response";
 import route from "primate/route";
