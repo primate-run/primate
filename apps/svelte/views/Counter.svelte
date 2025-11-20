@@ -1,6 +1,6 @@
 <script lang="ts">
   import validate from "@primate/svelte/validate";
-  export let id, counter;
+  const { id, counter }: { id: string; counter: number } = $props();
 
   const _counter = validate<number>(counter).post(`/counter?id=${id}`);
 </script>
@@ -9,7 +9,7 @@
   <h2>Counter Example</h2>
   <div>
     <button
-      on:click={() => _counter.update((n) => n - 1)}
+      onclick={() => _counter.update((n) => n - 1)}
       disabled={$_counter.loading}
     >
       -
@@ -18,7 +18,7 @@
     <span style="margin: 0 1rem;">{$_counter.value}</span>
 
     <button
-      on:click={() => _counter.update((n) => n + 1)}
+      onclick={() => _counter.update((n) => n + 1)}
       disabled={$_counter.loading}
     >
       +
