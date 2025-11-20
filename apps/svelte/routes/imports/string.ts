@@ -1,5 +1,4 @@
 import response from "primate/response";
 import route from "primate/route";
-import About from "#view/About";
 
-route.get(() => response.view(About));
+route.get(() => response.view("Hello.svelte", { world: "world" }));

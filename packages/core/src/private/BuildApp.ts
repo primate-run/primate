@@ -64,12 +64,7 @@ export default class BuildApp extends App {
         },
         conditions: ["style", "browser", "default", "module", ...conditions],
         resolveExtensions: [".ts", ".js", ...this.frontendExtensions],
-        tsconfigRaw: {
-          compilerOptions: {
-            baseUrl: this.root.path,
-            paths: this.#paths,
-          },
-        },
+        tsconfig: this.root.join("tsconfig.json").path,
       }, this.mode === "development" ? "development" : "production"),
     );
   }

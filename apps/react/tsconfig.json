@@ -1,7 +1,6 @@
 {
   "extends": "primate/tsconfig",
   "compilerOptions": {
-    "jsx": "react-jsx",
     "paths": {
       "#view/*": ["views/*"],
       "#component/*": ["components/*"],
@@ -12,7 +11,8 @@
       "#app": ["config/app"],
       "#session": ["config/session"],
       "#i18n": ["config/i18n"]
-    }
+    },
+    "jsx": "react-jsx"
   },
   "include": [
     "${configDir}/config",

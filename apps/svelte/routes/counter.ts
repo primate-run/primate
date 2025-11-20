@@ -1,4 +1,5 @@
 import Counter from "#store/Counter";
+import CounterView from "#view/Counter";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
@@ -12,7 +13,7 @@ route.get(async () => {
     ? await Counter.insert({ counter: 10 })
     : counters[0];
 
-  return response.view("Counter.svelte", counter);
+  return response.view(CounterView, counter);
 });
 
 route.post(async request => {

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@lucide/svelte": "^0.553.0",
+    "@plsp/svelte": "^0.1.0",
     "@primate/sqlite": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@rcompat/assert": "^0.3.1",

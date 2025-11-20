@@ -1,7 +1,9 @@
-<script>
+<script lang="ts">
   import Button from "#lib/Button";
   import { Accordion } from "bits-ui";
-  export let post;
+  import type Post from "#component/Post";
+
+  const { post }: { post: Post } = $props();
 </script>
 
 <h2><a href="/post/{post.id}">{post.title}</a></h2>
