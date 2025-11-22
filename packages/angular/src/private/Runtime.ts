@@ -2,8 +2,8 @@ import INITIAL_PROPS from "#INITIAL_PROPS";
 import root from "#root-selector";
 import "@angular/compiler";
 import {
+  enableProdMode,
   importProvidersFrom,
-  provideZoneChangeDetection,
   type Type,
 } from "@angular/core";
 import type {
@@ -20,7 +20,8 @@ import {
 } from "@angular/platform-server";
 import FrontendModule from "@primate/core/frontend/Module";
 import type Render from "@primate/core/frontend/Render";
-import "zone.js/node";
+import type NextServe from "@primate/core/NextServe";
+import type ServeApp from "@primate/core/ServeApp";
 
 export default class Runtime extends FrontendModule<Type<any>> {
   name = "angular";
@@ -33,7 +34,6 @@ export default class Runtime extends FrontendModule<Type<any>> {
       importProvidersFrom(BrowserModule),
       provideServerRendering(),
       provideClientHydration(),
-      provideZoneChangeDetection({ eventCoalescing: true }),
       {
         provide: INITIAL_PROPS,
         useValue: props,
@@ -55,4 +55,10 @@ export default class Runtime extends FrontendModule<Type<any>> {
       head: headMatch?.[1] || "",
     };
   };
+
+  async serve(app: ServeApp, next: NextServe) {
+    app.mode === "production" && enableProdMode();
+
+    return super.serve(app, next);
+  }
 }

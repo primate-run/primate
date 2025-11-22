@@ -21,8 +21,8 @@
     "svelte": "^5.43.6"
   },
   "devDependencies": {
-    "@angular/common": "^20.3.9",
-    "@angular/core": "^20.3.9",
+    "@angular/common": "^21.0.0",
+    "@angular/core": "^21.0.0",
     "@primate/angular": "workspace:^",
     "@primate/go": "workspace:^",
     "@primate/grain": "workspace:^",
