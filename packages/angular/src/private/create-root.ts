@@ -79,7 +79,7 @@ export default class RootComponent implements OnDestroy {
   @Input({ required: true })
   set p(value: RootProps) {
     this.#p = value;
-    this.#cdr.markForCheck();  // root on default CD, zone ticks traverse
+    this.#cdr.markForCheck();  // root on default CD
   }
   get p(): RootProps { return this.#p; }
   get P(): RootProps { return this.#p; }
@@ -101,9 +101,9 @@ export default class RootComponent implements OnDestroy {
     return { ...base, slot };
   }
 
-  ngAfterViewInit() {
+  ${i18n_active ? `ngAfterViewInit() {
     t[sInternal].restore();
-  }
+  }` : ""}
 
   ngOnDestroy() { this.#off?.(); }
 }

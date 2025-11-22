@@ -1,9 +1,7 @@
 import INITIAL_PROPS from "#INITIAL_PROPS";
-import "zone.js";
 import "@angular/compiler";
 import {
-  NgZone,
-  provideZoneChangeDetection,
+  enableProdMode,
   type ApplicationRef,
   type ComponentRef,
 } from "@angular/core";
@@ -13,6 +11,7 @@ import {
 } from "@angular/platform-browser";
 import type ClientData from "@primate/core/client/Data";
 import spa from "@primate/core/client/spa";
+import type Mode from "@primate/core/Mode";
 import type Dict from "@rcompat/type/Dict";
 import root from "angular:root";
 import * as views from "angular:views";
@@ -20,6 +19,7 @@ import * as views from "angular:views";
 type Data = ClientData<{
   views: string[];
   props: Dict[];
+  mode: Mode;
 }>;
 
 const make_props = (data: ClientData<Data>) => ({
@@ -35,23 +35,20 @@ const make_props = (data: ClientData<Data>) => ({
 export default class AngularClient {
   static #app: ApplicationRef;
   static #root: ComponentRef<any>;
-  static #zone: NgZone;
 
   static async mount(_view: string, data: ClientData<Data>) {
+    if (data.mode === "production") enableProdMode();
     const providers = [];
 
-    // Add hydration provider for SSR
-    if (data.ssr) {
-      providers.push(provideClientHydration());
-    }
+    // add hydration provider for SSR
+    if (data.ssr) providers.push(provideClientHydration());
+    // in non-SSR mode, the HTML won't contain app-root, inject it
+    else document.body.appendChild(document.createElement("app-root"));
 
-    // Add zone.js change detection
-    providers.push(provideZoneChangeDetection({ eventCoalescing: true }));
-
-    // Create the root view props
+    // create the root view props
     const props = make_props(data);
 
-    // Bootstrap the application
+    // bootstrap the application
     try {
       this.#app = await bootstrapApplication(root, {
         providers: [
@@ -80,17 +77,14 @@ export default class AngularClient {
       console.error("Failed to bootstrap Angular application:", error);
     }
 
-    this.#zone = this.#root.injector.get(NgZone);
   }
 
   static #spa() {
     window.addEventListener("DOMContentLoaded", () => {
       spa<Data>((next, update) => {
         const props = { ...make_props(next), update };
-        this.#zone.run(() => {
-          this.#root.instance.p = props;
-          this.#app.tick();
-        });
+        this.#root.instance.p = props;
+        this.#app.tick();
         update?.();
       });
     });

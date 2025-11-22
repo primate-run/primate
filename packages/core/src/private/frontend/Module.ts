@@ -162,6 +162,7 @@ export default abstract class FrontendModule<
         view: this.layouts ? "root" : await this.normalize(view),
         spa: this.spa,
         ssr: this.ssr,
+        mode: app.mode,
         ...$props,
       };
 
@@ -278,7 +279,7 @@ export default abstract class FrontendModule<
 
           build.onLoad({ filter }, async args => {
             const file = new FileRef(args.path);
-            // Compile file to JavaScript and potentially CSS
+            // compile file to JavaScript and potentially CSS
             const compiled = await compile.client!(await file.text(), file
               , false);
             let contents = compiled.js;
