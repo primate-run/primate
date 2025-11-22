@@ -14,7 +14,6 @@ const backmap: Dict<string> = {
   htmx: "htmx",
   marko: "marko",
   md: "markdown",
-  poly: "poly",
   solid: "solid",
   svelte: "svelte",
   voby: "voby",
