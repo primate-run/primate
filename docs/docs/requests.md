@@ -35,8 +35,8 @@ If a client sends a `POST` request to `/identify` using the content type
 |-|-|
 |`text/plain`|`text()`|
 |`application/json`|`json()`|
-|`application/x-www-form-urlencoded`|`fields()`|
-|`multipart/form-data`|`fields()` — values are `FormDataEntryValue` (`string` or `File`)|
+|`application/x-www-form-urlencoded`|`form()`|
+|`multipart/form-data`|`form()` — values are `FormDataEntryValue` (`string` or `File`)|
 |`application/octet-stream`|`binary()`|
 |no body|`none()`|
 
