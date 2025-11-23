@@ -33,6 +33,6 @@ Use `fields()` to get the body as form (`Record<string, string | File>`).
 
 ### Binary -> `Blob`
 
-Use `blods()` to get the body as binary (`Blob`).
+Use `binary()` to get the body as binary (`Blob`).
 
 [s=guides/requests/read-body/binary-blob]
