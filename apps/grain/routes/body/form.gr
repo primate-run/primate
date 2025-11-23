@@ -12,13 +12,13 @@ use Json.{ type Json }
 exception UnexpectedBodyType
 
 provide let post = (request: Request) => {
-  let fields = Map.toArray(Body.fields(request))
-  let fieldsCount = Array.length(fields)
+  let form = Map.toArray(Body.form(request))
+  let fieldsCount = Array.length(form)
 
   let mut pairs = []
 
   for (let mut i = 0; i < fieldsCount; i += 1) {
-    let field = Array.get(i, fields)
+    let field = Array.get(i, form)
     match (field) {
       (name, BodyFieldString(value)) => {
         pairs = [(name, JsonString(value)), ...pairs]
@@ -32,7 +32,7 @@ provide let post = (request: Request) => {
 
 // func Post(request Request) any {
 //   var m map[string]any
-//   if err := request.Body.Fields(&m); err != nil {
+//   if err := request.Body.Form(&m); err != nil {
 //     return map[string]any{"error": err.Error()}
 //   }
 //   return m

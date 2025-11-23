@@ -208,7 +208,7 @@ route.get(async () => {
 });
 
 route.post(async request => {
-  const userData = request.body.fields(CreateUser);
+  const userData = request.body.form(CreateUser);
   const user = await User.insert(userData);
 
   // all properties are typed and validated

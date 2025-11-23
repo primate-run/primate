@@ -131,12 +131,12 @@ use Request.{ type Request, module Body, module BodyField }
 use Json.{ type Json }
 
 provide let post = (request: Request) => {
-  let fields = Body.fields(request)
+  let form = Body.form(request)
 
   let pairs = Map.reduce((acc, key, value) => {
     let stringValue = BodyField.string(value)
     [(key, JsonString(stringValue)), ...acc]
-  }, [], fields)
+  }, [], form)
 
   JsonObject(pairs)
 }
@@ -206,7 +206,7 @@ use Request.{ type Request, module Body, module BodyField, type File }
 use Json.{ type Json }
 
 provide let post = (request: Request) => {
-  let fields = Body.fields(request)
+  let form = Body.form(request)
 
   // Process regular fields
   let regularFields = Map.reduce((acc, key, value) => {
@@ -214,7 +214,7 @@ provide let post = (request: Request) => {
       BodyFieldString(str) => [(key, JsonString(str)), ...acc],
       _ => acc
     }
-  }, [], fields)
+  }, [], form)
 
   // Process file fields
   let fileFields = Map.reduce((acc, key, value) => {
@@ -231,10 +231,10 @@ provide let post = (request: Request) => {
       },
       _ => acc
     }
-  }, [], fields)
+  }, [], form)
 
   JsonObject([
-    ("fields", JsonObject(regularFields)),
+    ("form", JsonObject(regularFields)),
     ("files", JsonObject(fileFields))
   ])
 }

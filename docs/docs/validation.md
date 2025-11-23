@@ -35,7 +35,7 @@ response.
 
 | Input type                            | In Primate            | Types            | Use cases                           |
 | ------------------------------------- | --------------------- | ---------------- | ------------------------------------|
-| [Web forms](#web-forms)               | `request.body.fields` | `string\|File`   | form submission, Authentication     |
+| [Web forms](#web-forms)               | `request.body.form`   | `string\|File`   | form submission, Authentication     |
 | [JSON API calls](#json-api-calls)     | `request.body.json`   | `JSONValue`      | REST APIs, client-side fetch calls  |
 | [Binary uploads](#binary-uploads)     | `request.body.binary` | `Blob`           | File uploads                        |
 | [Query parameters](#query-parameters) | `request.query`       | `string`         | Pagination, filtering               |
@@ -44,7 +44,7 @@ response.
 
 ## Web forms
 
-Form submissions are received as `request.body.fields`, which optionally
+Form submissions are received as `request.body.form`, which optionally
 accepts a schema. Values arrive as strings (or `File` for file inputs).
 
 ```ts
@@ -58,8 +58,8 @@ const Login = pema({
 });
 
 route.post(request => {
-    const fields = request.body.fields(Login);
-    // fields.email and fields.password are now validated
+    const form = request.body.form(Login);
+    // form.email and form.password are now validated
     return "Welcome back!";
   }
 });
@@ -69,7 +69,7 @@ This ensures invalid email addresses or too-short passwords never reach your
 logic.
 
 !!!
-`request.body.fields` isn't tied to Pema; it accepts any schema that exposes a
+`request.body.form` isn't tied to Pema; it accepts any schema that exposes a
 `parse` function; but only Pema integrates directly with Primate to throw a
 `ParseError` that is intercepted and passed to the client.
 !!!

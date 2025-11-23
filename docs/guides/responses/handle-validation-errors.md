@@ -30,7 +30,7 @@ const Signup = pema({
 
 route.post(request => {
   // throws a `ParseError` if the `email` field does not contain a valid email
-  const { email } = request.body.fields(Signup);
+  const { email } = request.body.form(Signup);
   return `Signed up with ${email}`;
 });
 ```
@@ -47,7 +47,7 @@ import ParseError from "pema/ParseError";
 
 route.post(request => {
   try {
-    const { email } = request.body.fields(Signup);
+    const { email } = request.body.form(Signup);
     return `Signed up with ${email}`;
   } catch (error) {
     if (error instanceof ParseError) {
@@ -77,7 +77,7 @@ import response from "primate/response";
 
 route.post(request => {
   try {
-    const { email } = request.body.fields(Signup);
+    const { email } = request.body.form(Signup);
     return `Signed up with ${email}`;
   } catch (error) {
     if (error instanceof ParseError) {

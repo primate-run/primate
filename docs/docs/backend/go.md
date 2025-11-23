@@ -141,11 +141,11 @@ import (
 )
 
 var _ = route.Post(func(request route.Request) any {
-    fields, err := request.Body.Form()
+    form, err := request.Body.Form()
     if err != nil {
         return types.Dict{"error": err.Error()}
     }
-    return fields
+    return form
 })
 ```
 
@@ -208,7 +208,7 @@ import (
 
 var _ = route.Post(func(request route.Request) any {
     // get form fields
-    fields, err := request.Body.Form()
+    form, err := request.Body.Form()
     if err != nil {
         return types.Dict{"error": err.Error()}
     }
@@ -229,7 +229,7 @@ var _ = route.Post(func(request route.Request) any {
     }
 
     return types.Dict{
-        "fields": fields,
+        "form": form,
         "files":  len(files),
     }
 })

@@ -231,7 +231,7 @@ route.post(async request => {
   // Ensure id is present
   const id = string.parse(request.query.get("id"));
   // Validate and coerce
-  const body = request.body.fields(pema({ value: number }).coerce);
+  const body = request.body.form(pema({ value: number }).coerce);
   // Persist changes
   await Counter.update({ id }, { value: body.value });
   return null; // 204
