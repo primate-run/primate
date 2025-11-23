@@ -60,3 +60,4 @@ try {
 } catch (error) {
   console.log(error.errors); // detailed errors
 }
+```
