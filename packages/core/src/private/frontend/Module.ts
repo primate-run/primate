@@ -225,10 +225,11 @@ export default abstract class FrontendModule<
         conditions.forEach(condition => app.conditions.add(condition));
       }
 
-      app.build.plugin({
+      app.plugin("client", {
         name,
         setup(build) {
           const resolveDir = app.root.path;
+          const css_cache = new Map<string, string>();
 
           if (root !== undefined) {
             const filter = new RegExp(`^${name}:root`);
@@ -244,14 +245,12 @@ export default abstract class FrontendModule<
           }
 
           if (css !== undefined) {
-            build.onResolve({ filter: css.filter }, ({ path }) => {
-              return { namespace: `${name}css`, path };
+            build.onResolve({ filter: new RegExp(`^${name}:css:`) }, args => {
+              return { path: args.path, namespace: `${name}-css` };
             });
-            build.onLoad({ filter: css.filter }, ({ path }) => {
-              const contents = app.build.load(FileRef.webpath(path));
-              return contents
-                ? { contents, loader: "css", resolveDir: resolveDir }
-                : null;
+            build.onLoad({ filter: /.*/, namespace: `${name}-css` }, args => {
+              const contents = css_cache.get(args.path);
+              return contents ? { contents, loader: "css" } : null;
             });
           }
 
@@ -288,9 +287,9 @@ export default abstract class FrontendModule<
               && compiled.css !== null
               && compiled.css !== undefined
               && compiled.css !== "") {
-              const path = FileRef.webpath(`${args.path}css`);
-              app.build.save(path, compiled.css);
-              contents += `\nimport "${path}";`;
+              const css_path = `${name}:css:${args.path}`;
+              css_cache.set(css_path, compiled.css);
+              contents += `\nimport "${css_path}";`;
             }
 
             return { contents };

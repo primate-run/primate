@@ -1,17 +1,15 @@
 import App from "#App";
 import type Binder from "#Binder";
 import build from "#hook/build";
-import location from "#location";
 import log from "#log";
 import resolve_paths from "#paths";
 import s_layout_depth from "#symbol/layout-depth";
-import Build from "@rcompat/build";
 import type FileRef from "@rcompat/fs/FileRef";
-import cache from "@rcompat/kv/cache";
 import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
+import type { Plugin } from "esbuild";
 
-const s = Symbol("primate.Build");
+type PluginType = "server" | "client";
 
 type Loader = (source: string, file: FileRef) => MaybePromise<string>;
 type Resolver = (basename: string, file: FileRef) => string;
@@ -26,6 +24,8 @@ export default class BuildApp extends App {
   #session_active = false;
   #paths!: Dict<string[]>;
   #bindings: [string, Binder][] = [];
+  #plugins: { type: PluginType; plugin: Plugin }[] = [];
+  #entrypoint_imports: string[] = [];
 
   async buildInit() {
     log.system("starting {0} build in {1} mode", this.target.name, this.mode);
@@ -51,30 +51,30 @@ export default class BuildApp extends App {
     return [...this.frontends.values()].flat();
   }
 
-  get build() {
-    const conditions = this.conditions.values();
-
-    return cache.get(s, () =>
-      new Build({
-        ...(this.config("build")),
-        outdir: this.runpath(location.client).path,
-        stdin: {
-          contents: "",
-          resolveDir: this.root.path,
-        },
-        conditions: ["style", "browser", "default", "module", ...conditions],
-        resolveExtensions: [".ts", ".js", ...this.frontendExtensions],
-        tsconfig: this.root.join("tsconfig.json").path,
-      }, this.mode === "development" ? "development" : "production"),
-    );
-  }
-
   addRoot(name: string, source: string) {
     this.#roots[name] = source;
   }
 
   get roots() {
     return this.#roots;
+  }
+
+  plugin(type: PluginType, plugin: Plugin) {
+    this.#plugins.push({ type, plugin });
+  }
+
+  plugins(type: PluginType) {
+    return this.#plugins
+      .filter(plugin => plugin.type === type)
+      .map(plugin => plugin.plugin);
+  }
+
+  entrypoint(code: string) {
+    this.#entrypoint_imports.push(code);
+  }
+
+  get entrypoints() {
+    return this.#entrypoint_imports.join("\n");
   }
 
   binder(file: FileRef) {
@@ -100,28 +100,6 @@ export default class BuildApp extends App {
     this.#postbuild.forEach(fn => fn());
   }
 
-  export(code: string) {
-    this.build.export(code);
-  }
-
-  async compile(
-    directory: FileRef,
-    context: string,
-    options: {
-      loader?: Loader;
-      resolver?: Resolver;
-    } = {},
-  ) {
-    if (!await directory.exists()) return;
-
-    const files = await directory.collect(({ path }) =>
-      this.extensions.some(e => path.endsWith(e)) && !path.endsWith(".d.ts"));
-
-    for (const file of files) {
-      await this.#compile_file(file, context, directory, options);
-    }
-  }
-
   basename(file: FileRef, directory: FileRef) {
     const relative = file.debase(directory);
     const extensions = this.extensions
@@ -132,49 +110,6 @@ export default class BuildApp extends App {
       }
     }
     return relative.bare().path.slice(1);
-  }
-
-  async #compile_file(
-    file: FileRef,
-    context: string,
-    directory: FileRef,
-    options: {
-      loader?: Loader;
-      resolver?: Resolver;
-    },
-  ) {
-    const binder = this.binder(file);
-    if (binder === undefined) {
-      log.info("no binder found for {0}", file.path);
-      return;
-    }
-
-    // call the binder to compile
-    const compiled = await binder(file, {
-      build: { id: this.id, stage: this.runpath("stage") },
-      context,
-    });
-
-    if (!compiled) {
-      log.info("binder returned empty output for {0}", file.path);
-      return;
-    }
-
-    // apply loader if provided
-    const transformed = options.loader
-      ? await options.loader(compiled, file)
-      : compiled;
-
-    const basename = this.basename(file, directory);
-    const resolved = options.resolver
-      ? options.resolver(basename, file)
-      : basename;
-
-    const target = this.runpath(context, `${resolved}.js`);
-
-    // write to final location
-    await target.directory.create({ recursive: true });
-    await target.write(transformed);
   }
 
   depth(): number {

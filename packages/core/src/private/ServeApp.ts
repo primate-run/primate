@@ -13,7 +13,7 @@ import type ViewResponse from "#frontend/ViewResponse";
 import hash from "#hash";
 import type I18NConfig from "#i18n/Config";
 import I18NModule from "#i18n/Module";
-import type Loader from "#Loader";
+import location from "#location";
 import log from "#log";
 import reducer from "#reducer";
 import parse from "#request/parse";
@@ -31,6 +31,7 @@ import FileRef from "@rcompat/fs/FileRef";
 import FileRouter from "@rcompat/fs/FileRouter";
 import type Actions from "@rcompat/http/Actions";
 import type Conf from "@rcompat/http/Conf";
+import resolve from "@rcompat/http/mime/extension/resolve";
 import TEXT_HTML from "@rcompat/http/mime/text/html";
 import serve from "@rcompat/http/serve";
 import type Server from "@rcompat/http/Server";
@@ -107,6 +108,12 @@ export default class ServeApp extends App {
   #views: PartialDict<Import>;
   #csp: CSP = {};
   #assets: Asset[] = [];
+  #serve_assets: {
+    client: Dict<{ mime: string; data: string }>;
+    static: Dict<{ mime: string; data: string }>;
+  };
+
+  #pages: Dict<string>;
   #stores: Dict;
   #frontends: PartialDict<ViewResponse> = {};
   #router: FileRouter;
@@ -129,6 +136,8 @@ export default class ServeApp extends App {
     this.#views = Object.fromEntries(init.views ?? []);
     this.#stores = Object.fromEntries((init.stores?.map(([k, s]) =>
       [k, s.default])) ?? []);
+    this.#serve_assets = init.assets;
+    this.#pages = init.pages;
 
     const http = this.#init.config.http;
     this.#i18n_config = init.i18n_config;
@@ -163,14 +172,6 @@ export default class ServeApp extends App {
     const ssl = this.config("http.ssl");
 
     return ssl.key !== undefined && ssl.cert !== undefined;
-  }
-
-  loader<T extends Loader>() {
-    return this.#init.loader as T;
-  }
-
-  serve(pathname: string) {
-    return this.loader().serve(pathname);
   }
 
   get assets() {
@@ -245,10 +246,6 @@ export default class ServeApp extends App {
       .replace("%head%", render_head(this.#assets, head));
   }
 
-  page(page?: string) {
-    return this.loader().page(page);
-  }
-
   body_length(body: BodyInit | null): number {
     return typeof body === "string" ? utf8ByteLength(body) : 0;
   }
@@ -312,15 +309,99 @@ export default class ServeApp extends App {
     this.#frontends[extension] = viewFunction;
   };
 
+  page(name?: string) {
+    const page_name = name ?? location.app_html;
+    return this.#pages[page_name];
+  }
+
+  async #try_serve(file: FileRef) {
+    if (await file.exists() && await file.isFile()) {
+      return new Response(file.stream(), {
+        headers: {
+          "Content-Type": resolve(file.name),
+          "Content-Length": String(await file.byteLength()),
+        },
+        status: Status.OK,
+      });
+    }
+  }
+
+  async serveAsset(pathname: string) {
+    const static_root = this.config("http.static.root");
+
+    if (!pathname.startsWith(static_root)) return undefined;
+
+    if (this.mode === "development") {
+      const client_asset = this.root.join(location.client, pathname);
+      const client_response = await this.#try_serve(client_asset);
+      if (client_response !== undefined) return client_response;
+
+      const static_asset = this.root.join("..", location.static, pathname);
+      const static_response = await this.#try_serve(static_asset);
+      if (static_response !== undefined) return static_response;
+
+      return undefined;
+    }
+
+    const asset = this.#serve_assets.client[pathname] ??
+      this.#serve_assets.static[pathname];
+    if (asset) {
+      const binary = atob(asset.data);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+
+      return new Response(bytes, {
+        headers: {
+          "Content-Type": asset.mime,
+          "Content-Length": String(bytes.length),
+        },
+        status: Status.OK,
+      });
+    }
+
+    return undefined;
+  }
+
   async start() {
-    this.#assets = await Promise.all(this.#init.assets.map(async asset => {
-      const code = asset.code as string;
-      return {
-        ...asset,
-        code,
-        integrity: await hash(code),
-      };
-    }));
+   if (this.mode === "production") {
+      this.#assets = await Promise.all(
+        Object.entries(this.#serve_assets.client)
+          .filter(([src]) => src.endsWith(".css") || src.endsWith(".js"))
+          .map(async ([src, asset]) => {
+            const type = src.endsWith(".css") ? "style" : "js";
+            const code = atob(asset.data);
+
+            return {
+              code,
+              inline: false,
+              integrity: await hash(code),
+              src,
+              type,
+            };
+          }));
+    } else {
+      const client_dir = this.root.join(location.client);
+      const files = await client_dir.exists()
+        ? await client_dir.collect(f => f.extension === ".js"
+          || f.extension === ".css")
+        : [];
+
+      this.#assets = await Promise.all(
+        files.map(async (file) => {
+          const type = file.extension === ".css" ? "style" : "js";
+          const code = await file.text();
+
+          return {
+            code,
+            inline: false,
+            integrity: await hash(code),
+            src: `/${file.name}`,
+            type,
+          };
+        }));
+    }
     const modules = [
       this.#builtins.dev,
       ...this.modules,

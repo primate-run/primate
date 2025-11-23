@@ -1,3 +1,4 @@
+import reload from "#build/client/reload";
 import type BuildApp from "#BuildApp";
 import fail from "#fail";
 import location from "#location";
@@ -9,10 +10,12 @@ import type ServeApp from "#ServeApp";
 import s_layout_depth from "#symbol/layout-depth";
 import FileRef from "@rcompat/fs/FileRef";
 import pkg from "@rcompat/fs/project/package";
+import resolve from "@rcompat/http/mime/extension/resolve";
 import runtime from "@rcompat/runtime";
 import type Dict from "@rcompat/type/Dict";
 import * as esbuild from "esbuild";
 import { createRequire } from "node:module";
+
 const requirer = createRequire(import.meta.url);
 const externals = {
   node: ["node:"],
@@ -427,90 +430,90 @@ async function bundle_server(app: BuildApp) {
   };
   plugins.push(virtual_routes_plugin);
 
-const app_route_plugin: esbuild.Plugin = {
-  name: "primate/app-route",
-  setup(build) {
-    build.onResolve({ filter: /^app:route\// }, args => {
-      const rel = args.path.slice("app:route/".length);
-      return { path: rel, namespace: "primate-route" };
-    });
+  const app_route_plugin: esbuild.Plugin = {
+    name: "primate/app-route",
+    setup(build) {
+      build.onResolve({ filter: /^app:route\// }, args => {
+        const rel = args.path.slice("app:route/".length);
+        return { path: rel, namespace: "primate-route" };
+      });
 
-    build.onLoad({ filter: /.*/, namespace: "primate-route" }, async args => {
-      const rel = args.path;
-      const base = app.path.routes.join(rel);
+      build.onLoad({ filter: /.*/, namespace: "primate-route" }, async args => {
+        const rel = args.path;
+        const base = app.path.routes.join(rel);
 
-      const exts = [".ts", ".js", ".py", ".rb", ".go"];
-      let file: FileRef | undefined;
-      let ext: string | undefined;
+        const exts = [".ts", ".js", ".py", ".rb", ".go"];
+        let file: FileRef | undefined;
+        let ext: string | undefined;
 
-      for (const e of exts) {
-        const candidate = new FileRef(base.path + e);
-        if (await candidate.exists()) {
-          file = candidate;
-          ext = e;
-          break;
+        for (const e of exts) {
+          const candidate = new FileRef(base.path + e);
+          if (await candidate.exists()) {
+            file = candidate;
+            ext = e;
+            break;
+          }
         }
-      }
 
-      if (!file || !ext) {
-        throw fail(
-          `cannot find route source for "${rel}" under ${app.path.routes.path}`,
-        );
-      }
+        if (!file || !ext) {
+          throw fail(
+            `cannot find route source for "${rel}" under ${app.path.routes.path}`,
+          );
+        }
 
-      // normalise "routes/foo.ext" → "foo" for the router path
-      const relFromRoutes = file.path.split("routes").pop()!;
-      const noExt = relFromRoutes.replace(/^[\\/]/, "").replace(/\.(ts|js|py|rb|go)$/, "");
-      const routePath = noExt.replace(/\\/g, "/");
+        // normalise "routes/foo.ext" → "foo" for the router path
+        const relFromRoutes = file.path.split("routes").pop()!;
+        const noExt = relFromRoutes.replace(/^[\\/]/, "").replace(/\.(ts|js|py|rb|go)$/, "");
+        const routePath = noExt.replace(/\\/g, "/");
 
-      // TS/JS: just wrap the original source
-      if (ext === ".ts" || ext === ".js") {
-        const source = await file.text();
-        const wrapped = wrap(source, routePath, app.id);
+        // TS/JS: just wrap the original source
+        if (ext === ".ts" || ext === ".js") {
+          const source = await file.text();
+          const wrapped = wrap(source, routePath, app.id);
+
+          return {
+            contents: wrapped,
+            loader: ext === ".ts" ? "ts" : "js",
+            resolveDir: file.directory.path,
+            watchFiles: [file.path],
+          };
+        }
+
+        // py/rb/go: use binder + wrap, like your existing plugins
+
+        const binder = app.binder(file);
+        if (!binder) {
+          // same fallback you had in python/ruby/go plugins
+          return {
+            contents: "export default {};",
+            loader: "js",
+            resolveDir: file.directory.path,
+            watchFiles: [file.path],
+          };
+        }
+
+        const compiled = await binder(file, {
+          build: { id: app.id, stage: app.runpath("stage") },
+          context: "routes",
+        });
+
+        const wrapped = wrap(compiled, routePath, app.id);
+
+        const watchFiles =
+          ext === ".go"
+            ? [file.path, app.runpath("wasm", `${routePath}.wasm`).path]
+            : [file.path];
 
         return {
           contents: wrapped,
-          loader: ext === ".ts" ? "ts" : "js",
-          resolveDir: file.directory.path,
-          watchFiles: [file.path],
-        };
-      }
-
-      // py/rb/go: use binder + wrap, like your existing plugins
-
-      const binder = app.binder(file);
-      if (!binder) {
-        // same fallback you had in python/ruby/go plugins
-        return {
-          contents: "export default {};",
           loader: "js",
           resolveDir: file.directory.path,
-          watchFiles: [file.path],
+          watchFiles,
         };
-      }
-
-      const compiled = await binder(file, {
-        build: { id: app.id, stage: app.runpath("stage") },
-        context: "routes",
       });
-
-      const wrapped = wrap(compiled, routePath, app.id);
-
-      const watchFiles =
-        ext === ".go"
-          ? [file.path, app.runpath("wasm", `${routePath}.wasm`).path]
-          : [file.path];
-
-      return {
-        contents: wrapped,
-        loader: "js",
-        resolveDir: file.directory.path,
-        watchFiles,
-      };
-    });
-  },
-};
-plugins.push(app_route_plugin);
+    },
+  };
+  plugins.push(app_route_plugin);
 
   const virtual_roots_plugin: esbuild.Plugin = {
     name: "primate/virtual/roots",
@@ -567,6 +570,67 @@ plugins.push(app_route_plugin);
     },
   };
   plugins.push(virtual_views_plugin);
+
+    const virtual_assets_plugin: esbuild.Plugin = {
+      name: "primate/virtual/assets",
+      setup(build) {
+        build.onResolve({ filter: /^app:assets$/ }, () => {
+          return { path: "assets-virtual", namespace: "primate-assets" };
+        });
+
+        build.onLoad({ filter: /.*/, namespace: "primate-assets" }, async () => {
+          if (app.mode === "production") {
+          const client_files = await app.runpath(location.client).collect();
+
+          const client_assets: Dict<{ mime: string; data: string }> = {};
+          for (const file of client_files) {
+            const pathname = `/${file.name}`;
+            const bytes = await file.bytes();
+            const base64 = btoa(String.fromCharCode(...bytes));
+            client_assets[pathname] = {
+              mime: resolve(file.name),
+              data: base64,
+            };
+          }
+
+          const static_dir = app.root.join(location.static);
+          const static_files = await static_dir.exists()
+            ? await static_dir.collect()
+            : [];
+
+          const static_assets: Dict<{ mime: string; data: string }> = {};
+          for (const file of static_files) {
+            const pathname = file.debase(static_dir).path;
+            const bytes = await file.bytes();
+            const base64 = btoa(String.fromCharCode(...bytes));
+            static_assets[pathname] = {
+              mime: resolve(file.name),
+              data: base64,
+            };
+          }
+
+          const contents = `
+            const client_assets = ${JSON.stringify(client_assets, null, 2)};
+            const static_assets = ${JSON.stringify(static_assets, null, 2)};
+            export default {
+              client: client_assets,
+              static: static_assets,
+            };
+          `;
+
+          return { contents, loader: "js", resolveDir: app.root.path };
+        }
+          const contents = `
+          export default {
+            client: {},
+            static: {},
+          };
+        `;
+        return { contents, loader: "js", resolveDir: app.root.path };
+        });
+      },
+    };
+    plugins.push(virtual_assets_plugin);
 
   const virtual_stores_plugin: esbuild.Plugin = {
     name: "primate/virtual/stores",
@@ -673,9 +737,7 @@ plugins.push(app_route_plugin);
             });
 
             if (result.errors.length === 0) return null;
-          } catch {
-
-          }
+          } catch {}
 
           return { path: args.path, external: true };
         }
@@ -751,7 +813,7 @@ plugins.push(app_route_plugin);
 
   const nodePaths = [app.root.join("node_modules").path];
 
-  const build_options = {
+  const build_options: esbuild.BuildOptions = {
     entryPoints: [app.path.build.join("serve.js").path],
     outfile: app.path.build.join("server.js").path,
     bundle: true,
@@ -780,10 +842,10 @@ plugins.push(app_route_plugin);
     write: app.mode !== "development",
   };
   if (app.mode === "development") {
-    const context = await esbuild.context(build_options as never);
+    const context = await esbuild.context(build_options);
     await context.watch();
   } else {
-    await esbuild.build(build_options as never);
+    await esbuild.build(build_options);
   }
 
   log.warn("bundled server to {0}", app.path.build.join("server.js"));
@@ -831,11 +893,10 @@ const jts_re = /\.[jt]s$/;
 const write_bootstrap = async (app: BuildApp, mode: string) => {
   const build_start_script = `
 import serve from "primate/serve";
-import Loader from "primate/Loader";
 import views from "app:views";
 import routes from "app:routes";
 import pages from "app:pages";
-import target from "./target.js";
+import assets from "app:assets";
 import s_config from "primate/symbol/config";
 ${app.session_active ? `
 import session from "app:config:session";
@@ -852,21 +913,16 @@ const i18n_config = i18n[s_config];
 const i18n_config = undefined;
 `}
 
-const loader = new Loader({
-  pages,
-  rootfile: import.meta.url,
-  static_root: config.http.static.root,
-});
-
 const app = await serve(import.meta.url, {
-  ...target,
+  assets,
   config,
   routes,
   views,
+  pages,
   mode: "${mode}",
   session_config,
   i18n_config,
-  loader,
+  target: "${app.target.name}",
 });
 
 export default app;
@@ -875,24 +931,7 @@ export default app;
 };
 
 const post = async (app: BuildApp) => {
-  await app.compile(app.path.locales, "locales");
-
-  if (await app.path.static.exists()) {
-    // copy static files to build/static
-    await app.path.static.copy(app.runpath(location.static));
-  }
-
-  // publish JavaScript and CSS files
-  const imports = await FileRef.collect(app.path.static,
-    file => /\.(?:js|ts|css)$/.test(file.path));
-  await Promise.all(imports.map(async file => {
-    const src = file.debase(app.path.static);
-    app.build.export(`import "./${location.static}${src}";`);
-  }));
-
-  app.build.export("import \"primate/client/app\";");
-
-  app.build.plugin({
+  app.plugin("client", {
     name: "@primate/core/frontend",
     setup(build) {
       build.onResolve({ filter: /app:frontends/ }, ({ path }) => {
@@ -906,7 +945,7 @@ const post = async (app: BuildApp) => {
     },
   });
 
-  app.build.plugin({
+  app.plugin("client", {
     name: "@primate/core/alias",
     setup(build) {
       build.onResolve({ filter: /app:static/ }, args => {
@@ -916,7 +955,7 @@ const post = async (app: BuildApp) => {
     },
   });
 
-  app.build.plugin({
+  app.plugin("client", {
     name: "@primate/core/server-stamp",
     setup(build) {
       build.onResolve({ filter: /^server:stamp$/ }, () => {
@@ -928,8 +967,66 @@ const post = async (app: BuildApp) => {
     },
   });
 
-  // start the build
-  await app.build.start();
+  app.plugin("client", {
+    name: "@primate/core/entrypoint",
+    setup(build) {
+      build.onResolve({ filter: /^app:client$/ }, () => {
+        return { path: "client-entrypoint", namespace: "primate-client" };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-client" }, async () => {
+        const contents = app.entrypoints;
+
+        return { contents, loader: "js", resolveDir: app.root.path };
+      });
+    },
+  });
+
+  const imports = await FileRef.collect(app.path.static,
+    file => /\.(?:js|ts|css)$/.test(file.path));
+  imports.forEach(file => {
+    const src = file.debase(app.path.static);
+    app.entrypoint(`import "./${location.static}${src}";`);
+  });
+  app.entrypoint(`import "primate/client/app";`);
+
+  const build_options: esbuild.BuildOptions = {
+    ...(app.config("build") ?? {}),
+    plugins: app.plugins("client"),
+    outdir: app.runpath(location.client).path,
+    entryPoints: ["app:client"],
+    conditions: ["style", "browser", "default", "module", ...app.conditions.values()],
+    resolveExtensions: [".ts", ".js", ...app.frontendExtensions],
+    tsconfig: app.root.join("tsconfig.json").path,
+    bundle: true,
+    format: "esm",
+  };
+
+  const mode_options: esbuild.BuildOptions = app.mode === "development"
+    ? {
+      banner: {
+        js: `new EventSource("${reload.path}").addEventListener("change",
+      () => globalThis.location.reload());`,
+      },
+      entryNames: "app",
+      minify: false,
+      splitting: false,
+    }
+    : {
+      entryNames: "app-[hash]",
+      minify: true,
+      splitting: true,
+    };
+  const options: esbuild.BuildOptions = { ...build_options, ...mode_options };
+
+  if (app.mode === "development") {
+    const context = await esbuild.context(options);
+    await context.rebuild();
+    await context.watch();
+    await context.serve({ host: reload.host, port: reload.port });
+  } else {
+    await esbuild.build(options);
+  }
 
   // run unique target code
   await app.target.run();
@@ -938,9 +1035,10 @@ const post = async (app: BuildApp) => {
 
   log.system("build written to {0}", app.path.build);
 
+  await bundle_server(app);
+
   app.cleanup();
 
-  await bundle_server(app);
   return app;
 };
 

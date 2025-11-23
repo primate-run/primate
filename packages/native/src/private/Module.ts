@@ -55,7 +55,7 @@ export default class NativeModule extends Module {
         `);
         await execute(command({
           exe,
-          files: ["serve.js", "worker.js"],
+          files: ["server.js", "worker.js"],
           flags,
         }));
         log.system("executable written to {0}", executable_path);

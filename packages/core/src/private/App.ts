@@ -6,7 +6,7 @@ import type Mode from "#Mode";
 import type Module from "#Module";
 import reducer from "#reducer";
 import TargetManager from "#target/Manager";
-import FileRef from "@rcompat/fs/FileRef";
+import type FileRef from "@rcompat/fs/FileRef";
 import entries from "@rcompat/record/entries";
 import get from "@rcompat/record/get";
 
@@ -22,6 +22,7 @@ export default class App {
   #kv = new Map<symbol, unknown>();
   #mode: Mode;
   #target: TargetManager;
+  #target_name: string;
 
   constructor(root: FileRef, config: Config, flags: typeof Flags.infer) {
     if (Object.values(location).includes(flags.dir as any)) {
@@ -36,7 +37,7 @@ export default class App {
     }).valmap(([, path]) => root.join(path)).get();
     this.#mode = flags.mode;
     this.#target = new TargetManager(this);
-    this.#target.set(flags.target);
+    this.#target_name = flags.target;
   }
 
   async init() {
@@ -45,7 +46,11 @@ export default class App {
       throw fail("module {0} loaded twice", doubled(names));
     }
 
-    return await reducer(this.#modules, this, "init");
+    const app = await reducer(this.#modules, this, "init");
+
+    this.#target.set(this.#target_name);
+
+    return app;
   }
 
   get location() {

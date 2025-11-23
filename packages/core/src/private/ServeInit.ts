@@ -1,7 +1,5 @@
-import type Asset from "#asset/Asset";
 import type Config from "#config/Config";
 import type I18NConfig from "#i18n/Config";
-import type Loader from "#Loader";
 import type Mode from "#Mode";
 import type SessionConfig from "#session/Config";
 import type Dict from "@rcompat/type/Dict";
@@ -11,14 +9,17 @@ type Import = {
 } & Dict;
 
 type ServeInit = {
-  assets: Asset[];
+  assets: {
+    client: Dict<{ mime: string; data: string }>;
+    static: Dict<{ mime: string; data: string }>;
+  };
   views?: [string, Import][];
   stores?: [string, Import][];
   config: Config;
   routes: [string, { default: any }][];
-  loader: Loader;
   mode: Mode;
   target: string;
+  pages: Dict<string>;
   session_config?: SessionConfig;
   i18n_config?: I18NConfig;
 };

@@ -1,7 +1,12 @@
 import type App from "#App";
 import fail from "#fail";
 import type Target from "#target/Target";
-import web from "#target/web";
+
+const web: Target = {
+  name: "web",
+  runner: () => { },
+  target: "web",
+};
 
 export default class TargetManager {
   #name: string = "web";

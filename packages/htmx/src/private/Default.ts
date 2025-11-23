@@ -31,14 +31,18 @@ export default class Default extends Runtime {
   }
 
   publish(app: BuildApp) {
-    app.export(`export { default as htmx } from "${htmx_esm}";`);
+    app.entrypoint(`export { default as htmx } from "${htmx_esm}";`);
 
-    this.#extensions.map(extension => app.export(`${_export}/${extension}";`));
+    this.#extensions.forEach(extension => {
+      app.entrypoint(`export * from "${htmx_esm}/${extension}";`);
+    });
 
     if (this.#has_templates) {
       this.#templates
         .filter(template => template !== "xslt")
-        .map(template => app.export(`${_export}/templates/${template}";`));
+        .forEach(template => {
+          app.entrypoint(`export * from "${htmx_esm}/templates/${template}";`);
+        });
     }
   }
 }

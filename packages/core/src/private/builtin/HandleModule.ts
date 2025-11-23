@@ -14,7 +14,7 @@ export default class HandleModule extends Module {
   }
 
   async handle(request: RequestFacade) {
-    return await this.#app.serve(request.url.pathname)
+    return await this.#app.serveAsset(request.url.pathname)
       ?? route(this.#app, request);
   }
 }

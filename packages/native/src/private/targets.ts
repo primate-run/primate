@@ -1,5 +1,6 @@
-import runner from "#desktop";
 import type NativeTarget from "#NativeTarget";
+
+const runner = () => { };
 
 const targets: NativeTarget[] = [
   {
