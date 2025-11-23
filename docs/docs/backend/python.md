@@ -123,7 +123,7 @@ from primate import Route
 
 @Route.post
 def post(request):
-    return request.body.fields()
+    return request.body.form()
 ```
 
 #### Text Body
@@ -165,7 +165,7 @@ from primate import Route
 @Route.post
 def post(request):
     # get form fields
-    fields = request.body.fields()
+    fields = request.body.form()
 
     # get uploaded files
     files = request.body.files()
@@ -364,7 +364,7 @@ Use standard Python dictionary syntax:
 
 ```python
 # accessing form data
-fields = request.body.fields()
+fields = request.body.form()
 name = fields.get("name", "")
 
 # building responses

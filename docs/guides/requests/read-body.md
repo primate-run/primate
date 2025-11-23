@@ -25,7 +25,7 @@ Use `json()` to get the body as JSON (`Record`).
 
 ### Form -> `Record`
 
-Use `fields()` to get the body as form (`Record<string, string | File>`).
+Use `form()` to get the body as form (`Record<string, string | File>`).
 
 [s=guides/requests/read-body/form-record]
 

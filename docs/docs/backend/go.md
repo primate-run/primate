@@ -141,7 +141,7 @@ import (
 )
 
 var _ = route.Post(func(request route.Request) any {
-    fields, err := request.Body.Fields()
+    fields, err := request.Body.Form()
     if err != nil {
         return types.Dict{"error": err.Error()}
     }
@@ -208,7 +208,7 @@ import (
 
 var _ = route.Post(func(request route.Request) any {
     // get form fields
-    fields, err := request.Body.Fields()
+    fields, err := request.Body.Form()
     if err != nil {
         return types.Dict{"error": err.Error()}
     }
