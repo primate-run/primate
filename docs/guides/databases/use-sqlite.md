@@ -49,7 +49,7 @@ import string from "pema/string";
 export default store({
   id: primary,
   name: string,
-  email: string,
+  email: string.email(),
 });
 ```
 
