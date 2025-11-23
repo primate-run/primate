@@ -63,3 +63,4 @@ route.get(request => {
     .parse(request.headers.get("Authorization"));
   return { auth };
 });
+```
