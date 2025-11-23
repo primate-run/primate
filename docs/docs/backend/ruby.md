@@ -137,7 +137,7 @@ require 'primate/route'
 
 Route.post do |request|
   begin
-    request.body.fields
+    request.body.form
   rescue => e
     { error: e.message }
   end
@@ -185,8 +185,8 @@ require 'primate/route'
 
 Route.post do |request|
   begin
-    # Get form fields
-    fields = request.body.fields
+    # Get form form
+    form = request.body.form
 
     # Get uploaded files
     files = request.body.files
@@ -202,7 +202,7 @@ Route.post do |request|
     end
 
     {
-      fields: fields,
+      form: form,
       files: file_info
     }
   rescue => e

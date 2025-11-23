@@ -107,7 +107,7 @@ route.get(async () => {
 });
 
 route.post(async request => {
-  const body = request.body.fields(pema({
+  const body = request.body.form(pema({
     title: string.max(100),
     body: string,
   }).coerce);
