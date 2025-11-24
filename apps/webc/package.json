@@ -3,7 +3,8 @@
   "type": "module",
   "scripts": {
     "start": "npx primate",
-    "build": "npx primate build"
+    "build": "npx primate build",
+    "serve": "npx primate serve"
   },
   "dependencies": {
     "@primate/webc": "workspace:^",

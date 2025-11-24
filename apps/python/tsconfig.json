@@ -2,30 +2,20 @@
   "extends": "primate/tsconfig",
   "compilerOptions": {
     "paths": {
-      "#route/*": ["routes/*"],
-      "#component/*": ["components/*", "components/*.svelte", "components/*.ts", "components/*.js"],
-      "#view/*": ["views/*", "views/*.svelte", "views/*.ts", "views/*.js"],
-      "#store/*": ["stores/*", "stores/*.ts", "stores/*.js"],
-      "#locale/*": ["locales/*", "locales/*.ts", "locales/*.js"],
-      "#config/*": ["config/*", "config/*.ts", "config/*.js"],
-      "#static/*": ["static/*", "static/*.ts", "static/*.js"],
-      "#database/*": ["config/database/*.ts", "config/database/*.js"],
-      "#app": ["config/app.ts", "config/app.js"],
-      "#session": ["config/session.ts", "config/session.js"],
-      "#i18n": ["config/i18n.ts", "config/i18n.js"],
-      "#database": [
-        "config/database/index.ts",
-        "config/database/index.js",
-        "config/database/default.js",
-        "config/database/default.ts"
-      ]
+      "#view/*": ["views/*"],
+      "#store/*": ["stores/*"],
+      "#locale/*": ["locales/*"],
+      "#config/*": ["config/*"],
+      "#static/*": ["static/*"],
+      "#app": ["config/app"],
+      "#session": ["config/session"],
+      "#i18n": ["config/i18n"]
     }
   },
   "include": [
     "${configDir}/config",
     "${configDir}/routes",
     "${configDir}/views",
-    "${configDir}/components",
     "${configDir}/stores",
     "${configDir}/test",
     "${configDir}/static"

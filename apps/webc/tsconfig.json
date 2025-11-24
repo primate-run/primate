@@ -1,3 +1,26 @@
 {
-  "extends": "primate/tsconfig"
+  "extends": "primate/tsconfig",
+  "compilerOptions": {
+    "paths": {
+      "#view/*": ["views/*"],
+      "#component/*": ["components/*"],
+      "#store/*": ["stores/*"],
+      "#locale/*": ["locales/*"],
+      "#config/*": ["config/*"],
+      "#static/*": ["static/*"],
+      "#app": ["config/app"],
+      "#session": ["config/session"],
+      "#i18n": ["config/i18n"]
+    }
+  },
+  "include": [
+    "${configDir}/config",
+    "${configDir}/routes",
+    "${configDir}/views",
+    "${configDir}/components",
+    "${configDir}/stores",
+    "${configDir}/test",
+    "${configDir}/static"
+  ],
+  "exclude": ["node_modules"]
 }
