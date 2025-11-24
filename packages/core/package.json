@@ -38,6 +38,7 @@
     "@rcompat/runtime": "^0.6.0",
     "@rcompat/string": "^0.10.1",
     "@rcompat/type": "^0.6.1",
+    "esbuild": "^0.27.0",
     "pema": "workspace:^"
   },
   "type": "module",
