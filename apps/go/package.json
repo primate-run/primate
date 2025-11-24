@@ -13,6 +13,6 @@
     "@primate/go": "workspace:^",
     "@primate/svelte": "workspace:^",
     "primate": "workspace:^",
-    "svelte": "^5.43.3"
+    "svelte": "^5.43.15"
   }
 }
