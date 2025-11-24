@@ -38,8 +38,8 @@ The new build system provides several key advantages:
 You can now specify a different build output location using the `--dir` flag:
 
 ```bash
-npx primate build --dir out
-npx primate serve --dir out
+npx primate build --dir=out
+npx primate serve --dir=out
 ```
 
 This is particularly useful for deployment pipelines or when integrating with
