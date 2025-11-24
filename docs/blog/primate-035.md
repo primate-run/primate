@@ -326,4 +326,4 @@ us on [GitHub].
 [Quickstart]: /docs/quickstart
 [discord]: https://discord.gg/RSg4NNwM4f
 [GitHub]: https://github.com/primate-run/primate
-[0.36 features]: https://github.com/primate-run/primate/milestone/7
+[0.36 features]: https://github.com/primate-run/primate/milestone/8
