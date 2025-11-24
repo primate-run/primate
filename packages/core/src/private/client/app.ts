@@ -1,6 +1,6 @@
 // @ts-expect-error esbuild vfs
 import stamp from "server:stamp";
-console.log(stamp);
+(() => stamp)();
 // @ts-expect-error esbuild vfs
 import * as frontends from "app:frontends";
 
