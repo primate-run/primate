@@ -13,13 +13,13 @@
     "@primate/handlebars": "workspace:^",
     "@primate/markdown": "workspace:^",
     "@primate/svelte": "workspace:^",
-    "@rcompat/fs": "^0.22.3",
+    "@rcompat/fs": "^0.22.4",
     "@rcompat/http": "^0.16.0",
     "@rcompat/record": "^0.9.1",
-    "@rcompat/string": "^0.10.0",
+    "@rcompat/string": "^0.10.1",
     "primate": "workspace:^",
-    "shiki": "^3.12.2",
-    "svelte": "^5.43.6"
+    "shiki": "^3.15.0",
+    "svelte": "^5.43.14"
   },
   "devDependencies": {
     "@angular/common": "^21.0.0",
