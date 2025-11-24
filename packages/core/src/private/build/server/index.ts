@@ -28,6 +28,7 @@ const externals = {
 const conditions = {
   node: ["node"],
   bun: ["bun", "node"],
+  deno: ["deno", "node"],
 };
 
 export default async function build_server(app: BuildApp) {
