@@ -62,7 +62,7 @@ export default class Website extends Module {
       setup(build) {
         build.onLoad({ filter: /\.woff2$/ }, async args => {
           return {
-            contents: await FileRef.text(args.path),
+            contents: await FileRef.bytes(args.path),
             loader: "file",
           };
         });
