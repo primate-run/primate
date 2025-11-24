@@ -4,7 +4,7 @@ import Module from "#Module";
 import type NextHandle from "#module/NextHandle";
 import type NextServe from "#module/NextServe";
 import type RequestFacade from "#request/RequestFacade";
-import type ServeApp from "#ServeApp";
+import type ServeApp from "#serve/App";
 import type Config from "#session/Config";
 import kSerialize from "#session/k-serialize";
 import SessionHandle from "#session/SessionHandle";

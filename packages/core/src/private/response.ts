@@ -1,4 +1,4 @@
-import type ServeApp from "#ServeApp";
+import type ServeApp from "#serve/App";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 
 export default <T>(mime: string, mapper: (input: T) => BodyInit) =>

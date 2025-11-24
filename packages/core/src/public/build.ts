@@ -1,1 +1,1 @@
-export { default } from "#build";
+export { default } from "#build/index";

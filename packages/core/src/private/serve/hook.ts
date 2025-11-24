@@ -1,6 +1,6 @@
 import log from "#log";
 import reducer from "#reducer";
-import type ServeApp from "#ServeApp";
+import type ServeApp from "#serve/App";
 
 function pre(app: ServeApp) {
   log.system("in startup");

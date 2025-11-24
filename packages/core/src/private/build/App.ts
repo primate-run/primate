@@ -1,18 +1,14 @@
 import App from "#App";
 import type Binder from "#Binder";
-import build from "#hook/build";
+import build from "#build/hook";
 import log from "#log";
 import resolve_paths from "#paths";
 import s_layout_depth from "#symbol/layout-depth";
 import type FileRef from "@rcompat/fs/FileRef";
 import type Dict from "@rcompat/type/Dict";
-import type MaybePromise from "@rcompat/type/MaybePromise";
 import type { Plugin } from "esbuild";
 
 type PluginType = "server" | "client";
-
-type Loader = (source: string, file: FileRef) => MaybePromise<string>;
-type Resolver = (basename: string, file: FileRef) => string;
 
 export default class BuildApp extends App {
   frontends: Map<string, string[]> = new Map();
@@ -23,7 +19,10 @@ export default class BuildApp extends App {
   #i18n_active = false;
   #session_active = false;
   #paths!: Dict<string[]>;
-  #bindings: [string, Binder][] = [];
+  #bindings: [string, Binder][] = [
+    [".js", file => file.text()],
+    [".ts", file => file.text()],
+  ];
   #plugins: { type: PluginType; plugin: Plugin }[] = [];
   #entrypoint_imports: string[] = [];
 

@@ -1,12 +1,12 @@
 import log from "#log";
 import type RequestFacade from "#request/RequestFacade";
-import errorResponse from "#response/error";
-import jsonResponse from "#response/json";
+import response_error from "#response/error";
+import response_json from "#response/json";
 import respond from "#response/respond";
 import type ResponseLike from "#response/ResponseLike";
 import guard from "#route/guard";
 import type RouteHandler from "#route/Handler";
-import type ServeApp from "#ServeApp";
+import type ServeApp from "#serve/App";
 import Status from "@rcompat/http/Status";
 import type MaybePromise from "@rcompat/type/MaybePromise";
 import ParseError from "pema/ParseError";
@@ -19,9 +19,7 @@ async function reducer(hooks: RouteHook[], request: RequestFacade):
   Promise<ResponseLike> {
   const [first, ...rest] = hooks;
 
-  if (rest.length === 0) {
-    return await first(request, _ => new Response());
-  };
+  if (rest.length === 0) return await first(request, _ => new Response());
   return await first(request, _ => reducer(rest, _));
 };
 
@@ -43,7 +41,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
     const route = await app.route(partial_request);
 
     if (route === undefined) {
-      return errorResponse()(app, {}, partial_request) as Response;
+      return response_error()(app, {}, partial_request) as Response;
     }
 
     const { errors, guards, handler, layouts } = route;
@@ -65,7 +63,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
   } catch (error) {
     const request = partial_request;
     if (error instanceof ParseError) {
-      return jsonResponse(error.toJSON(),
+      return response_json(error.toJSON(),
         { status: Status.BAD_REQUEST })(app) as Response;
     }
     log.error(error);
@@ -73,7 +71,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
     try {
       return respond(await errorRoute!(request))(app, {}, request) as Response;
     } catch {
-      return errorResponse()(app, {}, request) as Response;
+      return response_error()(app, {}, request) as Response;
     }
   }
 };

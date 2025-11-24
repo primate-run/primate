@@ -1,1 +1,1 @@
-export { default } from "#serve";
+export { default } from "#serve/index";

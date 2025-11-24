@@ -4,7 +4,6 @@ import type MaybePromise from "@rcompat/type/MaybePromise";
 type Options = {
   build: {
     id: string;
-    stage: FileRef;
   };
   context: string;
 };

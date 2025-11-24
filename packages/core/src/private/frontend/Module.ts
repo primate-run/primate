@@ -1,5 +1,5 @@
 import type App from "#App";
-import type BuildApp from "#BuildApp";
+import type BuildApp from "#build/App";
 import type ClientData from "#client/Data";
 import fail from "#fail";
 import type Render from "#frontend/Render";
@@ -15,7 +15,7 @@ import type Next from "#module/Next";
 import type NextBuild from "#module/NextBuild";
 import type NextServe from "#module/NextServe";
 import type RequestFacade from "#request/RequestFacade";
-import type ServeApp from "#ServeApp";
+import type ServeApp from "#serve/App";
 import map from "@rcompat/async/map";
 import hash from "@rcompat/crypto/hash";
 import FileRef from "@rcompat/fs/FileRef";
@@ -23,10 +23,7 @@ import APPLICATION_JSON from "@rcompat/http/mime/application/json";
 import Status from "@rcompat/http/Status";
 import type Dict from "@rcompat/type/Dict";
 import type MaybePromise from "@rcompat/type/MaybePromise";
-import pema from "pema";
-import array from "pema/array";
-import boolean from "pema/boolean";
-import string from "pema/string";
+import p from "pema";
 
 type Layout = (app: ServeApp, transfer: Dict, request: RequestFacade)
   => View;
@@ -62,10 +59,10 @@ export default abstract class FrontendModule<
   conditions: string[] = [];
   #mode: Mode = "development";
 
-  static schema = pema({
-    fileExtensions: array(string).optional(),
-    spa: boolean.default(true),
-    ssr: boolean.default(true),
+  static schema = p({
+    fileExtensions: p.array(p.string).optional(),
+    spa: p.boolean.default(true),
+    ssr: p.boolean.default(true),
   });
   static options = FrontendModule.schema.infer;
   static input = FrontendModule.schema.input;

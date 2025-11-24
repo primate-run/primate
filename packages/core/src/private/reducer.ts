@@ -1,9 +1,9 @@
 import type App from "#App";
-import type BuildApp from "#BuildApp";
+import type BuildApp from "#build/App";
 import type Module from "#Module";
 import type RequestFacade from "#request/RequestFacade";
 import type ResponseLike from "#response/ResponseLike";
-import type ServeApp from "#ServeApp";
+import type ServeApp from "#serve/App";
 
 type HookInput = {
   build: BuildApp;
@@ -25,7 +25,7 @@ type Hook = keyof HookInput;
 
 type ModuleMethod<H extends Hook> = (
   app: HookInput[H],
-  next: (value: HookInput[H]) => Promise<HookOutput[H]>
+  next: (value: HookInput[H]) => Promise<HookOutput[H]>,
 ) => Promise<HookOutput[H]>;
 
 export default async function reducer<H extends Hook>(

@@ -1,4 +1,4 @@
-import BuildApp from "#BuildApp";
+import BuildApp from "#build/App";
 import bye from "#bye";
 import type Config from "#config/Config";
 import default_config from "#config/index";

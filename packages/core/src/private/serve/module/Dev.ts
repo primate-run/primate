@@ -2,7 +2,7 @@ import reload from "#build/client/reload";
 import Module from "#Module";
 import type NextHandle from "#module/NextHandle";
 import type RequestFacade from "#request/RequestFacade";
-import type ServeApp from "#ServeApp";
+import type ServeApp from "#serve/App";
 
 function pass(address: string, request: Request) {
   return fetch(address, {
@@ -22,7 +22,6 @@ export default class DevModule extends Module {
     super();
 
     const assets = app.assets.map(asset => asset.src);
-    const http = app.config("http");
     this.#paths = ([reload.path]).concat(assets as string[]);
     this.#reload_url = `http://${reload.host}:${reload.port}`;
   }

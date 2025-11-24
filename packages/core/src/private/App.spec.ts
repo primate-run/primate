@@ -1,4 +1,4 @@
-import BuildApp from "#BuildApp";
+import BuildApp from "#build/App";
 import config from "#config/index";
 import FileRef from "@rcompat/fs/FileRef";
 import test from "@rcompat/test";

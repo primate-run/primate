@@ -1,12 +1,12 @@
 import type App from "#App";
-import type BuildApp from "#BuildApp";
+import type BuildApp from "#build/App";
 import type Next from "#module/Next";
 import type NextBuild from "#module/NextBuild";
 import type NextHandle from "#module/NextHandle";
 import type NextRoute from "#module/NextRoute";
 import type NextServe from "#module/NextServe";
 import type RequestFacade from "#request/RequestFacade";
-import type ServeApp from "#ServeApp";
+import type ServeApp from "#serve/App";
 
 export default abstract class Module {
   abstract get name(): string;

@@ -1,4 +1,4 @@
-import type BuildApp from "#BuildApp";
+import type BuildApp from "#build/App";
 import type Next from "#module/Next";
 
 type NextBuild = Next<BuildApp>;

@@ -1,4 +1,4 @@
-import type ServeApp from "#ServeApp";
+import type ServeApp from "#serve/App";
 import Streamable from "@rcompat/fs/Streamable";
 import type StreamSource from "@rcompat/fs/StreamSource";
 import mime from "@rcompat/http/mime/application/octet-stream";

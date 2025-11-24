@@ -1,5 +1,5 @@
 import type Next from "#module/Next";
-import type ServeApp from "#ServeApp";
+import type ServeApp from "#serve/App";
 
 type NextServe = Next<ServeApp>;
 

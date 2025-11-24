@@ -3,7 +3,6 @@ import FileRef from "@rcompat/fs/FileRef";
 import p from "pema";
 
 export default p({
-  build: p.record(p.string, p.unknown).optional(),
   http: {
     csp: p.record(p.string, p.array(p.string)).optional(),
     headers: p.record(p.string, p.string).optional(),

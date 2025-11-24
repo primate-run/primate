@@ -1,7 +1,7 @@
 import route from "#request/route";
 import Module from "#Module";
 import type RequestFacade from "#request/RequestFacade";
-import type ServeApp from "#ServeApp";
+import type ServeApp from "#serve/App";
 
 export default class HandleModule extends Module {
   name = "builtin/handle";

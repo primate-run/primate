@@ -1,1 +1,1 @@
-export { default } from "#BuildApp";
+export { default } from "#build/App";

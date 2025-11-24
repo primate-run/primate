@@ -3,8 +3,6 @@ import type Asset from "#asset/Asset";
 import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
-import DevModule from "#builtin/DevModule";
-import HandleModule from "#builtin/HandleModule";
 import type CSP from "#CSP";
 import fail from "#fail";
 import type ServerView from "#frontend/ServerView";
@@ -23,7 +21,9 @@ import type RequestFacade from "#request/RequestFacade";
 import type Verb from "#request/Verb";
 import type RouteHandler from "#route/Handler";
 import router from "#route/router";
-import type ServeInit from "#ServeInit";
+import type ServeInit from "#serve/Init";
+import DevModule from "#serve/module/Dev";
+import HandleModule from "#serve/module/Handle";
 import SessionModule from "#session/SessionModule";
 import tags from "#tags";
 import is from "@rcompat/assert/is";
@@ -365,7 +365,7 @@ export default class ServeApp extends App {
   }
 
   async start() {
-   if (this.mode === "production") {
+    if (this.mode === "production") {
       this.#assets = await Promise.all(
         Object.entries(this.#serve_assets.client)
           .filter(([src]) => src.endsWith(".css") || src.endsWith(".js"))

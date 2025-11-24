@@ -11,7 +11,7 @@ import type NextHandle from "#module/NextHandle";
 import type NextRoute from "#module/NextRoute";
 import type NextServe from "#module/NextServe";
 import type RequestFacade from "#request/RequestFacade";
-import type ServeApp from "#ServeApp";
+import type ServeApp from "#serve/App";
 import Status from "@rcompat/http/Status";
 
 type Locale = string;
@@ -84,7 +84,7 @@ export default class I18NModule extends Module {
         headers: {
           "Content-Length": String(0),
         },
-        status: Status.NO_CONTENT
+        status: Status.NO_CONTENT,
       });
 
     // only accept configured locales
@@ -93,7 +93,7 @@ export default class I18NModule extends Module {
         headers: {
           "Content-Length": String(0),
         },
-        status: Status.NO_CONTENT
+        status: Status.NO_CONTENT,
       });
 
     const header = cookie(COOKIE_NAME, requested, {
