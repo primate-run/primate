@@ -1,6 +1,6 @@
 {
   "name": "@primate/core",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "The universal web framework",
   "homepage": "https://primate.run",
   "bugs": "https://github.com/primate-run/primate/issues",
