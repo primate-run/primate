@@ -8,12 +8,11 @@ under its MIT license.
 Primate is the universal web framework. To that end, it supports a multitude
 of frontends, backends, runtimes and databases.
 
-Primate is batteries included and all packages under the `@primate` namespace
-are officially supported.
+All packages under the `@primate` namespace are officially supported.
 
 ## Setup
 
-We recommend joining our Discord server at https://discord.gg/RSg4NNwM4f to
+We recommend joining our Discord server at https://primate.run/chat to
 coordinate development.
 
 Install pnpm as we use a monorepo for development with the `workspace` protocol
