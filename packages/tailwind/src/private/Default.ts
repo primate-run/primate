@@ -1,11 +1,10 @@
 import plugin from "#plugin";
+import Runtime from "#Runtime";
 import type BuildApp from "@primate/core/BuildApp";
-import Module from "@primate/core/Module";
 import type NextBuild from "@primate/core/NextBuild";
 import p from "pema";
 
-export default class Tailwind extends Module {
-  name = "tailwind";
+export default class Tailwind extends Runtime {
   #options: typeof Tailwind.options;
 
   static schema = p({
