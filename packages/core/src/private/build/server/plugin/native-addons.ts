@@ -22,6 +22,8 @@ export default function plugin_server_store(app: BuildApp): Plugin {
               paths: [args.resolveDir],
             });
             const module_dir = new FileRef(module_path).directory;
+            // built-ins have no .node and would otherwise cause global search
+            if (module_dir.path === ".") return null;
 
             // check if this module has .node files
             const node_files = await module_dir
