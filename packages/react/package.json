@@ -1,6 +1,6 @@
 {
   "name": "@primate/react",
-  "version": "0.15.0-pre",
+  "version": "0.15.0",
   "description": "Primate React frontend",
   "homepage": "https://primate.run/docs/frontend/react",
   "bugs": "https://github.com/primate-run/primate/issues",

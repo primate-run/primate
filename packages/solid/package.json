@@ -1,6 +1,6 @@
 {
   "name": "@primate/solid",
-  "version": "0.7.0-pre",
+  "version": "0.7.0",
   "description": "Primate Solid frontend",
   "homepage": "https://primate.run/docs/frontend/solid",
   "bugs": "https://github.com/primate-run/primate/issues",
@@ -31,7 +31,7 @@
     "@rcompat/build": "^0.15.0",
     "@rcompat/fs": "^0.22.3",
     "@rcompat/runtime": "^0.6.0",
-    "babel-preset-solid": "^1.9.10"
+    "babelset-solid": "^1.9.10"
   },
   "peerDependencies": {
     "primate": "workspace:^",
