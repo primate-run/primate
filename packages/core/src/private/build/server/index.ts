@@ -21,9 +21,9 @@ import runtime from "@rcompat/runtime";
 import * as esbuild from "esbuild";
 
 const externals = {
-  node: ["node:"],
-  bun: ["node:", "bun:"],
-  deno: ["node:"],
+  node: ["node:*"],
+  bun: ["node:*", "bun:*"],
+  deno: ["node:*"],
 };
 const conditions = {
   node: ["node"],
