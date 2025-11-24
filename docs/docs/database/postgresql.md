@@ -1,3 +1,7 @@
+---
+title: PostgreSQL database
+---
+
 # PostgreSQL
 
 PostgreSQL is a relational DBMS focused on correctness and extensibility.

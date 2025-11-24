@@ -1,5 +1,5 @@
 ---
-name: Serve JSON
+title: Serve JSON
 ---
 
 Return objects to serve JSON responses. Primate automatically serializes

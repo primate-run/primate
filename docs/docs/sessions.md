@@ -1,3 +1,7 @@
+---
+title: Sessions
+---
+
 # Sessions
 
 Sessions let you persist state across requests: authentication, user
@@ -7,8 +11,9 @@ changes are committed only if your route succeeds.
 
 ## Configuration
 
-Sessions are configured in `config/session.ts`. By default, Primate uses an
-in-memory manager and a secure HTTP-only cookie named `session_id`.
+Sessions are configured in `config/session.ts`. By default Primate uses an
+in-memory store, but you may also use any store defined in `stores` or define
+one directly in `config/session.ts`.
 
 ### Session options
 
@@ -18,8 +23,7 @@ in-memory manager and a secure HTTP-only cookie named `session_id`.
 |[cookie.name](#cookie-name)|`"session_id"`|name of the session cookie|
 |[cookie.path](#cookie-path)|`"/"`|path for which the cookie is valid|
 |[cookie.sameSite](#cookie-samesite)|`"Lax"`|`SameSite` cookie policy|
-|[manager](#manager)|`InMemorySessionManager`|session manager instance|
-|[schema](#schema)|`undefined`|validation schema for session data|
+|[store](#store)|default in-memory store|store managing sessions|
 
 ### `cookie.httpOnly`
 
@@ -38,42 +42,50 @@ The path for which the cookie is valid.
 
 The `SameSite` cookie policy: `"Strict"`, `"Lax"`, or `"None"`.
 
-### `manager`
+### `store`
 
-The session manager. By default Primate uses an in-memory session manager that
-resets on server restart. You can provide any custom manager that extends
-`SessionManager`.
+The session store. By default Primate uses a store managed in memory, but you
+can use any store defined in `stores` or define one directly in
+`config/session.ts`. The store will be used for both validating the data and
+persisting it to a database of your choice.
 
-### `schema`
+The store must include a `session_id` field of type UUID. Primate uses this to
+associate each stored record with the session cookie.
 
-Optional schema to validate session data at runtime. Any schema with a
-`parse(input: unknown): T` method works. Primate recommends its own validation
-library, Pema.
+
+
 
 ### Example
 
+First create the store inside `stores`.
+
+```ts
+import p from "primate/pema";
+import store from "primate/store";
+
+export default store({
+  id: p.primary,
+  session_id: p.string.uuid(),
+  user_id: p.number,
+  last_active: p.date,
+  // additional fields as needed
+});
+```
+
+Then refer to it in your configuration file.
+
 ```ts
 import session from "primate/config/session";
-import pema from "pema";
-import string from "pema/string";
-import number from "pema/number";
+import Session from "#store/Session";
 
 export default session({
-  cookie: {
-    name: "my_session",
-    httpOnly: true,
-    sameSite: "Lax",
-  },
-  schema: pema({
-    userId: number,
-    username: string,
-  }),
+  store: Session,
 });
 ```
 
 ## Session facade
 
-The session facade is the API you use in routes to interact with session state.
+The session facade is the API used in routes to interact with session state.
 It hides cookie handling and persistence details, exposing a simple interface
 to create, read, update, and destroy sessions.
 
@@ -89,8 +101,8 @@ to create, read, update, and destroy sessions.
 
 ### Usage in routes
 
-Import the session facade via `#session`. It is bound to the session data type
-you declared in `config/session.ts`.
+Import the session facade via `#session`. It is bound to the session store you
+used in `config/session.ts`.
 
 ```ts
 import session from "#session";
@@ -98,11 +110,11 @@ import route from "primate/route";
 
 route.get(() => {
   if (!session.exists) {
-    session.create({ userId: 42 });
+    session.create({ user_id: 42 });
   }
 
   const data = session.get();
-  return `User ${data.userId} last active at ${data.lastActivity.toISOString()}`;
+  return `User ${data.user_id} last active at ${data.last_active.toISOString()}`;
 });
 ```
 
@@ -124,117 +136,25 @@ interface SessionFacade<T> {
 }
 ```
 
-## Managers
+## Validation
 
-A **session manager** is responsible for storing and retrieving session data.
-The default is in-memory and resets when the server restarts.
-
-Primate leaves persistence to the manager. This contract defines the minimum
-required methods:
+Primate validates data passed to `create` and `set` using the provided session
+store.
 
 ```ts
-export default abstract class SessionManager<Data> {
-  init(): void | Promise<void> { }
+import p from "primate/pema";
+import store from "primate/store";
 
-  abstract load(id: string): Data | undefined | Promise<Data | undefined>;
-  abstract create(id: string, data: Data): void | Promise<void>;
-  abstract save(id: string, data: Data): void | Promise<void>;
-  abstract destroy(id: string): void | Promise<void>;
-}
-```
-
-Any manager that implements this interface can be plugged in through
-`config/session.ts`.
-
-!!!
-The contract isn't just type-based. The manager must extend `SessionManager`;
-this is validated during start-up.
-!!!
-
-### Example: file-based manager
-
-```ts
-import is from "@rcompat/assert/is";
-import FileRef from "@rcompat/fs/FileRef";
-import type JSONValue from "@rcompat/type/JSONValue";
-import SessionManager from "primate/session/Manager";
-
-export default class FileSessionManager extends SessionManager<unknown> {
-  #directory: FileRef;
-
-  constructor(directory: string = "/tmp/sessions") {
-    is(directory).string();
-
-    super();
-    this.#directory = new FileRef(directory);
-  }
-
-  async init() {
-    await this.#directory.create({ recursive: true });
-  }
-
-  async load(id: string) {
-    is(id).uuid("invalid session id");
-
-    try {
-      return await this.#directory.join(id).json();
-    } catch {
-      return undefined;
-    }
-  }
-
-  async create(id: string, data: JSONValue) {
-    is(id).uuid("invalid session id");
-
-    await this.#directory.join(id).writeJSON(data);
-  }
-
-  async save(id: string, data: JSONValue) {
-    await this.create(id, data);
-  }
-
-  async destroy(id: string) {
-    is(id).uuid("invalid session id");
-
-    await this.#directory.join(id).remove();
-  }
-}
-```
-
-!!!
-This manager validates IDs as UUIDs to prevent path traversal attacks, making
-it safe for use as an example. For production, you'll likely want Redis or a
-DB-backed manager.
-!!!
-
-Then configure:
-
-```ts
-import session from "primate/config/session";
-import FileSessionManager from "./FileSessionManager.ts";
-
-export default session({
-  manager: new FileSessionManager(),
+export default store({
+  id: p.primary,
+  session_id: p.string.uuid(),
+  token: p.string.min(10),
 });
 ```
 
-!!!
-While the session manager can be asynchronous (save to filesystem or database),
-all session facade operations are sync — changes are committed once the route
-has run successfully, and are rolled back upon error.
-!!!
-
-## Validation
-
-When you provide a schema, Primate validates data passed to `create` and `set`:
-
 ```ts
-import pema from "pema";
-import string from "pema/string";
 import session from "#session";
 import route from "primate/route";
-
-const Data = pema({ token: string.min(10) });
 
 route.post(() => {
   // Throws if token is shorter than 10 characters

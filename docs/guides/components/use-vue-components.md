@@ -1,5 +1,5 @@
 ---
-name: Use Vue components
+title: Use Vue components
 ---
 
 Add Vue components with the `@primate/vue` module.

@@ -1,5 +1,5 @@
 ---
-name: Use MongoDB
+title: Use MongoDB
 ---
 
 Add MongoDB as a database with the `@primate/mongodb` module. Configure it in

@@ -1,3 +1,7 @@
+---
+title: SQLite database
+---
+
 # SQLite
 
 SQLite is an embedded relational database. It stores data in a single file, or

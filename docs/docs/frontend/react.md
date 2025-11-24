@@ -1,3 +1,7 @@
+---
+title: React frontend
+---
+
 # React
 
 Primate runs [React][Documentation] with server-side rendering, hydration,

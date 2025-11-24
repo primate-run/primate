@@ -1,3 +1,7 @@
+---
+title: Grain backend
+---
+
 # Grain
 
 Primate runs [Grain][Documentation] with WebAssembly compilation,

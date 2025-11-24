@@ -1,3 +1,7 @@
+---
+title: Angular frontend
+---
+
 # Angular
 
 Primate runs [Angular][Documentation] with server-side rendering, hydration,

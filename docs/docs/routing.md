@@ -1,3 +1,7 @@
+---
+title: App routing
+---
+
 # Routing
 Routing in Primate maps incoming HTTP requests to backend logic. Primate uses
 **filesystem-based routing**: it breaks down the request **path** and maps it

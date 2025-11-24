@@ -1,5 +1,5 @@
 ---
-name: Stream events with SSE
+title: Stream events with SSE
 ---
 
 Use **Server-Sent Events (SSE)** to push updates to the browser over a

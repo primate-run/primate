@@ -1,5 +1,5 @@
 ---
-name: Use Handlebars templates
+title: Use Handlebars templates
 ---
 
 Add Handlebars templating with the `@primate/handlebars` module.

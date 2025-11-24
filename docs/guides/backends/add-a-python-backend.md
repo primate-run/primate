@@ -1,5 +1,5 @@
 ---
-name: Add a Python backend
+title: Add a Python backend
 ---
 
 Add Python routes with the `@primate/python` module. Write routes in Python;

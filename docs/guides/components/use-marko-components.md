@@ -1,5 +1,5 @@
 ---
-name: Use Marko components
+title: Use Marko components
 ---
 
 Add Marko components with the `@primate/marko` module.

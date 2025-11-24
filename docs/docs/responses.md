@@ -1,3 +1,7 @@
+---
+title: Serving responses
+---
+
 # Responses
 Route handlers return a `ResponseLike` value that Primate converts into a
 WHATWG `Response`. You can return simple values ("implicit" responses) or use

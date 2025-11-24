@@ -1,3 +1,7 @@
+---
+title: Ruby backend
+---
+
 # Ruby
 
 Primate runs [Ruby][Documentation] with WebAssembly compilation,

@@ -1,5 +1,5 @@
 ---
-name: Use Eta templates
+title: Use Eta templates
 ---
 
 Add Eta templating with the `@primate/eta` module.

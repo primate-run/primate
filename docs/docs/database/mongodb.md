@@ -1,3 +1,7 @@
+---
+title: MongoDB database
+---
+
 # MongoDB
 
 MongoDB is a document database with flexible schemas and rich querying.

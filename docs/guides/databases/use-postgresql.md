@@ -1,5 +1,5 @@
 ---
-name: Use PostgreSQL
+title: Use PostgreSQL
 ---
 
 Add PostgreSQL as a database with the `@primate/postgresql` module. Configure

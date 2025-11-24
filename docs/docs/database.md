@@ -1,3 +1,7 @@
+---
+title: Using databases
+---
+
 # Databases
 
 Databases back stores. You define them under `config/database`, import them

@@ -1,3 +1,7 @@
+---
+title: Data stores
+---
+
 # Stores
 
 A **store** is a collection of methods for accessing data. Stores can be backed

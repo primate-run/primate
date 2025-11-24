@@ -1,5 +1,5 @@
 ---
-name: Read body
+title: Read request body
 ---
 
 Access the request body by calling methods on `request.body`. Methods validate

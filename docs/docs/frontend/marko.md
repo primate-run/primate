@@ -1,3 +1,7 @@
+---
+title: Marko frontend
+---
+
 # Marko
 
 Primate runs [Marko][Documentation] components with server-side rendering and

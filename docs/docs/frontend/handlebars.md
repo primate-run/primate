@@ -1,3 +1,7 @@
+---
+title: Handlebars frontend
+---
+
 # Handlebars
 
 Primate runs [Handlebars][Documentation] templates with server-side rendering

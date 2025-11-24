@@ -1,5 +1,5 @@
 ---
-name: Serve Markdown
+title: Serve Markdown
 ---
 
 Add Markdown rendering with the `@primate/markdown` module. Write content in

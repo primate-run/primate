@@ -1,3 +1,7 @@
+---
+title: Project structure
+---
+
 # Project structure
 
 Primate is convention over configuration. This page lists common directories
@@ -9,7 +13,6 @@ and files used in a Primate app.
 | ----------------------------- | ---------------------------------------------------- |
 | `build`                       | build artefacts — add to `.gitignore`                |
 | [config](/docs/configuration) | configuration files                                  |
-| `components`                  | reusable components                                  |
 | [locales](/docs/i18n#locales) | I18N locales                                         |
 | `node_modules`                | install artefacts — add to `.gitignore`              |
 | `pages`                       | app and error HTML template pages                    |

@@ -1,5 +1,5 @@
 ---
-name: Use query string
+title: Read request query string
 ---
 
 Access query parameters from the request object. Query params are URL-decoded.

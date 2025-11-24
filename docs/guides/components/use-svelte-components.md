@@ -1,5 +1,5 @@
 ---
-name: Use Svelte components
+title: Use Svelte components
 ---
 
 Add Svelte components with the `@primate/svelte` module.

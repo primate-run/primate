@@ -1,5 +1,5 @@
 ---
-name: Implement a real-time chat with `WebSocket`
+title: Implement a real-time chat with `WebSocket`
 ---
 
 You can use the `ws` handler to upgrade a `GET` route to `WebSocket`. To use

@@ -1,5 +1,5 @@
 ---
-name: Show errors
+title: Show errors
 ---
 
 Return error responses with appropriate status codes. Use `response()` for

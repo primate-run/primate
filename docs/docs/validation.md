@@ -1,3 +1,7 @@
+---
+title: Input validation
+---
+
 # Validation
 
 In Primate, validation refers to making sure that input passed into your routes

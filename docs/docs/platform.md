@@ -1,3 +1,7 @@
+---
+title: Supported platforms
+---
+
 # Platforms
 
 Primate runs on **Node**, **Bun**, and **Deno** via `rcompat`. It avoids

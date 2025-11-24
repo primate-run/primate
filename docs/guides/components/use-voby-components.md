@@ -1,5 +1,5 @@
 ---
-name: Use Voby components
+title: Use Voby components
 ---
 
 Add Voby components with the `@primate/voby` module.

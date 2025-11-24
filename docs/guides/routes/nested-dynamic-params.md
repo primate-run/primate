@@ -1,5 +1,5 @@
 ---
-name: Nested dynamic params
+title: Nested dynamic params
 ---
 
 Capture multiple path parameters by stacking bracketed segments and read them

@@ -1,3 +1,7 @@
+---
+title: Go backend
+---
+
 # Go
 
 Primate runs [Go][Documentation] with WebAssembly compilation, strongly-typed

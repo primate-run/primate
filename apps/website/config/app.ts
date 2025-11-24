@@ -1,123 +1,13 @@
-import type BuildApp from "@primate/core/BuildApp";
-import Module from "@primate/core/Module";
-import type NextBuild from "@primate/core/NextBuild";
-import type NextHandle from "@primate/core/NextHandle";
-import type NextServe from "@primate/core/NextServe";
-import type ServeApp from "@primate/core/ServeApp";
 import handlebars from "@primate/handlebars";
 import markdown from "@primate/markdown";
 import svelte from "@primate/svelte";
 import type FileRef from "@rcompat/fs/FileRef";
 import root from "@rcompat/fs/project/root";
-import Status from "@rcompat/http/Status";
 import config from "primate/config";
-import type RequestFacade from "primate/RequestFacade";
 import { createHighlighter } from "shiki";
 import grain from "./grain.json" with { type: "json" };
+import Website from "./Website.ts";
 
-const cookie = (name: string, value: string, secure: boolean) =>
-  `${name}=${value};HttpOnly;Path=/;${secure};SameSite=Strict`;
-
-const cookie_name = "color-scheme";
-const blog_base = "https://primate.run/blog";
-
-type SidebarItem = {
-  active?: true;
-  href?: string;
-  items?: SidebarItem[];
-  title: string;
-  upcoming?: true;
-};
-
-type Sidebar = SidebarItem[];
-
-type Link = {
-  href: string;
-  icon: string;
-};
-
-type Config = {
-  blog: boolean;
-  description: string;
-  theme: {
-    links: Link[];
-    navbar: { label: string; link: string }[];
-    sidebar: Sidebar;
-  };
-  title: string;
-};
-
-const Priss = class extends Module {
-  #app?: ServeApp;
-  #config: Config;
-
-  get name() {
-    return "priss";
-  }
-
-  get app() {
-    return this.#app!;
-  }
-
-  constructor(config: Config) {
-    super();
-
-    this.#config = config;
-  }
-
-  async build(app: BuildApp, next: NextBuild) {
-    const views = app.path.views;
-    await app.runpath("blog").create();
-
-    // collect guide categories and names
-    const base = views.join("content", "guides");
-    const guides = await views.join("content", "guides").collect();
-    const categories = new Map<string, { name: string; path: string }[]>();
-    for (const guide of guides) {
-      const name = ((await guide.text()).split("\n")[1].slice("name: ".length));
-      const [category, path] = guide.debase(base).path.slice(1).split("/");
-
-      categories.set(category, (categories.get(category) ?? []).concat({
-        name,
-        path: path.slice(0, -".md".length),
-      }));
-    }
-
-    await app.runpath("guides.json").writeJSON([...categories.entries()]);
-
-    return next(app);
-  }
-
-  serve(app: ServeApp, next: NextServe) {
-    this.#app = app;
-
-    return next(app);
-  }
-
-  async handle(request: RequestFacade, next: NextHandle) {
-    const { cookies, headers } = request;
-
-    const color_scheme = headers.try("Color-Scheme");
-
-    if (color_scheme !== undefined) {
-      return new Response(null, {
-        headers: {
-          "set-cookie": cookie(cookie_name, color_scheme, this.app.secure),
-        },
-        status: Status.OK,
-      });
-    }
-
-    const scheme = cookies.try(cookie_name) ?? "light";
-
-    const placeholders = {
-      "color-scheme": scheme,
-      "theme-color": scheme === "dark" ? "#1b1b1b" : "#ffffff",
-    };
-
-    return next({ ...request, config: this.#config, placeholders });
-  }
-};
 const sorting = [
   // package managers
   "npm",
@@ -208,11 +98,6 @@ const toIcon = (id: string) =>
 export default config({
   http: {
     host: "0.0.0.0",
-  },
-  build: {
-    loader: {
-      ".woff2": "file",
-    },
   },
   modules: [
     handlebars(),
@@ -364,7 +249,7 @@ export default config({
       },
     }),
     svelte(),
-    new Priss({
+    new Website({
       blog: true,
       description: "The universal web framework",
       theme: {

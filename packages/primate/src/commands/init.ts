@@ -1,6 +1,6 @@
 import cancel from "@rcompat/cli/prompts/cancel";
 import intro from "@rcompat/cli/prompts/intro";
-import isCancel from "@rcompat/cli/prompts/is-cancel";
+import is_cancel from "@rcompat/cli/prompts/is-cancel";
 import multiselect from "@rcompat/cli/prompts/multiselect";
 import outro from "@rcompat/cli/prompts/outro";
 import select from "@rcompat/cli/prompts/select";
@@ -8,6 +8,10 @@ import text from "@rcompat/cli/prompts/text";
 import FileRef from "@rcompat/fs/FileRef";
 import dedent from "@rcompat/string/dedent";
 import type Dict from "@rcompat/type/Dict";
+
+function abort() {
+  return cancel("Aborted");
+}
 
 type Runtime = "node" | "deno" | "bun";
 
@@ -42,7 +46,6 @@ const FRONTEND_OPTIONS: { label: string; value: Frontend }[] = [
   { label: "Web Components", value: "webc" },
 ];
 
-// Backends (TypeScript is always active/built-in → not a choice)
 type Backend = "go" | "python" | "ruby" | "grain";
 
 const BACKEND_OPTIONS: { label: string; value: Backend }[] = [
@@ -52,7 +55,6 @@ const BACKEND_OPTIONS: { label: string; value: Backend }[] = [
   { label: "Grain", value: "grain" },
 ];
 
-// Databases (use multiselect too; Enter = skip)
 type Database = "sqlite" | "postgresql" | "mysql" | "mongodb" | "surrealdb";
 
 const DATABASE_OPTIONS: { label: string; value: Database }[] = [
@@ -87,36 +89,35 @@ export default async function init() {
   let target: FileRef;
 
   while (true) {
-    const ans = await text({ message: "Directory to create app?", initial: "." });
-    if (typeof ans === "symbol" || isCancel(ans)) return cancel("Aborted.");
+    const ans = await text({
+      message: "Directory to create app?", initial: ".",
+    });
+    if (typeof ans === "symbol" || is_cancel(ans)) return abort();
 
     target = new FileRef(ans);
     if (await empty(target)) {
       directory = ans;
-      break; // Valid directory found, exit loop
+      break; // valid directory found, exit loop
     }
 
-    // Directory not empty, show error but continue loop
+    // directory not empty, show error but continue loop
     console.log("Directory not empty, choose another.");
   }
 
-  // frontends — Enter = skip (none)
-  const fronts = await multiselect<Frontend>({
+  const frontends = await multiselect<Frontend>({
     message: "Choose frontend (press Enter to skip)",
     options: FRONTEND_OPTIONS,
-    initial: [], // indices
+    initial: [],
   });
-  if (typeof fronts === "symbol" || isCancel(fronts)) return cancel("Aborted.");
+  if (typeof frontends === "symbol" || is_cancel(frontends)) return abort();
 
-  // backends — Enter = skip (none)
-  const backs = await multiselect<Backend>({
+  const backends = await multiselect<Backend>({
     message: "Choose backend (press Enter to skip)",
     options: BACKEND_OPTIONS,
-    initial: [], // indices
+    initial: [],
   });
-  if (typeof backs === "symbol" || isCancel(backs)) return cancel("Aborted.");
+  if (typeof backends === "symbol" || is_cancel(backends)) return abort();
 
-  // runtime (must choose one)
   const runtime = await select<Runtime>({
     message: "Choose runtime",
     options: [
@@ -126,18 +127,16 @@ export default async function init() {
     ],
     initial: 0,
   });
-  if (typeof runtime === "symbol" || isCancel(runtime)) return cancel("Aborted.");
+  if (typeof runtime === "symbol" || is_cancel(runtime)) return abort();
 
-  // database — Enter = skip (none); if multiple chosen, take the first
-  const dbChoices = await multiselect<Database>({
+  const dbs = await multiselect<Database>({
     message: "Choose a database (press Enter to skip)",
     options: DATABASE_OPTIONS,
-    initial: [], // indices
+    initial: [],
   });
-  if (typeof dbChoices === "symbol" || isCancel(dbChoices)) return cancel("Aborted.");
-  const db: Database | undefined = dbChoices[0];
+  if (typeof dbs === "symbol" || is_cancel(dbs)) return abort();
+  const db = dbs[0] as Database | undefined;
 
-  // i18n
   const i18n = await select<"yes" | "no">({
     message: "Enable i18n?",
     options: [
@@ -146,10 +145,9 @@ export default async function init() {
     ],
     initial: 1,
   });
-  if (typeof i18n === "symbol" || isCancel(i18n)) return cancel("Aborted.");
-  const withI18n = i18n === "yes";
+  if (typeof i18n === "symbol" || is_cancel(i18n)) return abort();
+  const with_i18n = i18n === "yes";
 
-  // sessions
   const sessions = await select<"yes" | "no">({
     message: "Configure sessions?",
     options: [
@@ -158,26 +156,25 @@ export default async function init() {
     ],
     initial: 1,
   });
-  if (typeof sessions === "symbol" || isCancel(sessions)) return cancel("Aborted.");
+  if (typeof sessions === "symbol" || is_cancel(sessions)) return abort();
   const withSessions = sessions === "yes";
 
-  // scaffold dirs
   await target.create({ recursive: true });
   await target.join("routes").create({ recursive: true });
   await target.join("views").create({ recursive: true });
-  if (db) await target.join("stores").create({ recursive: true });
+  if (db !== undefined) await target.join("stores").create({ recursive: true });
 
   // files
   await gitignore(target);
-  await tsconfig_json(target);
-  await app_config(target, { fronts, backs, runtime });
-  if (withI18n) await i18n_config(target);
+  await tsconfig_json(target, { frontends });
+  await app_config(target, { frontends: frontends, backends: backends, runtime });
+  if (with_i18n) await i18n_config(target);
   if (withSessions) await session_config(target);
   if (db) await database_config(target, db);
   await package_json(target, { directory, runtime });
 
-  const packages = compute_packages({ fronts, backs, db });
-  const install = buildInstallCommand(runtime, packages, directory);
+  const packages = compute_packages({ frontends: frontends, backends: backends, db });
+  const install = build_install_command(runtime, packages, directory);
 
   outro(
     [
@@ -218,38 +215,38 @@ async function gitignore(root: FileRef) {
 }
 
 type AppChoices = {
-  fronts: Frontend[];
-  backs: Backend[];
+  frontends: Frontend[];
+  backends: Backend[];
   runtime: Runtime;
 };
 
 async function app_config(root: FileRef, c: AppChoices) {
-  const cfg = root.join("config").join("app.ts");
-  await cfg.directory.create({ recursive: true });
+  const config = root.join("config").join("app.ts");
+  await config.directory.create({ recursive: true });
 
-  const frontendImports = c.fronts
-    .map((f) => `import ${toIdent(f)} from "@primate/${f}";`)
+  const frontend_imports = c.frontends
+    .map((f) => `import ${to_ident(f)} from "@primate/${f}";`)
     .join("\n");
-  const backendImports = c.backs
-    .map((b) => `import ${toIdent(b)} from "@primate/${b}";`)
+  const backend_imports = c.backends
+    .map((b) => `import ${to_ident(b)} from "@primate/${b}";`)
     .join("\n");
 
   const modules = [
-    ...c.fronts.map((f) => `${toIdent(f)}()`),
-    ...c.backs.map((b) => `${toIdent(b)}()`),
+    ...c.frontends.map((f) => `${to_ident(f)}()`),
+    ...c.backends.map((b) => `${to_ident(b)}()`),
   ];
 
   const body = dedent`import config from "primate/config";
-${frontendImports}
-${backendImports}
+    ${frontend_imports}
+    ${backend_imports}
 
-export default config({
-  modules: [
-    ${modules.join(",\n    ")}
-  ],
-});
-`;
-  await cfg.write(body);
+    export default config({
+      modules: [
+        ${modules.join(",\n    ")}
+      ],
+    });
+  `;
+  await config.write(body);
 }
 
 // i18n scaffold: config + a default locale file
@@ -261,35 +258,33 @@ async function i18n_config(root: FileRef) {
   await en_us.directory.create({ recursive: true });
   await i18i.directory.create({ recursive: true });
 
-  const locale = `import locale from "primate/i18n/locale";
-
-export default locale({
-  hi: "Hello",
-  placeheld: "Hello, {name}",
-});
-`;
+  const locale = dedent`import locale from "primate/i18n/locale";
+    export default locale({
+      hi: "Hello",
+      placeheld: "Hello, {name}",
+    });
+  `;
   await en_us.write(locale);
 
-  const config = `import en from "#locale/en-US";
-import i18n from "primate/config/i18n";
+  const config = dedent`import en from "#locale/en-US";
+    import i18n from "primate/config/i18n";
 
-export default i18n({
-  defaultLocale: "en-US",
-  locales: {
-    "en-US": en,
-  },
-});
-`;
+    export default i18n({
+      defaultLocale: "en-US",
+      locales: {
+        "en-US": en,
+      },
+    });
+  `;
   await i18i.write(config);
 }
 
 async function session_config(root: FileRef) {
   const file = root.join("config").join("session.ts");
   await file.directory.create({ recursive: true });
-  const body = `import session from "primate/config/session";
-
-export default session({});
-`;
+  const body = dedent`import session from "primate/config/session";
+    export default session({});
+  `;
   await file.write(body);
 }
 
@@ -297,11 +292,10 @@ async function database_config(root: FileRef, db: Database) {
   const file = root.join("config").join("database").join("index.ts");
   await file.directory.create({ recursive: true });
 
-  const ident = toIdent(db);
-  const body = `import ${ident} from "@primate/${db}";
-
-export default ${ident}();
-`;
+  const ident = to_ident(db);
+  const body = dedent`import ${ident} from "@primate/${db}";
+    export default ${ident}();
+  `;
   await file.write(body);
 }
 
@@ -347,86 +341,123 @@ function safe(s: string) {
     .replace(/[^a-z0-9._-]/g, "") || "primate-app";
 }
 
-function toIdent(token: string) {
+function to_ident(token: string) {
   // turn tokens like "web-components" into valid identifiers: "web_components"
   return token.replace(/[^a-zA-Z0-9_$]/g, "_");
 }
 
-function compute_packages(args: { fronts: Frontend[]; backs: Backend[]; db: Database | undefined }) {
+function compute_packages(args: {
+  frontends: Frontend[];
+  backends: Backend[];
+  db: Database | undefined;
+}) {
   const deps = new Set<string>();
-  const devDeps = new Set<string>();
+  const dev_deps = new Set<string>();
 
   deps.add("primate");
   // Always add TypeScript as dev dependency
-  devDeps.add("typescript");
+  dev_deps.add("typescript");
 
   // frontends → @primate/<token> (+ peer deps)
-  for (const f of args.fronts) {
+  for (const f of args.frontends) {
     deps.add(`@primate/${f}`);
     const extras = FRONTEND_PEER_DEPS[f] || [];
     for (const extra of extras) deps.add(extra);
   }
 
-  // backends → @primate/<token>
-  for (const b of args.backs) {
-    deps.add(`@primate/${b}`);
+  if (args.frontends.includes("svelte")) {
+    dev_deps.add("@plsp/svelte");
   }
+
+  // backends → @primate/<token>
+  for (const b of args.backends) deps.add(`@primate/${b}`);
 
   // database → @primate/<token>, if selected
   if (args.db) deps.add(`@primate/${args.db}`);
 
   return {
     dependencies: Array.from(deps),
-    devDependencies: Array.from(devDeps),
+    dev_dependencies: Array.from(dev_deps),
   };
 }
 
-function shQuote(p: string) {
+function sh_quote(p: string) {
   // POSIX shell-safe quoting
   return `'${p.replace(/'/g, "'\\''")}'`;
 }
 
-function buildInstallCommand(runtime: Runtime, packages: { dependencies: string[]; devDependencies: string[] }, dir: string) {
-  const { dependencies, devDependencies } = packages;
-  const allPkgs = [...dependencies, ...devDependencies];
+function build_install_command(runtime: Runtime, packages: {
+  dependencies: string[]; dev_dependencies: string[];
+}, dir: string) {
+  const { dependencies, dev_dependencies } = packages;
+  const all_pkgs = [...dependencies, ...dev_dependencies];
 
-  if (allPkgs.length === 0) {
+  if (all_pkgs.length === 0) {
     return { print: "No packages to install.", run: "" };
   }
 
-  const cd = `cd ${shQuote(dir)} && `;
+  const cd = dir === "." ? "" : `cd ${sh_quote(dir)} && `;
   if (runtime === "bun") {
-    const depCmd = dependencies.length > 0
+    const dep_cmd = dependencies.length > 0
       ? `bun add ${dependencies.join(" ")}`
       : "";
-    const devCmd = devDependencies.length > 0
-      ? `bun add -d ${devDependencies.join(" ")}`
+    const dev_cmd = dev_dependencies.length > 0
+      ? `bun add -d ${dev_dependencies.join(" ")}`
       : "";
-    const commands = [depCmd, devCmd].filter(Boolean);
+    const commands = [dep_cmd, dev_cmd].filter(Boolean);
     return { print: cd + commands.join(" && "), run: "" };
   }
   if (runtime === "deno") {
-    const depCmd = dependencies.length > 0
+    const dep_cmd = dependencies.length > 0
       ? `deno add ${dependencies.map(d => `npm:${d}`).join(" ")}`
       : "";
-    const devCmd = devDependencies.length > 0
-      ? `deno add -D ${devDependencies.map(d => `npm:${d}`).join(" ")}`
+    const dev_cmd = dev_dependencies.length > 0
+      ? `deno add -D ${dev_dependencies.map(d => `npm:${d}`).join(" ")}`
       : "";
-    const commands = [depCmd, devCmd].filter(Boolean);
+    const commands = [dep_cmd, dev_cmd].filter(Boolean);
     return { print: cd + commands.join(" && "), run: "" };
   }
-  const depCmd = dependencies.length > 0 ?
+  const dep_cmd = dependencies.length > 0 ?
     `npm install ${dependencies.join(" ")}`
     : "";
-  const devCmd = devDependencies.length > 0
-    ? `npm install -D ${devDependencies.join(" ")}`
+  const dev_cmd = dev_dependencies.length > 0
+    ? `npm install -D ${dev_dependencies.join(" ")}`
     : "";
-  const commands = [depCmd, devCmd].filter(Boolean);
+  const commands = [dep_cmd, dev_cmd].filter(Boolean);
   return { print: cd + commands.join(" && "), run: "" };
 }
 
-async function tsconfig_json(root: FileRef) {
-  await root.join("tsconfig.json").writeJSON({
+async function tsconfig_json(root: FileRef, opts: { frontends: Frontend[] }) {
+  const is_react = opts.frontends.includes("react");
+  const is_svelte = opts.frontends.includes("svelte");
+  const tsconfig: any = {
     extends: "primate/tsconfig",
-  });
+    compilerOptions: {
+      paths: {
+        "#config/*": ["config/*"],
+        "#session": ["config/session"],
+        "#i18n": ["config/i18n"],
+        "#view/*": ["views/*"],
+        "#component/*": ["components/*"],
+        "#store/*": ["stores/*"],
+        "#locale/*": ["locales/*"],
+        "#static/*": ["static/*"],
+      },
+    },
+    include: [
+      "config",
+      "views",
+      "components",
+      "routes",
+      "stores",
+      "locales",
+      "static",
+      "test",
+    ],
+    exclude: ["node_modules"],
+  };
+  if (is_react) tsconfig.compilerOptions.jsx = "react-jsx";
+  if (is_svelte) tsconfig.compilerOptions.plugins = [{ name: "@plsp/svelte" }];
+
+  await root.join("tsconfig.json").writeJSON(tsconfig);
 }

@@ -1,3 +1,7 @@
+---
+title: Svelte frontend
+---
+
 # Svelte
 
 Primate runs [Svelte][Documentation] with server-side rendering, hydration,

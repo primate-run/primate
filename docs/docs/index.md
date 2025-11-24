@@ -1,3 +1,7 @@
+---
+title: About Primate
+---
+
 # What is Primate?
 
 Primate is **the universal web framework** for building full-stack

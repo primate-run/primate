@@ -1,3 +1,7 @@
+---
+title: Eta frontend
+---
+
 # Eta
 
 Primate runs [Eta][Documentation] templates with server-side rendering and props

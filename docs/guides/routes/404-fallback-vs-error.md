@@ -1,5 +1,5 @@
 ---
-name: 404 fallback vs. `+error.ts`
+title: 404 fallback vs. `+error.ts`
 ---
 
 Use a **rest route** for "not found" pages. Use **`+error.ts`** to handle errors thrown

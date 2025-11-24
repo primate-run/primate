@@ -6,7 +6,11 @@ route.get(request => {
   const page = request.path.get("page");
 
   return app => {
-    const { html, toc } = app.loadView<Component>(`content/docs/${page}.md`);
+    const $page = page.endsWith(".md") ? page.slice(0, -".md".length) : page;
+    const { html, toc, md } = app.loadView<Component>(`content/docs/${$page}.md`);
+
+    if (page.endsWith(".md")) return response.text(md)(app);
+
     const props = {
       app: request.config,
       content: html,

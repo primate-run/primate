@@ -1,11 +1,13 @@
 ---
-name: Optional params with `.try()`
+title: Optional params with `.try()`
 ---
 
-Use **double brackets** for optional segments and read them safely with `.try()` (or a schema default).
+Use **double brackets** for optional segments and read them safely with `.try()`
+(or a schema default).
 
 !!!
-`.get(key)` throws when the parameter is absent; prefer `.try(key)` for optional segments.
+`.get(key)` throws when the parameter is absent; prefer `.try(key)` for optional
+segments.
 !!!
 
 ---

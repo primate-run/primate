@@ -1,5 +1,5 @@
 ---
-name: Use MySQL
+title: Use MySQL
 ---
 
 Add MySQL as a database with the `@primate/mysql` module. Configure it in

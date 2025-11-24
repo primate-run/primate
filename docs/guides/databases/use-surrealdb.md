@@ -1,5 +1,5 @@
 ---
-name: Use SurrealDB
+title: Use SurrealDB
 ---
 
 Add SurrealDB as a database with the `@primate/surrealdb` module. Configure it

@@ -1,5 +1,5 @@
 ---
-name: Forward requests
+title: Forward requests
 ---
 
 Proxy requests to upstream services using `request.forward()`.

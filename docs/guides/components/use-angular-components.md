@@ -1,5 +1,5 @@
 ---
-name: Use Angular components
+title: Use Angular components
 ---
 
 Add Angular components with the `@primate/angular` module.

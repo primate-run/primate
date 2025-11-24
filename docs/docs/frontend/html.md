@@ -1,3 +1,7 @@
+---
+title: HTML frontend
+---
+
 # HTML
 
 Primate runs HTML templates with server-side rendering and props mapped to

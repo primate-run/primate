@@ -1,5 +1,5 @@
 ---
-name: Use path parameters
+title: Read request path
 ---
 
 Access dynamic path parameters from the request object. Parameters are

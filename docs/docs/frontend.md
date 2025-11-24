@@ -1,3 +1,7 @@
+---
+title: Using frontends
+---
+
 # Frontends
 
 Primate supports multiple frontend frameworks and template engines. Use one or

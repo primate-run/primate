@@ -1,5 +1,5 @@
 ---
-name: Add a Go backend
+title: Add a Go backend
 ---
 
 Add Go routes with the `@primate/go` module. Write handlers in Go; Primate

@@ -1,5 +1,5 @@
 ---
-name: Use SQLite
+title: Use SQLite
 ---
 
 Add SQLite as a database with the `@primate/sqlite` module. Configure it in

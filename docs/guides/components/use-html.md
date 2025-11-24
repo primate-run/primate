@@ -1,5 +1,5 @@
 ---
-name: Use HTML
+title: Use HTML
 ---
 
 Add HTML templates with the `@primate/html` module.

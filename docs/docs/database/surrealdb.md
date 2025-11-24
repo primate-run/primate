@@ -1,3 +1,7 @@
+---
+title: SurrealDB database
+---
+
 # SurrealDB
 
 SurrealDB is a multi-model database (document + graph + SQL-like queries).

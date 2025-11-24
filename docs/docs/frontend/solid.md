@@ -1,3 +1,7 @@
+---
+title: Solid frontend
+---
+
 # Solid
 
 Primate runs [Solid][Documentation] with server-side rendering, hydration,

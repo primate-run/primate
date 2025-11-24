@@ -1,3 +1,7 @@
+---
+title: Markdown frontend
+---
+
 # Markdown
 
 Primate runs [Markdown][Documentation] templates with server-side rendering,

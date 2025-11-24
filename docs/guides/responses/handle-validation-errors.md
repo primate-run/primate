@@ -1,5 +1,5 @@
 ---
-name: Handle validation errors
+title: Handle validation errors
 ---
 
 Use **Pema** schemas to validate inputs. When validation fails, Pema throws a
@@ -20,12 +20,11 @@ helpers to keep client values validated and synced with the server.
 !!!
 
 ```ts
-import pema from "pema";
-import string from "pema/string";
+import p from "pema";
 import route from "primate/route";
 
-const Signup = pema({
-  email: string.email(),
+const Signup = p({
+  email: p.string.email(),
 });
 
 route.post(request => {

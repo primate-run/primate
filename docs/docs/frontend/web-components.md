@@ -1,3 +1,7 @@
+---
+title: Web Components frontend
+---
+
 # Web Components
 
 Primate runs [Web Components][Documentation] with client-side rendering.

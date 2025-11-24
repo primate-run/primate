@@ -1,5 +1,5 @@
 ---
-name: Add a Ruby backend
+title: Add a Ruby backend
 ---
 
 Add Ruby routes with the `@primate/ruby` module. Write handlers in Ruby; Primate

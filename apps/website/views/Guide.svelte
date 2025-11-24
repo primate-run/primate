@@ -29,7 +29,7 @@
   }
 
   const parts = sections.map(section);
-  const title = `${meta.name} | guide`;
+  const title = `${meta.title} | guide`;
 </script>
 
 <Header {app} {title} />
@@ -42,7 +42,7 @@
       {`${category.charAt(0).toUpperCase()}${category.slice(1)}`}
     </span>
     <h1 class="guide-title">
-      {@html meta.name.replace(/`([^`]+)`/g, "<code>$1</code>")}
+      {@html meta.title.replace(/`([^`]+)`/g, "<code>$1</code>")}
     </h1>
 
     <div class="guide-grid">

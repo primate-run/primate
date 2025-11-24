@@ -1,3 +1,7 @@
+---
+title: Voby frontend
+---
+
 # Voby
 
 Primate runs [Voby][Documentation] with server-side rendering.

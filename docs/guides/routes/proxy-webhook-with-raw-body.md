@@ -1,5 +1,5 @@
 ---
-name: Proxy webhook with raw body (no parsing)
+title: Proxy webhook with raw body (no parsing)
 ---
 
 Forward inbound webhooks **unchanged** to an upstream service by disabling body

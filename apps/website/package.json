@@ -8,6 +8,7 @@
     "copy": "rm -rf views/content && cp -a ../../docs views/content"
   },
   "dependencies": {
+    "@plsp/svelte": "^0.1.0",
     "@primate/core": "workspace:^",
     "@primate/handlebars": "workspace:^",
     "@primate/markdown": "workspace:^",

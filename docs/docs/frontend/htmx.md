@@ -1,3 +1,7 @@
+---
+title: HTMX frontend
+---
+
 # HTMX
 
 Primate runs [HTMX][Documentation] templates with server-side rendering and

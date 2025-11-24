@@ -1,5 +1,5 @@
 ---
-name: Scoped guards for protected areas
+title: Scoped guards for protected areas
 ---
 
 Use `+guard.ts` to enforce auth globally or per-section. A guard

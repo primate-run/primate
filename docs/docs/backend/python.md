@@ -1,3 +1,7 @@
+---
+title: Python backend
+---
+
 # Python
 
 Primate runs [Python][Documentation] with WebAssembly compilation,

@@ -1,5 +1,5 @@
 ---
-name: Single handler for `/api/*`
+title: Single handler for `/api/*`
 ---
 
 Prototype quickly by fanning in your API under one file with a rest segment and

@@ -1,5 +1,5 @@
 ---
-name: Use cookies
+title: Read request cookies
 ---
 
 Access cookies from the request object. Cookies are parsed from the `Cookie`

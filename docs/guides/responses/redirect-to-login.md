@@ -1,5 +1,5 @@
 ---
-name: Redirect to login page
+title: Redirect to login page
 ---
 
 To conditionally redirect to a login page based on session status, create a

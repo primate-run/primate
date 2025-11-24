@@ -1,9 +1,9 @@
 ---
-name: Respond to `OPTIONS` (CORS preflight)
+title: Respond to `OPTIONS` (CORS preflight)
 ---
 
-APIs under `/api/*` should answer CORS preflights. Reply with 204 and the appropriate
-`Access-Control-*` headers.
+APIs under `/api/*` might need to service CORS preflights. Reply with 204 and
+the appropriate `Access-Control-*` headers.
 
 !!!
 Adjust `Access-Control-Allow-Origin` and headers to your needs.

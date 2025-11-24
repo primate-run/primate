@@ -1,5 +1,5 @@
 ---
-name: Use Web Components
+title: Use Web Components
 ---
 
 Add Web Components with the `@primate/web-components` module.

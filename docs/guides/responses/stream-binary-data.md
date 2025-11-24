@@ -1,8 +1,8 @@
 ---
-name: Stream binary data
+title: Stream binary data
 ---
 
-Serve binary data like files or images. Use the `stream` response.
+Serve binary data like files or images. Use the `binary` response.
 
 ---
 

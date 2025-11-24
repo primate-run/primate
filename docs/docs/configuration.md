@@ -1,3 +1,7 @@
+---
+title: App configuration
+---
+
 # Configuration
 
 Primate works out of the box with zero configuration. In some cases, you may

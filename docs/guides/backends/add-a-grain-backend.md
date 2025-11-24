@@ -1,5 +1,5 @@
 ---
-name: Add a Grain backend
+title: Add a Grain backend
 ---
 
 Add Grain routes with the `@primate/grain` module. Write handlers in Grain;

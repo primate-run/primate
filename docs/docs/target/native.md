@@ -1,3 +1,7 @@
+---
+title: Native target
+---
+
 # Native
 
 The Native target compiles your Primate application into standalone desktop
@@ -51,10 +55,8 @@ Currently supported platforms:
 | ------------ | ------- | ------ |
 | linux-x64    | Bun     | ✓      |
 | windows-x64  | Bun     | ✓      |
-| darwin-x64   | Bun     | ⚠️     |
-| darwin-arm64 | Bun     | ⚠️     |
-
-⚠️ = In development
+| darwin-x64   | Bun     |        |
+| darwin-arm64 | Bun     |        |
 
 ## Building
 
@@ -63,7 +65,7 @@ Currently supported platforms:
 Build Primate with the native target:
 
 ```bash
-bunx --bun primate build desktop
+bunx --bun primate build --target=desktop
 ```
 
 This will create an executable `app` (or `app.exe` on Windows) inside `build`.
@@ -75,10 +77,10 @@ You can target specific platforms from your development machine:
 ```json
 {
   "scripts": {
-    "build:linux-x64": "bunx --bun primate build linux-x64",
-    "build:darwin-x64": "bunx --bun primate build darwin-x64",
-    "build:darwin-arm64": "bunx --bun primate build darwin-arm64",
-    "build:windows-x64": "bunx --bun primate build windows-x64"
+    "build:linux-x64": "bunx --bun primate build --target=linux-x64",
+    "build:darwin-x64": "bunx --bun primate build --target=darwin-x64",
+    "build:darwin-arm64": "bunx --bun primate build --target=darwin-arm64",
+    "build:windows-x64": "bunx --bun primate build --target=windows-x64"
   }
 }
 ```
@@ -86,7 +88,7 @@ You can target specific platforms from your development machine:
 Run, for example:
 
 ```bash
-bunx --bun primate build windows-x64
+bunx --bun primate build --target=windows-x64
 ```
 
 ### Build Output
@@ -99,10 +101,10 @@ build/
 
 ## Configuration
 
-| Option  | Type      | Default | Description                     |
-| ------- | --------- | ------- | ------------------------------- |
-| `start` | `string`  | `"/"`   | Initial route when app launches |
-| `debug` | `boolean` | `false` | Enable debug logging            |
+| Option  | Type      | Default | Description                    |
+| ------- | --------- | ------- | ------------------------------ |
+| `start` | `string`  | `"/"`   | Initial path when app launches |
+| `debug` | `boolean` | `false` | Enable debug logging           |
 
 ### Example
 

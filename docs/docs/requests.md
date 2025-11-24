@@ -1,4 +1,9 @@
+---
+title: Handling requests
+---
+
 # Requests
+
 Route handlers receive a single `RequestFacade` object that bundles everything
 you need to handle an incoming HTTP request: the parsed `body`, `path`
 parameters, `query` parameters, `cookies`, `headers`, the original WHATWG

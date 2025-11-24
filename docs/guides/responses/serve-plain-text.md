@@ -1,5 +1,5 @@
 ---
-name: Serve plain text
+title: Serve plain text
 ---
 
 Return strings to serve plain text responses. Primate sets

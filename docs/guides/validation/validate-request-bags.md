@@ -1,5 +1,5 @@
 ---
-name: Validate request bags
+title: Validate request bags
 ---
 
 Validate different parts of the request (query, params, headers). Use pema

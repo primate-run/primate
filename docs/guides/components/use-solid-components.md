@@ -1,5 +1,5 @@
 ---
-name: Use Solid components
+title: Use Solid components
 ---
 
 Add Solid components with the `@primate/solid` module.

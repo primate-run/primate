@@ -72,6 +72,7 @@ export default class Default extends Runtime {
 
       return dedent`
         export default {
+          md: ${JSON.stringify(body)},
           html: ${JSON.stringify(await marked.parse(body))},
           toc: JSON.parse(${JSON.stringify(JSON.stringify(toc))}),
           meta: ${meta ? JSON.stringify(meta) : "null"},

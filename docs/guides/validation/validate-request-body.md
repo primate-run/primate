@@ -1,5 +1,5 @@
 ---
-name: Validate request body
+title: Validate request body
 ---
 
 Validate incoming request body with schemas. Use pema for type-safe validation.

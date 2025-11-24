@@ -1,3 +1,7 @@
+---
+title: Vue frontend
+---
+
 # Vue
 
 Primate runs [Vue][Documentation] with server-side rendering, hydration, client

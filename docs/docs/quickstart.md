@@ -1,3 +1,7 @@
+---
+title: Quickstart
+---
+
 # Quickstart
 
 The easiest way to get started with Primate is to run it.

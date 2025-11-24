@@ -1,3 +1,7 @@
+---
+title: MySQL database
+---
+
 # MySQL
 
 MySQL is a relational DBMS. Use it for durable, multi-connection workloads.

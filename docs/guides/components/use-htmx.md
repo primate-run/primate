@@ -1,5 +1,5 @@
 ---
-name: Use HTMX
+title: Use HTMX
 ---
 
 Add HTMX interactivity with the `@primate/htmx` module.

@@ -1,5 +1,5 @@
 ---
-name: Use headers
+title: Read request headers
 ---
 
 Access HTTP headers from the request object. Headers are parsed from the

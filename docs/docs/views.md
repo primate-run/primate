@@ -1,6 +1,10 @@
+---
+title: View components
+---
+
 # Views
 
-Frontend views are placed in `views`. To use views, add a
+Frontend view components are placed in `views`. To use views, add a
 [frontend module](/docs/frontend).
 
 ## Serving views
