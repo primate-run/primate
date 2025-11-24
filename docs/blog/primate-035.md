@@ -167,6 +167,7 @@ Svelte language server plugin for TypeScript, `@plsp/svelte`, and activate it
 in your `tsconfig.json`.
 !!!
 
+!!!
 Server-client type safety is currently only supported for JSX frontends (React,
 Solid, Voby) and Svelte. Support for Vue and Angular will be added in a future
 release.
