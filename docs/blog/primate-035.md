@@ -5,7 +5,7 @@ author: terrablue
 ---
 
 Today we're announcing the availability of the Primate 0.35 preview release.
-This release introduces server hot reload for all backend modules including
+This release introduces server hot reload for all backends including
 WebAssembly, standalone production builds, server-client type safety, and a
 completely redesigned build system that eliminates previous complexity.
 
@@ -25,22 +25,23 @@ development and creates standalone executables for production.
 
 The new build system provides several key advantages:
 
-- **Faster development**: Hot reload works for all backend code, including
+- **Faster development** — Hot reload works for all backend code, including
   WebAssembly
-- **Simpler deployment**: Production builds are self-contained with no external
+- **Simpler deployment** — Production builds are self-contained with no external
   dependencies
-- **Better performance**: Bundled code eliminates filesystem overhead during
+- **Better performance** — Bundled code eliminates filesystem overhead during
   runtime
-- **Cleaner code**: Direct esbuild integration replaces abstraction layers
+- **Cleaner code** — Direct esbuild integration replaces abstraction layers
 
 ### Customizable build directory
 
-You can now specify a different build output location using the `--dir` flag:
+You can now specify a different build output location using the `--dir` flag.
 
-```bash
-npx primate build --dir=out
-npx primate serve --dir=out
-```
+[s=blog/0.35/custom-build-dir]
+
+You can also serve from a different directory.
+
+[s=blog/0.35/custom-serve-dir]
 
 This is particularly useful for deployment pipelines or when integrating with
 other tools.
@@ -154,12 +155,12 @@ route.get(() => {
 
 ### Benefits
 
-- **Catch errors early**: Type mismatches are caught during development, not
+- **Catch errors early** — Type mismatches are caught during development, not
   at runtime
-- **Better IDE support**: Full autocomplete for prop names and types
-- **Refactoring safety**: Changing a component's props automatically updates
+- **Better IDE support** — Full autocomplete for prop names and types
+- **Refactoring safety** — Changing a component's props automatically updates
   all usage sites
-- **Self-documenting code**: Component signatures serve as documentation
+- **Self-documenting code** — Component signatures serve as documentation
 
 !!!
 For Svelte server-client type safety, you will need to install the Primate
@@ -179,12 +180,15 @@ Production builds now generate a single `build/server.js` file that bundles all
 dependencies, static assets, routes, stores, and views. This file can be
 executed directly:
 
-```bash
-node build/server.js
-```
+[s=blog/0.35/standalone]
 
 No `node_modules`, no `npm install`, no build step required on the production
 server. Everything needed to run your application is contained in one file.
+
+!!!
+Make sure you serve the build with the same runtime you used to generate it.
+Primate currently does not support cross-runtime builds.
+!!!
 
 ### What gets bundled
 
