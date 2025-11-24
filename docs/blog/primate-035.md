@@ -45,6 +45,12 @@ npx primate serve --dir out
 This is particularly useful for deployment pipelines or when integrating with
 other tools.
 
+!!!
+When upgrading to 0.35, an existing `build` directory from earlier versions may
+cause Primate to warn that the directory exists but does not contain a previous
+build. To resolve this, delete the `build` directory manually.
+!!!
+
 ## Server hot reload
 
 Primate now supports server hot reloading when modifying backend code during
