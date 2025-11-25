@@ -1,3 +1,5 @@
+import dim from "@rcompat/cli/color/dim";
+import green from "@rcompat/cli/color/green";
 import cancel from "@rcompat/cli/prompts/cancel";
 import intro from "@rcompat/cli/prompts/intro";
 import is_cancel from "@rcompat/cli/prompts/is-cancel";
@@ -6,7 +8,6 @@ import outro from "@rcompat/cli/prompts/outro";
 import select from "@rcompat/cli/prompts/select";
 import text from "@rcompat/cli/prompts/text";
 import FileRef from "@rcompat/fs/FileRef";
-import dedent from "@rcompat/string/dedent";
 import type Dict from "@rcompat/type/Dict";
 
 function abort() {
@@ -176,12 +177,7 @@ export default async function init() {
   const packages = compute_packages({ frontends: frontends, backends: backends, db });
   const install = build_install_command(runtime, packages, directory);
 
-  outro(
-    [
-      "Done, now run",
-      `\n  ${install.print}`,
-    ].join("\n"),
-  );
+  outro(`${green("done, now run")} ${dim(install.print)}`);
 
   process.exit();
 }
@@ -236,16 +232,15 @@ async function app_config(root: FileRef, c: AppChoices) {
     ...c.backends.map((b) => `${to_ident(b)}()`),
   ];
 
-  const body = dedent`import config from "primate/config";
-    ${frontend_imports}
-    ${backend_imports}
+  const body = `import config from "primate/config";
+${frontend_imports}
+${backend_imports}
 
-    export default config({
-      modules: [
-        ${modules.join(",\n    ")}
-      ],
-    });
-  `;
+export default config({
+  modules: [
+    ${modules.join(",\n    ")}
+  ],
+});`;
   await config.write(body);
 }
 
@@ -258,33 +253,30 @@ async function i18n_config(root: FileRef) {
   await en_us.directory.create({ recursive: true });
   await i18i.directory.create({ recursive: true });
 
-  const locale = dedent`import locale from "primate/i18n/locale";
-    export default locale({
-      hi: "Hello",
-      placeheld: "Hello, {name}",
-    });
-  `;
+  const locale = `import locale from "primate/i18n/locale";
+export default locale({
+  hi: "Hello",
+  placeheld: "Hello, {name}",
+});`;
   await en_us.write(locale);
 
-  const config = dedent`import en from "#locale/en-US";
-    import i18n from "primate/config/i18n";
+  const config = `import en from "#locale/en-US";
+import i18n from "primate/config/i18n";
 
-    export default i18n({
-      defaultLocale: "en-US",
-      locales: {
-        "en-US": en,
-      },
-    });
-  `;
+export default i18n({
+  defaultLocale: "en-US",
+  locales: {
+    "en-US": en,
+  },
+});`;
   await i18i.write(config);
 }
 
 async function session_config(root: FileRef) {
   const file = root.join("config").join("session.ts");
   await file.directory.create({ recursive: true });
-  const body = dedent`import session from "primate/config/session";
-    export default session({});
-  `;
+  const body = `import session from "primate/config/session";
+export default session({});`;
   await file.write(body);
 }
 
@@ -293,9 +285,8 @@ async function database_config(root: FileRef, db: Database) {
   await file.directory.create({ recursive: true });
 
   const ident = to_ident(db);
-  const body = dedent`import ${ident} from "@primate/${db}";
-    export default ${ident}();
-  `;
+  const body = `import ${ident} from "@primate/${db}";
+export default ${ident}();`;
   await file.write(body);
 }
 
@@ -433,6 +424,7 @@ async function tsconfig_json(root: FileRef, opts: { frontends: Frontend[] }) {
   const tsconfig: any = {
     extends: "primate/tsconfig",
     compilerOptions: {
+      baseUrl: "${configDir}",
       paths: {
         "#config/*": ["config/*"],
         "#session": ["config/session"],
