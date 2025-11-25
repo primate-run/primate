@@ -2,7 +2,7 @@
 name: Validate with Pema
 ---
 
-Pema stands **P**rimate sch**ema**. Use pema for type-safe validation of data.
+Pema stands for **P**rimate sch**ema**. Use pema for type-safe validation of data.
 
 !!!
 Pema provides composable validators for common types.
