@@ -5,9 +5,10 @@ author: terrablue
 ---
 
 Today we're announcing the availability of the Primate 0.35 preview release.
-This release introduces server hot reload for all backends including
-WebAssembly, standalone production builds, server-client type safety, and a
-completely redesigned build system that eliminates previous complexity.
+This release introduces server hot reload for all backends — including those
+compiled to WebAssembly—, standalone production builds, server-client type
+safety, and a completely redesigned build system that eliminates previous
+complexity.
 
 !!!
 If you're new to Primate, we recommend reading the [Quickstart] page to get
@@ -18,15 +19,15 @@ started.
 
 Primate 0.35 fundamentally changes how the framework handles builds. Instead of
 copying files to the `build` directory and running them from there, Primate now
-bundles your server code into a single file that enables hot reloading during
-development and creates standalone executables for production.
+bundles your server code into a single file, enabling hot reloading during
+development and producing standalone executables for production.
 
 ### Benefits of the new architecture
 
 The new build system provides several key advantages:
 
 - **Faster development** — Hot reload works for all backend code, including
-  WebAssembly
+  code compiled to WebAssembly
 - **Simpler deployment** — Production builds are self-contained with no external
   dependencies
 - **Better performance** — Bundled code eliminates filesystem overhead during
@@ -48,8 +49,8 @@ other tools.
 
 !!!
 When upgrading to 0.35, an existing `build` directory from earlier versions may
-cause Primate to warn that the directory exists but does not contain a previous
-build. To resolve this, delete the `build` directory manually.
+trigger a warning that it does not contain a valid previous build. Remove the
+`build` directory manually to proceed.
 !!!
 
 ## Server hot reload
@@ -163,15 +164,11 @@ route.get(() => {
 - **Self-documenting code** — Component signatures serve as documentation
 
 !!!
-For Svelte server-client type safety, you will need to install the Primate
-Svelte language server plugin for TypeScript, `@plsp/svelte`, and activate it
-in your `tsconfig.json`.
-!!!
+Svelte server-client type safety requires installing the Primate Svelte
+TypeScript plugin (`@plsp/svelte`) and enabling it in your `tsconfig.json`.
 
-!!!
-Server-client type safety is currently only supported for JSX frontends (React,
-Solid, Voby) and Svelte. Support for Vue and Angular will be added in a future
-release.
+Server-client type safety is currently supported for JSX frontends (React, Solid,
+Voby) and Svelte. Support for Vue and Angular will be added in a future release.
 !!!
 
 ## Standalone production builds
@@ -186,8 +183,8 @@ No `node_modules`, no `npm install`, no build step required on the production
 server. Everything needed to run your application is contained in one file.
 
 !!!
-Make sure you serve the build with the same runtime you used to generate it.
-Primate currently does not support cross-runtime builds.
+Always serve the build using the same runtime that generated it. Primate
+currently does not support cross-runtime builds.
 !!!
 
 ### What gets bundled
@@ -254,6 +251,7 @@ recommend extending `primate/tsconfig` for sensible defaults:
 {
   "extends": "primate/tsconfig",
   "compilerOptions": {
+    "baseUrl": "${configDir}",
     "paths": {
       "#view/*": ["views/*"],
       "#store/*": ["stores/*"],
@@ -317,6 +315,17 @@ route.get(() => {
   return `User ${data.user_id} last active at ${data.last_active}`;
 });
 ```
+
+### Removal of the `bundle` config option
+
+The `bundle` config option has been removed.
+Primate now automatically detects all packages that should be included in the
+build, making manual bundle configuration unnecessary.
+
+### `Store#schema` renamed to `Store#collection`
+
+The `Store` instance property `schema` has been renamed to `collection` to more
+accurately reflect its purpose. Update any references accordingly.
 
 ## What's next
 
