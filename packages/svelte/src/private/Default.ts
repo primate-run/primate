@@ -13,14 +13,16 @@ export default class Default extends Runtime {
   compile = {
     client: (text: string, file: FileRef) => {
       const accessors = true;
-      const { css, js } = file.path.endsWith(".js") // runes in .svelte.[j|t]s
+      const { css, js } = file.path.endsWith(".js") || file.path.endsWith(".ts")
+        // runes in .svelte.[j|t]s
         ? compileModule(text, { generate: "client" })
         : compile(text, { accessors, generate: "client" })
         ;
       return { css: css?.code ?? "", js: js.code };
     },
     server: (text: string, file?: FileRef) => {
-      const { js } = file?.path.endsWith(".js") // runes in .svelte.[j|t]s
+      const { js } = file?.path.endsWith(".js") || file?.path.endsWith(".ts")
+        // runes in .svelte.[j|t]s
         ? compileModule(text, { generate: "server" })
         : compile(text, { generate: "server" })
         ;
