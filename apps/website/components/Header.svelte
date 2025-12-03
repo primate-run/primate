@@ -13,10 +13,6 @@
   let highlight = (_) => "";
   let colorscheme;
 
-  $: if (app.theme.navbar) {
-    updated();
-  }
-
   const clipboard = (text) => {
     globalThis.navigator.clipboard.writeText(text);
   };
@@ -83,7 +79,11 @@
     }
   }
 
-  onMount(updated);
+  onMount(() => {
+    updated();
+    globalThis.addEventListener("updated", updated);
+    return () => globalThis.removeEventListener("updated", updated);
+  });
 </script>
 
 <svelte:head>
