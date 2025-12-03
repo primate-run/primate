@@ -22,6 +22,7 @@
   };
 
   async function updated() {
+    if (globalThis.document === undefined) return; // server
     colorscheme = (await import("#static/localStorage.ts")).default;
     colorscheme.subscribe((value) => {
       updateThemeColor(value === "dark" ? "#161616" : "#ffffff");
