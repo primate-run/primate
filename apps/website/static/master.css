@@ -531,6 +531,7 @@ article .tabbed {
   color: #bababa;
   display: flex;
   font-weight: bold;
+  user-select: none;
 }
 
 .tabbed .captions span img {
