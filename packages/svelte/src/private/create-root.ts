@@ -41,7 +41,9 @@ export default (depth: number, i18n_active: boolean) => {
 
       ${i18nInit}
 
-      afterUpdate(p.update);
+      afterUpdate(() => {
+         p.update?.();
+      });
     </script>
 
     ${body}
