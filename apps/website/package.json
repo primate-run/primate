@@ -1,6 +1,5 @@
 {
   "name": "@primate/app/website",
-  "description": "Primate website app",
   "type": "module",
   "scripts": {
     "build": "npm run copy && npx primate build",

@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/solid",
-  "description": "Primate Solid app template",
+  "description": "Primate Solid template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

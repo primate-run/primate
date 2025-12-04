@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/native",
-  "description": "Primate native app template",
+  "description": "Primate native template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/htmx",
-  "description": "Primate HTMX app template",
+  "description": "Primate HTMX template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

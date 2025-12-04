@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/db",
-  "description": "Primate database app template",
+  "description": "Primate database template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

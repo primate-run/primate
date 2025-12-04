@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/ruby",
-  "description": "Primate Ruby app template",
+  "description": "Primate Ruby template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

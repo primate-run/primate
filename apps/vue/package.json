@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/vue",
-  "description": "Primate Vue app template",
+  "description": "Primate Vue template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

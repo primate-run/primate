@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/angular",
-  "description": "Primate Angular app template",
+  "description": "Primate Angular template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/session",
-  "description": "Primate sessions app template",
+  "description": "Primate session template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

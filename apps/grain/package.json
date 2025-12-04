@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/grain",
-  "description": "Primate Grain app template",
+  "description": "Primate Grain template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

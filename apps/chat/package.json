@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/chat",
-  "description": "Primate chat app template",
+  "description": "Primate chat template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

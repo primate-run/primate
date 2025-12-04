@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/go",
-  "description": "Primate Go app template",
+  "description": "Primate Go template",
   "type": "module",
   "scripts": {
     "start": "npx primate",
