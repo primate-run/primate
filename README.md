@@ -16,7 +16,6 @@
 [![HTMX](https://img.shields.io/badge/HTMX-36C?logo=htmx&logoColor=fff&style=for-the-badge)](https://primate.run/docs/frontend/htmx)
 [![Markdown](https://img.shields.io/badge/Markdown-000000.svg?logo=markdown&logoColor=fff&style=for-the-badge)](https://primate.run/docs/frontend/markdown)
 [![Marko](https://img.shields.io/badge/Marko-2596BE.svg?logo=marko&logoColor=fff&style=for-the-badge)](https://primate.run/docs/frontend/marko)
-[![Poly](https://img.shields.io/badge/Poly-a13eff.svg?&logoColor=fff&style=for-the-badge)](https://primate.run/docs/frontend/poly)
 [![React](https://img.shields.io/badge/React-20232a.svg?logo=react&logoColor=%2361DAFB&style=for-the-badge)](https://primate.run/docs/frontend/react)
 [![Solid](https://img.shields.io/badge/Solid-2C4F7C?logo=solid&logoColor=fff&style=for-the-badge)](https://primate.run/docs/frontend/solid)
 [![Svelte](https://img.shields.io/badge/Svelte-f1413d.svg?logo=svelte&logoColor=fff&style=for-the-badge)](https://primate.run/docs/frontend/svelte)
@@ -26,7 +25,6 @@
 
 #### Backends
 [![Go](https://img.shields.io/badge/Go-02add6?logo=go&logoColor=fff&style=for-the-badge)](https://primate.run/docs/backend/go)
-[![Grain](https://img.shields.io/badge/Grain-FF850E?logo=data:image/svg%2bxml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjIwNiIgdmlld0JveD0iMCAwIDE5MiAyMDYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+DQo8cGF0aCBkPSJNOTYuNTMwOCAwTDYyLjA1NTcgNzEuNzkyNEw5Ni43OTYgMTAyLjYzN0wxMzEuMDA2IDcxLjc5MjRMOTYuNTMwOCAwWiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0yLjY1MTkzIDM1LjYzMDNMMCAxMjIuMDQ3TDk2Ljc5NTYgMjA1LjUzOUwxNDUuNTkxIDE2Mi43MjlMMi42NTE5MyAzNS42MzAzWiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0xOTIgMTIyLjA0N1YzNC41NjY3TDEwNS4wMTcgMTExLjk0M0wxNTQuODczIDE1NC40ODdMMTkyIDEyMi4wNDdaIiBmaWxsPSJ3aGl0ZSIvPg0KPC9zdmc+&style=for-the-badge)](https://primate.run/docs/backend/grain)
 [![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff&style=for-the-badge)](https://primate.run/docs/backend/python)
 [![Ruby](https://img.shields.io/badge/Ruby-CC342D?logo=ruby&style=for-the-badge)](https://primate.run/docs/backend/ruby)
 
