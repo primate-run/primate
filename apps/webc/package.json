@@ -1,5 +1,6 @@
 {
   "name": "@primate/app/webc",
+  "description": "Primate Web Components app template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

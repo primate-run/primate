@@ -1,5 +1,6 @@
 {
-  "name": "@primate/app/chat",
+  "name": "@primate/app/sse",
+  "description": "Primate SSE app template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

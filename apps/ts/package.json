@@ -1,5 +1,6 @@
 {
   "name": "@primate/app/ts",
+ "description": "Primate TypeScript app template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

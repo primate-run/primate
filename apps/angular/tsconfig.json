@@ -1,6 +1,7 @@
 {
   "extends": "primate/tsconfig",
   "compilerOptions": {
+    "baseUrl": "${configDir}",
     "paths": {
       "#config/*": ["config/*"],
       "#session": ["config/session"],

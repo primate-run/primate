@@ -1,5 +1,6 @@
 {
   "name": "@primate/app/svelte",
+  "description": "Primate Svelte app template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

@@ -1,5 +1,6 @@
 {
   "name": "@primate/app/markdown",
+  "description": "Primate Markdown app template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

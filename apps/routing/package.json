@@ -1,5 +1,6 @@
 {
   "name": "@primate/app/routing",
+  "description": "Primate routing app template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

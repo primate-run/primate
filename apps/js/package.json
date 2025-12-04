@@ -1,5 +1,6 @@
 {
   "name": "@primate/app/js",
+  "description": "Primate JavaScript app template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

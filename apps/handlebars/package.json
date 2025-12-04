@@ -1,5 +1,6 @@
 {
   "name": "@primate/app/handlebars",
+  "description": "Primate Handlebars app template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

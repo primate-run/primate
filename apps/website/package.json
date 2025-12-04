@@ -1,5 +1,6 @@
 {
   "name": "@primate/app/website",
+  "description": "Primate website app",
   "type": "module",
   "scripts": {
     "build": "npm run copy && npx primate build",
@@ -14,7 +15,7 @@
     "@primate/markdown": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@rcompat/fs": "^0.22.4",
-    "@rcompat/http": "^0.16.0",
+    "@rcompat/http": "^0.16.1",
     "@rcompat/record": "^0.9.1",
     "@rcompat/string": "^0.10.1",
     "primate": "workspace:^",

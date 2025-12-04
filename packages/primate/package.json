@@ -32,7 +32,7 @@
     "@rcompat/args": "^0.8.0",
     "@rcompat/cli": "^0.11.3",
     "@rcompat/fs": "^0.22.3",
-    "@rcompat/http": "~0.16.0",
+    "@rcompat/http": "~0.16.1",
     "@rcompat/runtime": "^0.6.0",
     "@rcompat/string": "^0.10.0",
     "@rcompat/test": "^0.5.0"

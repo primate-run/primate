@@ -7,6 +7,7 @@
     "build": "pnpm -r build",
     "build:packages": "pnpm -r --filter='./packages/**' build",
     "build:apps": "pnpm -r --filter='./apps/**' build",
+    "eject": "node scripts/eject.js",
     "clean": "pnpm -r clean",
     "publish": "pnpm -r --access=public --otp=$(bw get totp npmjs.com) publish",
     "upgrade": "pnpm -r update -i -L",
@@ -18,12 +19,14 @@
     "knip": "knip"
   },
   "devDependencies": {
+    "@rcompat/fs": "^0.22.4",
+    "@rcompat/stdio": "^0.12.2",
     "@rcompat/test": "^0.5.0",
     "@rcompat/type": "^0.6.1",
     "@types/deno": "^2.5.0",
     "@types/node": "^24.10.1",
     "apekit": "^0.0.41",
-    "esbuild": "^0.27.0",
+    "esbuild": "^0.27.1",
     "eslint": "^9.39.1",
     "knip": "^5.70.2",
     "proby": "^0.4.1",

@@ -1,5 +1,6 @@
 {
   "name": "@primate/app/tailwind",
+  "description": "Primate Tailwind app template",
   "type": "module",
   "scripts": {
     "start": "npx primate",

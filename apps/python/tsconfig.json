@@ -1,6 +1,7 @@
 {
   "extends": "primate/tsconfig",
   "compilerOptions": {
+    "baseUrl": "${configDir}",
     "paths": {
       "#view/*": ["views/*"],
       "#store/*": ["stores/*"],
