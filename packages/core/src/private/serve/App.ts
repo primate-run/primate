@@ -424,7 +424,8 @@ export default class ServeApp extends App {
           status: Status.INTERNAL_SERVER_ERROR,
         });
       }
-    }, this.get<Conf>(s_http));
+    }, { ...this.get<Conf>(s_http),
+        timeout: this.mode === "development" ? 0 : undefined });
 
     log.system("started {0}", this.url);
   };
