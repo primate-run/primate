@@ -5,10 +5,9 @@ author: terrablue
 ---
 
 Today we're announcing the availability of the Primate 0.35 preview release.
-This release introduces server hot reload for all backends — including those
-compiled to WebAssembly—, standalone production builds, server-client type
-safety, and a completely redesigned build system that eliminates previous
-complexity.
+This release introduces server hot reload for all backends, standalone
+production builds, server-client type safety, and a completely redesigned build
+system that eliminates previous complexity.
 
 !!!
 If you're new to Primate, we recommend reading the [Quickstart] page to get
@@ -26,8 +25,7 @@ development and producing standalone executables for production.
 
 The new build system provides several key advantages:
 
-- **Faster development** — Hot reload works for all backend code, including
-  code compiled to WebAssembly
+- **Faster development** — Hot reload works for all backend code
 - **Simpler deployment** — Production builds are self-contained with no external
   dependencies
 - **Better performance** — Bundled code eliminates filesystem overhead during
@@ -56,9 +54,9 @@ trigger a warning that it does not contain a valid previous build. Remove the
 ## Server hot reload
 
 Primate now supports server hot reloading when modifying backend code during
-development. Whether your routes are written in TypeScript, JavaScript, or any
-supported WebAssembly language, Primate will reload your changes instantly
-without restarting the runtime process.
+development. Whether your routes are written in TypeScript, JavaScript, Go,
+Ruby or Python, Primate will reload your changes instantly without restarting
+the runtime process.
 
 During development, the generated server bundle only contains routes and stores,
 keeping it lightweight. Each change triggers a fast regeneration and reimport
@@ -72,9 +70,6 @@ When you modify a route file:
 2. The server bundle is regenerated (typically under 100ms)
 3. The new bundle is imported without restarting the runtime process
 4. Your browser automatically refreshes to reflect the changes
-
-This works seamlessly across all supported backend languages, including Go,
-Python, and Ruby.
 
 ## Server-client type safety
 
