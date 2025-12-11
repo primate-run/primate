@@ -59,6 +59,15 @@ Pema is a schema validation library that provides runtime type checking with ful
 ```bash
 npm install pema
 ```
+```bash
+yarn install pema
+```
+```bash
+pnpm add pema
+```
+```bash
+bun add pema
+```
 
 ## Quick Start
 
