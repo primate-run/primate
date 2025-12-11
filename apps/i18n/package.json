@@ -1,0 +1,20 @@
+{
+  "name": "@primate/app/i18n",
+ "description": "Primate i18n template",
+  "type": "module",
+  "scripts": {
+    "start": "npx primate",
+    "build": "npx primate build",
+    "test": "npx primate test",
+    "test:deno": "deno run -A npm:primate test",
+    "test:bun": "bun x --bun primate test"
+  },
+  "dependencies": {
+    "@primate/react": "workspace:^",
+    "@rcompat/fs": "^0.22.3",
+    "pema": "workspace:^",
+    "primate": "workspace:^",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  }
+}

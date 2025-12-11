@@ -1,3 +1,5 @@
+// @ts-expect-error: user injected
+import i18n from "#i18n";
 import env from "@primate/go/env";
 import toRequest from "@primate/go/to-request";
 import to_response from "@primate/go/to-response";
@@ -13,12 +15,13 @@ declare global {
   };
 
   var PRMT_SESSION: any;
+  var PRMT_I18N: any;
   var __primate_go_initialized: Set<string> | undefined;
 }
 
 export default async function wrapper(
   bytes: Uint8Array,
-  routeId: string,
+  route_id: string,
 ): Promise<void> {
   if (!globalThis.__primate_go_initialized) {
     globalThis.__primate_go_initialized = new Set();
@@ -35,9 +38,18 @@ export default async function wrapper(
     destroy() { session().destroy(); },
   };
 
+  globalThis.PRMT_I18N = {
+    get locale() { return i18n.locale.get(); },
+    t(key: string, params?: string) {
+      if (!params) return i18n(key);
+      return i18n(key, JSON.parse(params));
+    },
+    set(locale: string) { i18n.locale.set(locale); },
+  };
+
   env();
 
-  const safe_route_id = routeId.replace(/\//g, "_");
+  const safe_route_id = route_id.replace(/\//g, "_");
   const registry_name = `__primate_go_registry_${safe_route_id}`;
   const call_go = `__primate_call_go_${safe_route_id}`;
 
@@ -52,7 +64,7 @@ export default async function wrapper(
     const go = new globalThis.Go();
     WebAssembly.instantiate(bytes, go.importObject).then(result => {
       go.run((result as any).instance).catch(err => {
-        console.error("Go runtime error:", routeId, err);
+        console.error("Go runtime error:", route_id, err);
       });
     });
   });
@@ -72,5 +84,5 @@ export default async function wrapper(
     });
   }
 
-  globalThis.__primate_go_initialized.add(routeId);
+  globalThis.__primate_go_initialized.add(route_id);
 }
