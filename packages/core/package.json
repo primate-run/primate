@@ -43,6 +43,11 @@
   },
   "type": "module",
   "imports": {
+    "#i18n/index": {
+      "apekit": "./src/private/i18n/index/client.ts",
+      "browser": "./lib/private/i18n/index/client.js",
+      "default": "./lib/private/i18n/index/server.js"
+    },
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"

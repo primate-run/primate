@@ -1,4 +1,5 @@
 import AppError from "#AppError";
+import storage from "#i18n/storage";
 import bye from "#bye";
 import cookie from "#cookie";
 import type Config from "#i18n/Config";
@@ -74,9 +75,23 @@ export default class I18NModule extends Module {
     return next(app);
   }
 
-  handle(request: RequestFacade, next: NextHandle) {
+  async handle(request: RequestFacade, next: NextHandle) {
     const requested = request.headers.try(PERSIST_HEADER);
-    if (requested === undefined) return next(request);
+    if (requested === undefined) {
+      const locale = request.cookies.try(COOKIE_NAME);
+      if (locale === undefined) return next(request);
+
+      // if has cookie, run route with i18n
+      return await new Promise<Response>((resolve, reject) => {
+        storage().run({ locale }, async () => {
+          try {
+            resolve(await next(request));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      });
+    }
 
     // only cookie-persistance is server-supported
     if (this.#persist !== "cookie")
