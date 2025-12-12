@@ -2,6 +2,7 @@ import type API from "#i18n/API";
 import type Catalog from "#i18n/Catalog";
 import type Catalogs from "#i18n/Catalogs";
 import type Config from "#i18n/Config";
+import DEFAULT_PERSIST_MODE from "#i18n/constant/DEFAULT_PERSIST_MODE";
 import format from "#i18n/format";
 import Formatter from "#i18n/Formatter";
 import server_storage from "#i18n/storage";
@@ -38,6 +39,7 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
   const catalogs: Catalogs = config.locales as Catalogs;
   const default_catalog = catalogs[config.defaultLocale] as Schema;
   const currency = config.currency ?? "USD";
+  const persist = config.persist ?? DEFAULT_PERSIST_MODE;
 
   const get_locale = (): Locale => {
     const storage = server_storage();
@@ -80,7 +82,7 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
   };
 
   Object.defineProperty(api, sConfig, {
-    get: () => config,
+    get: () => ({ ...config, persist }),
   });
 
   return api;

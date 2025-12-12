@@ -1,9 +1,6 @@
-// @ts-expect-error: user injected
-import i18n from "#i18n";
 import env from "@primate/go/env";
 import toRequest from "@primate/go/to-request";
 import to_response from "@primate/go/to-response";
-import session from "primate/config/session";
 import route from "primate/route";
 
 declare global {
@@ -22,30 +19,39 @@ declare global {
 export default async function wrapper(
   bytes: Uint8Array,
   route_id: string,
+  context: { i18n?: any; session?: any },
 ): Promise<void> {
   if (!globalThis.__primate_go_initialized) {
     globalThis.__primate_go_initialized = new Set();
   }
 
-  globalThis.PRMT_SESSION = {
-    get exists() { return session().exists; },
-    get id() { return session().id; },
-    get data() { return JSON.stringify(session().try()); },
-    create(data: string) { session().create(JSON.parse(data)); },
-    get() { return JSON.stringify(session().get()); },
-    try() { return JSON.stringify(session().try()); },
-    set(data: string) { session().set(JSON.parse(data)); },
-    destroy() { session().destroy(); },
-  };
+  if (context.session !== undefined) {
+    const session = context.session;
 
-  globalThis.PRMT_I18N = {
-    get locale() { return i18n.locale.get(); },
-    t(key: string, params?: string) {
-      if (!params) return i18n(key);
-      return i18n(key, JSON.parse(params));
-    },
-    set(locale: string) { i18n.locale.set(locale); },
-  };
+    globalThis.PRMT_SESSION = {
+      get exists() { return session.exists; },
+      get id() { return session.id; },
+      get data() { return JSON.stringify(session.try()); },
+      create(data: string) { session.create(JSON.parse(data)); },
+      get() { return JSON.stringify(session.get()); },
+      try() { return JSON.stringify(session.try()); },
+      set(data: string) { session.set(JSON.parse(data)); },
+      destroy() { session.destroy(); },
+    };
+  }
+
+  if (context.i18n !== undefined) {
+    const i18n = context.i18n;
+
+    globalThis.PRMT_I18N = {
+      get locale() { return i18n.locale.get(); },
+      t(key: string, params?: string) {
+        if (!params) return i18n(key);
+        return i18n(key, JSON.parse(params));
+      },
+      set(locale: string) { i18n.locale.set(locale); },
+    };
+  }
 
   env();
 

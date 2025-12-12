@@ -50,7 +50,6 @@ async function ensure_runtime(vm: RubyVM) {
 
 async function get_runner(vm: RubyVM): Promise<RbValue> {
   if (_runner) return _runner;
-  // Define a small stable entrypoint; we cache Method(:__primate_run).
   await vm.evalAsync(`
     unless defined?(__primate_run)
       def __primate_run(js_request, helpers, session_obj, verb_str, route_id)

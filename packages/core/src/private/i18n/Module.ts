@@ -1,11 +1,11 @@
 import AppError from "#AppError";
-import storage from "#i18n/storage";
 import bye from "#bye";
 import cookie from "#cookie";
 import type Config from "#i18n/Config";
 import COOKIE_NAME from "#i18n/constant/COOKIE_NAME";
 import PERSIST_HEADER from "#i18n/constant/PERSIST_HEADER";
 import type PersistMode from "#i18n/PersistMode";
+import storage from "#i18n/storage";
 import log from "#log";
 import Module from "#Module";
 import type NextHandle from "#module/NextHandle";

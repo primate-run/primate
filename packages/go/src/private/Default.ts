@@ -90,7 +90,9 @@ export default class Default extends Runtime {
       return `
         import wrapper from "@primate/go/wrapper";
         import bytes from "app:wasm/${route_id}.wasm" with { type: "bytes" };
-        await wrapper(bytes, ${JSON.stringify(route_id)});
+        import i18n from "app:config:i18n";
+        import session from "app:config:session";
+        await wrapper(bytes, ${JSON.stringify(route_id)}, { i18n, session });
       `;
     });
 

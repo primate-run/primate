@@ -41,8 +41,17 @@ export default function plugin_server_config(app: BuildApp): Plugin {
         const js = app.path.config.join(`${name}.js`);
         if (await js.exists()) return { path: js.path };
 
-        // should never happen as we only import when session_active is true
-        throw fail(`missing config for ${name} in app/config`);
+        return {
+          path: `app-config-${name}-default`,
+          namespace: "primate-config-default",
+        };
+      });
+
+      build.onLoad({ filter: /^app-config-.+-default$/, namespace: "primate-config-default" }, () => {
+        return {
+          contents: "export default null;",
+          loader: "js",
+        };
       });
     },
   };
