@@ -1,5 +1,5 @@
-import typescript from "@rcompat/build/preset/typescript";
-import transform from "@rcompat/build/sync/transform";
+import presets from "@primate/core/build/presets";
+import transform from "@primate/core/build/transform";
 import {
   compileScript,
   compileTemplate,
@@ -27,7 +27,8 @@ export default {
     let module: string;
 
     if (inline) {
-      // For <script setup>, compile with inlineTemplate to get both script and render
+      // for <script setup>, compile with inlineTemplate to get both script and
+      // render
       const script = compileScript(descriptor, {
         genDefaultAs,
         id,
@@ -55,6 +56,6 @@ export default {
       `;
     }
 
-    return is_typescript ? transform(module, typescript).code : module;
+    return is_typescript ? transform(module, presets.typescript).code : module;
   },
 };

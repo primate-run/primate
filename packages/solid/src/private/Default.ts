@@ -2,17 +2,14 @@ import create_root from "#create-root";
 import Runtime from "#Runtime";
 import type { PluginItem } from "@babel/core";
 import { transformSync } from "@babel/core";
-import transform from "@rcompat/build/sync/transform";
+import build_presets from "@primate/core/build/presets";
+import transform from "@primate/core/build/transform";
 // @ts-expect-error no declaration file
 import solid from "babel-preset-solid";
 
 function compile(text: string, presets: PluginItem[]) {
-  return transformSync(transform(text, {
-    format: "esm",
-    jsx: "preserve",
-    loader: "tsx",
-    target: "esnext",
-  }).code, { presets })?.code ?? "";
+  return transformSync(transform(text, build_presets.solid).code,
+    { presets })?.code ?? "";
 }
 
 export default class Default extends Runtime {

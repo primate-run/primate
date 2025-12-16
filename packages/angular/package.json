@@ -30,7 +30,6 @@
     "@angular/ssr": "^21.0.0",
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.3.1",
-    "@rcompat/build": "^0.15.0",
     "@rcompat/crypto": "^0.11.0",
     "@rcompat/fs": "^0.22.3",
     "@rcompat/record": "^0.9.1",

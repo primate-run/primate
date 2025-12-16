@@ -1,5 +1,5 @@
 import { transformSync } from "@babel/core";
-import transform from "@rcompat/build/sync/transform";
+import transform from "@primate/core/build/transform";
 // @ts-expect-error no types
 import FileRef from "@rcompat/fs/FileRef";
 import solid from "babel-preset-solid";

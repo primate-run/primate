@@ -23,7 +23,6 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/build": "^0.15.0",
     "linkedom-global": "^1.0.1",
     "voby": "^0.58.1"
   },

@@ -22,8 +22,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@primate/core": "workspace:^",
-    "@rcompat/build": "^0.15.0"
+    "@primate/core": "workspace:^"
   },
   "peerDependencies": {
     "primate": "workspace:^",

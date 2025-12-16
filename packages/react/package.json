@@ -27,7 +27,6 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/build": "^0.15.0",
     "@rcompat/fs": "^0.22.3",
     "@rcompat/runtime": "^0.6.0"
   },
