@@ -1,7 +1,7 @@
 <script>
   export let section, path, toc;
 
-  $: _toc = (toc ?? []).filter((item) => item.depth > 1);
+  $: _toc = (toc ?? []).filter((item) => item.depth > 1 && item.depth <= 4);
 </script>
 
 <li class="heading">{section.title}</li>
