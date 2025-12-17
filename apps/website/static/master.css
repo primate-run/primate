@@ -480,6 +480,18 @@ article a.deeplink {
   padding-left: 3rem;
 }
 
+.sidebar .depth-4 {
+  padding-left: 4rem;
+}
+
+.sidebar .depth-5 {
+  padding-left: 5rem;
+}
+
+.sidebar .depth-6 {
+  padding-left: 6rem;
+}
+
 .sidebar li.active {
   border-left: 1px solid var(--sidebar-active);
 }
