@@ -71,16 +71,20 @@ export default class Default extends Runtime {
     app.bind(this.fileExtension, async (file, { context }) => {
       assert.true(context === "routes",
         "python: only route files are supported");
+
       const relative = file.debase(app.path.routes).path.replace(/^\//, "");
       const source = await file.text();
 
       return `
         import wrapper from "@primate/python/wrapper";
+        import i18n from "app:config:i18n";
+        import session from "app:config:session";
         await wrapper(
           ${JSON.stringify(source)},
           ${packages_str},
           "${PACKAGE}~=${TAG}.0",
-          "${relative}"
+          "${relative}",
+          { i18n, session }
         );
       `;
     });

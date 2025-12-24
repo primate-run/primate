@@ -3,12 +3,10 @@ import helpers from "@primate/python/helpers";
 import pyodide from "@primate/python/pyodide";
 import to_request from "@primate/python/to-request";
 import to_response from "@primate/python/to-response";
-import session from "primate/config/session";
 import route from "primate/route";
 import type { PyodideAPI } from "pyodide";
 
 const messageCallback = () => { };
-
 let _micropip: Promise<any> | null = null;
 const installed = new Set<string>();
 
@@ -28,11 +26,37 @@ async function load_package(micropip: any, pkg: string) {
   installed.add(pkg);
 }
 
+function wrap_session(session: any) {
+  if (!session) return null;
+  return {
+    get id() { return session.id; },
+    get exists() { return session.exists; },
+    create(initial: any) { session.create(borrow(initial)); },
+    get() { return session.get(); },
+    try_get() { return session.try(); },
+    set(data: any) { session.set(borrow(data)); },
+    destroy() { session.destroy(); },
+  };
+}
+
+function wrap_i18n(i18n: any) {
+  if (!i18n) return null;
+  return {
+    get locale() { return i18n.locale.get(); },
+    t(key: string, params?: string) {
+      if (!params) return i18n(key);
+      return i18n(key, JSON.parse(params));
+    },
+    set(locale: string) { i18n.locale.set(locale); },
+  };
+}
+
 export default async function wrapper(
   source: string,
   packages: string[],
   primate_run: string,
   id: string,
+  context: { i18n?: any; session?: any } = {},
 ) {
   const python = await pyodide();
   const micropip = await load_micropip(python);
@@ -56,43 +80,22 @@ export default async function wrapper(
     list(Route.registry(${route_id}).keys())
   `).toJs() as string[];
 
-  const wrapped_session = {
-    get id() {
-      return session().id;
-    },
-    get exists() {
-      return session().exists;
-    },
-    create(initial: any) {
-      session().create(borrow(initial));
-    },
-    get() {
-      return session().get();
-    },
-    try() {
-      return session().get();
-    },
-    set(data: any) {
-      session().set(borrow(data));
-    },
-    destroy() {
-      session().destroy();
-    },
-  };
+  const wrapped_session = wrap_session(context.session);
+  const wrapped_i18n = wrap_i18n(context.i18n);
 
   for (const verb of verbs) {
     (route as any)[verb.toLowerCase()](async (request: any) => {
       python.globals.set("js_req", await to_request(request));
       python.globals.set("helpers_obj", helpers);
       python.globals.set("session_obj", wrapped_session);
-      const verb_str = JSON.stringify(verb);
+      python.globals.set("i18n_obj", wrapped_i18n);
 
+      const verb_str = JSON.stringify(verb);
       try {
         const result = await python.runPythonAsync(`
           from primate import Route
-          await Route.call_js(${route_id}, ${verb_str}, js_req, helpers_obj, session_obj)
+          await Route.call_js(${route_id}, ${verb_str}, js_req, helpers_obj, session_obj, i18n_obj)
         `);
-
         return to_response(result);
       } catch (e: any) {
         console.error(`python error (${verb.toLowerCase()})`, e);
@@ -101,8 +104,8 @@ export default async function wrapper(
         python.globals.delete("js_req");
         python.globals.delete("helpers_obj");
         python.globals.delete("session_obj");
+        python.globals.delete("i18n_obj");
       }
     });
   }
-
 }
