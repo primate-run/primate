@@ -3,8 +3,7 @@ import configSchema from "#session/schema";
 import type SessionFacade from "#session/SessionFacade";
 import local_storage from "#session/storage";
 import s_config from "#symbol/config";
-import type InferStore from "pema/InferStore";
-import type StoreSchema from "pema/StoreSchema";
+import type { InferStore, StoreSchema } from "pema";
 
 type ConfigInput = typeof configSchema.input;
 

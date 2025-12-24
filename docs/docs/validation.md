@@ -52,20 +52,18 @@ Form submissions are received as `request.body.form`, which optionally
 accepts a schema. Values arrive as strings (or `File` for file inputs).
 
 ```ts
-import pema from "pema";
-import string from "pema/string";
+import p from "pema";
 import route from "primate/route";
 
-const Login = pema({
-  email: string.email(),
-  password: string.min(8),
+const Login = p({
+  email: p.string.email(),
+  password: p.string.min(8),
 });
 
 route.post(request => {
-    const form = request.body.form(Login);
-    // form.email and form.password are now validated
-    return "Welcome back!";
-  }
+  const form = request.body.form(Login);
+  // form.email and form.password are now validated
+  return "Welcome back!";
 });
 ```
 
@@ -83,22 +81,19 @@ When clients send JSON data (e.g. via `fetch`), you access it with
 `request.body.json`.
 
 ```ts
-import pema from "pema";
-import string from "pema/string";
-import uint from "pema/uint";
+import p from "pema";
 import route from "primate/route";
 
-const CreateUser = pema({
-  name: string,
-  age: uint.min(13), // must be >= 13
+const CreateUser = p({
+  name: p.string,
+  age: p.uint.min(13), // must be >= 13
 });
 
 route.post(request => {
-    // short for CreateUser.parse(request.body.json())
-    const user = request.body.json(CreateUser);
-    // user is now guaranteed to match schema
-    return { id: 42, ...user };
-  }
+  // short for CreateUser.parse(request.body.json())
+  const user = request.body.json(CreateUser);
+  // user is now guaranteed to match schema
+  return { id: 42, ...user };
 });
 ```
 
@@ -107,22 +102,18 @@ Raw uploads (e.g. images) are available through `request.body.binary` as a
 `Blob`.
 
 ```ts
-import pema from "pema";
-import string from "pema/string";
-import uint from "pema/uint";
-import blob from "pema/blob";
+import p from "pema";
 import route from "primate/route";
 
-const Icon = blob.max(1000).type("image/png");
+const Icon = p.blob.max(1000).type("image/png");
 
 route.post(request => {
-    // this throws if body isn't a binary stream or doesn't pass validation
-    const file = Icon.parse(request.body.binary());
+  // this throws if body isn't a binary stream or doesn't pass validation
+  const file = Icon.parse(request.body.binary());
 
-    await FileRef.write("/tmp/1.png", file);
+  await FileRef.write("/tmp/1.png", file);
 
-    return "File uploaded!";
-  }
+  return "File uploaded!";
 });
 ```
 
@@ -134,21 +125,18 @@ Query parameters (e.g. `?page=2&filter=active`) are strings accessible at
 `request.query`.
 
 ```ts
-import pema from "pema";
-import uint from "pema/uint";
-import string from "pema/string";
+import p from "pema";
 import route from "primate/route";
 
-const Query = pema({
-  page: uint.coerce.default(1),
-  filter: string.optional(),
+const Query = p({
+  page: p.uint.coerce.default(1),
+  filter: p.string.optional(),
 });
 
 route.get(request => {
-    const params = request.query.parse(Query);
-    // params.page is a validated number
-    return `Showing page ${params.page}`;
-  }
+  const params = request.query.parse(Query);
+  // params.page is a validated number
+  return `Showing page ${params.page}`;
 });
 ```
 
@@ -157,12 +145,11 @@ Path parameters are extracted from the route definition and exposed on
 `request.path`.
 
 ```ts
-import pema from "pema";
-import uint from "pema/uint";
+import p from "pema";
 import route from "primate/route";
 
-const Path = pema({
-  userId: uint.coerce,
+const Path = p({
+  userId: p.uint.coerce,
 });
 
 route.get(request => {
@@ -177,12 +164,11 @@ This is common in REST-style routes.
 Request headers are strings, available via `request.headers`.
 
 ```ts
-import pema from "pema";
-import string from "pema/string";
+import p from "pema";
 import route from "primate/route";
 
-const Header = pema({
-  authorization: string.startsWith("Bearer "),
+const Header = p({
+  authorization: p.string.startsWith("Bearer "),
 });
 
 route.get(request => {

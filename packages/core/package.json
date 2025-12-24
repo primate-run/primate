@@ -4,18 +4,19 @@
   "description": "The universal web framework",
   "homepage": "https://primate.run",
   "bugs": "https://github.com/primate-run/primate/issues",
+  "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primate-run/primate",
+    "directory": "packages/core"
+  },
   "files": [
     "/lib/**/*.js",
     "/lib/**/*.d.ts",
     "/lib/private/defaults/*.html",
     "!/**/*.spec.*"
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/primate-run/primate",
-    "directory": "packages/core"
-  },
   "scripts": {
     "build": "npm run clean && tsc && cp -a src/private/defaults lib/private",
     "clean": "rm -rf ./lib",
@@ -24,24 +25,24 @@
     "test": "npm run build && npx proby"
   },
   "dependencies": {
-    "@rcompat/args": "^0.8.0",
-    "@rcompat/assert": "^0.3.1",
-    "@rcompat/async": "^0.9.0",
-    "@rcompat/bufferview": "^0.3.0",
-    "@rcompat/cli": "^0.11.3",
-    "@rcompat/crypto": "^0.11.0",
-    "@rcompat/fs": "^0.22.4",
-    "@rcompat/function": "^0.9.0",
-    "@rcompat/http": "^0.16.1",
-    "@rcompat/kv": "^0.3.0",
-    "@rcompat/record": "^0.9.1",
-    "@rcompat/runtime": "^0.6.0",
-    "@rcompat/string": "^0.10.1",
-    "@rcompat/type": "^0.6.1",
-    "esbuild": "^0.27.1",
+    "@rcompat/args": "^0.10.0",
+    "@rcompat/assert": "^0.5.0",
+    "@rcompat/bufferview": "^0.5.0",
+    "@rcompat/cli": "^0.13.0",
+    "@rcompat/crypto": "^0.13.0",
+    "@rcompat/dict": "^0.2.0",
+    "@rcompat/fn": "^0.2.0",
+    "@rcompat/fs": "^0.24.2",
+    "@rcompat/http": "^0.20.1",
+    "@rcompat/io": "^0.2.0",
+    "@rcompat/is": "^0.3.1",
+    "@rcompat/kv": "^0.5.0",
+    "@rcompat/runtime": "^0.8.0",
+    "@rcompat/string": "^0.12.0",
+    "@rcompat/type": "^0.8.0",
+    "esbuild": "^0.27.2",
     "pema": "workspace:^"
   },
-  "type": "module",
   "imports": {
     "#i18n/index": {
       "apekit": "./src/private/i18n/index/client.ts",

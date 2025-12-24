@@ -1,7 +1,7 @@
 import fail from "#error/fail";
 import schemafail from "#error/schemafail";
 import type Validator from "#Validator";
-import isFinite from "@rcompat/is/finite";
+import is from "@rcompat/is";
 
 type Lengthed = { length: number };
 type Limit = bigint | number;
@@ -10,7 +10,7 @@ type Input = bigint | number | string | unknown[];
 export default function max(limit: Limit): Validator<Input> {
   // validate limit once
   if (typeof limit === "number") {
-    if (!isFinite(limit)) {
+    if (!is.finite(limit)) {
       throw schemafail("max: limit {0} must be a finite number", limit);
     }
 

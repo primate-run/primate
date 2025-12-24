@@ -1,5 +1,5 @@
 import response from "#response";
-import mime from "@rcompat/http/mime/text/event-stream";
+import MIME from "@rcompat/http/mime";
 
 type Body = {
   close?(): undefined;
@@ -29,4 +29,4 @@ const handle = (body: Body) => new ReadableStream({
  * @param options response options
  * @return Response rendering function
  */
-export default response<Body>(mime, handle);
+export default response<Body>(MIME.TEXT_EVENT_STREAM, handle);

@@ -73,11 +73,10 @@ Stores use the **default** database unless pinned. Pin a store by passing a
 ```ts
 import store from "primate/store";
 import postgresql from "#database/postgresql";
-import primary from "pema/primary";
-import string from "pema/string";
+import p from "pema";
 
 export default store(
-  { id: primary, title: string },
+  { id: p.primary, title: p.string },
   { database: postgresql },
 );
 ```

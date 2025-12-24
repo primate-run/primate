@@ -1,4 +1,4 @@
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 import * as views from "webc:views";
 

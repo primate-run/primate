@@ -60,7 +60,7 @@ associate each stored record with the session cookie.
 First create the store inside `stores`.
 
 ```ts
-import p from "primate/pema";
+import p from "pema";
 import store from "primate/store";
 
 export default store({
@@ -142,7 +142,7 @@ Primate validates data passed to `create` and `set` using the provided session
 store.
 
 ```ts
-import p from "primate/pema";
+import p from "pema";
 import store from "primate/store";
 
 export default store({

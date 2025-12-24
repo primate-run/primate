@@ -1,17 +1,14 @@
 import type As from "#database/As";
-import type Binds from "#database/Binds";
 import type DataDict from "#database/DataDict";
 import type DataKey from "#database/DataKey";
 import type Sort from "#database/Sort";
 import type TypeMap from "#database/TypeMap";
 import type Types from "#database/Types";
 import fail from "#fail";
-import maybe from "@rcompat/assert/maybe";
-import entries from "@rcompat/record/entries";
-import type Dict from "@rcompat/type/Dict";
-import type MaybePromise from "@rcompat/type/MaybePromise";
-import type DataType from "pema/DataType";
-import type StoreSchema from "pema/StoreSchema";
+import assert from "@rcompat/assert";
+import entries from "@rcompat/dict/entries";
+import type { Dict, MaybePromise } from "@rcompat/type";
+import type { DataType, StoreSchema } from "pema";
 
 function required(operation: string) {
   fail("{0}: at least one column required", operation);
@@ -59,7 +56,7 @@ export default abstract class Database {
   }
 
   toSelect(types: Types, columns?: string[]) {
-    maybe(columns).array();
+    assert.maybe.array(columns);
 
     if (!columns) return "*";
     if (columns.length === 0) throw required("select");
@@ -70,7 +67,7 @@ export default abstract class Database {
   }
 
   toSort(types: Types, sort?: Sort) {
-    maybe(sort).record();
+    assert.maybe.dict(sort);
 
     if (!sort) return "";
 
@@ -87,7 +84,7 @@ export default abstract class Database {
   }
 
   toLimit(limit?: number) {
-    maybe(limit).usize();
+    assert.maybe.uint(limit);
 
     return limit !== undefined ? ` LIMIT ${limit}` : "";
   }
@@ -121,8 +118,8 @@ export default abstract class Database {
     return `WHERE ${parts.join(" AND ")}`;
   }
 
-  async toSet(types: Types, changes: DataDict) {
-    const columns = Object.keys(changes);
+  async toSet(types: Types, changeset: DataDict) {
+    const columns = Object.keys(changeset);
 
     this.#assert(types, columns);
 
@@ -133,7 +130,7 @@ export default abstract class Database {
     const set = `SET ${columns.map(c =>
       `${this.#quote(c)}=${p}s_${c}`).join(", ")}`;
 
-    const raw = Object.fromEntries(columns.map(c => [`s_${c}`, changes[c]]));
+    const raw = Object.fromEntries(columns.map(c => [`s_${c}`, changeset[c]]));
     // bind original keys (e.g. { age: 35 } -> { $age: 35 })
     const binds = await this.bind(types, raw);
 
@@ -162,11 +159,11 @@ export default abstract class Database {
   };
 
   // identity
-  formatBinds(binds: Binds): Binds {
+  formatBinds(binds: Dict): Dict {
     return binds;
   }
 
-  async bind<In extends DataDict>(types: Types, object: In): Promise<Binds> {
+  async bind<In extends DataDict>(types: Types, object: In): Promise<Dict> {
     const out = Object.fromEntries(
       await Promise.all(
         Object.entries(object).map(async ([key, value]) => {
@@ -180,7 +177,7 @@ export default abstract class Database {
     return this.formatBinds(out);
   }
 
-  async bindCriteria(types: Types, criteria: DataDict): Promise<Binds> {
+  async bindCriteria(types: Types, criteria: DataDict): Promise<Dict> {
     const filtered: DataDict = {};
 
     for (const [key, value] of Object.entries(criteria)) {
@@ -227,7 +224,7 @@ export default abstract class Database {
   }): MaybePromise<Dict[]>;
 
   abstract update(as: As, args: {
-    changes: Dict;
+    changeset: Dict;
     criteria: Dict;
   }): MaybePromise<number>;
 

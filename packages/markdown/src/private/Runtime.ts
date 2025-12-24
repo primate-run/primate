@@ -1,14 +1,10 @@
 import type Component from "#Component";
 import FrontendModule from "@primate/core/frontend/Module";
-import maybe from "@rcompat/assert/maybe";
-import type MaybePromise from "@rcompat/type/MaybePromise";
+import assert from "@rcompat/assert";
+import type { MaybePromise } from "@rcompat/type";
 import type { MarkedExtension } from "marked";
 import { marked } from "marked";
-import pema from "pema";
-import array from "pema/array";
-import boolean from "pema/boolean";
-import pure from "pema/pure";
-import string from "pema/string";
+import p from "pema";
 
 function render(component: Component) {
   return { body: component.html };
@@ -24,12 +20,12 @@ export default class Runtime extends FrontendModule<Component> {
   render = render;
   #pretransform: Pretransform;
 
-  static schema = pema({
-    fileExtensions: array(string).optional(),
-    marked: pure<MarkedExtension>().optional(),
-    pretransform: pure<Pretransform>().optional(),
-    spa: boolean.default(true),
-    ssr: boolean.default(true),
+  static schema = p({
+    fileExtensions: p.array(p.string).optional(),
+    marked: p.pure<MarkedExtension>().optional(),
+    pretransform: p.pure<Pretransform>().optional(),
+    spa: p.boolean.default(true),
+    ssr: p.boolean.default(true),
   });
 
   static options = Runtime.schema.infer;
@@ -39,8 +35,8 @@ export default class Runtime extends FrontendModule<Component> {
     const { marked: markedOptions, pretransform, ...superConfig } = config;
     super(superConfig);
 
-    maybe(markedOptions).object();
-    maybe(pretransform).function();
+    assert.maybe.dict(markedOptions);
+    assert.maybe.function(pretransform);
 
     this.#pretransform = (pretransform ?? ((m: string) => m)) as Pretransform;
 

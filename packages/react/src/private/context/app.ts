@@ -1,5 +1,5 @@
 import type ContextData from "@primate/core/i18n/ContextData";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import { createContext } from "react";
 
 type Context = {

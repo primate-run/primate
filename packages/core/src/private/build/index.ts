@@ -6,10 +6,11 @@ import fail from "#fail";
 import log from "#log";
 import type FileRef from "@rcompat/fs/FileRef";
 import root from "@rcompat/fs/project/root";
-import empty from "@rcompat/record/empty";
+import dict from "@rcompat/dict";
 import Flags from "#Flags";
 
-const no_config = (config?: Config) => config === undefined || empty(config);
+const no_config = (config?: Config) =>
+  config === undefined || dict.empty(config);
 
 const find_config = async (project_root: FileRef) => {
   const ts_config = project_root.join("config/app.ts");

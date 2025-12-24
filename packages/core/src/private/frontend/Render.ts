@@ -1,5 +1,4 @@
-import type Dict from "@rcompat/type/Dict";
-import type MaybePromise from "@rcompat/type/MaybePromise";
+import type { Dict, MaybePromise } from "@rcompat/type";
 
 type Render<V = unknown> = (view: V, props: Dict) => MaybePromise<{
   body: string;

@@ -1,16 +1,15 @@
 import type RequestBody from "#request/RequestBody";
 import type RequestFacade from "#request/RequestFacade";
+import encodeBuffer from "#wasm/encode-buffer";
 import encodeString from "#wasm/encode-string";
 import encodeStringMap from "#wasm/encode-string-map";
 import encodeURL from "#wasm/encode-url";
-import filesize from "#wasm/filesize";
+import fileSize from "#wasm/filesize";
 import I32_SIZE from "#wasm/I32_SIZE";
 import stringSize from "#wasm/stringsize";
 import urlSize from "#wasm/urlsize";
 import BufferView from "@rcompat/bufferview";
-import type MaybePromise from "@rcompat/type/MaybePromise";
-import type PartialDict from "@rcompat/type/PartialDict";
-import encodeBuffer from "./encode-buffer.js";
+import type { MaybePromise, PartialDict } from "@rcompat/type";
 
 const SECTION_HEADER_SIZE = I32_SIZE;
 
@@ -34,11 +33,9 @@ const sizeOfUrlSection = (url: URL) => SECTION_HEADER_SIZE + urlSize(url);
 const sizeOfBodySection = (body: RequestBody) => {
   let size = SECTION_HEADER_SIZE + I32_SIZE;
 
-  if (body.type === "none")
-    return size; // 0 kind null
+  if (body.type === "none") return size; // 0 kind null
 
-  if (body.type === "text")
-    return size + stringSize(body.text());
+  if (body.type === "text") return size + stringSize(body.text());
 
   if (body.type === "form") {
     size += I32_SIZE; // entry count
@@ -52,7 +49,7 @@ const sizeOfBodySection = (body: RequestBody) => {
     for (const [key, value] of Object.entries(body.files())) {
       size += stringSize(key);
       size += I32_SIZE; // value kind
-      size += filesize(value);
+      size += fileSize(value);
     }
 
     return size;

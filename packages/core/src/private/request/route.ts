@@ -8,7 +8,7 @@ import guard from "#route/guard";
 import type RouteHandler from "#route/Handler";
 import type ServeApp from "#serve/App";
 import Status from "@rcompat/http/Status";
-import type MaybePromise from "@rcompat/type/MaybePromise";
+import type { MaybePromise } from "@rcompat/type";
 import ParseError from "pema/ParseError";
 
 type HookExec<I, O> = (i: I, next: (_: I) => MaybePromise<O>)

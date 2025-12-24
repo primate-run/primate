@@ -1,5 +1,5 @@
 import type ColumnTypes from "#ColumnTypes";
-import type TypeMap from "@primate/core/database/TypeMap";
+import type { TypeMap } from "@primate/core/database";
 import { RecordId } from "surrealdb";
 
 function identity<C extends keyof ColumnTypes>(column: C): {

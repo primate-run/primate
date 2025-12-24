@@ -1,8 +1,6 @@
-import numeric from "@rcompat/is/numeric";
+import is from "@rcompat/is";
 
 export default function coerceInt(x: unknown) {
-  if (numeric(x)) {
-    return Number(x);
-  }
+  if (is.numeric(x)) return Number(x);
   return x;
 }

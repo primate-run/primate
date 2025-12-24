@@ -1,4 +1,4 @@
-import type TypedArray from "@rcompat/type/TypedArray";
+import type { TypedArray } from "@rcompat/type";
 
 type Param =
   | Array<unknown> // ANYARRAY

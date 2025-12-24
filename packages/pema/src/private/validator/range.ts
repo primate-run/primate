@@ -1,6 +1,6 @@
 import ParseError from "#ParseError";
 import type Validator from "#Validator";
-import isFinite from "@rcompat/is/finite";
+import is from "@rcompat/is";
 
 const fail = (input: unknown, msg: string) =>
   new ParseError([{ input, message: msg, path: "" }]);
@@ -9,7 +9,7 @@ export default function range<
   From extends bigint | number,
   To extends From,
 >(from: From, to: To): Validator<From> {
-  if (!isFinite(from) || !isFinite(to)) {
+  if (!is.finite(from) || !is.finite(to)) {
     throw new TypeError("range(): from and to must be finite numbers");
   }
 

@@ -1,5 +1,5 @@
 import I32_SIZE from "#wasm/I32_SIZE";
-import stringSize from "./stringsize.js";
+import stringSize from "#wasm/stringsize";
 
 export default function filesize(file: File) {
   return stringSize(file.name)

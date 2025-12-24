@@ -1,5 +1,5 @@
-import type PrimitiveParam from "@rcompat/sqlite/PrimitiveParam";
-import type TypedArray from "@rcompat/type/TypedArray";
+import type { PrimitiveParam } from "@rcompat/sqlite";
+import type { TypedArray } from "@rcompat/type";
 
 type Validate<T extends { [K in keyof T]: PrimitiveParam }> = T;
 

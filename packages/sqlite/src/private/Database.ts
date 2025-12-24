@@ -1,20 +1,15 @@
 import typemap from "#typemap";
-import Database from "@primate/core/Database";
-import type As from "@primate/core/database/As";
-import type DataDict from "@primate/core/database/DataDict";
-import type TypeMap from "@primate/core/database/TypeMap";
+import type { As, DataDict, TypeMap } from "@primate/core/database";
+import Database from "@primate/core/database/Database";
 import assert from "@rcompat/assert";
-import Client from "@rcompat/sqlite";
-import type Param from "@rcompat/sqlite/Param";
-import type Dict from "@rcompat/type/Dict";
-import pema from "pema";
-import type StoreSchema from "pema/StoreSchema";
-import string from "pema/string";
+import Client, { type Param } from "@rcompat/sqlite";
+import type { Dict } from "@rcompat/type";
+import p, { type StoreSchema } from "pema";
 
 type Binds = Param | undefined;
 
-const schema = pema({
-  database: string.default(":memory:"),
+const schema = p({
+  database: p.string.default(":memory:"),
 });
 
 const options = { safeIntegers: true };
@@ -68,6 +63,8 @@ export default class SQLiteDatabase extends Database {
   }
 
   async create<O extends Dict>(as: As, args: { record: DataDict }) {
+    assert.dict(args.record, "empty record");
+
     const keys = Object.keys(args.record);
     const columns = keys.map(k => this.ident(k));
     const values = keys.map(key => `$${key}`).join(",");
@@ -100,10 +97,13 @@ export default class SQLiteDatabase extends Database {
     limit?: number;
     sort?: Dict<"asc" | "desc">;
   }) {
+    assert.dict(args.criteria, "empty criteria");
+    assert.maybe.true(args.count);
+
     const where = this.toWhere(as.types, args.criteria);
     const binds = await this.bindCriteria(as.types, args.criteria) as Binds;
 
-    if (args.count === true) {
+    if (args.count ?? false) {
       const query = `SELECT COUNT(*) AS n FROM ${this.table(as)} ${where};`;
       const [{ n }] = this.#get().prepare(query).all(binds);
       return Number(n);
@@ -120,13 +120,14 @@ export default class SQLiteDatabase extends Database {
     return records.map(record => this.unbind(as.types, record));
   }
 
-  async update(as: As, args: { changes: DataDict; criteria: DataDict }) {
-    assert(Object.keys(args.criteria).length > 0, "update: no criteria");
+  async update(as: As, args: { changeset: DataDict; criteria: DataDict }) {
+    assert.nonempty(args.criteria, "empty criteria");
+    assert.nonempty(args.changeset, "empty changeset");
 
     const where = this.toWhere(as.types, args.criteria);
-    const criteria = await this.bindCriteria(as.types, args.criteria);
-    const { set, binds: set_binds } = await this.toSet(as.types, args.changes);
-    const binds = { ...criteria, ...set_binds } as Binds;
+    const criteria_binds = await this.bindCriteria(as.types, args.criteria);
+    const { set, binds: changeset_binds } = await this.toSet(as.types, args.changeset);
+    const binds = { ...criteria_binds, ...changeset_binds } as Binds;
 
     const query = `
       WITH to_update AS (
@@ -142,7 +143,7 @@ export default class SQLiteDatabase extends Database {
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
-    assert(Object.keys(args.criteria).length > 0, "delete: no criteria");
+    assert.nonempty(args.criteria, "empty criteria");
 
     const where = this.toWhere(as.types, args.criteria);
     const binds = await this.bindCriteria(as.types, args.criteria) as Binds;

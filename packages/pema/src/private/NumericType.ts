@@ -7,7 +7,7 @@ import max from "#validator/max";
 import min from "#validator/min";
 import range from "#validator/range";
 import values from "#validator/values";
-import type Newable from "@rcompat/type/Newable";
+import type { Newable } from "@rcompat/type";
 
 type Next<T> = {
   options?: ParseOptions;

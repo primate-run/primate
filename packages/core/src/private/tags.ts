@@ -1,10 +1,9 @@
 import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
-import empty from "@rcompat/record/empty";
-import type Dict from "@rcompat/type/Dict";
+import dict, { type Dict } from "@rcompat/dict";
 
-const attribute = (attributes: Dict<string>) => empty(attributes)
+const attribute = (attributes: Dict<string>) => dict.empty(attributes)
   ? ""
   : " ".concat(Object.entries(attributes)
     .map(([key, value]) => `${key}="${value}"`).join(" "))

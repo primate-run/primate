@@ -29,16 +29,14 @@ Stores have:
 Create a file under `stores` and export a store.
 
 ```ts title="#store/Post.ts"
-import date from "pema/date";
-import primary from "pema/primary";
-import string from "pema/string";
+import p from "pema";
 import store from "primate/store";
 
 export default store({
-  id: primary,
-  title: string.max(100),
-  body: string,
-  created: date.default(() => new Date()),
+  id: p.primary,
+  title: p.string.max(100),
+  body: p.string,
+  created: p.date.default(() => new Date()),
 });
 ```
 
@@ -94,8 +92,7 @@ A typical route that reads (or creates) a record, then renders a view:
 
 ```ts title="routes/posts/index.ts"
 import Post from "#store/Post";
-import pema from "pema";
-import string from "pema/string";
+import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
 
@@ -111,9 +108,9 @@ route.get(async () => {
 });
 
 route.post(async request => {
-  const body = request.body.form(pema({
-    title: string.max(100),
-    body: string,
+  const body = request.body.form(p({
+    title: p.string.max(100),
+    body: p.string,
   }).coerce);
 
   const created = await Post.insert(body);
@@ -137,16 +134,14 @@ inline or in separate files for modularity.
 
 ```ts
 // stores/User.ts
-import primary from "pema/primary";
-import string from "pema/string";
-import u8 from "pema/u8";
+import p from "p";
 import store from "primate/store";
 
 export default store({
-  id: primary,
-  name: string,
-  age: u8.range(0, 120),
-  lastname: string.optional(),
+  id: p.primary,
+  name: p.string,
+  age: p.u8.range(0, 120),
+  lastname: p.string.optional(),
 }).extend(User => ({
   findByAge(age: typeof User.Schema.age) {
     return User.find({ age });
@@ -165,16 +160,14 @@ Create a base store:
 
 ```ts
 // stores/User.ts
-import primary from "pema/primary";
-import string from "pema/string";
-import u8 from "pema/u8";
+import p from "p";
 import store from "primate/store";
 
 export default store({
-  id: primary,
-  name: string,
-  age: u8.range(0, 120),
-  lastname: string.optional(),
+  id: p.primary,
+  name: p.string,
+  age: p.u8.range(0, 120),
+  lastname: p.string.optional(),
 });
 ```
 
@@ -427,13 +420,12 @@ Any Pema type can be a field. Common ones:
 Example:
 
 ```ts
-import optional from "pema/optional";
-import i32 from "pema/i32";
+import p from "p";
 
 export default store({
-  id: primary,
-  subtitle: optional(string.max(120)),
-  likes: i32.range(0, 1_000_000),
+  id: p.primary,
+  subtitle: string.max(120).optional(),
+  likes: p.i32.range(0, 1_000_000),
 });
 ```
 
@@ -446,15 +438,13 @@ databases in your app, you can **pin** a store to a specific one.
 import store from "primate/store";
 // config/database/postgresql.ts
 import postgresql from "#database/postgresql";
-import primary from "pema/primary";
-import date from "pema/date";
-import string from "pema/string";
+import p from "p";
 
 export default store(
   {
-    id: primary,
-    message: string,
-    created: date.default(() => new Date()),
+    id: p.primary,
+    message: p.string,
+    created: p.date.default(() => new Date()),
   },
   {
     // pin to a specific database
@@ -472,15 +462,13 @@ part of a table as a store.
 
 ```ts
 import store from "primate/store";
-import primary from "pema/primary";
-import date from "pema/date";
-import string from "pema/string";
+import p from "p";
 
 export default store(
   {
-    id: primary,
-    message: string,
-    created: date.default(() => new Date()),
+    id: p.primary,
+    message: p.string,
+    created: p.date.default(() => new Date()),
   },
   {
     name: "audit_log",

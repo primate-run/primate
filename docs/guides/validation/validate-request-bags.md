@@ -18,11 +18,12 @@ Schema for query string.
 ```ts
 // routes/search.ts
 import route from "primate/route";
-import pema from "pema";
-import string from "pema/string";
-import uint from "pema/uint";
+import p from "pema";
 
-const Query = pema({ q: string.min(1), limit: uint.max(100).default(10)});
+const Query = p({
+  q: p.string.min(1),
+  limit: p.uint.max(100).default(10),
+});
 
 route.get(request => {
   const { q, limit } = Query.parse(request.query);
@@ -39,10 +40,10 @@ Schema for path parameters.
 ```ts
 // routes/user/[id].ts
 import route from "primate/route";
-import uint from "pema/uint";
+import p from "pema";
 
 route.get(request => {
-  const id = uint.parse(request.path.get("id"));
+  const id = p.uint.parse(request.path.get("id"));
   return { id };
 });
 ```
@@ -55,10 +56,10 @@ Schema for headers.
 
 ```ts
 import route from "primate/route";
-import string from "pema/string";
+import p from "pema";
 
 route.get(request => {
-  const auth = string
+  const auth = p.string
     .startsWith("Bearer ")
     .parse(request.headers.get("Authorization"));
   return { auth };

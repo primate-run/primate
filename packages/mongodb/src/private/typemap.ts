@@ -1,6 +1,6 @@
 import type ColumnTypes from "#ColumnTypes";
-import type TypeMap from "@primate/core/database/TypeMap";
-import type TypedArray from "@rcompat/type/TypedArray";
+import type { TypeMap } from "@primate/core/database";
+import type { TypedArray } from "@rcompat/type";
 import { Binary, Decimal128, ObjectId } from "mongodb";
 
 function identity<C extends keyof ColumnTypes>(column: C): {

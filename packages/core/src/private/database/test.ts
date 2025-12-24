@@ -2,25 +2,8 @@ import type Database from "#database/Database";
 import Store from "#database/Store";
 import test from "@rcompat/test";
 import any from "@rcompat/test/any";
-import type Dict from "@rcompat/type/Dict";
-import boolean from "pema/boolean";
-import date from "pema/date";
-import f32 from "pema/f32";
-import f64 from "pema/f64";
-import i128 from "pema/i128";
-import i16 from "pema/i16";
-import i32 from "pema/i32";
-import i64 from "pema/i64";
-import i8 from "pema/i8";
-import optional from "pema/optional";
-import primary from "pema/primary";
-import string from "pema/string";
-import u128 from "pema/u128";
-import u16 from "pema/u16";
-import u32 from "pema/u32";
-import u64 from "pema/u64";
-import u8 from "pema/u8";
-import uint from "pema/uint";
+import type { Dict } from "@rcompat/type";
+import p from "pema";
 
 function pick<
   D extends Dict,
@@ -43,37 +26,37 @@ export default <D extends Database>(database: D) => {
   test.ended(() => database.close());
 
   const _Post = new Store({
-    id: primary,
-    title: string,
-    user_id: uint,
+    id: p.primary,
+    title: p.string,
+    user_id: p.uint,
   }, { database, name: "post" });
 
   _Post.update;
 
   const User = new Store({
-    age: u8.optional(),
-    id: primary,
-    lastname: optional(string),
-    name: string.default("Donald"),
+    age: p.u8.optional(),
+    id: p.primary,
+    lastname: p.string.optional(),
+    name: p.string.default("Donald"),
   }, { database, name: "user" });
 
   const Type = new Store({
-    boolean: boolean.optional(),
-    date: date.optional(),
-    f32: f32.optional(),
-    f64: f64.optional(),
-    i128: i128.optional(),
-    i16: i16.optional(),
-    i32: i32.optional(),
-    i64: i64.optional(),
-    i8: i8.optional(),
-    id: primary,
-    string: string.optional(),
-    u128: u128.optional(),
-    u16: u16.optional(),
-    u32: u32.optional(),
-    u64: u64.optional(),
-    u8: u8.optional(),
+    boolean: p.boolean.optional(),
+    date: p.date.optional(),
+    f32: p.f32.optional(),
+    f64: p.f64.optional(),
+    i128: p.i128.optional(),
+    i16: p.i16.optional(),
+    i32: p.i32.optional(),
+    i64: p.i64.optional(),
+    i8: p.i8.optional(),
+    id: p.primary,
+    string: p.string.optional(),
+    u128: p.u128.optional(),
+    u16: p.u16.optional(),
+    u32: p.u32.optional(),
+    u64: p.u64.optional(),
+    u8: p.u8.optional(),
   }, { database, name: "type" });
 
   const bootstrap = async (tester: () => Promise<void>) => {
@@ -279,7 +262,7 @@ export default <D extends Database>(database: D) => {
     });
   });
 
-  test.case("update - criteria and changes share a column", async assert => {
+  test.case("update - criteria and changeset share a column", async assert => {
     await bootstrap(async () => {
       // Donald has age 30; update age using criteria on the same column
       const n = await User.update({ age: 30 }, { age: 31 });
@@ -302,7 +285,7 @@ export default <D extends Database>(database: D) => {
       } catch (e) { error = e; }
       const msg = error instanceof Error ? error.message : String(error);
       assert(!!error).true();
-      assert(msg.includes("update: no criteria")).true();
+      assert(msg.includes("empty criteria")).true();
     });
   });
 
@@ -711,10 +694,10 @@ export default <D extends Database>(database: D) => {
   test.case("quote safety - reserved table & column names", async assert => {
     // this stresses identifier quoting in CREATE/INSERT/SELECT/UPDATE/DELETE
     const Reserved = new Store({
-      id: primary,
+      id: p.primary,
       // deliberately reserved-looking column name
-      order: u8.optional(),
-      name: string,
+      order: p.u8.optional(),
+      name: p.string,
     }, { database, name: "select" }); // deliberately reserved-like table name
 
     await Reserved.collection.create();

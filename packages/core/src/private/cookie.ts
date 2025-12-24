@@ -1,25 +1,21 @@
-import is from "@rcompat/assert/is";
-import pema from "pema";
-import boolean from "pema/boolean";
-import number from "pema/number";
-import string from "pema/string";
-import union from "pema/union";
+import assert from "@rcompat/assert";
+import p from "pema";
 
-const Schema = pema({
-  httpOnly: boolean.default(true),
-  path: string.default("/"),
-  sameSite: union("Lax", "None", "Strict"),
-  secure: boolean,
-  maxAge: number.optional(), // seconds
+const Schema = p({
+  httpOnly: p.boolean.default(true),
+  path: p.string.default("/"),
+  sameSite: p.union("Lax", "None", "Strict"),
+  secure: p.boolean,
+  maxAge: p.number.optional(), // seconds
 });
 
 type Options = typeof Schema.input;
 
 export default function cookie(name: string, value: string, options: Options) {
-  is(name).string();
-  is(value).string();
-  const parsed = Schema.parse(options);
+  assert.string(name);
+  assert.string(value);
 
+  const parsed = Schema.parse(options);
   const parts = [`${name}=${value}`];
   parts.push(`Path=${parsed.path}`);
   parts.push(`SameSite=${parsed.sameSite}`);

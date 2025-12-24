@@ -1,14 +1,11 @@
 import Module from "#Module";
-import pema from "pema";
-import string from "pema/string";
+import p from "pema";
 
 export default abstract class BackendModule extends Module {
   abstract defaultExtension: string;
   #options: typeof BackendModule.options;
 
-  static schema = pema({
-    fileExtension: string.optional(),
-  });
+  static schema = p({ fileExtension: p.string.optional() });
   static options = BackendModule.schema.infer;
   static input = BackendModule.schema.input;
 

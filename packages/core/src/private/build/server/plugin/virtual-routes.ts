@@ -22,7 +22,7 @@ export default function plugin_server_virtual_routes(app: BuildApp): Plugin {
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-routes" }, async () => {
-        const route_files = await routes_path.collect(is_route_file);
+        const route_files = await routes_path.list({ filter: is_route_file });
         const watchDirs = new Set<string>();
 
         const findDirs = async (dir: FileRef) => {

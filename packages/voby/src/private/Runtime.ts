@@ -1,5 +1,5 @@
 import FrontendModule from "@primate/core/frontend/Module";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import "linkedom-global";
 // @ts-expect-error no-types
 import { createElement, renderToString } from "voby";

@@ -5,8 +5,10 @@ import type StringType from "#StringType";
 import messagesOf from "#test/messages-of";
 import pathsOf from "#test/paths-of";
 import throwsIssues from "#test/throws-issues";
-import dim from "@rcompat/cli/color/dim";
+import color from "@rcompat/cli/color";
 import test from "@rcompat/test";
+
+const { dim } = color;
 
 test.case("fail", assert => {
   const issues = throwsIssues(assert, () => string.parse(1));

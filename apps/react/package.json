@@ -13,13 +13,13 @@
   "dependencies": {
     "@primate/react": "workspace:^",
     "@primate/sqlite": "workspace:^",
-    "@rcompat/assert": "^0.3.1",
+    "@rcompat/assert": "^0.5.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "devDependencies": {
-    "@types/react": "^19.1.15"
+    "@types/react": "^19.2.7"
   }
 }

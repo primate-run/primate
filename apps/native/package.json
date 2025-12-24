@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@primate/html": "workspace:^",
-    "@primate/grain": "workspace:^",
     "@primate/native": "workspace:^",
     "primate": "workspace:^"
   }

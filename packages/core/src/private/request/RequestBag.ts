@@ -1,6 +1,7 @@
 import fail from "#fail";
-import is from "@rcompat/assert/is";
-import type PartialDict from "@rcompat/type/PartialDict";
+import assert from "@rcompat/assert";
+import fn from "@rcompat/fn";
+import type { PartialDict } from "@rcompat/type";
 
 type Contents = PartialDict<string>;
 type Normalize = (key: string) => string;
@@ -27,18 +28,21 @@ export default class RequestBag {
    * @param name - Human-readable bag name used in error messages.
    * @param options - Optional `normalize` function and `raw` string.
    */
-  constructor(input: Contents, name: string, options: Options = {}) {
-    is(input).object();
+  constructor(input: Contents, name: string, options?: Options) {
+    assert.dict(input);
+    assert.string(name);
+    assert.maybe.dict(options);
+    assert.maybe.function(options?.normalize);
+    assert.maybe.string(options?.raw);
 
     this.#name = name;
-    this.#normalize = options.normalize ?? (k => k);
-    this.#raw = options.raw ?? "";
+    this.#normalize = options?.normalize ?? fn.identity;
+    this.#raw = options?.raw ?? "";
 
     const contents: Contents = Object.create(null);
     for (const key of Object.keys(input)) {
-      const normalized = this.#normalize(key);
       // last-wins semantics if only case differs
-      contents[normalized] = input[key];
+      contents[this.#normalize(key)] = input[key];
     }
     this.#contents = contents;
   }

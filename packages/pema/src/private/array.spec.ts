@@ -14,8 +14,10 @@ import type StringType from "#StringType";
 import messagesOf from "#test/messages-of";
 import pathsOf from "#test/paths-of";
 import throwsIssues from "#test/throws-issues";
-import dim from "@rcompat/cli/color/dim";
+import color from "@rcompat/cli/color";
 import test from "@rcompat/test";
+
+const { dim } = color;
 
 const b = array(boolean);
 const bi = array(bigint);
@@ -126,7 +128,7 @@ test.case("validator - unique", assert => {
 
   // @ts-expect-error non-primitive subtype
   assert(() => d.unique().parse())
-    .throws(`unique: subtype ${dim("date")} must be primitive`);
+    .throws(`unique: subtype ${color.dim("date")} must be primitive`);
 
   assert(unique_s).type<ArrayType<StringType>>();
   assert(unique_n).type<ArrayType<NumberType>>();

@@ -1,13 +1,9 @@
-import pema from "pema";
-import record from "pema/record";
-import string from "pema/string";
-import union from "pema/union";
-import unknown from "pema/unknown";
+import p from "pema";
 
-export default pema({
-  defaultLocale: string,
-  locales: record(string, unknown),
-  currency: string.default("USD"),
-  persist: union("cookie", "localStorage", "sessionStorage", false)
+export default p({
+  defaultLocale: p.string,
+  locales: p.record(p.string, p.unknown),
+  currency: p.string.default("USD"),
+  persist: p.union("cookie", "localStorage", "sessionStorage", false)
     .default("cookie"),
 });

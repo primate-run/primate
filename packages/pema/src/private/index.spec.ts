@@ -22,7 +22,7 @@ import tuple from "#tuple";
 import type TupleType from "#TupleType";
 import type UndefinedType from "#UndefinedType";
 import test from "@rcompat/test";
-import type EO from "@rcompat/type/EO";
+import type { EmptyObject } from "@rcompat/type";
 
 const types = [
   [bigint, 0n, 0, "bi"],
@@ -65,8 +65,8 @@ test.case("empty []", assert => {
 
 test.case("empty {}", assert => {
   const s = schema({});
-  assert(s).type<ObjectType<EO>>();
-  assert(s.parse({})).equals({}).type<EO>();
+  assert(s).type<ObjectType<EmptyObject>>();
+  assert(s.parse({})).equals({}).type<EmptyObject>();
 });
 
 test.case("object", assert => {

@@ -1,13 +1,11 @@
 import { tests, type Body, type MockedResponse } from "#test";
 import build from "@primate/core/build";
-import green from "@rcompat/cli/color/green";
-import red from "@rcompat/cli/color/red";
+import color from "@rcompat/cli/color";
+import entries from "@rcompat/dict/entries";
 import root from "@rcompat/fs/project/root";
-import entries from "@rcompat/record/entries";
 import equals from "@rcompat/test/equals";
 import includes from "@rcompat/test/includes";
-import type Dict from "@rcompat/type/Dict";
-import type MaybePromise from "@rcompat/type/MaybePromise";
+import type { Dict, MaybePromise } from "@rcompat/type";
 import serve from "./serve.js";
 
 const directory = "test";
@@ -31,7 +29,7 @@ export default async () => {
   const app = (await serve()).default;
 
   const files = await (await root()).join(directory)
-    .list(({ path }) => path.endsWith(".ts") || path.endsWith(".js"));
+    .list({ filter: f => f.path.endsWith(".ts") || f.path.endsWith(".js") });
 
   // side effects
   await Promise.all(files.map(file => file.import()));
@@ -135,14 +133,14 @@ export default async () => {
       const routeText = typeof test.route === "string"
         ? test.route
         : new URL(test.route.url).pathname;
-      console.log(red(`${verb} ${routeText}`));
+      console.log(color.red(`${verb} ${routeText}`));
       const expected = JSON.stringify(failed[1]);
       const actual = JSON.stringify(failed[2]);
       const n = first_error(expected, actual)!;
-      console.log(`expected: ${expected.slice(0, n)}${green(expected[n])}${expected.slice(n + 1)}`);
-      console.log(`actual:   ${actual.slice(0, n)}${red(actual[n])}${actual.slice(n + 1)}`);
+      console.log(`expected: ${expected.slice(0, n)}${color.green(expected[n])}${expected.slice(n + 1)}`);
+      console.log(`actual:   ${actual.slice(0, n)}${color.red(actual[n])}${actual.slice(n + 1)}`);
     } else {
-      console.log(green(`${verb} ${path}`));
+      console.log(color.green(`${verb} ${path}`));
     }
   }
 

@@ -4,7 +4,13 @@
   "description": "The universal web framework",
   "homepage": "https://primate.run",
   "bugs": "https://github.com/primate-run/primate/issues",
+  "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primate-run/primate",
+    "directory": "packages/primate"
+  },
   "files": [
     "/lib/app.tsconfig.json",
     "/lib/**/*.js",
@@ -12,35 +18,27 @@
     "!/**/*.spec.*"
   ],
   "bin": "lib/bin.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/primate-run/primate",
-    "directory": "packages/primate"
-  },
   "scripts": {
     "build": "npm run clean && tsc && cp src/app.tsconfig.json lib",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
   },
-  "devDependencies": {
-    "@rcompat/record": "^0.9.1",
-    "pema": "workspace:^"
-  },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/args": "^0.8.0",
-    "@rcompat/cli": "^0.11.3",
-    "@rcompat/fs": "^0.22.3",
-    "@rcompat/http": "~0.16.1",
-    "@rcompat/runtime": "^0.6.0",
-    "@rcompat/string": "^0.10.0",
-    "@rcompat/test": "^0.5.0"
+    "@rcompat/args": "^0.10.0",
+    "@rcompat/cli": "^0.13.0",
+    "@rcompat/dict": "^0.2.0",
+    "@rcompat/fs": "^0.24.2",
+    "@rcompat/http": "~0.20.1",
+    "@rcompat/test": "^0.7.0"
+  },
+  "devDependencies": {
+    "@rcompat/type": "^0.8.0"
   },
   "engines": {
     "node": ">=20"
   },
-  "type": "module",
   "imports": {
     "#*": {
       "apekit": "./src/private/*.ts",

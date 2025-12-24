@@ -2,7 +2,7 @@ import CoerceKey from "#CoerceKey";
 import ParsedKey from "#ParsedKey";
 import type ParseOptions from "#ParseOptions";
 import type Serialized from "#Serialized";
-import type Serializable from "@rcompat/type/Serializable";
+import type { Serializable } from "@rcompat/type";
 
 export default abstract class Parsed<StaticType> implements Serializable {
   get [ParsedKey]() {

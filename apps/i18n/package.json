@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/i18n",
- "description": "Primate i18n template",
+  "description": "Primate i18n template",
   "type": "module",
   "scripts": {
     "start": "npx primate",
@@ -11,10 +11,9 @@
   },
   "dependencies": {
     "@primate/react": "workspace:^",
-    "@rcompat/fs": "^0.22.3",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   }
 }

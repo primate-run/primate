@@ -1,5 +1,5 @@
 import respond from "#response/respond";
-import TEXT_HTML from "@rcompat/http/mime/text/html";
+import MIME from "@rcompat/http/mime";
 import Status from "@rcompat/http/Status";
 import test from "@rcompat/test";
 
@@ -7,7 +7,7 @@ const app = {
   respond(body: any, { headers = {}, status = Status.OK } = {}) {
     return new Response(body, {
       headers: {
-        "content-type": TEXT_HTML, ...headers,
+        "content-type": MIME.TEXT_HTML, ...headers,
       },
       status,
     });

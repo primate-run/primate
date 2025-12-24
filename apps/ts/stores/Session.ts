@@ -1,4 +1,4 @@
-import p from "primate/pema";
+import p from "pema";
 import store from "primate/store";
 
 export default store({

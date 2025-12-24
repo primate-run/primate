@@ -1,6 +1,5 @@
 import verbs from "@primate/core/request/verbs";
-import type Dict from "@rcompat/type/Dict";
-import type JSONValue from "@rcompat/type/JSONValue";
+import type { Dict, JSONValue } from "@rcompat/type";
 
 export type Body = JSONValue;
 

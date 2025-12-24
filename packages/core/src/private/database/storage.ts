@@ -1,3 +1,3 @@
-import AsyncLocalStorage from "@rcompat/async/context";
+import io from "@rcompat/io";
 
-export default new AsyncLocalStorage();
+export default new io.async.Context();

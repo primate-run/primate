@@ -1,7 +1,6 @@
-import error from "@primate/core/response/error";
-import redirect from "@primate/core/response/redirect";
-import type ResponseLike from "@primate/core/response/ResponseLike";
-import view from "@primate/core/response/view";
+import response, { type ResponseLike } from "@primate/core/response";
+
+const { error, redirect, view } = response;
 
 const handlers = { error, redirect, view };
 type Handler = keyof typeof handlers;

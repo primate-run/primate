@@ -2,7 +2,7 @@ import type Infer from "#Infer";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
 import VirtualType from "#VirtualType";
-import type UnknownFunction from "@rcompat/type/UnknownFunction";
+import type { UnknownFunction } from "@rcompat/type";
 
 function isDefaultFunction(x: unknown): x is UnknownFunction {
   return typeof x === "function";

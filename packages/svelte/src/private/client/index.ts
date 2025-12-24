@@ -1,6 +1,6 @@
 import type ClientData from "@primate/core/client/Data";
 import spa from "@primate/core/client/spa";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import { hydrate, mount } from "svelte";
 import root from "svelte:root";
 import * as views from "svelte:views";

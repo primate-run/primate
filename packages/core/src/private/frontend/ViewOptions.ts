@@ -1,4 +1,4 @@
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 export default interface ViewOptions extends ResponseInit {
   csp?: {

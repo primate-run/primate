@@ -1,7 +1,7 @@
 import type BuildApp from "#build/App";
 import type FileRef from "@rcompat/fs/FileRef";
 import pkg from "@rcompat/fs/project/package";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
 
 const core_pkg = await pkg(import.meta.url);
@@ -16,17 +16,20 @@ export default function plugin_server_virtual_pages(app: BuildApp): Plugin {
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-pages" }, async () => {
-        const html = /^.*\.html$/ui;
-        const is_html = (file: FileRef) => html.test(file.path);
+        const filter = /^.*\.html$/ui;
 
         const defaults = core_root.join("lib", "private", "defaults");
 
         const pages: Dict<FileRef> = {};
 
-        for (const file of await defaults.collect(is_html)) pages[file.name] = file;
+        for (const file of await defaults.list({ filter })) {
+          pages[file.name] = file;
+        }
 
         if (await app.path.pages.exists()) {
-          for (const file of await app.path.pages.collect(is_html)) pages[file.name] = file;
+          for (const file of await app.path.pages.list({ filter })) {
+            pages[file.name] = file;
+          }
         }
 
         const entries = await Promise.all(

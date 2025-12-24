@@ -15,16 +15,14 @@ Pema provides composable validators for common types.
 Import and use validators.
 
 ```ts
-import pema from "pema";
-import string from "pema/string";
-import number from "pema/number";
+import p from "pema";
 
-const schema = pema({
-  name: string.min(1),
-  age: number.min(0),
+const Schema = p({
+  name: p.string.min(1),
+  age: p.number.min(0),
 });
 
-const data = schema.parse({ name: "John", age: 30 });
+const data = Schema.parse({ name: "John", age: 30 });
 ```
 
 ---
@@ -44,8 +42,10 @@ const data = schema.parse({ name: "John", age: 30 });
 Chain validators for complex rules.
 
 ```ts
-const emailSchema = string.min(1).max(255).email();
-const ageSchema = number.integer().min(0).max(150);
+import p from "pema";
+
+const EmailSchema = p.string.min(1).max(255).email();
+const AgeSchema = p.number.integer().min(0).max(150);
 ```
 
 ---
@@ -56,7 +56,7 @@ Validation throws `ParseError` with details.
 
 ```ts
 try {
-  schema.parse(input);
+  Schema.parse(input);
 } catch (error) {
   console.log(error.errors); // detailed errors
 }

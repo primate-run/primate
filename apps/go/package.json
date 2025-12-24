@@ -13,7 +13,8 @@
   "dependencies": {
     "@primate/go": "workspace:^",
     "@primate/svelte": "workspace:^",
+    "pema": "workspace:^",
     "primate": "workspace:^",
-    "svelte": "^5.43.15"
+    "svelte": "^5.46.0"
   }
 }

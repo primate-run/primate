@@ -1,7 +1,7 @@
 import RequestBag from "#request/RequestBag";
 import RequestBody from "#request/RequestBody";
 import type RequestFacade from "#request/RequestFacade";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 function decode(s: string) {
   try {

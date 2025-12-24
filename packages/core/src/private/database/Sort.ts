@@ -1,4 +1,4 @@
-import Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 type Sort = Dict<"asc" | "desc">;
 

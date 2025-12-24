@@ -1,20 +1,21 @@
 {
   "name": "@primate/react",
   "version": "0.15.0",
-  "description": "Primate React frontend",
+  "description": "React for Primate",
   "homepage": "https://primate.run/docs/frontend/react",
   "bugs": "https://github.com/primate-run/primate/issues",
+  "type": "module",
   "license": "MIT",
-  "files": [
-    "/lib/**/*.js",
-    "/lib/**/*.d.ts",
-    "!/**/*.spec.*"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/primate-run/primate",
     "directory": "packages/react"
   },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
+  ],
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
@@ -22,13 +23,13 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@types/react": "^19.1.15",
-    "@types/react-dom": "^19.1.9"
+    "@rcompat/type": "^0.8.0",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.22.3",
-    "@rcompat/runtime": "^0.6.0"
+    "@rcompat/runtime": "^0.8.0"
   },
   "peerDependencies": {
     "@types/react": "19",
@@ -37,7 +38,6 @@
     "react": "19",
     "react-dom": "19"
   },
-  "type": "module",
   "imports": {
     "#*": {
       "apekit": "./src/private/*.ts",

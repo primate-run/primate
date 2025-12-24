@@ -9,17 +9,15 @@ import type Next from "@primate/core/Next";
 import type NextBuild from "@primate/core/NextBuild";
 import type NextServe from "@primate/core/NextServe";
 import type ServeApp from "@primate/core/ServeApp";
-import dim from "@rcompat/cli/color/dim";
-import execute from "@rcompat/stdio/execute";
-import pema from "pema";
-import boolean from "pema/boolean";
-import string from "pema/string";
+import color from "@rcompat/cli/color";
+import io from "@rcompat/io";
+import p from "pema";
 
 const names = targets.map(t => t.name);
 
-const schema = pema({
-  debug: boolean.default(false),
-  start: string.default("/"),
+const schema = p({
+  debug: p.boolean.default(false),
+  start: p.string.default("/"),
 });
 
 export default class NativeModule extends Module {
@@ -44,7 +42,7 @@ export default class NativeModule extends Module {
     if (names.includes(app.target.name)) {
       app.done(async () => {
         const { exe, flags } = app.target.get() as NativeTarget;
-        const executable_path = dim(`${app.path.build}/${exe}`);
+        const executable_path = color.dim(`${app.path.build}/${exe}`);
         const { host, port } = app.config("http");
         await app.runpath("worker.js").write(`
           import target from "@primate/native/target/${app.target.target}";
@@ -53,7 +51,7 @@ export default class NativeModule extends Module {
           webview.navigate("http://${host}:${port}/${this.#config.start}");
           webview.run();
         `);
-        await execute(command({
+        await io.run(command({
           exe,
           files: ["server.js", "worker.js"],
           flags,

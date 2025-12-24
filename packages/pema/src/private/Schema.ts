@@ -1,5 +1,5 @@
 import type Parsed from "#Parsed";
-import type AbstractNewable from "@rcompat/type/AbstractNewable";
+import type { AbstractNewable } from "@rcompat/type";
 
 type Schema =
   | Parsed<unknown>

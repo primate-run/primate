@@ -12,7 +12,7 @@ import {
 import type ClientData from "@primate/core/client/Data";
 import spa from "@primate/core/client/spa";
 import type Mode from "@primate/core/Mode";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import root from "angular:root";
 import * as views from "angular:views";
 

@@ -1,4 +1,4 @@
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import type Mode from "#Mode";
 
 type ClientData<T extends Dict = Dict> = {

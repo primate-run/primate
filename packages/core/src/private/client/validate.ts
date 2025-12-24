@@ -1,10 +1,7 @@
 import type ValidateInit from "#client/ValidateInit";
 import type ValidationError from "#client/ValidationError";
-import type Dict from "@rcompat/type/Dict";
-import type JSONPointer from "@rcompat/type/JSONPointer";
-import type JSONValue from "@rcompat/type/JSONValue";
-import type Issue from "pema/Issue";
-import type JSONPayload from "pema/JSONPayload";
+import type { Dict, JSONPointer, JSONValue } from "@rcompat/type";
+import type { Issue, JSONPayload } from "pema";
 
 function extract(payload: JSONPayload, defaultPath: JSONPointer): Issue[] {
   // scalar: { message, messages }

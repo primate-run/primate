@@ -5,11 +5,10 @@ import redirect from "#response/redirect";
 import type ResponseFunction from "#response/ResponseFunction";
 import type ResponseLike from "#response/ResponseLike";
 import text from "#response/text";
+import dict from "@rcompat/dict";
 import Streamable from "@rcompat/fs/Streamable";
 import Status from "@rcompat/http/Status";
-import proper from "@rcompat/record/proper";
-import type Newable from "@rcompat/type/Newable";
-import type UnknownFunction from "@rcompat/type/UnknownFunction";
+import type { Newable, UnknownFunction } from "@rcompat/type";
 
 function invalid_body(body: string) {
   throw fail("invalid body {0} returned from route", body);
@@ -44,7 +43,7 @@ const guesses = match([
   [is_url, value => redirect(value.toString())],
   [Streamable.is, value => binary(value)],
   [(value: unknown) => is_response(value), value => _ => value],
-  [proper, json],
+  [dict.proper, json],
   [(value: unknown) => typeof value === "string", text],
 ]);
 

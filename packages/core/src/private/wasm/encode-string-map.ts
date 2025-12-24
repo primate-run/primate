@@ -1,6 +1,6 @@
 import encodeString from "#wasm/encode-string";
 import type BufferView from "@rcompat/bufferview";
-import type PartialDict from "@rcompat/type/PartialDict";
+import type { PartialDict } from "@rcompat/type";
 
 const encodeStringMap = (map: PartialDict<string>, view: BufferView) => {
   // only "set" entries are allowed

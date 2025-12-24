@@ -4,8 +4,7 @@ import type Infer from "#Infer";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import Type from "#Type";
-import type AbstractNewable from "@rcompat/type/AbstractNewable";
-import type Newable from "@rcompat/type/Newable";
+import type { AbstractNewable, Newable } from "@rcompat/type";
 
 export default abstract class BuiltinType<StaticType, Name extends string>
   extends Type<StaticType, Name> {

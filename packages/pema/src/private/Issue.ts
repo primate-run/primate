@@ -1,4 +1,4 @@
-import type JSONPointer from "@rcompat/type/JSONPointer";
+import type { JSONPointer } from "@rcompat/type";
 
 export default interface Issue {
   readonly message: string;

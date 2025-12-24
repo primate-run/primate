@@ -6,7 +6,7 @@ import ParsedKey from "#ParsedKey";
 import type ParseOptions from "#ParseOptions";
 import join from "#path/join";
 import type Serialized from "#Serialized";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 export default class OmitType<
   P extends Dict<Parsed<unknown>>,

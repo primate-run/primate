@@ -1,6 +1,5 @@
-import type RequestBody from "@primate/core/request/RequestBody";
-import type RequestFacade from "@primate/core/request/RequestFacade";
-import type Dict from "@rcompat/type/Dict";
+import type { RequestBody, RequestFacade } from "@primate/core/request";
+import type { Dict } from "@rcompat/type";
 
 type FileEntry = {
   bytes: Uint8Array;

@@ -1,5 +1,5 @@
-import type Dict from "@rcompat/type/Dict";
 import type DataValue from "#database/DataValue";
+import type { Dict } from "@rcompat/type";
 
 type DataDict = Dict<DataValue>;
 

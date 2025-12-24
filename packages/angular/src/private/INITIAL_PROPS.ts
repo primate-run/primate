@@ -1,5 +1,5 @@
 import { InjectionToken } from "@angular/core";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 type RootProps = {
   views: any[];

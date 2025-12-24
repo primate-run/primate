@@ -3,8 +3,6 @@ import type RouteHandler from "#route/Handler";
 import type RouteOptions from "#route/Options";
 import type RoutePath from "#route/Path";
 import assert from "@rcompat/assert";
-import is from "@rcompat/assert/is";
-import maybe from "@rcompat/assert/maybe";
 
 const stack: string[] = [];
 export const routes = stack;
@@ -24,19 +22,18 @@ class Router {
     return stack.at(-1);
   }
 
-  add(verb: Verb, handler: RouteHandler, options: RouteOptions = {}) {
-    assert(this.active !== undefined);
-    is(handler).function();
-    maybe(options).object();
+  add(verb: Verb, handler: RouteHandler, options?: RouteOptions) {
+    assert.defined(this.active);
+    assert.function(handler);
+    assert.maybe.dict(options);
+    assert.maybe.boolean(options?.parseBody);
 
     const active = this.active!;
     const routes = this.#routes;
 
-    if (!(active in routes)) {
-      routes[active] = {};
-    }
+    if (!(active in routes)) routes[active] = {};
 
-    routes[active][verb] = { handler, options };
+    routes[active][verb] = { handler, options: options ?? {} };
   }
 
   get(path: string) {

@@ -1,20 +1,21 @@
 {
   "name": "@primate/go",
   "version": "0.4.0",
-  "description": "Primate Go backend",
+  "description": "Go backend for Primate",
   "homepage": "https://primate.run/docs/backend/go",
   "bugs": "https://github.com/primate-run/primate/issues",
+  "type": "module",
   "license": "MIT",
-  "files": [
-    "/lib/**/*.js",
-    "/lib/**/*.d.ts",
-    "!/**/*.spec.*"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/primate-run/primate",
     "directory": "packages/go"
   },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
+  ],
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
@@ -23,18 +24,17 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.3.1",
-    "@rcompat/cli": "^0.11.3",
-    "@rcompat/env": "^0.9.2",
-    "@rcompat/fs": "^0.22.3",
-    "@rcompat/runtime": "^0.6.0",
-    "@rcompat/stdio": "^0.12.2",
-    "@rcompat/string": "^0.10.0"
+    "@rcompat/assert": "^0.5.0",
+    "@rcompat/env": "^0.11.0",
+    "@rcompat/fs": "^0.24.2",
+    "@rcompat/io": "^0.2.0"
+  },
+  "devDependencies": {
+    "@rcompat/type": "^0.8.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"
   },
-  "type": "module",
   "imports": {
     "#*": {
       "apekit": "./src/private/*.ts",

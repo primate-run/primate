@@ -1,6 +1,5 @@
-import type RequestBody from "@primate/core/request/RequestBody";
-import type RequestFacade from "@primate/core/request/RequestFacade";
-import type Dict from "@rcompat/type/Dict";
+import type { RequestBody, RequestFacade } from "@primate/core/request";
+import type { Dict } from "@rcompat/type";
 
 async function bridge_form(body: RequestBody) {
   const meta: Dict = Object.create(null);
@@ -24,7 +23,7 @@ async function bridge_form(body: RequestBody) {
     const size = v.size;
     meta[k] = { name, size, type };
 
-    // precompute bytes so Go can call a SYNC getter
+    // precompute bytes so Go can call a sync getter
     pending.push(
       v.arrayBuffer().then(buffer => {
         files.push({

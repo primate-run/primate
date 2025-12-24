@@ -1,5 +1,4 @@
-import blue from "@rcompat/cli/color/blue";
-import bold from "@rcompat/cli/color/bold";
+import color from "@rcompat/cli/color";
 import print from "@rcompat/cli/print";
 import pkg from "@rcompat/fs/project/package";
 import find from "./commands/index.js";
@@ -15,6 +14,6 @@ export default async (...args: string[]) => {
     name,
     version,
   } = await (await pkg(import.meta.url)).json() as PkgJSON;
-  print(blue(bold(name as string)), blue(version as string), "\n");
+  print(color.blue(color.bold(name)), color.blue(version as string), "\n");
   find(command)(flags);
 };

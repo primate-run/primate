@@ -7,10 +7,12 @@ import session from "#session/index";
 import type API from "#wasm/API";
 import decodeJson from "#wasm/decode-json";
 import decodeResponse from "#wasm/decode-response";
+import decodeString from "#wasm/decode-string";
 import decodeWebsocketClose from "#wasm/decode-websocket-close";
 import decodeWebsocketSendMessage from "#wasm/decode-websocket-send";
 import encodeRequest from "#wasm/encode-request";
 import encodeSession from "#wasm/encode-session";
+import encodeString from "#wasm/encode-string";
 import type Exports from "#wasm/Exports";
 import type I32 from "#wasm/I32";
 import type Instantiation from "#wasm/Instantiation";
@@ -18,12 +20,10 @@ import type Tagged from "#wasm/Tagged";
 import assert from "@rcompat/assert";
 import BufferView from "@rcompat/bufferview";
 import FileRef from "@rcompat/fs/FileRef";
-import MaybePromise from "@rcompat/type/MaybePromise";
+import utf8 from "@rcompat/string/utf8";
+import type { MaybePromise } from "@rcompat/type";
 import { WASI } from "node:wasi";
-import StoreSchema from "pema/StoreSchema";
-import encodeString from "./encode-string.js";
-import utf8size from "@rcompat/string/utf8size";
-import decodeString from "./decode-string.js";
+import type { StoreSchema } from "pema";
 
 type ServerWebSocket = {
   close(code?: number, reason?: string): void;
@@ -33,38 +33,39 @@ type ServerWebSocket = {
 type Init = {
   filename: string;
   imports?: WebAssembly.Imports;
-  stores: Record<string, DatabaseStore<StoreSchema>>
+  stores: Record<string, DatabaseStore<StoreSchema>>;
 };
 
 // used by instance
 export type { API };
 
-
 export type AnyWasmValue = number | bigint | Tagged<"Request", number>;
 export type AnyWasmReturnValue = MaybePromise<AnyWasmValue | undefined | void>;
-export type AnyWasmFunction<Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue> = (...args: Args) => R;
+export type AnyWasmFunction<
+  Args extends readonly AnyWasmValue[],
+  R extends AnyWasmReturnValue,
+> = (...args: Args) => R;
+
+declare global {
+  interface WebAssemblyExtensions {
+    promising: undefined | (<Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue>(fn: AnyWasmFunction<Args, R>) => AnyWasmFunction<Args, R>);
+    Suspending: {
+      new <T>(fn: T): { fn: T };
+    } | undefined;
+  }
+}
+
+const WA = WebAssembly as typeof WebAssembly & WebAssemblyExtensions;
 
 export const wrapPromising = <Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue>(fn: AnyWasmFunction<Args, R>): AnyWasmFunction<Args, R> =>
-  typeof WebAssembly.promising === "function"
-    ? WebAssembly.promising(fn)
+  typeof WA.promising === "function"
+    ? WA.promising(fn)
     : fn;
 
 export const wrapSuspending = <Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue>(fn: AnyWasmFunction<Args, R>, alt: AnyWasmFunction<Args, R>): WebAssembly.ImportValue =>
-  typeof WebAssembly.Suspending === "function"
-    ? new WebAssembly.Suspending(fn) as unknown as WebAssembly.ImportValue
+  typeof WA.Suspending === "function"
+    ? new WA.Suspending(fn) as unknown as WebAssembly.ImportValue
     : alt;
-
-
-declare global {
-  namespace WebAssembly {
-    export const promising: undefined | (<Args extends readonly AnyWasmValue[], R extends AnyWasmReturnValue>(fn: AnyWasmFunction<Args, R>) => AnyWasmFunction<Args, R>);
-
-    // May be absent at runtime
-    export class Suspending<T> {
-      constructor(fn: T)
-    }
-  }
-}
 
 const STORE_OPERATION_SUCCESS = 0;
 const STORE_NOT_FOUND_ERROR = 1;
@@ -80,6 +81,7 @@ type STORE_OPERATION_RESULT =
   | typeof STORE_UNKNOWN_ERROR_OCCURRED
   | typeof STORE_SCHEMA_INVALID_RECORD_ERROR
   | typeof STORE_OPERATION_NOT_SUPPORTED
+  ;
 
 /**
  * Instantiate a WASM module from a file reference and the given web assembly
@@ -175,7 +177,7 @@ const instantiate = async (args: Init) => {
    * payload length, otherwise an exception will be thrown.
    */
   const receive = (ptr: number, length: number) => {
-    assert(payload.length === length, "Payload length mismatch");
+    assert.true(payload.length === length, "Payload length mismatch");
 
     const wasmBuffer = new Uint8Array(memory.buffer, ptr, length);
     wasmBuffer.set(payload);
@@ -199,7 +201,7 @@ const instantiate = async (args: Init) => {
    */
   const websocketClose = () => {
     const { id } = decodeWebsocketClose(payload);
-    assert(sockets.has(id),
+    assert.true(sockets.has(id),
       "Invalid socket id. Was the socket already closed?");
     const socket = sockets.get(id)!;
     socket.close();
@@ -211,7 +213,7 @@ const instantiate = async (args: Init) => {
    */
   const websocketSend = () => {
     const { id, message } = decodeWebsocketSendMessage(payload);
-    assert(sockets.has(id),
+    assert.true(sockets.has(id),
       `Invalid socket id ${id}. Was the socket already closed?`);
 
     const socket = sockets.get(id)!;
@@ -285,7 +287,7 @@ const instantiate = async (args: Init) => {
     try {
       const records = await store.find(query);
       const recordsPayload = JSON.stringify(records);
-      payload = new Uint8Array(utf8size(recordsPayload) + 4);
+      payload = new Uint8Array(utf8.size(recordsPayload) + 4);
       encodeString(recordsPayload, new BufferView(payload));
       return STORE_OPERATION_SUCCESS;
     } catch (ex) {
@@ -307,7 +309,7 @@ const instantiate = async (args: Init) => {
     const record = await store.try(recordId);
     if (record) {
       const recordPayload = JSON.stringify(record);
-      payload = new Uint8Array(utf8size(recordPayload) + 4);
+      payload = new Uint8Array(utf8.size(recordPayload) + 4);
       encodeString(recordPayload, new BufferView(payload));
       return STORE_OPERATION_SUCCESS;
     } else {
@@ -347,7 +349,7 @@ const instantiate = async (args: Init) => {
     try {
       const record = decodeJson(new BufferView(received));
       const result = JSON.stringify(await store.insert(record));
-      payload = new Uint8Array(utf8size(result) + 4);
+      payload = new Uint8Array(utf8.size(result) + 4);
       encodeString(result, new BufferView(payload));
       return STORE_OPERATION_SUCCESS;
     } catch (ex) {

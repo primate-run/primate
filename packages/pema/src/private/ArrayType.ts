@@ -19,8 +19,7 @@ import length from "#validator/length";
 import max from "#validator/max";
 import min from "#validator/min";
 import unique from "#validator/unique";
-import type Newable from "@rcompat/type/Newable";
-import type Primitive from "@rcompat/type/Primitive";
+import type { Newable, Primitive } from "@rcompat/type";
 
 type Next<T> = {
   validators?: Validator<T>[];

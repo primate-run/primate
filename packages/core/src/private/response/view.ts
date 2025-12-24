@@ -1,8 +1,8 @@
 import fail from "#fail";
 import type ViewOptions from "#frontend/ViewOptions";
+import type ResponseFunction from "#response/ResponseFunction";
 import FileRef from "@rcompat/fs/FileRef";
-import type Dict from "@rcompat/type/Dict";
-import type ResponseFunction from "./ResponseFunction.js";
+import type { Dict } from "@rcompat/type";
 
 const extensions = ["extension", "fullExtension"] as const;
 

@@ -1,5 +1,5 @@
 import type DataKey from "#database/DataKey";
-import type DataType from "pema/DataType";
+import type { DataType } from "pema";
 
 type DataValue = DataType[DataKey] | null;
 

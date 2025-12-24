@@ -1,7 +1,7 @@
 import type ClientData from "@primate/core/client/Data";
 import spa from "@primate/core/client/spa";
 import SolidHead from "@primate/solid/Head";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import { hydrate, render } from "solid-js/web";
 import root_view from "solid:root";
 import * as views from "solid:views";

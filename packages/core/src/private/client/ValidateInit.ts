@@ -1,6 +1,4 @@
-import type Dict from "@rcompat/type/Dict";
-import type JSONPointer from "@rcompat/type/JSONPointer";
-import type JSONValue from "@rcompat/type/JSONValue";
+import type { Dict, JSONPointer, JSONValue } from "@rcompat/type";
 
 type ValidateInit<T> = {
   headers?: Dict<string>;

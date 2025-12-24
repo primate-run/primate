@@ -9,8 +9,8 @@ import type Config from "#session/Config";
 import kSerialize from "#session/k-serialize";
 import SessionHandle from "#session/SessionHandle";
 import storage from "#session/storage";
-import p from "pema";
-import type StoreSchema from "pema/StoreSchema";
+import type { Dict } from "@rcompat/type";
+import p, { type StoreSchema } from "pema";
 
 type CookieOptions = {
   httpOnly: boolean;
@@ -80,7 +80,7 @@ export default class SessionModule extends Module {
 
     const session_type = p.omit(this.#store.type, "id", "session_id");
 
-    const session = new SessionHandle<Record<string, unknown>>(
+    const session = new SessionHandle<Dict>(
       sid,
       data,
       session_type,

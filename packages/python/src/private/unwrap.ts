@@ -1,4 +1,4 @@
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import type { PyProxy } from "pyodide/ffi";
 
 type DictConverter = Iterable<[

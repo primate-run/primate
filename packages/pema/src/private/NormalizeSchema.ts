@@ -1,4 +1,3 @@
-
 import type ArrayType from "#ArrayType";
 import type ConstructorType from "#ConstructorType";
 import type LiteralType from "#LiteralType";
@@ -8,8 +7,7 @@ import type Parsed from "#Parsed";
 import type Schema from "#Schema";
 import type TupleType from "#TupleType";
 import type UndefinedType from "#UndefinedType";
-import type AbstractNewable from "@rcompat/type/AbstractNewable";
-import type EO from "@rcompat/type/EO";
+import type { AbstractNewable, EmptyObject } from "@rcompat/type";
 
 type IsEmptyObject<T> = keyof T extends never ? true : false;
 
@@ -18,9 +16,11 @@ type NormalizeSchemaArray<T extends Schema[]> =
 
 type NormalizeSchemaObject<T extends Record<string, unknown>> =
   IsEmptyObject<T> extends true
-  ? EO
+  ? EmptyObject
   : {
-    -readonly [K in keyof T]: T[K] extends Parsed<unknown> ? T[K] : NormalizeSchema<T[K]>
+    -readonly [K in keyof T]: T[K] extends Parsed<unknown>
+    ? T[K]
+    : NormalizeSchema<T[K]>
   };
 
 type NormalizeSchema<S> =

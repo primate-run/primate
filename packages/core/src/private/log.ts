@@ -1,12 +1,9 @@
 import AppError from "#AppError";
 import args from "@rcompat/args";
-import blue from "@rcompat/cli/color/blue";
-import green from "@rcompat/cli/color/green";
-import red from "@rcompat/cli/color/red";
-import yellow from "@rcompat/cli/color/yellow";
+import color from "@rcompat/cli/color";
 import mark from "@rcompat/cli/mark";
 import print from "@rcompat/cli/print";
-import union from "pema/union";
+import p from "pema";
 
 const levels = {
   error: 0,
@@ -20,7 +17,7 @@ type N = Levels[Level];
 
 const flag = "--log=";
 const n = args.find(arg => arg.startsWith(flag))?.slice(flag.length);
-const vn = union(...Object.keys(levels)).optional().parse(n) as Level;
+const vn = p.union(...Object.keys(levels)).optional().parse(n) as Level;
 
 class Log {
   #level: N;
@@ -30,24 +27,24 @@ class Log {
   }
 
   system(message: string, ...params: unknown[]) {
-    print(`${blue("++")} ${mark(message, ...params)}\n`);
+    print(`${color.blue("++")} ${mark(message, ...params)}\n`);
   }
 
   info(message: string, ...params: unknown[]) {
     if (this.#level === levels.info) {
-      print(green("--"), mark(message, ...params), "\n");
+      print(color.green("--"), mark(message, ...params), "\n");
     }
   }
 
   warn(message: string, ...params: unknown[]) {
     if (this.#level >= levels.warn) {
-      print(yellow("??"), mark(message, ...params), "\n");
+      print(color.yellow("??"), mark(message, ...params), "\n");
     }
   }
 
   error(error: unknown) {
     if (error instanceof AppError) {
-      print(red("!!"), error.message, "\n");
+      print(color.red("!!"), error.message, "\n");
     } else {
       console.error(error);
     }

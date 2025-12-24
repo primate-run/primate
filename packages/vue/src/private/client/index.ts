@@ -1,6 +1,6 @@
 import type ClientData from "@primate/core/client/Data";
 import spa from "@primate/core/client/spa";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import { createSSRApp } from "vue";
 import root from "vue:root";
 import * as views from "vue:views";

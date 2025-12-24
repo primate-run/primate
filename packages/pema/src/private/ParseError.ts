@@ -1,8 +1,7 @@
 import type JSONIssue from "#json/JSONIssue";
 import type JSONPayload from "#json/JSONPayload";
 import type ParseIssue from "#ParseIssue";
-import type JSONPointer from "@rcompat/type/JSONPointer";
-import type Serializable from "@rcompat/type/Serializable";
+import type { JSONPointer, Serializable } from "@rcompat/type";
 
 function humanize(path: JSONPointer): string {
   return path === ""

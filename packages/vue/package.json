@@ -1,20 +1,21 @@
 {
   "name": "@primate/vue",
   "version": "0.14.0",
-  "description": "Primate Vue frontend",
+  "description": "Vue for Primate",
   "homepage": "https://primate.run/docs/frontend/vue",
   "bugs": "https://github.com/primate-run/primate/issues",
+  "type": "module",
   "license": "MIT",
-  "files": [
-    "/lib/**/*.js",
-    "/lib/**/*.d.ts",
-    "!/**/*.spec.*"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/primate-run/primate",
     "directory": "packages/vue"
   },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
+  ],
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
@@ -24,11 +25,13 @@
   "dependencies": {
     "@primate/core": "workspace:^"
   },
+  "devDependencies": {
+    "@rcompat/type": "^0.8.0"
+  },
   "peerDependencies": {
     "primate": "workspace:^",
     "vue": "3"
   },
-  "type": "module",
   "imports": {
     "#*": {
       "apekit": "./src/private/*.ts",

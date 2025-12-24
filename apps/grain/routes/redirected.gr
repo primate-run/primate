@@ -1,7 +1,0 @@
-module Redirected
-
-from "primate/request" include Request
-
-use Request.{ type Request }
-
-provide let get = (request: Request) => "Redirected!"

@@ -13,7 +13,7 @@ import type Schema from "#Schema";
 import type DefaultTrait from "#trait/Default";
 import type OptionalTrait from "#trait/Optional";
 import assert from "@rcompat/assert";
-import type TupleToUnion from "@rcompat/type/TupleToUnion";
+import type { TupleToUnion } from "@rcompat/type";
 
 type InferUnion<T extends Schema[]> = TupleToUnion<{
   [K in keyof T]:
@@ -57,7 +57,7 @@ export default class UnionType<T extends Parsed<unknown>[]>
   #of: T;
 
   constructor(of: T) {
-    assert(of.length > 1, "union type must have at least two members");
+    assert.true(of.length > 1, "union type must have at least two members");
     super();
     this.#of = of;
   }

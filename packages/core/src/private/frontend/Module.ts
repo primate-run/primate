@@ -16,13 +16,12 @@ import type NextBuild from "#module/NextBuild";
 import type NextServe from "#module/NextServe";
 import type RequestFacade from "#request/RequestFacade";
 import type ServeApp from "#serve/App";
-import map from "@rcompat/async/map";
 import hash from "@rcompat/crypto/hash";
+import fn from "@rcompat/fn";
 import FileRef from "@rcompat/fs/FileRef";
-import APPLICATION_JSON from "@rcompat/http/mime/application/json";
+import MIME from "@rcompat/http/mime";
 import Status from "@rcompat/http/Status";
-import type Dict from "@rcompat/type/Dict";
-import type MaybePromise from "@rcompat/type/MaybePromise";
+import type { Dict, MaybePromise } from "@rcompat/type";
 import p from "pema";
 
 type Layout = (app: ServeApp, transfer: Dict, request: RequestFacade)
@@ -115,8 +114,8 @@ export default abstract class FrontendModule<
     if (!app_asset) throw fail("Could not find app.js in assets");
 
     const app_script = `<script type="module" src="${app_asset.src}"></script>`;
-    const json_props = JSON.stringify({ frontend: this.name, ...client });
-    const hydrated = await inline(json_props, APPLICATION_JSON, "hydration");
+    const props = JSON.stringify({ frontend: this.name, ...client });
+    const hydrated = await inline(props, MIME.APPLICATION_JSON, "hydration");
     const script_src = [hydrated.integrity];
 
     return {
@@ -150,7 +149,7 @@ export default abstract class FrontendModule<
       };
       const $props = this.layouts
         ? {
-          views: await map(views, ({ name }) => this.normalize(name)),
+          views: await fn.async.map(views, ({ name }) => this.normalize(name)),
           props: views.map(c => c.props),
           request: $request,
         }
@@ -163,12 +162,12 @@ export default abstract class FrontendModule<
         ...$props,
       };
 
-      if (this.spa && request.headers.get("Accept") === APPLICATION_JSON) {
+      if (this.spa && request.headers.get("Accept") === MIME.APPLICATION_JSON) {
         const json_body = JSON.stringify(client);
         return new Response(json_body, {
           headers: {
             ...app.headers(),
-            "Content-Type": APPLICATION_JSON,
+            "Content-Type": MIME.APPLICATION_JSON,
             "Content-Length": String(app.body_length(json_body)),
             "Cache-Control": "no-store",
           },
@@ -259,7 +258,7 @@ export default abstract class FrontendModule<
           });
           build.onLoad({ filter: views_filter }, async () => {
             const views = await views_base
-              .collect(c => fileExtensions.includes(c.fullExtension));
+              .list({ filter: c => fileExtensions.includes(c.fullExtension) });
             let contents = "";
             for (const view of views) {
               const { path } = view.debase(views_base, "/");

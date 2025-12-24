@@ -1,5 +1,5 @@
-import escape from "@rcompat/html/escape";
-import type Dict from "@rcompat/type/Dict";
+import HTML from "@rcompat/html";
+import type { Dict } from "@rcompat/type";
 
 const TAGS = ["script", "style", "template", "textarea"];
 const token = (i: number) => `__SLOT_${i}__`;
@@ -65,7 +65,7 @@ export default function render(template: string, props: Dict): string {
   // deep-escape all strings in props (JSON-serializable only)
   let safe: Dict;
   try {
-    safe = JSON.parse(escape(JSON.stringify(props)));
+    safe = JSON.parse(HTML.escape(JSON.stringify(props)));
   } catch {
     throw new Error("render(): props must be JSON-serializable for escaping");
   }

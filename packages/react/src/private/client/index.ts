@@ -1,7 +1,7 @@
 import type ClientData from "@primate/core/client/Data";
 import spa from "@primate/core/client/spa";
 import ReactHead from "@primate/react/Head";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import { createElement, type ReactNode } from "react";
 import { createRoot, hydrateRoot, type Container } from "react-dom/client";
 import root_view from "react:root";

@@ -1,4 +1,4 @@
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 export default class Component {
   render(_props: Dict) {

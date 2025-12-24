@@ -8,13 +8,12 @@ import type NextBuild from "@primate/core/NextBuild";
 import assert from "@rcompat/assert";
 import user from "@rcompat/env/user";
 import type FileRef from "@rcompat/fs/FileRef";
-import execute from "@rcompat/stdio/execute";
-import which from "@rcompat/stdio/which";
+import io from "@rcompat/io";
 
-const COMMAND = await which("go");
+const COMMAND = await io.which("go");
 const ENV = {
   GOARCH: "wasm",
-  GOCACHE: (await execute(`${COMMAND} env GOCACHE`, {})).replaceAll("\n", ""),
+  GOCACHE: (await io.run(`${COMMAND} env GOCACHE`, {})).replaceAll("\n", ""),
   GOOS: "js",
   HOME: user.HOME,
 };
@@ -38,7 +37,7 @@ function postlude(code: string, route_id: string) {
 
 async function check_version() {
   try {
-    const version = await execute(`go list -m -f '{{.Version}}' ${REPO}`);
+    const version = await io.run(`go list -m -f '{{.Version}}' ${REPO}`);
     const trimmed = version.trim();
 
     const version_match = trimmed.match(/^v?(\d+)\.(\d+)\.(\d+)/);
@@ -62,7 +61,7 @@ export default class Default extends Runtime {
     await check_version();
 
     app.bind(this.fileExtension, async (route, { context }) => {
-      assert(context === "routes", "go: only route files are supported");
+      assert.true(context === "routes", "go: only route files are supported");
 
       const relative = route.debase(app.path.routes);
       const route_id = relative.path.slice(1, -relative.extension.length);
@@ -70,14 +69,14 @@ export default class Default extends Runtime {
       // create a temporary .go file in the build directory for compilation
       // this is necessary because `go build` requires an actual file on disk
       const build_go_file = app.runpath("wasm", `${route_id}.go`);
-      await build_go_file.directory.create({ recursive: true });
+      await build_go_file.directory.create();
       await build_go_file.write(postlude(await route.text(), route_id));
 
       const wasm = app.runpath("wasm", `${route_id}.wasm`);
 
       try {
         log.info("compiling {0} to WebAssembly", route);
-        await execute(run(wasm, build_go_file), {
+        await io.run(run(wasm, build_go_file), {
           cwd: build_go_file.directory.path,
           env: ENV,
         });

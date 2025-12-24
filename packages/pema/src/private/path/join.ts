@@ -1,4 +1,4 @@
-import type JSONPointer from "@rcompat/type/JSONPointer";
+import type { JSONPointer } from "@rcompat/type";
 
 // RFC 6901 escaping
 function escapeToken(token: string): string {

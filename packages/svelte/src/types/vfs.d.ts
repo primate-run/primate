@@ -1,5 +1,5 @@
 declare module "svelte:views" {
-  import type Dict from "@rcompat/type/Dict";
+  import type { Dict } from "@rcompat/type";
   import type { Component } from "svelte";
   const map: Dict<Component>;
   export = map;

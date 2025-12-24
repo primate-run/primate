@@ -1,20 +1,21 @@
 {
   "name": "@primate/markdown",
   "version": "0.7.0",
-  "description": "Primate Markdown frontend",
+  "description": "Markdown for Primate",
   "homepage": "https://primate.run/docs/frontend/markdown",
   "bugs": "https://github.com/primate-run/primate/issues",
+  "type": "module",
   "license": "MIT",
-  "files": [
-    "/lib/**/*.js",
-    "/lib/**/*.d.ts",
-    "!/**/*.spec.*"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/primate-run/primate",
     "directory": "packages/markdown"
   },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
+  ],
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
@@ -23,15 +24,17 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.3.1",
-    "@rcompat/string": "^0.10.0",
+    "@rcompat/assert": "^0.5.0",
+    "@rcompat/string": "^0.12.0",
     "marked": "^16.2.1",
     "pema": "workspace:^"
+  },
+  "devDependencies": {
+    "@rcompat/type": "^0.8.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"
   },
-  "type": "module",
   "imports": {
     "#*": {
       "apekit": "./src/private/*.ts",

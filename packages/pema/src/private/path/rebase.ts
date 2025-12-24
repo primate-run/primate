@@ -1,4 +1,4 @@
-import type JSONPointer from "@rcompat/type/JSONPointer";
+import type { JSONPointer } from "@rcompat/type";
 
 // Rebase a relative pointer under a base (rel must be "" or start with "/")
 export default function rebase(base: JSONPointer, rel: JSONPointer) {

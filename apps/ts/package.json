@@ -1,6 +1,6 @@
 {
   "name": "@primate/app/ts",
- "description": "Primate TypeScript template",
+  "description": "Primate TypeScript template",
   "type": "module",
   "scripts": {
     "start": "npx primate",
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@primate/html": "workspace:^",
-    "@rcompat/fs": "^0.22.3",
+    "@rcompat/fs": "^0.24.2",
     "pema": "workspace:^",
     "primate": "workspace:^"
   }

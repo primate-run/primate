@@ -1,17 +1,10 @@
 import typemap from "#typemap";
-import Database from "@primate/core/Database";
-import type As from "@primate/core/database/As";
-import type DataDict from "@primate/core/database/DataDict";
-import type Sort from "@primate/core/database/Sort";
-import type TypeMap from "@primate/core/database/TypeMap";
-import type Types from "@primate/core/database/Types";
+import type { As, DataDict, Sort, TypeMap } from "@primate/core/database";
+import Database from "@primate/core/database/Database";
 import assert from "@rcompat/assert";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import { surrealdbNodeEngines } from "@surrealdb/node";
-import pema from "pema";
-import type StoreSchema from "pema/StoreSchema";
-import string from "pema/string";
-import uint from "pema/uint";
+import p, { type StoreSchema } from "pema";
 import type { QueryParameters } from "surrealdb";
 import Surreal from "surrealdb";
 
@@ -19,14 +12,14 @@ type Count = { count: number }[];
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const schema = pema({
-  database: string,
-  host: string.default("http://localhost"),
-  namespace: string.optional(),
-  password: string.optional(),
-  path: string.default("/rpc"),
-  port: uint.port().default(8000),
-  username: string.optional(),
+const schema = p({
+  database: p.string,
+  host: p.string.default("http://localhost"),
+  namespace: p.string.optional(),
+  password: p.string.optional(),
+  path: p.string.default("/rpc"),
+  port: p.uint.port().default(8000),
+  username: p.string.optional(),
 });
 
 export default class SurrealDBDatabase extends Database {
@@ -81,7 +74,7 @@ export default class SurrealDBDatabase extends Database {
     await (await this.#get()).close();
   }
 
-  toWhere(types: Types, criteria: DataDict) {
+  toWhere(types: As["types"], criteria: DataDict) {
     const base = super.toWhere(types, criteria);
     if (!base) return base;
 
@@ -140,9 +133,11 @@ export default class SurrealDBDatabase extends Database {
   }
 
   async create<O extends Dict>(as: As, args: { record: DataDict }) {
-    const table = this.table(as);
+    assert.dict(args.record, "empty record");
+
     const columns = Object.keys(args.record);
     const binds = await this.bind(as.types, args.record);
+    const table = this.table(as);
     const payload = columns.length > 0
       ? `(${columns.map(c => this.ident(c)).join(", ")}) VALUES
          (${columns.map(c => `$${c}`).join(", ")})`
@@ -169,23 +164,26 @@ export default class SurrealDBDatabase extends Database {
     limit?: number;
     sort?: Sort;
   }) {
+    assert.dict(args.criteria);
+    assert.maybe.true(args.count);
+
     const table = this.table(as);
     const binds = await this.bindCriteria(as.types, args.criteria);
     const where = this.toWhere(as.types, args.criteria);
 
-    if (args.count === true) {
+    if (args.count ?? false) {
       const query = `SELECT count() AS count FROM ${table} ${where} GROUP ALL`;
       const [{ result }] = await this.#query<Count[]>(query, binds);
       const rows = result as Count;
       return rows[0]?.count ?? 0;
     }
 
-    const sortKeys = Object.keys(args.sort ?? {});
+    const sort_keys = Object.keys(args.sort ?? {});
     this.toSelect(as.types, args.fields);
     const projection = args.fields ?? [];
     const fields = projection.length === 0
       ? undefined
-      : Array.from(new Set([...projection, ...sortKeys]));
+      : Array.from(new Set([...projection, ...sort_keys]));
 
     const select = this.toSelect(as.types, fields);
     const sort = this.toSort(as.types, args.sort);
@@ -207,32 +205,30 @@ export default class SurrealDBDatabase extends Database {
     return records;
   }
 
-  async update(as: As, args: { changes: DataDict; criteria: DataDict }) {
-    assert(Object.keys(args.criteria).length > 0, "update: no criteria");
+  async update(as: As, args: { changeset: DataDict; criteria: DataDict }) {
+    assert.nonempty(args.changeset, "empty changeset");
+    assert.nonempty(args.criteria, "empty criteria");
 
     const table = this.table(as);
     const where = this.toWhere(as.types, args.criteria);
-    const criteria = await this.bindCriteria(as.types, args.criteria);
-    const { set, binds } = await this.toSet(as.types, args.changes);
+    const criteria_binds = await this.bindCriteria(as.types, args.criteria);
+    const { set, binds } = await this.toSet(as.types, args.changeset);
     const set_binds = Object.fromEntries(
       Object.entries(binds).map(([k, v]) => [k, v === null ? undefined : v]),
     );
-
     const query = `UPDATE ${table} ${set} ${where}`;
-
     const [{ result }] = await this.#query<unknown[][]>(query,
-      { ...criteria, ...set_binds });
+      { ...criteria_binds, ...set_binds });
 
     return result.length;
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
-    assert(Object.keys(args.criteria).length > 0, "delete: no criteria");
+    assert.nonempty(args.criteria, "empty criteria");
 
     const table = this.table(as);
     const where = this.toWhere(as.types, args.criteria);
     const binds = await this.bindCriteria(as.types, args.criteria);
-
     const query = `DELETE FROM ${table} ${where} RETURN diff`;
     const [{ result }] = await this.#query<unknown[][]>(query, binds);
 

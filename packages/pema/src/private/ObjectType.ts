@@ -5,8 +5,7 @@ import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
 import next from "#path/next";
 import type Serialized from "#Serialized";
-import type Dict from "@rcompat/type/Dict";
-import type Newable from "@rcompat/type/Newable";
+import type { Dict, Newable } from "@rcompat/type";
 
 export default class ObjectType<P extends Dict<Parsed<unknown>>>
   extends GenericType<P, { [K in keyof P]: P[K]["infer"] }, "ObjectType"> {
@@ -34,9 +33,9 @@ export default class ObjectType<P extends Dict<Parsed<unknown>>>
     return undefined as InferInputSchema<P>;
   }
 
-  #derive(next: ParseOptions): this {
+  #derive(options: ParseOptions): this {
     const Constructor = this.constructor as Newable<this>;
-    return new Constructor(this.#properties, { ...this.#options, ...next });
+    return new Constructor(this.#properties, { ...this.#options, ...options });
   }
 
   get coerce() {

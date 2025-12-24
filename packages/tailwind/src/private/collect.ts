@@ -20,9 +20,10 @@ export default async function collect(
 ): Promise<string[]> {
   const regexes = patterns.map(p => glob_to_regex(p));
 
-  return (await root.collect((file: FileRef) => {
-    const relative = file.debase(root, "/").path;
-
-    return regexes.some(regex => regex.test(relative));
+  return (await root.list({
+    filter: file => {
+      const relative = file.debase(root, "/").path;
+      return regexes.some(regex => regex.test(relative));
+    },
   })).map(f => f.path);
 }

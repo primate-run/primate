@@ -1,20 +1,21 @@
 {
   "name": "@primate/solid",
   "version": "0.7.1",
-  "description": "Primate Solid frontend",
+  "description": "SolidJS for Primate",
   "homepage": "https://primate.run/docs/frontend/solid",
   "bugs": "https://github.com/primate-run/primate/issues",
   "license": "MIT",
-  "files": [
-    "/lib/**/*.js",
-    "/lib/**/*.d.ts",
-    "!/**/*.spec.*"
-  ],
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/primate-run/primate",
     "directory": "packages/solid"
   },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
+  ],
   "scripts": {
     "build": "npm run clean && tsc",
     "postbuild": "node scripts/compile-jsx.js",
@@ -23,20 +24,20 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
+    "@rcompat/type": "^0.8.0",
     "@types/babel__core": "^7.20.5"
   },
   "dependencies": {
-    "@babel/core": "^7.28.4",
+    "@babel/core": "^7.28.5",
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.22.3",
-    "@rcompat/runtime": "^0.6.0",
+    "@rcompat/fs": "^0.24.2",
+    "@rcompat/runtime": "^0.8.0",
     "babel-preset-solid": "^1.9.10"
   },
   "peerDependencies": {
     "primate": "workspace:^",
     "solid-js": "1"
   },
-  "type": "module",
   "imports": {
     "#*": {
       "apekit": "./src/private/*.ts",

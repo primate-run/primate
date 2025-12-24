@@ -1,6 +1,6 @@
 import ParseError from "#ParseError";
 import type Validator from "#Validator";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 export default function values<T>(input: Dict<T>): Validator<T> {
   const allowed = Object.values(input).map(v => String(v)).join(", ");

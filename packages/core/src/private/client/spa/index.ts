@@ -1,12 +1,11 @@
 import type ClientData from "#client/Data";
 import storage from "#client/spa/storage";
-import type Dict from "@rcompat/type/Dict";
+import MIME from "@rcompat/http/mime";
+import type { Dict } from "@rcompat/type";
 
-const APPLICATION_JSON = "application/json";
-const MULTIPART_FORM_DATA = "multipart/form-data";
 const { document } = globalThis;
 const headers = {
-  Accept: APPLICATION_JSON,
+  Accept: MIME.APPLICATION_JSON,
 };
 
 const get_by_id_or_name = (name: string) =>
@@ -23,7 +22,8 @@ const scroll_hash = (hash: string) => {
   }
 };
 
-type Updater<T extends Dict> = (json: ClientData<T>, after?: () => void) => void;
+type Updater<T extends Dict> = (json: ClientData<T>, after?: () => void) =>
+  void;
 
 const sameorigin = (url: URL) => url.origin === globalThis.location.origin;
 
@@ -73,7 +73,7 @@ async function refetch(
 function is_json(response: Response) {
   const raw = response.headers.get("content-type") || "";
   const mime = raw.split(";")[0].trim();
-  return mime === APPLICATION_JSON;
+  return mime === MIME.APPLICATION_JSON;
 };
 
 const handle = async (response: Response, updater: Updater<any>) => {
@@ -227,7 +227,7 @@ export default <T extends Dict>(updater: Updater<T>) => {
     const action = target.action ?? globalThis.location.pathname;
     const url = new URL(action);
     const data = new FormData(target);
-    const form = enctype === MULTIPART_FORM_DATA
+    const form = enctype === MIME.MULTIPART_FORM_DATA
       ? data
       : new URLSearchParams(data as any);
     submit(url.pathname, form, target.method, updater);

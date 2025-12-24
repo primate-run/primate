@@ -6,7 +6,7 @@ import log from "@primate/core/log";
 import type NextBuild from "@primate/core/NextBuild";
 import assert from "@rcompat/assert";
 import FileRef from "@rcompat/fs/FileRef";
-import execute from "@rcompat/stdio/execute";
+import io from "@rcompat/io";
 
 const PACKAGE = "primate-run";
 const [MAJOR, MINOR] = TAG.split(".").map(Number);
@@ -28,13 +28,13 @@ function pkg_mismatch(major: number, minor: number) {
 async function show_package(): Promise<string | null> {
   const str0 = () => "";
 
-  let out = await execute(`pip show ${PACKAGE} 2>/dev/null`).catch(str0);
+  let out = await io.run(`pip show ${PACKAGE} 2>/dev/null`).catch(str0);
   if (out.trim()) return out;
 
-  out = await execute(`uv pip show ${PACKAGE} 2>/dev/null`).catch(str0);
+  out = await io.run(`uv pip show ${PACKAGE} 2>/dev/null`).catch(str0);
   if (out.trim()) return out;
 
-  out = await execute(`python -m pip show ${PACKAGE} 2>/dev/null`).catch(str0);
+  out = await io.run(`python -m pip show ${PACKAGE} 2>/dev/null`).catch(str0);
   if (out.trim()) return out;
 
   return null;
@@ -69,7 +69,8 @@ export default class Default extends Runtime {
     const packages_str = JSON.stringify(packages);
 
     app.bind(this.fileExtension, async (file, { context }) => {
-      assert(context === "routes", "python: only route files are supported");
+      assert.true(context === "routes",
+        "python: only route files are supported");
       const relative = file.debase(app.path.routes).path.replace(/^\//, "");
       const source = await file.text();
 

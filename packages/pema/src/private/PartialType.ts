@@ -10,8 +10,8 @@ import join from "#path/join";
 import next from "#path/next";
 import type DefaultTrait from "#trait/Default";
 import VirtualType from "#VirtualType";
-import isDict from "@rcompat/is/dict";
-import type Dict from "@rcompat/type/Dict";
+import is from "@rcompat/is";
+import type { Dict } from "@rcompat/type";
 
 type InferPartial<D extends Partialable> = {
   -readonly [K in keyof D]?: NonNullable<Infer<D[K]>>;
@@ -40,11 +40,9 @@ export default class PartialType<D extends Partialable>
   }
 
   parse(x: unknown, options: ParseOptions = {}): InferPartial<D> {
-    if (!isDict(x)) {
-      throw new ParseError(error("object", x, options));
-    }
+    if (!is.dict(x)) throw new ParseError(error("object", x, options));
 
-    const input: Dict = x as Dict;
+    const input = x;
     const out: Dict = {};
     const issues: ParseIssue[] = [];
 
@@ -58,9 +56,7 @@ export default class PartialType<D extends Partialable>
       } catch (e) {
         if (e instanceof ParseError) {
           // child already rebased to /<key> via nextOptions -> just collect
-          if (e.issues && e.issues.length) {
-            issues.push(...e.issues);
-          }
+          if (e.issues && e.issues.length) issues.push(...e.issues);
         } else {
           // wrap non-ParseError into a properly-pathed issue at /<key>
           const message = e && typeof (e as any).message === "string"
@@ -75,9 +71,7 @@ export default class PartialType<D extends Partialable>
       }
     }
 
-    if (issues.length > 0) {
-      throw new ParseError(issues);
-    }
+    if (issues.length > 0) throw new ParseError(issues);
 
     return out as unknown as InferPartial<D>;
   }

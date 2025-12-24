@@ -2,8 +2,6 @@ import type BuildApp from "#build/App";
 import FileRef from "@rcompat/fs/FileRef";
 import type { Plugin } from "esbuild";
 
-const jts_re = /\.[jt]s$/;
-
 export default function plugin_server_stores(app: BuildApp): Plugin {
   const base = app.path.stores;
   return {
@@ -15,7 +13,7 @@ export default function plugin_server_stores(app: BuildApp): Plugin {
 
       build.onLoad({ filter: /.*/, namespace: "primate-stores" }, async () => {
         const stores = await Promise.all(
-          (await base.collect(file => jts_re.test(file.path)))
+          (await base.list({ filter: /\.[jt]s$/ }))
             .map(async path => `${path}`.replace(base.toString(), _ => "")),
         );
 

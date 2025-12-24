@@ -8,7 +8,7 @@ import type NextBuild from "@primate/core/NextBuild";
 import verbs from "@primate/core/request/verbs";
 import assert from "@rcompat/assert";
 import type FileRef from "@rcompat/fs/FileRef";
-import execute from "@rcompat/stdio/execute";
+import io from "@rcompat/io";
 
 const GEM = "primate-run";
 const [MAJOR, MINOR] = TAG.split(".").map(Number);
@@ -41,7 +41,7 @@ async function gem_version(root: FileRef): Promise<string | void> {
     `BUNDLE_GEMFILE="${gemfile}" ` +
     `bundle exec ruby -e 'begin; puts Gem::Specification.find_by_name("${GEM}").version; rescue Gem::LoadError; exit 2; end'`;
   try {
-    const out = (await execute(cmd)).trim();
+    const out = (await io.run(cmd)).trim();
     if (out !== "") return out;
   } catch { }
 }
@@ -61,7 +61,7 @@ export default class Default extends Runtime {
     await check_version(app.root);
 
     app.bind(this.fileExtension, async (file, { context }) => {
-      assert(context === "routes", "ruby: only route files are supported");
+      assert.true(context === "routes", "ruby: only route files are supported");
 
       const source = await file.text();
       const routes = detect_routes(source);

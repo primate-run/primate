@@ -11,7 +11,7 @@ const decodeOption = <T>(
   source: BufferView,
 ): T | undefined => {
   const option = source.readU32();
-  assert(
+  assert.true(
     option === NONE || option === SOME,
     "Error decoding option, invalid option value.",
   );

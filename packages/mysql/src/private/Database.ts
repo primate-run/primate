@@ -1,27 +1,22 @@
 import typemap from "#typemap";
-import Database from "@primate/core/Database";
-import type As from "@primate/core/database/As";
-import type DataDict from "@primate/core/database/DataDict";
-import type TypeMap from "@primate/core/database/TypeMap";
+import type { As, DataDict, TypeMap } from "@primate/core/database";
+import Database from "@primate/core/database/Database";
 import assert from "@rcompat/assert";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import type {
   Connection, Pool, ResultSetHeader as Result, RowDataPacket as RowData,
 } from "mysql2/promise";
 import mysql from "mysql2/promise";
-import pema from "pema";
-import type StoreSchema from "pema/StoreSchema";
-import string from "pema/string";
-import uint from "pema/uint";
+import p, { type StoreSchema } from "pema";
 
 type Binds = Parameters<Connection["query"]>[1];
 
-const schema = pema({
-  database: string,
-  host: string.default("localhost"),
-  password: string.optional(),
-  port: uint.port().default(3306),
-  username: string.optional(),
+const schema = p({
+  database: p.string,
+  host: p.string.default("localhost"),
+  password: p.string.optional(),
+  port: p.uint.port().default(3306),
+  username: p.string.optional(),
 });
 
 export default class MySQLDatabase extends Database {
@@ -108,6 +103,8 @@ export default class MySQLDatabase extends Database {
   }
 
   async create<O extends Dict>(as: As, args: { record: DataDict }) {
+    assert.dict(args.record, "empty record");
+
     const keys = Object.keys(args.record);
     const columns = keys.map(k => this.ident(k));
     const values = keys.map(key => `:${key}`).join(",");
@@ -117,7 +114,6 @@ export default class MySQLDatabase extends Database {
 
     return this.#with(async connection => {
       const [{ insertId }] = await connection.query<Result>(query, binds);
-
       return this.unbind(as.types, { ...args.record, id: insertId }) as O;
     }) as Promise<O>;
   }
@@ -139,10 +135,13 @@ export default class MySQLDatabase extends Database {
     limit?: number;
     sort?: Dict<"asc" | "desc">;
   }) {
+    assert.dict(args.criteria);
+    assert.maybe.true(args.count);
+
     const where = this.toWhere(as.types, args.criteria);
     const binds = await this.bindCriteria(as.types, args.criteria) as Binds;
 
-    if (args.count === true) {
+    if (args.count ?? false) {
       return this.#with(async connection => {
         const query = `SELECT COUNT(*) AS n FROM ${this.table(as)} ${where}`;
         const [[{ n }]] = await connection.query<RowData[]>(query, binds);
@@ -158,18 +157,20 @@ export default class MySQLDatabase extends Database {
 
     return this.#with(async connection => {
       const [records] = await connection.query<RowData[]>(query, binds);
-
       return records.map(record => this.unbind(as.types, record));
     });
   }
 
-  async update(as: As, args: { changes: DataDict; criteria: DataDict }) {
-    assert(Object.keys(args.criteria).length > 0, "update: no criteria");
+  async update(as: As, args: { changeset: DataDict; criteria: DataDict }) {
+    assert.nonempty(args.changeset, "empty changeset");
+    assert.nonempty(args.criteria, "empty criteria");
 
     const where = this.toWhere(as.types, args.criteria);
-    const criteria = await this.bindCriteria(as.types, args.criteria);
-    const { set, binds: set_binds } = await this.toSet(as.types, args.changes);
-    const binds = { ...criteria, ...set_binds } as Binds;
+    const criteria_binds = await this.bindCriteria(as.types, args.criteria);
+    const {
+      set, binds: changeset_binds,
+    } = await this.toSet(as.types, args.changeset);
+    const binds = { ...criteria_binds, ...changeset_binds } as Binds;
     const query = `
       UPDATE ${this.table(as)}
       ${set}
@@ -183,13 +184,12 @@ export default class MySQLDatabase extends Database {
 
     return this.#with<number>(async connection => {
       const [{ affectedRows }] = await connection.query<Result>(query, binds);
-
       return affectedRows;
     });
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
-    assert(Object.keys(args.criteria).length > 0, "delete: no criteria");
+    assert.nonempty(args.criteria, "empty criteria");
 
     const where = this.toWhere(as.types, args.criteria);
     const binds = await this.bindCriteria(as.types, args.criteria) as Binds;
@@ -197,7 +197,6 @@ export default class MySQLDatabase extends Database {
 
     return this.#with<number>(async connection => {
       const [{ affectedRows }] = await connection.query<Result>(query, binds);
-
       return affectedRows;
     });
   };

@@ -5,7 +5,7 @@ import log from "#log";
 import resolve_paths from "#paths";
 import s_layout_depth from "#symbol/layout-depth";
 import type FileRef from "@rcompat/fs/FileRef";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
 
 type PluginType = "server" | "client";

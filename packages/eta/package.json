@@ -1,20 +1,21 @@
 {
   "name": "@primate/eta",
   "version": "0.4.0",
-  "description": "Primate Eta frontend",
+  "description": "Eta for Primate",
   "homepage": "https://primate.run/docs/frontend/eta",
   "bugs": "https://github.com/primate-run/primate/issues",
+  "type": "module",
   "license": "MIT",
-  "files": [
-    "/lib/**/*.js",
-    "/lib/**/*.d.ts",
-    "!/**/*.spec.*"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/primate-run/primate",
     "directory": "packages/eta"
   },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
+  ],
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
@@ -23,13 +24,11 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.3.1",
-    "eta": "^4.0.1"
+    "eta": "^4.5.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"
   },
-  "type": "module",
   "imports": {
     "#*": {
       "apekit": "./src/private/*.ts",

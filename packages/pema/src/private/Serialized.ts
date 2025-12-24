@@ -1,5 +1,4 @@
-import type Dict from "@rcompat/type/Dict";
-import type JSONValue from "@rcompat/type/JSONValue";
+import type { Dict, JSONValue } from "@rcompat/type";
 
 type DT<D extends string = string> = { datatype?: D };
 

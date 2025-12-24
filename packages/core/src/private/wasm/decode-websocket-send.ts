@@ -11,7 +11,7 @@ export default function decodeWebsocketSend(...source: BufferViewSource) {
   const bufferView = new BufferView(...source);
   const id = bufferView.readU64();
   const kind = bufferView.readU32();
-  assert(
+  assert.true(
     kind === WEBSOCKET_MESSAGE_KIND_STRING
     || kind === WEBSOCKET_MESSAGE_KIND_BYTES,
     "Invalid websocket message kind.",

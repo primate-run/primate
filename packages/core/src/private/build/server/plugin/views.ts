@@ -11,7 +11,7 @@ export default function plugin_server_views(app: BuildApp): Plugin {
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-views" }, async () => {
-        const files = await app.path.views.collect();
+        const files = await app.path.views.list();
         const roots = Object.keys(app.roots);
         const contents = `
         const view = [];

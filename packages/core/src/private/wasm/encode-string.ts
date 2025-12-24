@@ -1,5 +1,5 @@
 import type BufferView from "@rcompat/bufferview";
-import utf8size from "@rcompat/string/utf8size";
+import utf8 from "@rcompat/string/utf8";
 
 /**
  * Encoding a string has the following format:
@@ -12,6 +12,5 @@ import utf8size from "@rcompat/string/utf8size";
  * @returns The next offset.
  */
 export default function encodeString(string: string, view: BufferView) {
-  view.writeU32(utf8size(string))
-    .write(string);
+  view.writeU32(utf8.size(string)).write(string);
 };

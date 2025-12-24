@@ -1,7 +1,7 @@
 import type ServeApp from "#serve/App";
 import Streamable from "@rcompat/fs/Streamable";
 import type StreamSource from "@rcompat/fs/StreamSource";
-import mime from "@rcompat/http/mime/application/octet-stream";
+import MIME from "@rcompat/http/mime";
 
 const encodeRFC5987 = (s: string) =>
   encodeURIComponent(s).replace(/['()*]/g, c =>
@@ -39,7 +39,7 @@ function toContentDisposition(filename: string) {
  */
 export default function binary(source: StreamSource, init?: ResponseInit) {
   return (app: ServeApp) => {
-    const { headers, ...rest } = app.media(mime, init);
+    const { headers, ...rest } = app.media(MIME.APPLICATION_OCTET_STREAM, init);
     const name = Streamable.named(source) ? source.name : "default.bin";
     const out = new Headers(headers);
     out.set("Content-Disposition", toContentDisposition(name));

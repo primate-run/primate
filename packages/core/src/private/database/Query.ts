@@ -1,5 +1,5 @@
 import type Schema from "#database/Schema";
-import type StoreSchema from "pema/StoreSchema";
+import type { StoreSchema } from "pema";
 
 type X<T> = {
   [K in keyof T]: T[K]

@@ -1,20 +1,21 @@
 {
   "name": "@primate/postgresql",
   "version": "0.4.0",
-  "description": "Primate PostgreSQL database",
+  "description": "PostgreSQL databases for Primate",
   "homepage": "https://primate.run/docs/database/postgresql",
   "bugs": "https://github.com/primate-run/primate/issues",
+  "type": "module",
   "license": "MIT",
-  "files": [
-    "/lib/**/*.js",
-    "/lib/**/*.d.ts",
-    "!/**/*.spec.*"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/primate-run/primate",
     "directory": "packages/postgresql"
   },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
+  ],
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
@@ -24,12 +25,16 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.3.1",
-    "@rcompat/record": "^0.9.1",
+    "@rcompat/assert": "^0.5.0",
     "pema": "workspace:",
     "postgres": "^3.4.7"
   },
-  "type": "module",
+  "devDependencies": {
+    "@rcompat/type": "^0.8.0"
+  },
+  "peerDependencies": {
+    "primate": "workspace:^"
+  },
   "imports": {
     "#*": {
       "apekit": "./src/private/*.ts",

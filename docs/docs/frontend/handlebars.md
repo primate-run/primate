@@ -44,7 +44,7 @@ Serve the template from a route:
 
 ```ts
 // routes/posts.ts
-import response from "primate/response/response";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(() => {
@@ -65,7 +65,7 @@ variables.
 Pass props from a route:
 
 ```ts
-import response from "primate/response/response";
+import response from "primate/response";
 import route from "primate/route";
 
 route.get(() => {

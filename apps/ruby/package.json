@@ -14,8 +14,9 @@
   "dependencies": {
     "@primate/ruby": "workspace:^",
     "@primate/svelte": "workspace:^",
-    "@ruby/head-wasm-wasi": "^2.7.1",
+    "@ruby/head-wasm-wasi": "^2.7.2",
+    "pema": "workspace:^",
     "primate": "workspace:^",
-    "svelte": "^5.43.15"
+    "svelte": "^5.46.0"
   }
 }

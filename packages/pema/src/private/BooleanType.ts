@@ -1,7 +1,7 @@
 import CoerceKey from "#CoerceKey";
 import PrimitiveType from "#PrimitiveType";
 import Storeable from "#Storeable";
-import boolish from "@rcompat/is/boolish";
+import is from "@rcompat/is";
 
 export default class BooleanType
   extends PrimitiveType<boolean, "BooleanType">
@@ -16,7 +16,7 @@ export default class BooleanType
   }
 
   [CoerceKey](x: unknown) {
-    return boolish(x) ? x === "true" : x;
+    return is.boolish(x) ? x === "true" : x;
   }
 
   toJSON() {

@@ -26,24 +26,19 @@ import DevModule from "#serve/module/Dev";
 import HandleModule from "#serve/module/Handle";
 import SessionModule from "#session/SessionModule";
 import tags from "#tags";
-import is from "@rcompat/assert/is";
+import assert from "@rcompat/assert";
+import entries from "@rcompat/dict/entries";
 import FileRef from "@rcompat/fs/FileRef";
 import FileRouter from "@rcompat/fs/FileRouter";
 import type Actions from "@rcompat/http/Actions";
 import type Conf from "@rcompat/http/Conf";
-import resolve from "@rcompat/http/mime/extension/resolve";
-import TEXT_HTML from "@rcompat/http/mime/text/html";
+import MIME from "@rcompat/http/mime";
 import serve from "@rcompat/http/serve";
 import type Server from "@rcompat/http/Server";
 import Status from "@rcompat/http/Status";
-import entries from "@rcompat/record/entries";
-import utf8ByteLength from "@rcompat/string/utf8-bytelength";
-import type Dict from "@rcompat/type/Dict";
-import type PartialDict from "@rcompat/type/PartialDict";
-import pema from "pema";
-import record from "pema/record";
-import string from "pema/string";
-import uint from "pema/uint";
+import utf8 from "@rcompat/string/utf8";
+import type { Dict, PartialDict } from "@rcompat/type";
+import p from "pema";
 
 interface FullViewOptions extends ViewOptions {
   body: string;
@@ -59,7 +54,8 @@ const deslash = (url: string) => url.replaceAll(/\/{2,}/gu, _ => "/");
 
 const normalize = (pathname: string) => deroot(deslash(pathname));
 
-const to_csp = (config_csp: Entry<CSP>[], assets: CSP, override: CSP) => config_csp
+const to_csp = (config_csp: Entry<CSP>[], assets: CSP, override: CSP) =>
+  config_csp
   // only csp entries in the config will be enriched
   .map<Entry<CSP>>(([key, directives]) =>
     // enrich with application assets
@@ -163,7 +159,9 @@ export default class ServeApp extends App {
     this.#builtins = {
       dev: init.mode === "development" ? new DevModule(this) : undefined,
       handle: new HandleModule(this),
-      session: init.session_config ? new SessionModule(this.secure, init.session_config) : undefined,
+      session: init.session_config
+        ? new SessionModule(this.secure, init.session_config)
+        : undefined,
       i18n: init.i18n_config ? new I18NModule(init.i18n_config) : undefined,
     };
   };
@@ -233,7 +231,7 @@ export default class ServeApp extends App {
 
   render(content: Omit<FullViewOptions, keyof ResponseInit>) {
     const { body, head, page, partial, placeholders = {} } = content;
-    ["body", "head"].forEach(key => is(placeholders[key]).undefined());
+    ["body", "head"].forEach(key => assert.undefined(placeholders[key]));
 
     return partial ? body : Object.entries(placeholders)
       // replace given placeholders, defaulting to ""
@@ -247,18 +245,18 @@ export default class ServeApp extends App {
   }
 
   body_length(body: BodyInit | null): number {
-    return typeof body === "string" ? utf8ByteLength(body) : 0;
+    return typeof body === "string" ? utf8.size(body) : 0;
   }
 
   respond(body: BodyInit | null, init?: ResponseInit) {
-    const { headers, status } = pema({
-      headers: record(string, string),
-      status: uint.values(Status).default(Status.OK),
+    const { headers, status } = p({
+      headers: p.record(p.string, p.string),
+      status: p.uint.values(Status).default(Status.OK),
     }).parse(init);
     const body_length = this.body_length(body);
     return new Response(body, {
       headers: {
-        "Content-Type": TEXT_HTML,
+        "Content-Type": MIME.TEXT_HTML,
         ...this.headers(),
         ...body_length ? { ...headers, "Content-Length": String(body_length) } : headers,
       }, status: status as number,
@@ -318,8 +316,8 @@ export default class ServeApp extends App {
     if (await file.exists() && await file.isFile()) {
       return new Response(file.stream(), {
         headers: {
-          "Content-Type": resolve(file.name),
-          "Content-Length": String(await file.byteLength()),
+          "Content-Type": MIME.resolve(file.name),
+          "Content-Length": String(await file.size()),
         },
         status: Status.OK,
       });
@@ -384,8 +382,9 @@ export default class ServeApp extends App {
     } else {
       const client_dir = this.root.join(location.client);
       const files = await client_dir.exists()
-        ? await client_dir.collect(f => f.extension === ".js"
-          || f.extension === ".css")
+        ? await client_dir.list({
+          filter: file => file.extension === ".js" || file.extension === ".css",
+        })
         : [];
 
       this.#assets = await Promise.all(

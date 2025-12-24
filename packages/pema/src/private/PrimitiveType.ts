@@ -6,8 +6,7 @@ import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import Type from "#Type";
 import type Validator from "#Validator";
-import type JSONPointer from "@rcompat/type/JSONPointer";
-import type Newable from "@rcompat/type/Newable";
+import type { JSONPointer, Newable } from "@rcompat/type";
 
 type Next<T> = {
   options?: ParseOptions;

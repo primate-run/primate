@@ -11,8 +11,7 @@ import Formatter from "#i18n/Formatter";
 import sInternal from "#i18n/symbol/internal";
 import type TypeOf from "#i18n/TypeOf";
 import sConfig from "#symbol/config";
-import type Dict from "@rcompat/type/Dict";
-import type MaybePromise from "@rcompat/type/MaybePromise";
+import type { Dict, MaybePromise } from "@rcompat/type";
 
 type EntryOf<Body extends string> =
   Body extends `${infer Name}:${infer Spec}`

@@ -9,8 +9,8 @@ import ParsedKey from "#ParsedKey";
 import type Schema from "#Schema";
 import TupleType from "#TupleType";
 import UndefinedType from "#UndefinedType";
-import newable from "@rcompat/is/newable";
-import type Dict from "@rcompat/type/Dict";
+import is from "@rcompat/is";
+import type { Dict } from "@rcompat/type";
 
 function isParsed(x: unknown): x is Parsed<unknown> {
   return !!x && typeof x === "object" && ParsedKey in (x as any);
@@ -23,16 +23,13 @@ function isPlain(x: unknown): x is Dict {
 
 export default function normalize<const T extends Schema>(x: T): NormalizeSchema<T> {
   if (isParsed(x)) return x as never;
-
   if (x === null) return new NullType() as never;
   if (x === undefined) return new UndefinedType() as never;
 
   if (typeof x === "string" || typeof x === "number" || typeof x === "boolean")
     return new LiteralType(x) as never;
 
-  if (newable(x)) {
-    return new ConstructorType(x) as never;
-  }
+  if (is.newable(x)) return new ConstructorType(x) as never;
 
   if (Array.isArray(x)) {
     return x.length === 1

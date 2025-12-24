@@ -2,11 +2,12 @@ import normalize from "#normalize";
 import type NormalizeSchema from "#NormalizeSchema";
 import ObjectType from "#ObjectType";
 import type Schema from "#Schema";
-import type Dict from "@rcompat/type/Dict";
-import type EO from "@rcompat/type/EO";
+import type { Dict, EmptyObject } from "@rcompat/type";
 
 type NormalizeProps<S extends Dict<Schema>> =
-  keyof S extends never ? EO : { [K in keyof S]: NormalizeSchema<S[K]> };
+  keyof S extends never
+  ? EmptyObject
+  : { [K in keyof S]: NormalizeSchema<S[K]> };
 
 export default function object<P extends Dict<Schema>>(properties: P):
   ObjectType<NormalizeProps<P>>;

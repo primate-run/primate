@@ -1,6 +1,6 @@
 import response from "#response";
-import identity from "@rcompat/function/identity";
-import mime from "@rcompat/http/mime/text/plain";
+import fn from "@rcompat/fn";
+import MIME from "@rcompat/http/mime";
 
 /**
  * Return a plaintext response
@@ -8,4 +8,4 @@ import mime from "@rcompat/http/mime/text/plain";
  * @param options response options
  * @return Response rendering function
  */
-export default response<string>(mime, identity);
+export default response<string>(MIME.TEXT_PLAIN, fn.identity);

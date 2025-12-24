@@ -1,6 +1,6 @@
 import FrontendModule from "@primate/core/frontend/Module";
 import type Render from "@primate/core/frontend/Render";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 import { createElement, type FunctionComponent } from "react";
 import { renderToString } from "react-dom/server";
 

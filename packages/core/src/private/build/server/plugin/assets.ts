@@ -1,7 +1,7 @@
 import type BuildApp from "#build/App";
 import location from "#location";
-import resolve from "@rcompat/http/mime/extension/resolve";
-import type Dict from "@rcompat/type/Dict";
+import MIME from "@rcompat/http/mime";
+import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
 
 function bytes2base64(bytes: Uint8Array): string {
@@ -24,7 +24,7 @@ export default function plugin_server_assets(app: BuildApp): Plugin {
 
       build.onLoad({ filter: /.*/, namespace: "primate-assets" }, async () => {
         if (app.mode === "production") {
-          const client_files = await app.runpath(location.client).collect();
+          const client_files = await app.runpath(location.client).list();
 
           const client_assets: Dict<{ mime: string; data: string }> = {};
           for (const file of client_files) {
@@ -32,15 +32,13 @@ export default function plugin_server_assets(app: BuildApp): Plugin {
             const bytes = await file.bytes();
             const base64 = bytes2base64(bytes);
             client_assets[pathname] = {
-              mime: resolve(file.name),
+              mime: MIME.resolve(file.name),
               data: base64,
             };
           }
 
           const static_dir = app.root.join(location.static);
-          const static_files = await static_dir.exists()
-            ? await static_dir.collect()
-            : [];
+          const static_files = await static_dir.list();
 
           const static_assets: Dict<{ mime: string; data: string }> = {};
           for (const file of static_files) {
@@ -48,7 +46,7 @@ export default function plugin_server_assets(app: BuildApp): Plugin {
             const bytes = await file.bytes();
             const base64 = bytes2base64(bytes);
             static_assets[pathname] = {
-              mime: resolve(file.name),
+              mime: MIME.resolve(file.name),
               data: base64,
             };
           }

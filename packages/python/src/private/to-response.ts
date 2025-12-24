@@ -1,12 +1,13 @@
 import HANDLER_PROPERTY from "#handler-property";
 import unwrap from "#unwrap";
-import error from "@primate/core/response/error";
-import redirect from "@primate/core/response/redirect";
-import type ResponseFunction from "@primate/core/response/ResponseFunction";
-import type ResponseLike from "@primate/core/response/ResponseLike";
-import view from "@primate/core/response/view";
-import type Dict from "@rcompat/type/Dict";
+import response, {
+  type ResponseFunction,
+  type ResponseLike,
+} from "@primate/core/response";
+import type { Dict } from "@rcompat/type";
 import type { PyProxy } from "pyodide/ffi";
+
+const { error, redirect, view } = response;
 
 const handlers = { error, redirect, view };
 type Handler = keyof typeof handlers;

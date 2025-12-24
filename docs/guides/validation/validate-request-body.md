@@ -16,11 +16,12 @@ Create validation schema.
 
 ```ts
 // routes/user.ts
-import pema from "pema";
-import string from "pema/string";
-import email from "pema/email";
+import p from "pema";
 
-const UserSchema = pema({ name: string.min(1), email: string.email() });
+const UserSchema = p({
+  name: p.string.min(1),
+  email: p.string.email() ,
+});
 ```
 
 ---
@@ -31,9 +32,13 @@ Parse and validate body.
 
 ```ts
 // routes/user.ts
+import p from "pema";
 import route from "primate/route";
 
-const UserSchema = pema({ name: string.min(1), email: string.email() });
+const UserSchema = p({
+  name: p.string.min(1),
+  email: p.string.email(),
+});
 
 route.post(request => {
   const user = UserSchema.parse(request.body);
@@ -48,10 +53,14 @@ route.post(request => {
 Catch and respond to errors.
 
 ```ts
+import p from "pema";
 import route from "primate/route";
 import response from "primate/response";
 
-const UserSchema = pema({ name: string.min(1), email: string.email() });
+const UserSchema = p({
+  name: p.string.min(1),
+  email: p.string.email(),
+});
 
 route.post(async (request) => {
   try {

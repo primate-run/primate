@@ -2,8 +2,8 @@ import type Options from "#Options";
 import Runtime from "#Runtime";
 import type Template from "#Template";
 import type BuildApp from "@primate/core/BuildApp";
-import empty from "@rcompat/record/empty";
-import dedent from "@rcompat/string/dedent";
+import is from "@rcompat/is";
+import string from "@rcompat/string";
 
 const htmx_esm = "htmx-esm";
 const _export = `export * from "${htmx_esm}`;
@@ -12,7 +12,7 @@ export default class Default extends Runtime {
   #extensions: string[];
   #templates: Template[];
   compile = {
-    server: (text: string) => dedent`
+    server: (text: string) => string.dedent`
       import render from "@primate/htmx/render";
 
       export default props => render(${JSON.stringify(text)}, props);`,
@@ -27,7 +27,7 @@ export default class Default extends Runtime {
 
   get #has_templates() {
     return this.#extensions.includes("client-side-templates") &&
-      !empty(this.#templates);
+      !is.empty(this.#templates);
   }
 
   publish(app: BuildApp) {

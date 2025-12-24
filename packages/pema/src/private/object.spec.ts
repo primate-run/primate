@@ -5,12 +5,12 @@ import type ObjectType from "#ObjectType";
 import string from "#string";
 import type StringType from "#StringType";
 import test from "@rcompat/test";
-import type EO from "@rcompat/type/EO";
+import type { EmptyObject } from "@rcompat/type";
 
 test.case("empty", assert => {
   const o = object({});
-  assert(o).type<ObjectType<EO>>();
-  assert(o.parse({})).equals({}).type<EO>();
+  assert(o).type<ObjectType<EmptyObject>>();
+  assert(o.parse({})).equals({}).type<EmptyObject>();
 });
 
 test.case("object", assert => {

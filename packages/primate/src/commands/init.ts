@@ -1,5 +1,4 @@
-import dim from "@rcompat/cli/color/dim";
-import green from "@rcompat/cli/color/green";
+import color from "@rcompat/cli/color";
 import cancel from "@rcompat/cli/prompts/cancel";
 import intro from "@rcompat/cli/prompts/intro";
 import is_cancel from "@rcompat/cli/prompts/is-cancel";
@@ -8,7 +7,7 @@ import outro from "@rcompat/cli/prompts/outro";
 import select from "@rcompat/cli/prompts/select";
 import text from "@rcompat/cli/prompts/text";
 import FileRef from "@rcompat/fs/FileRef";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 function abort() {
   return cancel("Aborted");
@@ -160,10 +159,10 @@ export default async function init() {
   if (typeof sessions === "symbol" || is_cancel(sessions)) return abort();
   const withSessions = sessions === "yes";
 
-  await target.create({ recursive: true });
-  await target.join("routes").create({ recursive: true });
-  await target.join("views").create({ recursive: true });
-  if (db !== undefined) await target.join("stores").create({ recursive: true });
+  await target.create();
+  await target.join("routes").create();
+  await target.join("views").create();
+  if (db !== undefined) await target.join("stores").create();
 
   // files
   await gitignore(target);
@@ -177,7 +176,7 @@ export default async function init() {
   const packages = compute_packages({ frontends: frontends, backends: backends, db });
   const install = build_install_command(runtime, packages, directory);
 
-  outro(`${green("done, now run")} ${dim(install.print)}`);
+  outro(`${color.green("done, now run")} ${color.dim(install.print)}`);
 
   process.exit();
 }
@@ -194,7 +193,7 @@ async function empty(directory: FileRef) {
 
 async function gitignore(root: FileRef) {
   const gi = root.join(".gitignore");
-  await gi.directory.create({ recursive: true });
+  await gi.directory.create();
   const content = [
     "node_modules",
     "build",
@@ -218,7 +217,7 @@ type AppChoices = {
 
 async function app_config(root: FileRef, c: AppChoices) {
   const config = root.join("config").join("app.ts");
-  await config.directory.create({ recursive: true });
+  await config.directory.create();
 
   const frontend_imports = c.frontends
     .map((f) => `import ${to_ident(f)} from "@primate/${f}";`)
@@ -250,8 +249,8 @@ async function i18n_config(root: FileRef) {
   const en_us = locales.join("en-US.ts");
   const i18i = root.join("config").join("i18n.ts");
 
-  await en_us.directory.create({ recursive: true });
-  await i18i.directory.create({ recursive: true });
+  await en_us.directory.create();
+  await i18i.directory.create();
 
   const locale = `import locale from "primate/i18n/locale";
 export default locale({
@@ -274,7 +273,7 @@ export default i18n({
 
 async function session_config(root: FileRef) {
   const file = root.join("config").join("session.ts");
-  await file.directory.create({ recursive: true });
+  await file.directory.create();
   const body = `import session from "primate/config/session";
 export default session({});`;
   await file.write(body);
@@ -282,7 +281,7 @@ export default session({});`;
 
 async function database_config(root: FileRef, db: Database) {
   const file = root.join("config").join("database").join("index.ts");
-  await file.directory.create({ recursive: true });
+  await file.directory.create();
 
   const ident = to_ident(db);
   const body = `import ${ident} from "@primate/${db}";

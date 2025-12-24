@@ -1,4 +1,4 @@
-import type TypedArray from "@rcompat/type/TypedArray";
+import type { TypedArray } from "@rcompat/type";
 import type { Binary, Decimal128, ObjectId } from "mongodb";
 
 type Param =

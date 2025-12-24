@@ -1,6 +1,6 @@
 import type RequestBag from "#request/RequestBag";
 import type RequestBody from "#request/RequestBody";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 type RequestFacade = {
   body: RequestBody;
@@ -11,9 +11,7 @@ type RequestFacade = {
   original: Request;
   path: RequestBag;
   query: RequestBag;
-  /**
-   * The request's pathname + querystring.
-   */
+  // pathname + querystring
   target: string;
   url: URL;
 } & Dict<Dict | unknown>;

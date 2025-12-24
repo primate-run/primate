@@ -1,5 +1,5 @@
 import type FileRef from "@rcompat/fs/FileRef";
-import type MaybePromise from "@rcompat/type/MaybePromise";
+import type { MaybePromise } from "@rcompat/type";
 
 type Options = {
   build: {

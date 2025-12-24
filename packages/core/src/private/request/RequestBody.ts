@@ -1,12 +1,6 @@
 import fail from "#fail";
-import json from "@rcompat/http/mime/application/json";
-import binary from "@rcompat/http/mime/application/octet-stream";
-import www_form from "@rcompat/http/mime/application/x-www-form-urlencoded";
-import form_data from "@rcompat/http/mime/multipart/form-data";
-import text from "@rcompat/http/mime/text/plain";
-import type Dict from "@rcompat/type/Dict";
-import type JSONValue from "@rcompat/type/JSONValue";
-import type Schema from "@rcompat/type/Schema";
+import MIME from "@rcompat/http/mime";
+import type { Dict, JSONValue, Schema } from "@rcompat/type";
 
 type Form = Dict<string>;
 
@@ -47,16 +41,16 @@ export default class RequestBody {
 
     try {
       switch (type) {
-        case binary:
+        case MIME.APPLICATION_OCTET_STREAM:
           return new RequestBody({ type: "binary", value: await request.blob() });
-        case www_form:
-        case form_data: {
+        case MIME.APPLICATION_X_WWW_FORM_URLENCODED:
+        case MIME.MULTIPART_FORM_DATA: {
           const { form, files } = await anyform(request);
           return new RequestBody({ type: "form", value: form }, files);
         }
-        case json:
+        case MIME.APPLICATION_JSON:
           return new RequestBody({ type: "json", value: await request.json() });
-        case text:
+        case MIME.TEXT_PLAIN:
           return new RequestBody({ type: "text", value: await request.text() });
         case "none":
           return RequestBody.none();

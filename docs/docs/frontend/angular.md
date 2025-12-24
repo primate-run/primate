@@ -213,9 +213,7 @@ Add corresponding backend validation in the route:
 import Counter from "#store/Counter";
 import route from "primate/route";
 import response from "primate/response";
-import pema from "pema";
-import number from "pema/number";
-import string from "pema/string";
+import p from "pema";
 
 await Counter.schema.create();
 
@@ -233,9 +231,9 @@ route.get(async () => {
 // POST updates (called by validate().post)
 route.post(async request => {
   // Ensure id is present
-  const id = string.parse(request.query.get("id"));
+  const id = p.string.parse(request.query.get("id"));
   // Validate and coerce
-  const body = request.body.form(pema({ value: number }).coerce);
+  const body = request.body.form(p({ value: p.number }).coerce);
   // Persist changes
   await Counter.update({ id }, { value: body.value });
   return null; // 204
@@ -306,13 +304,11 @@ Add the corresponding route:
 ```ts
 // routes/login.ts
 import route from "primate/route";
-import pema from "pema";
-import string from "pema/string";
-import response from "primate/response";
+import p from "pema";
 
-const LoginSchema = pema({
-  email: string.email(),
-  password: string.min(8),
+const LoginSchema = p({
+  email: p.string.email(),
+  password: p.string.min(8),
 });
 
 route.get(() => response.view("LoginForm.component.ts"));

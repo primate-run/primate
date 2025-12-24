@@ -1,5 +1,5 @@
 import type App from "#App";
-import type MaybePromise from "@rcompat/type/MaybePromise";
+import type { MaybePromise } from "@rcompat/type";
 
 export default interface Target {
   name: string;

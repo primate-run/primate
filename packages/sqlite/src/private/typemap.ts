@@ -1,6 +1,6 @@
 import type ColumnTypes from "#ColumnTypes";
-import type TypeMap from "@primate/core/database/TypeMap";
-import numeric from "@rcompat/is/numeric";
+import type { TypeMap } from "@primate/core/database";
+import is from "@rcompat/is";
 
 function identity<C extends keyof ColumnTypes>(column: C): {
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];
@@ -28,8 +28,7 @@ function number<C extends keyof ColumnTypes>(column: C): {
 const typemap: TypeMap<ColumnTypes> = {
   blob: {
     async bind(value) {
-      const arrayBuffer = await value.arrayBuffer();
-      return new Uint8Array(arrayBuffer);
+      return new Uint8Array(await value.arrayBuffer());
     },
     column: "BLOB",
     unbind(value) {
@@ -79,9 +78,7 @@ const typemap: TypeMap<ColumnTypes> = {
   i8: number("INTEGER"),
   primary: {
     bind(value) {
-      if (numeric(value)) {
-        return Number(value);
-      }
+      if (is.numeric(value)) return Number(value);
       throw new Error(`\`${value}\` is not a valid primary key value`);
     },
     column: "INTEGER PRIMARY KEY",

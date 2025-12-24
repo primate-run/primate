@@ -13,6 +13,7 @@
   "dependencies": {
     "@primate/html": "workspace:^",
     "@primate/python": "workspace:^",
+    "pema": "workspace:^",
     "primate": "workspace:^",
     "pyodide": "0.29.0"
   }

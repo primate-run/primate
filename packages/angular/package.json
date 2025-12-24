@@ -1,20 +1,21 @@
 {
   "name": "@primate/angular",
   "version": "0.5.0",
-  "description": "Primate Angular frontend",
+  "description": "Angular for Primate",
   "homepage": "https://primate.run/docs/frontend/angular",
   "bugs": "https://github.com/primate-run/primate/issues",
+  "type": "module",
   "license": "MIT",
-  "files": [
-    "/lib/**/*.js",
-    "/lib/**/*.d.ts",
-    "!/**/*.spec.*"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/primate-run/primate",
     "directory": "packages/angular"
   },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
+  ],
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
@@ -22,23 +23,21 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@angular/common": "^21.0.0",
-    "@angular/compiler": "^21.0.0",
-    "@angular/core": "^21.0.0",
-    "@angular/platform-browser": "^21.0.0",
-    "@angular/platform-server": "^21.0.0",
-    "@angular/ssr": "^21.0.0",
+    "@angular/common": "^21.0.6",
+    "@angular/compiler": "^21.0.6",
+    "@angular/core": "^21.0.6",
+    "@angular/platform-browser": "^21.0.6",
+    "@angular/platform-server": "^21.0.6",
+    "@angular/ssr": "^21.0.4",
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.3.1",
-    "@rcompat/crypto": "^0.11.0",
-    "@rcompat/fs": "^0.22.3",
-    "@rcompat/record": "^0.9.1",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@rcompat/type": "^0.8.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"
   },
-  "type": "module",
   "imports": {
     "#*": {
       "apekit": "./src/private/*.ts",

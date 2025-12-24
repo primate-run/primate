@@ -1,5 +1,5 @@
 import type Formatter from "#i18n/Formatter";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 export default function format(
   input: string,

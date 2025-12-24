@@ -5,7 +5,7 @@ import type Infer from "#Infer";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import type DefaultTrait from "#trait/Default";
-import type AbstractNewable from "@rcompat/type/AbstractNewable";
+import type { AbstractNewable } from "@rcompat/type";
 
 export default class ConstructorType<C extends AbstractNewable>
   extends GenericType<C, InstanceType<C>, "InstanceType">

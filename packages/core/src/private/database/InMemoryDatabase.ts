@@ -6,10 +6,8 @@ import type Sort from "#database/Sort";
 import type TypeMap from "#database/TypeMap";
 import fail from "#fail";
 import assert from "@rcompat/assert";
-import entries from "@rcompat/record/entries";
-import type Dict from "@rcompat/type/Dict";
-import type MaybePromise from "@rcompat/type/MaybePromise";
-import type PartialDict from "@rcompat/type/PartialDict";
+import entries from "@rcompat/dict/entries";
+import type { Dict, MaybePromise, PartialDict } from "@rcompat/type";
 
 function match(record: Dict, criteria: Dict) {
   return Object.entries(criteria).every(([k, v]) => {
@@ -149,14 +147,16 @@ export default class InMemoryDatabase extends Database {
   close() { }
 
   create<O extends Dict>(as: As, args: { record: Dict }) {
-    const collection = this.#use(as.name);
-    const record = { ...args.record };
-    if (record.id === undefined) {
-      record.id = crypto.randomUUID();
+    assert.nonempty(args.record, "empty record");
+
+    const record: Dict = {
+      ...args.record,
+      id: args.record.id ?? crypto.randomUUID(),
     };
-    if (typeof record.id !== "string") {
-      throw fail("id must be string, got {0}", record.id);
-    }
+
+    const collection = this.#use(as.name);
+    assert.string(record.id, fail("id must be string, got {0}", record.id));
+
     if (collection.find(stored => stored.id === record.id)) {
       throw fail("id {0} already exists in the database", record.id);
     }
@@ -182,6 +182,8 @@ export default class InMemoryDatabase extends Database {
     limit?: number;
     sort?: Sort;
   }): Dict[] | number {
+    assert.dict(args.criteria);
+
     this.toWhere(as.types, args.criteria);
     if (args.fields !== undefined) this.toSelect(as.types, args.fields);
     if (args.sort !== undefined) this.toSort(as.types, args.sort);
@@ -189,9 +191,7 @@ export default class InMemoryDatabase extends Database {
     const collection = this.#use(as.name);
     const matches = collection.filter(r => match(r, args.criteria));
 
-    if (args.count === true) {
-      return matches.length;
-    }
+    if (args.count === true) return matches.length;
 
     const sort = args.sort ?? {};
     const sorted = Object.keys(sort).length === 0
@@ -207,17 +207,18 @@ export default class InMemoryDatabase extends Database {
       : sorted.map(s => filter(s, fields))).slice(0, limit);
   }
 
-  async update(as: As, args: { changes: DataDict; criteria: DataDict }) {
-    assert(Object.keys(args.criteria).length > 0, "update: no criteria");
+  async update(as: As, args: { changeset: DataDict; criteria: DataDict }) {
+    assert.nonempty(args.changeset, "empty changeset");
+    assert.nonempty(args.criteria, "empty criteria");
 
     this.toWhere(as.types, args.criteria);
-    await this.toSet(as.types, args.changes);
+    await this.toSet(as.types, args.changeset);
 
     const collection = this.#use(as.name);
     const matched = collection.filter(record => match(record, args.criteria));
 
     return matched.map(record => {
-      const changed = entries({ ...record, ...args.changes })
+      const changed = entries({ ...record, ...args.changeset })
         .filter(([, value]) => value !== null)
         .get();
       const index = collection.findIndex(stored => stored.id === record.id);
@@ -227,9 +228,8 @@ export default class InMemoryDatabase extends Database {
   }
 
   delete(as: As, args: { criteria: DataDict }) {
-    if (Object.keys(args.criteria).length === 0) {
-      throw fail("delete: no criteria");
-    }
+    assert.nonempty(args.criteria, "empty criteria");
+
     this.toWhere(as.types, args.criteria);
 
     const collection = this.#use(as.name);

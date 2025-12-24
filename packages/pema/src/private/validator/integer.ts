@@ -1,8 +1,8 @@
 import ParseError from "#ParseError";
-import integer from "@rcompat/is/integer";
+import is from "@rcompat/is";
 
 export default (x: bigint | number) => {
-  if (!integer(x)) {
+  if (!is.int(x)) {
     throw new ParseError([{
       input: x,
       message: `${x} is not an integer`,

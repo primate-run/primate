@@ -6,9 +6,9 @@ import type Mode from "#Mode";
 import type Module from "#Module";
 import reducer from "#reducer";
 import TargetManager from "#target/Manager";
+import dict from "@rcompat/dict";
+import entries from "@rcompat/dict/entries";
 import type FileRef from "@rcompat/fs/FileRef";
-import entries from "@rcompat/record/entries";
-import get from "@rcompat/record/get";
 
 const doubled = (set: string[]) =>
   set.find((part: string, i: number, array: string[]) =>
@@ -85,8 +85,8 @@ export default class App {
     this.#kv.set(key, value);
   }
 
-  config<P extends string>(path: P): ReturnType<typeof get<Config, P>> {
-    return get(this.#config, path);
+  config<P extends string>(path: P) {
+    return dict.get(this.#config, path);
   }
 
   runpath(...directories: string[]): FileRef {

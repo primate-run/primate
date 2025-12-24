@@ -1,24 +1,19 @@
 import typemap from "#typemap";
-import Database from "@primate/core/Database";
-import type As from "@primate/core/database/As";
-import type DataDict from "@primate/core/database/DataDict";
-import type TypeMap from "@primate/core/database/TypeMap";
-import type Types from "@primate/core/database/Types";
+import type { As, DataDict, TypeMap } from "@primate/core/database";
+import Database from "@primate/core/database/Database";
 import assert from "@rcompat/assert";
-import maybe from "@rcompat/assert/maybe";
-import type Dict from "@rcompat/type/Dict";
-import pema from "pema";
-import type StoreSchema from "pema/StoreSchema";
-import string from "pema/string";
-import uint from "pema/uint";
+import type { Dict } from "@rcompat/type";
+import p, { type StoreSchema } from "pema";
 import postgres, { type Sql } from "postgres";
 
-const schema = pema({
-  database: string,
-  host: string.default("localhost"),
-  password: string.optional(),
-  port: uint.port().default(5432),
-  username: string.optional(),
+type Types = As["types"];
+
+const schema = p({
+  database: p.string,
+  host: p.string.default("localhost"),
+  password: p.string.optional(),
+  port: p.uint.port().default(5432),
+  username: p.string.optional(),
 });
 
 export default class PostgreSQLDatabase extends Database {
@@ -82,6 +77,8 @@ export default class PostgreSQLDatabase extends Database {
   }
 
   async create<O extends Dict>(as: As, args: { record: DataDict }) {
+    assert.dict(args.record, "empty record");
+
     const sql = this.#sql();
     const columns = Object.keys(args.record);
     const binds = await this.bind(as.types, args.record);
@@ -97,7 +94,7 @@ export default class PostgreSQLDatabase extends Database {
   }
 
   #sort(types: Types, sort?: Dict<"asc" | "desc">) {
-    maybe(sort).object();
+    assert.maybe.dict(sort);
     // validate
     this.toSort(types, sort);
 
@@ -126,7 +123,7 @@ export default class PostgreSQLDatabase extends Database {
   }
 
   #limit(limit?: number) {
-    maybe(limit).usize();
+    assert.maybe.uint(limit);
 
     const sql = this.#sql();
 
@@ -145,7 +142,7 @@ export default class PostgreSQLDatabase extends Database {
 
       const value = nonnull[key];
 
-      // Handle operator objects
+      // handle operator objects
       if (typeof raw === "object") {
         if ("$like" in raw) return sql`${sql(key)} LIKE ${value}`;
         // if ("$gte" in raw) return sql`${sql(key)} >= ${nonnull[key]}`;
@@ -174,12 +171,15 @@ export default class PostgreSQLDatabase extends Database {
     limit?: number;
     sort?: Dict<"asc" | "desc">;
   }) {
+    assert.dict(args.criteria);
+    assert.maybe.true(args.count);
+
     const sql = this.#sql();
     const table = sql(as.name);
-    const criteria = await this.bindCriteria(as.types, args.criteria);
-    const where = this.#where(as.types, args.criteria, criteria);
+    const criteria_binds = await this.bindCriteria(as.types, args.criteria);
+    const where = this.#where(as.types, args.criteria, criteria_binds);
 
-    if (args.count === true) {
+    if (args.count ?? false) {
       const [{ n }] = await sql`SELECT COUNT(*) AS n FROM ${table} ${where}`;
       return Number(n);
     }
@@ -199,25 +199,26 @@ export default class PostgreSQLDatabase extends Database {
     return records.map(record => this.unbind(as.types, record));
   }
 
-  async update(as: As, args: { changes: DataDict; criteria: DataDict }) {
-    assert(Object.keys(args.criteria).length > 0, "update: no criteria");
+  async update(as: As, args: { changeset: DataDict; criteria: DataDict }) {
+    assert.nonempty(args.changeset, "empty changeset");
+    assert.nonempty(args.criteria, "empty criteria");
 
     const sql = this.#sql();
     const table = sql(as.name);
-    const criteria = await this.bindCriteria(as.types, args.criteria);
-    const set_binds = await this.bind(as.types, args.changes);
-    const where = this.#where(as.types, args.criteria, criteria);
-    const set = sql({ ...set_binds });
+    const criteria_binds = await this.bindCriteria(as.types, args.criteria);
+    const changeset_bind = await this.bind(as.types, args.changeset);
+    const where = this.#where(as.types, args.criteria, criteria_binds);
+    const set = sql({ ...changeset_bind });
 
     return (await sql`UPDATE ${table} SET ${set} ${where} RETURNING 1;`).length;
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
-    assert(Object.keys(args.criteria).length > 0, "delete: no criteria");
+    assert.nonempty(args.criteria, "empty criteria");
 
     const sql = this.#sql();
-    const criteria = await this.bindCriteria(as.types, args.criteria);
-    const where = this.#where(as.types, args.criteria, criteria);
+    const criteria_binds = await this.bindCriteria(as.types, args.criteria);
+    const where = this.#where(as.types, args.criteria, criteria_binds);
     const table = sql(as.name);
 
     return (await sql`DELETE FROM ${table} ${where} RETURNING 1;`).length;

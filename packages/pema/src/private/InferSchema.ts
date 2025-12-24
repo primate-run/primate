@@ -6,7 +6,7 @@ import type Parsed from "#Parsed";
 import type Schema from "#Schema";
 import type TupleType from "#TupleType";
 import type UndefinedType from "#UndefinedType";
-import type UndefinedToOptional from "@rcompat/type/UndefinedToOptional";
+import type { UndefinedToOptional } from "@rcompat/type";
 
 type InferSchema<S, Depth extends number = 3> =
   [Depth] extends [never] ? never :

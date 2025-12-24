@@ -1,19 +1,14 @@
-import type Changes from "#database/Changes";
+import type Changeset from "#database/Changeset";
 import type Database from "#database/Database";
 import type Schema from "#database/Schema";
 import wrap from "#database/symbol/wrap";
 import type Types from "#database/Types";
 import fail from "#fail";
 import assert from "@rcompat/assert";
-import is from "@rcompat/assert/is";
-import maybe from "@rcompat/assert/maybe";
-import type Dict from "@rcompat/type/Dict";
-import type Serializable from "@rcompat/type/Serializable";
-import type Id from "pema/Id";
-import type InferStore from "pema/InferStore";
-import type StoreId from "pema/StoreId";
-import type StoreSchema from "pema/StoreSchema";
+import type { Dict, Serializable } from "@rcompat/type";
+import type { Id, InferStore, StoreId, StoreSchema } from "pema";
 import StoreType from "pema/StoreType";
+import is from "@rcompat/is";
 
 type X<T> = {
   [K in keyof T]: T[K]
@@ -184,7 +179,7 @@ export default class DatabaseStore<S extends StoreSchema>
    * @returns Number of matching records (or total if no criteria given).
    */
   async count(criteria?: Criteria<S> | { id: StoreId<S> }) {
-    maybe(criteria).record();
+    assert.maybe.dict(criteria);
     if (criteria) this.#parseCriteria(criteria);
 
     return (await this.database.read(this.#as, {
@@ -200,7 +195,7 @@ export default class DatabaseStore<S extends StoreSchema>
    * @returns `true` if a record with the given id exists, otherwise `false`.
    */
   async has(id: StoreId<S>) {
-    is(id).string();
+    assert.string(id);
 
     // invariant: ids are primary keys and must be unique.
     // if the driver ever returns more than one record, assert will fail.
@@ -216,14 +211,14 @@ export default class DatabaseStore<S extends StoreSchema>
    * @returns The record for the given id.
    */
   async get(id: Id): Promise<Schema<S>> {
-    is(id).string();
+    assert.string(id);
 
     const records = await this.database.read(this.#as, {
       criteria: { id },
       limit: 1,
     });
 
-    assert(records.length <= 1);
+    assert.true(records.length <= 1);
 
     if (records.length === 0) throw fail("no record with id {0}", id);
 
@@ -237,6 +232,8 @@ export default class DatabaseStore<S extends StoreSchema>
    * @returns The record if found, otherwise `undefined`.
    */
   async try(id: Id): Promise<Schema<S> | undefined> {
+    assert.string(id);
+
     try {
       return await this.get(id);
     } catch {
@@ -255,7 +252,7 @@ export default class DatabaseStore<S extends StoreSchema>
    * @returns The inserted record with id.
    */
   async insert(record: Insertable<S>): Promise<Schema<S>> {
-    is(record).record();
+    assert.dict(record);
 
     return this.database.create(this.#as, { record: this.#type.parse(record) });
   }
@@ -271,11 +268,11 @@ export default class DatabaseStore<S extends StoreSchema>
    * Change input is validated according to the store schema.
    *
    * @param id Record id.
-   * @param changes Partial changes per the rules above.
-   * @throws If the id is missing, `.id` is present in `changes`, attempting to
-   * unset a non-nullable field, validation fails, or no record is updated.
+   * @param changeset Changeset per the rules above.
+   * @throws If the id is missing, `.id` is present in `changeset`, attempting
+   * to unset a non-nullable field, validation fails, or no record is updated.
    */
-  update(id: Id, changes: Changes<S>): Promise<void>;
+  update(id: Id, changeset: Changeset<S>): Promise<void>;
 
   /**
    * Update multiple records.
@@ -283,62 +280,66 @@ export default class DatabaseStore<S extends StoreSchema>
    * Same change semantics as when updating a single record.
    *
    * @param criteria Criteria selecting which records to update.
-   * @param changes Partial changes per the rules above.
+   * @param changeset Changeset per the rules above.
    * @returns Number of updated records (may be 0).
    */
   update(
     criteria: Criteria<S>,
-    changes: Changes<S>,
+    changeset: Changeset<S>,
   ): Promise<number>;
 
   async update(
     criteria: Criteria<S> | Id,
-    changes: Changes<S>,
+    changeset: Changeset<S>,
   ) {
-    is(changes).record();
+    assert.true(is.string(criteria) || is.dict(criteria));
+    assert.dict(changeset);
 
-    if ("id" in changes) throw fail("{0} cannot be updated", ".id");
+    if ("id" in changeset) throw fail("{0} cannot be updated", ".id");
 
-    const changeEntries = Object.entries(changes);
-    for (const [k, v] of changeEntries) {
+    const changeset_entries = Object.entries(changeset);
+    for (const [k, v] of changeset_entries) {
       if (v === null && !this.#nullables.has(k)) {
         throw fail(".{0}: null not allowed (field not nullable)", k);
       }
     }
-    const toParse = Object.fromEntries(changeEntries
+    const toParse = Object.fromEntries(changeset_entries
       .filter(([key, value]) => value !== null || !this.#nullables.has(key)),
     );
-    const nulls = Object.fromEntries(changeEntries
+    const nulls = Object.fromEntries(changeset_entries
       .filter(([key, value]) => value === null && this.#nullables.has(key)),
     );
     const parsed = {
       // parse delta, without nullable nulls
       ...this.#type.partial().parse(toParse),
       ...nulls,
-    } as Changes<S>;
+    } as Changeset<S>;
 
     return typeof criteria === "string"
       ? this.#update_1(criteria, parsed)
       : this.#update_n(criteria, parsed);
   }
 
-  async #update_1(id: Id, changes: Changes<S>) {
-    is(id).string();
+  async #update_1(id: Id, changeset: Changeset<S>) {
+    assert.string(id);
+    assert.dict(changeset);
 
     const n = await this.database.update(this.#as, {
-      changes,
+      changeset: changeset,
       criteria: { id },
     });
 
-    assert(n === 1, `${n} records updated instead of 1`);
+    assert.true(n === 1, `${n} records updated instead of 1`);
   }
 
-  async #update_n(criteria: Criteria<S>, changes: Changes<S>) {
-    is(criteria).record();
+  async #update_n(criteria: Criteria<S>, changeset: Changeset<S>) {
+    assert.dict(criteria);
+    assert.dict(changeset);
+
     this.#parseCriteria(criteria);
 
     const count = await this.database.update(this.#as, {
-      changes,
+      changeset: changeset,
       criteria,
     });
 
@@ -368,15 +369,16 @@ export default class DatabaseStore<S extends StoreSchema>
   }
 
   async #delete_1(id: Id) {
-    is(id).string();
+    assert.string(id);
 
     const n = await this.database.delete(this.#as, { criteria: { id } });
 
-    assert(n === 1, `${n} records deleted instead of 1`);
+    assert.true(n === 1, `${n} records deleted instead of 1`);
   }
 
   async #delete_n(criteria: Criteria<S>) {
-    is(criteria).record();
+    assert.dict(criteria);
+
     this.#parseCriteria(criteria);
 
     return await this.database.delete(this.#as, { criteria });
@@ -414,12 +416,12 @@ export default class DatabaseStore<S extends StoreSchema>
       sort?: Sort<Schema<S>>;
     },
   ) {
-    is(criteria).record();
+    assert.dict(criteria);
     this.#parseCriteria(criteria);
-    maybe(options).record();
-    maybe(options?.select).record();
-    maybe(options?.sort).record();
-    maybe(options?.limit).usize();
+    assert.maybe.dict(options);
+    assert.maybe.dict(options?.select);
+    assert.maybe.dict(options?.sort);
+    assert.maybe.uint(options?.limit);
 
     const result = await this.database.read(this.#as, {
       criteria,

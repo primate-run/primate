@@ -18,7 +18,7 @@ Create a unified resolver for a request facade.
 ```ts
 // routes/api/[...segments].ts
 import route from "primate/route";
-import type RequestFacade from "primate/request/Facade";
+import type { RequestFacade } from "primate/request";
 
 function path(request: RequestFacade) {
   return request.path.get("segments"); // e.g., "users/42"

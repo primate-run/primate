@@ -17,21 +17,12 @@ export default function tailwindPlugin(options: TailwindPluginOptions): Plugin {
 
     setup(build) {
       build.onLoad({ filter: /\.css$/ }, async (args) => {
-        const file = new FileRef(args.path);
-        const css = await file.text();
+        const css = await FileRef.text(args.path);
+        const has_tailwind = /@(?:tailwind|import\s+["']tailwindcss)/.test(css);
+        if (!has_tailwind) return null;
 
-        const hasTailwind = /@(?:tailwind|import\s+["']tailwindcss)/.test(css);
-
-        if (!hasTailwind) {
-          return null;
-        }
-
-        const contentFiles = await collect(options.content, options.root);
-
-        const result = await postcss([
-          tailwindcss,
-          autoprefixer,
-        ]).process(css, {
+        const files = await collect(options.content, options.root);
+        const result = await postcss([tailwindcss, autoprefixer]).process(css, {
           from: args.path,
           to: args.path,
         });
@@ -39,7 +30,7 @@ export default function tailwindPlugin(options: TailwindPluginOptions): Plugin {
         return {
           contents: result.css,
           loader: "css",
-          watchFiles: [args.path, ...contentFiles],
+          watchFiles: [args.path, ...files],
         };
       });
     },

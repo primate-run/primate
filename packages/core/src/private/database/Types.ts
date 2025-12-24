@@ -1,4 +1,4 @@
-import type DataType from "pema/DataType";
+import type { DataType } from "pema";
 
 type Types = { [k: string]: keyof DataType };
 

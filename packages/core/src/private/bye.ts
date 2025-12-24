@@ -1,5 +1,4 @@
-import dim from "@rcompat/cli/color/dim";
-import yellow from "@rcompat/cli/color/yellow";
+import color from "@rcompat/cli/color";
 import print from "@rcompat/cli/print";
 
-export default () => print(dim(yellow("~~ bye\n")));
+export default () => print(color.dim(color.yellow("~~ bye\n")));

@@ -11,7 +11,7 @@ import openWebsocket from "#wasm/open-websocket";
 import assert from "@rcompat/assert";
 import type BufferView from "@rcompat/bufferview";
 import type ValidStatus from "@rcompat/http/ValidStatus";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 type MaybeRedirectionStatus = Parameters<typeof redirect>[1];
 
@@ -47,20 +47,20 @@ type DecodedResponse =
   };
 
 const decodeResponse = (source: BufferView): DecodedResponse | undefined => {
-  const responseKind = source.readU32();
+  const response_kind = source.readU32();
 
-  assert(
-    responseKind === RESPONSE_BLOB
-    || responseKind === RESPONSE_ERROR
-    || responseKind === RESPONSE_JSON
-    || responseKind === RESPONSE_REDIRECT
-    || responseKind === RESPONSE_TEXT
-    || responseKind === RESPONSE_URI
-    || responseKind === RESPONSE_VIEW
-    || responseKind === RESPONSE_WEB_SOCKET_UPGRADE,
+  assert.true(
+    response_kind === RESPONSE_BLOB
+    || response_kind === RESPONSE_ERROR
+    || response_kind === RESPONSE_JSON
+    || response_kind === RESPONSE_REDIRECT
+    || response_kind === RESPONSE_TEXT
+    || response_kind === RESPONSE_URI
+    || response_kind === RESPONSE_VIEW
+    || response_kind === RESPONSE_WEB_SOCKET_UPGRADE,
     "Invalid response kind.",
   );
-  switch (responseKind) {
+  switch (response_kind) {
     case RESPONSE_TEXT: {
       const text = decodeString(source);
       const status = source.readU32();

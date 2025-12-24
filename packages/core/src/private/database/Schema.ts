@@ -1,5 +1,4 @@
-import type InferStoreOut from "pema/InferStoreOut";
-import type StoreSchema from "pema/StoreSchema";
+import type { InferStoreOut, StoreSchema } from "pema";
 ;
 type X<T> = {
   [K in keyof T]: T[K]

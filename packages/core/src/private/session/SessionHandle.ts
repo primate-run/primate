@@ -1,7 +1,6 @@
 import kSerialize from "#session/k-serialize";
 import assert from "@rcompat/assert";
-import maybe from "@rcompat/assert/maybe";
-import type Schema from "@rcompat/type/Schema";
+import type { Schema } from "@rcompat/type";
 
 export default class SessionHandle<Data> {
   #id?: string;
@@ -10,19 +9,17 @@ export default class SessionHandle<Data> {
   #dirty = false;
 
   constructor(id?: string, data?: Data, schema?: Schema<Data>) {
-    maybe(id).uuid();
-    maybe(data).record();
-    maybe(schema).object();
-    maybe(schema?.parse).function();
-
-    assert(
-      (id === undefined) === (data === undefined),
+    assert.maybe.uuid(id);
+    assert.maybe.dict(data);
+    assert.maybe.object(schema);
+    assert.maybe.function(schema?.parse);
+    assert.true((id === undefined) === (data === undefined),
       "both `id` and `data` must be defined or undefined",
     );
 
     this.#id = id;
     this.#data = data;
-    this.#schema = schema ?? { parse: (x: unknown) => x as Data };
+    this.#schema = schema?.parse ? schema : { parse: (x: unknown) => x as Data };
   }
 
   get exists() {

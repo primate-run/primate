@@ -1,7 +1,7 @@
 import fail from "#fail";
 import log from "#log";
 import type FileRef from "@rcompat/fs/FileRef";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 async function resolve(root: FileRef, config_paths?: Dict<string[]>) {
   const tsconfig_path = root.join("tsconfig.json");

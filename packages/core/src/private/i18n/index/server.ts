@@ -6,9 +6,10 @@ import DEFAULT_PERSIST_MODE from "#i18n/constant/DEFAULT_PERSIST_MODE";
 import format from "#i18n/format";
 import Formatter from "#i18n/Formatter";
 import server_storage from "#i18n/storage";
+import sInternal from "#i18n/symbol/internal";
 import type TypeOf from "#i18n/TypeOf";
 import sConfig from "#symbol/config";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 type EntryOf<Body extends string> =
   Body extends `${infer Name}:${infer Spec}`
@@ -81,9 +82,21 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
     },
   };
 
+  Object.defineProperty(api, sInternal, {
+    value: {
+      restore: () => { },
+      init: () => { },
+    },
+  });
+
   Object.defineProperty(api, sConfig, {
     get: () => ({ ...config, persist }),
   });
+
+  api.subscribe = (run: (value: Translator) => void) => {
+    run(api);
+    return () => { };
+  };
 
   return api;
 }

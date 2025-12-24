@@ -2,12 +2,12 @@ import fail from "#error/fail";
 import schemafail from "#error/schemafail";
 import ParseError from "#ParseError";
 import type Validator from "#Validator";
-import isFinite from "@rcompat/is/finite";
+import is from "@rcompat/is";
 
 type Input = string | unknown[];
 
 export default function length(from: number, to: number): Validator<Input> {
-  if (!isFinite(from) || !isFinite(to)) {
+  if (!is.finite(from) || !is.finite(to)) {
     throw schemafail("length: {0} and {1} must be finite numbers", from, to);
   }
   if (from < 0 || to < 0) {

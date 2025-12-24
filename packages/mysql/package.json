@@ -1,20 +1,21 @@
 {
   "name": "@primate/mysql",
   "version": "0.4.0",
-  "description": "Primate MySQL database",
+  "description": "MySQL databases for Primate",
   "homepage": "https://primate.run/docs/database/mysql",
   "bugs": "https://github.com/primate-run/primate/issues",
+  "type": "module",
   "license": "MIT",
-  "files": [
-    "/lib/**/*.js",
-    "/lib/**/*.d.ts",
-    "!/**/*.spec.*"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/primate-run/primate",
     "directory": "packages/mysql"
   },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
+  ],
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
@@ -22,15 +23,19 @@
     "prepublishOnly": "npm run build",
     "test": "npm run build && npx proby"
   },
+  "devDependencies": {
+    "@rcompat/type": "^0.8.0"
+  },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.3.1",
-    "@rcompat/is": "^0.1.4",
-    "@rcompat/record": "^0.9.1",
-    "mysql2": "^3.15.1",
+    "@rcompat/assert": "^0.5.0",
+    "@rcompat/is": "^0.3.1",
+    "mysql2": "^3.16.0",
     "pema": "workspace:"
   },
-  "type": "module",
+  "peerDependencies": {
+    "primate": "workspace:^"
+  },
   "imports": {
     "#*": {
       "apekit": "./src/private/*.ts",

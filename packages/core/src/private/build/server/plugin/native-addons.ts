@@ -26,8 +26,9 @@ export default function plugin_server_store(app: BuildApp): Plugin {
             if (module_dir.path === ".") return null;
 
             // check if this module has .node files
-            const node_files = await module_dir
-              .collect(f => f.path.endsWith(".node"));
+            const node_files = await module_dir.list({
+              filter: file => file.path.endsWith(".node"),
+            });
 
             if (node_files.length > 0) {
               const platform = process.platform;

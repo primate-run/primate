@@ -1,5 +1,5 @@
 declare module "react:views" {
-  import type Dict from "@rcompat/type/Dict";
+  import type { Dict } from "@rcompat/type";
   import type { FunctionComponent } from "react";
   const map: Dict<FunctionComponent>;
   export = map;

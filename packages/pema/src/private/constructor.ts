@@ -1,5 +1,5 @@
 import ConstructorType from "#ConstructorType";
-import type AbstractNewable from "@rcompat/type/AbstractNewable";
+import type { AbstractNewable } from "@rcompat/type";
 
 /**
  * Value is a constructed instance of the given class.

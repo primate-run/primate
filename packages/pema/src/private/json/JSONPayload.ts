@@ -1,5 +1,5 @@
 import type JSONIssue from "#json/JSONIssue";
-import type JSONPointer from "@rcompat/type/JSONPointer";
+import type { JSONPointer } from "@rcompat/type";
 
 type JSONPayload = JSONIssue | Record<JSONPointer, JSONIssue>;
 

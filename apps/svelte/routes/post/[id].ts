@@ -11,11 +11,6 @@ const posts = [{
 
 route.get(request => {
   const id = p.int.coerce.parse(request.path.try("id"));
-  const post = posts.find(_post => _post.id === id);
-  if (post === undefined) {
-    assert(post !== undefined);
-    throw 0;
-  }
-
+  const post = assert.defined(posts.find(_post => _post.id === id));
   return response.view(ViewPost, { post });
 });

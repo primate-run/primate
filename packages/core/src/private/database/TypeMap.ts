@@ -1,6 +1,5 @@
-import type MaybePromise from "@rcompat/type/MaybePromise";
-import type DataType from "pema/DataType";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict, MaybePromise } from "@rcompat/type";
+import type { DataType } from "pema";
 
 type TypeMap<Columns extends Dict = Dict> = {
   [K in keyof DataType]: {

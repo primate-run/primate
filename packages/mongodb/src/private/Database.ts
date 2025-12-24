@@ -1,42 +1,35 @@
 import typemap from "#typemap";
-import Database from "@primate/core/Database";
-import type As from "@primate/core/database/As";
-import type DataDict from "@primate/core/database/DataDict";
-import type TypeMap from "@primate/core/database/TypeMap";
-import type Types from "@primate/core/database/Types";
+import type { As, DataDict, TypeMap } from "@primate/core/database";
+import Database from "@primate/core/database/Database";
 import assert from "@rcompat/assert";
-import maybe from "@rcompat/assert/maybe";
-import empty from "@rcompat/record/empty";
-import entries from "@rcompat/record/entries";
-import toQueryString from "@rcompat/record/toQueryString";
-import type Dict from "@rcompat/type/Dict";
+import dict from "@rcompat/dict";
+import entries from "@rcompat/dict/entries";
+import type { Dict } from "@rcompat/type";
 import { MongoClient } from "mongodb";
-import pema from "pema";
-import string from "pema/string";
-import uint from "pema/uint";
+import p from "pema";
 
-const schema = pema({
-  database: string,
-  host: string.default("localhost"),
-  password: string.optional(),
-  port: uint.port().default(27017),
-  username: string.optional(),
+type Types = As["types"];
+
+const schema = p({
+  database: p.string,
+  host: p.string.default("localhost"),
+  password: p.string.optional(),
+  port: p.uint.port().default(27017),
+  username: p.string.optional(),
 });
 
 function make_limit(limit?: number) {
-  maybe(limit).usize();
+  assert.maybe.uint(limit);
 
-  if (limit === undefined) {
-    return 0;
-  }
+  if (limit === undefined) return 0;
   return limit;
 };
 
-const null_to_set_unset = (changes: DataDict) => {
-  const entry_changes = entries(changes);
+const null_to_set_unset = (changeset: DataDict) => {
+  const changeset_entries = entries(changeset);
 
-  const $set = entry_changes.filter(([, value]) => value !== null).get();
-  const $unset = entry_changes.filter(([, value]) => value === null).get();
+  const $set = changeset_entries.filter(([, value]) => value !== null).get();
+  const $unset = changeset_entries.filter(([, value]) => value === null).get();
 
   return { $set, $unset };
 };
@@ -53,7 +46,7 @@ export default class MongoDBDatabase extends Database {
     super();
 
     const { database, host, port } = schema.parse(config);
-    const url = `mongodb://${host}:${port}?${toQueryString(url_params)}`;
+    const url = `mongodb://${host}:${port}?${dict.toQueryString(url_params)}`;
     const client = new MongoClient(url);
 
     this.#name = database;
@@ -118,8 +111,9 @@ export default class MongoDBDatabase extends Database {
   }
 
   async create<O extends Dict>(as: As, args: { record: DataDict }) {
-    const binds = await this.#bind(args.record, as.types);
+    assert.dict(args.record, "empty record");
 
+    const binds = await this.#bind(args.record, as.types);
     const { insertedId } = await (await this.#get(as.name)).insertOne(binds);
 
     return this.#unbind({ ...args.record, _id: insertedId }, as.types) as O;
@@ -142,18 +136,20 @@ export default class MongoDBDatabase extends Database {
     limit?: number;
     sort?: Dict<"asc" | "desc">;
   }) {
+    assert.dict(args.criteria);
+    assert.maybe.true(args.count);
+
     this.toSelect(as.types, args.fields);
     this.toSort(as.types, args.sort);
 
     const binds = await this.#bind(args.criteria, as.types);
-    if (args.count === true) {
-      return (await this.#get(as.name)).countDocuments(binds);
-    }
+    const count = args.count ?? false;
+    if (count) return (await this.#get(as.name)).countDocuments(binds);
 
     const fields = args.fields ?? [];
     const mapped = fields.map(f => f === "id" ? "_id" : f);
 
-    const sort = args.sort === undefined || empty(args.sort!)
+    const sort = args.sort === undefined || dict.empty(args.sort!)
       ? {}
       : { sort: args.sort };
     const select = mapped.length === 0
@@ -180,23 +176,25 @@ export default class MongoDBDatabase extends Database {
     return records.map(record => this.#unbind(record, as.types));
   }
 
-  async update(as: As, args: { changes: DataDict; criteria: DataDict }) {
-    assert(Object.keys(args.criteria).length > 0, "update: no criteria");
+  async update(as: As, args: { changeset: DataDict; criteria: DataDict }) {
+    assert.nonempty(args.changeset, "empty changeset");
+    assert.nonempty(args.criteria, "empty criteria");
 
     const criteria_binds = await this.#bind(args.criteria, as.types);
-    const changes_binds = await this.#bind(args.changes, as.types) as DataDict;
+    const changeset_binds = await this.#bind(args.changeset, as.types) as DataDict;
     const collection = await this.#get(as.name);
 
     return (await collection
-      .updateMany(criteria_binds, null_to_set_unset(changes_binds)))
+      .updateMany(criteria_binds, null_to_set_unset(changeset_binds)))
       .modifiedCount;
   }
 
   async delete(as: As, args: { criteria: DataDict }) {
-    assert(Object.keys(args.criteria).length > 0, "delete: no criteria");
+    assert.nonempty(args.criteria, "empty criteria");
 
     const binds = await this.#bind(args.criteria, as.types);
+    const collection = await this.#get(as.name);
 
-    return (await ((await this.#get(as.name)).deleteMany(binds))).deletedCount;
+    return (await collection.deleteMany(binds)).deletedCount;
   }
 }

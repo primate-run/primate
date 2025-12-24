@@ -1,6 +1,6 @@
 import type Parsed from "#Parsed";
 import type StoreSchema from "#StoreSchema";
-import type UndefinedToOptional from "@rcompat/type/UndefinedToOptional";
+import type { UndefinedToOptional } from "@rcompat/type";
 
 type StoreValue<T> = T extends Parsed<infer U> ? U : never;
 

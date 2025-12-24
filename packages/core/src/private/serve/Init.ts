@@ -2,7 +2,7 @@ import type Config from "#config/Config";
 import type I18NConfig from "#i18n/Config";
 import type Mode from "#Mode";
 import type SessionConfig from "#session/Config";
-import type Dict from "@rcompat/type/Dict";
+import type { Dict } from "@rcompat/type";
 
 type Import = {
   default: unknown;

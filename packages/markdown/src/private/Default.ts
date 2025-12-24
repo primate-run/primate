@@ -1,6 +1,6 @@
 import Runtime from "#Runtime";
-import dedent from "@rcompat/string/dedent";
-import type Dict from "@rcompat/type/Dict";
+import string from "@rcompat/string";
+import type { Dict } from "@rcompat/type";
 import type { Tokens } from "marked";
 import { marked } from "marked";
 
@@ -70,7 +70,7 @@ export default class Default extends Runtime {
           text: (token as Tokens.Heading).text,
         }));
 
-      return dedent`
+      return string.dedent`
         export default {
           md: ${JSON.stringify(body)},
           html: ${JSON.stringify(await marked.parse(body))},
