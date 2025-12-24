@@ -20,7 +20,7 @@ function detect_routes(code: string): string[] {
     if (rx.test(code)) found.push(verb);
   }
   return found;
-};
+}
 
 function gem_not_found(): AppError {
   return fail("missing {0}, run 'gem install {0} -v \"~> {1}.0\"'", GEM, TAG);
@@ -65,9 +65,7 @@ export default class Default extends Runtime {
 
       const source = await file.text();
       const routes = detect_routes(source);
-
       if (routes.length === 0) throw fail("no routes detected in {0}", file);
-
       log.info("found routes in {0}: {1}", file, routes.join(", "));
 
       const id = file.debase(app.path.routes).path
@@ -76,7 +74,11 @@ export default class Default extends Runtime {
 
       return `
         import wrapper from "@primate/ruby/wrapper";
-        await wrapper(${JSON.stringify(source)}, ${JSON.stringify(id)});
+        import i18n from "app:config:i18n";
+        import session from "app:config:session";
+        await wrapper(${JSON.stringify(source)}, ${JSON.stringify(id)}, {
+          i18n, session,
+        });
       `;
     });
 

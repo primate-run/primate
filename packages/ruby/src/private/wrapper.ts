@@ -4,7 +4,6 @@ import to_request from "@primate/ruby/to-request";
 import to_response from "@primate/ruby/to-response";
 import wasi from "@primate/ruby/wasi";
 import type { RbValue, RubyVM } from "@ruby/wasm-wasi/dist/vm";
-import session from "primate/config/session";
 import route from "primate/route";
 import type { WASI } from "wasi";
 
@@ -14,7 +13,6 @@ let _vm_ready: Promise<VMBundle> | null = null;
 let _gems_loaded = false;
 let _runtime_loaded = false;
 let _runner: RbValue | null = null;
-
 const installed = new Set<string>();
 
 async function getVM(): Promise<VMBundle> {
@@ -30,7 +28,6 @@ async function getVM(): Promise<VMBundle> {
     });
   }
   const bundle = await _vm_ready;
-
   if (!_gems_loaded) {
     _gems_loaded = true;
     await bundle.vm.evalAsync(`
@@ -45,6 +42,7 @@ async function getVM(): Promise<VMBundle> {
 async function ensure_runtime(vm: RubyVM) {
   if (_runtime_loaded) return;
   await vm.evalAsync("require 'primate/route'");
+  await vm.evalAsync("require 'primate/i18n'");
   _runtime_loaded = true;
 }
 
@@ -52,8 +50,8 @@ async function get_runner(vm: RubyVM): Promise<RbValue> {
   if (_runner) return _runner;
   await vm.evalAsync(`
     unless defined?(__primate_run)
-      def __primate_run(js_request, helpers, session_obj, verb_str, route_id)
-        Route.call_js(route_id, verb_str, js_request, helpers, session_obj)
+      def __primate_run(js_request, helpers, session_obj, i18n_obj, verb_str, route_id)
+        Route.call_js(route_id, verb_str, js_request, helpers, session_obj, i18n_obj)
       end
     end
   `);
@@ -68,7 +66,36 @@ async function get_verbs(vm: RubyVM, routeId: string): Promise<string[]> {
   return verbs.toJS().map((v: string) => v.toUpperCase());
 }
 
-export default async function wrapper(source: string, route_id: string) {
+function wrap_session(session: any) {
+  if (!session) return null;
+  return {
+    get id() { return session.id; },
+    get exists() { return session.exists; },
+    create(initial: any) { session.create(initial); },
+    get() { return session.get(); },
+    try() { return session.try(); },
+    set(data: any) { session.set(data); },
+    destroy() { session.destroy(); },
+  };
+}
+
+function wrap_i18n(i18n: any) {
+  if (!i18n) return null;
+  return {
+    get locale() { return i18n.locale.get(); },
+    t(key: string, params?: string) {
+      if (!params) return i18n(key);
+      return i18n(key, JSON.parse(params));
+    },
+    set(locale: string) { i18n.locale.set(locale); },
+  };
+}
+
+export default async function wrapper(
+  source: string,
+  route_id: string,
+  context: { i18n?: any; session?: any } = {},
+) {
   const { vm } = await getVM();
   await ensure_runtime(vm);
 
@@ -76,27 +103,17 @@ export default async function wrapper(source: string, route_id: string) {
     Route.clear(${JSON.stringify(route_id)})
     Route.scope(${JSON.stringify(route_id)})
   `);
-
   await vm.evalAsync(source);
 
   const verbs = await get_verbs(vm, route_id);
-
   const runner = await get_runner(vm);
 
-  const wrapped_session = {
-    get id() { return session().id; },
-    get exists() { return session().exists; },
-    create(initial: any) { session().create(initial); },
-    get() { return session().get(); },
-    try() { return session().get(); },
-    set(data: any) { session().set(data); },
-    destroy() { session().destroy(); },
-  };
+  const wrapped_session = wrap_session(context.session);
+  const wrapped_i18n = wrap_i18n(context.i18n);
 
   for (const ucverb of verbs) {
     const key = `${route_id}:${ucverb}`;
-    if (installed.has(key)) continue; // already registered
-
+    if (installed.has(key)) continue;
     installed.add(key);
     const verb = ucverb.toLowerCase();
 
@@ -108,13 +125,13 @@ export default async function wrapper(source: string, route_id: string) {
           vm.wrap(jsReq),
           vm.wrap(helpers),
           vm.wrap(wrapped_session),
+          vm.wrap(wrapped_i18n),
           vm.wrap(ucverb),
           vm.wrap(route_id),
         );
         const js_result = (typeof r === "object" && r !== null && "toJS" in r)
           ? r.toJS()
           : r;
-
         return to_response(js_result);
       } catch (e: any) {
         console.error(`ruby error (${verb})`, e);

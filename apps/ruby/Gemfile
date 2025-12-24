@@ -5,7 +5,7 @@ group :development do
   gem "rbs"
 end
 
-primate_version = ENV["PRIMATE_RUN_VERSION"] || "~> 0.3.0"
+primate_version = ENV["PRIMATE_RUN_VERSION"] || "~> 0.4.0"
 
 if (path = ENV["PRIMATE_RUN_PATH"]) && !path.empty?
   gem "primate-run", path: path
