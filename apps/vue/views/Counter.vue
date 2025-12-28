@@ -5,7 +5,8 @@ import validate from "@primate/vue/validate";
 interface Props { id: string; counter: number };
 
 const props = defineProps<Props>();
-const counter = validate<number>(props.counter).post(`/counter?id=${props.id}`);
+const counter = validate.field<number>(props.counter)
+  .post(`/counter?id=${props.id}`);
 const loading = computed(() => counter.loading.value);
 const error = computed(() => counter.error.value?.message);
 </script>
@@ -25,7 +26,7 @@ const error = computed(() => counter.error.value?.message);
       </button>
     </div>
 
-    <p v-if="counter.error" style="color: red; margin-top: 1rem;">
+    <p v-if="counter.error.value" style="color: red; margin-top: 1rem;">
       {{ error }}
     </p>
   </div>

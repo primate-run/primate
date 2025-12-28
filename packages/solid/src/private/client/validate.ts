@@ -33,4 +33,4 @@ function useValidate<T>(init: ValidateInit<T>): Validated<T> {
   return { error, loading, update, value };
 }
 
-export default toValidated(useValidate);
+export default { field: toValidated(useValidate) };

@@ -2,7 +2,7 @@
   import validate from "@primate/svelte/validate";
   const { id, counter }: { id: string; counter: number } = $props();
 
-  const _counter = validate<number>(counter).post(`/counter?id=${id}`);
+  const _counter = validate.field<number>(counter).post(`/counter?id=${id}`);
 </script>
 
 <div style="margin-top: 2rem; text-align: center;">

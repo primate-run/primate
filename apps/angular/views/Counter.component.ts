@@ -38,7 +38,7 @@ export default class CounterComponent {
   }
 
   ngOnInit() {
-    this.counter = validate<number>(this.initial)
+    this.counter = validate.field<number>(this.initial)
       .post(`/counter?id=${this.id}`);
   }
 

@@ -33,4 +33,4 @@ function useValidate<T>(init: ValidateInit<T>): Validated<T> {
   return { subscribe, update: $update };
 }
 
-export default toValidated(useValidate);
+export default { field: toValidated(useValidate) };
