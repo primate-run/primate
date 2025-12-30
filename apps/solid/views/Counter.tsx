@@ -1,10 +1,9 @@
-import validate from "@primate/solid/validate";
+import client from "@primate/solid/client";
 
 interface Props { counter: number; id: string };
 
 export default function Counter(props: Props) {
-  const counter = validate.field<number>(props.counter)
-    .post(`/counter?id=${props.id}`);
+  const counter = client.field(props.counter).post(`/counter?id=${props.id}`);
 
   return (
     <div style={{ "margin-top": "2rem", "text-align": "center" }}>

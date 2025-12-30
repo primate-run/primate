@@ -1,11 +1,14 @@
 export default (length: number, i18n_active: boolean) => {
   const n = length;
-  const body = Array.from({ length: n }, (_, i) => i - 1)
-    .reduceRight((child, _, i) => `views[${i + 1}] !== undefined
-        ? createComponent(views[${i}], {request, ...props[${i}],
-            children: ${child}})
-        : createComponent(views[${i}], {request, ...props[${i}]})
-    `, `createComponent(views[${n}], {request, ...props[${n}]})`);
+  const body = Array.from({ length: n }, (_, i) => i - 1).reduceRight(
+    (child, _, i) => `views[${i + 1}] !== undefined
+      ? createComponent(views[${i}], { request, ...props[${i}],
+          get children() { return ${child}; }
+        })
+      : createComponent(views[${i}], { request, ...props[${i}] })
+    `,
+    `createComponent(views[${n}], { request, ...props[${n}] })`,
+  );
 
   const i18n_imports = i18n_active
     ? `

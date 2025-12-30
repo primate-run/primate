@@ -1,39 +1,47 @@
-import { CommonModule } from "@angular/common";
-import { Component, inject } from "@angular/core";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
+import { Component, Input, type OnInit } from "@angular/core";
+import { NgIf } from "@angular/common";
+import client from "@primate/angular/client";
 
 @Component({
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [NgIf],
   template: `
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <input formControlName="email" placeholder="Email">
-      <div *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
-        Email is required and must be valid
-      </div>
+    <form
+      *ngIf="form"
+      [id]="form.id"
+      method="post"
+      [attr.action]="'/form?id=' + id"
+      (submit)="form.submit($event)"
+    >
+      <p *ngIf="form.errors().length" style="color: red">
+        {{ form.errors()[0] }}
+      </p>
 
-      <input formControlName="password" type="password" placeholder="Password">
-      <div *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
-        Password must be at least 8 characters
-      </div>
+      <label>
+        Counter:
+        <input
+          type="number"
+          [attr.name]="counterField.name"
+          [attr.value]="counterField.value"
+        />
+      </label>
 
-      <button type="submit" [disabled]="!form.valid">Submit</button>
+      <p *ngIf="counterField.error() as err" style="color: red">
+        {{ err }}
+      </p>
+
+      <button type="submit" [disabled]="form.submitting()">Save</button>
     </form>
   `,
 })
-export default class LoginForm {
-  fb = inject(FormBuilder);
-  form = this.fb.group({
-    email: ["", [Validators.required, Validators.email]],
-    password: ["", [Validators.required, Validators.minLength(8)]],
-  });
+export default class FormComponent implements OnInit {
+  @Input({ required: true }) counter!: number;
+  @Input({ required: true }) id!: string;
 
-  async onSubmit() {
-    if (!this.form.valid) return;
+  form!: ReturnType<typeof client.form>;
+  counterField!: ReturnType<ReturnType<typeof client.form>["field"]>;
 
-    await fetch("/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(this.form.value),
-    });
+  ngOnInit() {
+    this.form = client.form({ initial: { counter: this.counter } });
+    this.counterField = this.form.field("counter");
   }
 }

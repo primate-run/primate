@@ -12,7 +12,7 @@ route.get(async () => {
     ? await Counter.insert({ counter: 10 })
     : counters[0];
 
-  return response.view("Form.component.ts", counter);
+  return response.view("Form.vue", counter);
 });
 
 route.post(async request => {

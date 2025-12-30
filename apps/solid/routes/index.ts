@@ -7,6 +7,4 @@ const posts = [{
   title: "First post",
 }];
 
-route.get(() => {
-  return response.view(Index, { posts, title: "Test" });
-});
+route.get(() => response.view(Index, { posts, title: "Test" }));

@@ -9,7 +9,7 @@ type Props = {
   title: string;
 };
 
-export default ({ posts, title }: Props) => {
+export default function Index({ posts, title }: Props) {
   const [count, setCount] = createSignal(0);
 
   return <>

@@ -1,33 +1,32 @@
 <script lang="ts">
-  import validate from "@primate/svelte/validate";
-  const { id, counter }: { id: string; counter: number } = $props();
-
-  const _counter = validate.field<number>(counter).post(`/counter?id=${id}`);
+  import client from "@primate/svelte/client";
+  const props: { id: string; counter: number } = $props();
+  const counter = client.field(props.counter).post(`/counter?id=${props.id}`);
 </script>
 
 <div style="margin-top: 2rem; text-align: center;">
   <h2>Counter Example</h2>
   <div>
     <button
-      onclick={() => _counter.update((n) => n - 1)}
-      disabled={$_counter.loading}
+      onclick={() => counter.update((n) => n - 1)}
+      disabled={$counter.loading}
     >
       -
     </button>
 
-    <span style="margin: 0 1rem;">{$_counter.value}</span>
+    <span style="margin: 0 1rem;">{$counter.value}</span>
 
     <button
-      onclick={() => _counter.update((n) => n + 1)}
-      disabled={$_counter.loading}
+      onclick={() => counter.update((n) => n + 1)}
+      disabled={$counter.loading}
     >
       +
     </button>
   </div>
 
-  {#if $_counter.error}
+  {#if $counter.error}
     <p style="color: red; margin-top: 1rem;">
-      {$_counter.error.message}
+      {$counter.error.message}
     </p>
   {/if}
 </div>

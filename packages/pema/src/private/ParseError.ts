@@ -44,9 +44,9 @@ export default class ParseError extends Error implements Serializable {
       return { message: "Parsing failed", messages: ["Parsing failed"] };
     }
 
-    const isForm = issues.some(i => i.path !== "");
+    const is_form = issues.some(i => i.path !== "");
 
-    if (!isForm) {
+    if (!is_form) {
       const messages = issues.map(i => i.message);
       return { message: messages[0], messages } as JSONIssue;
     }

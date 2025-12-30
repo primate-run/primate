@@ -1,6 +1,4 @@
+import response from "primate/response";
 import route from "primate/route";
 
-route.post(request => {
-  console.log(request.body.json());
-  return null;
-});
+route.get(() => response.view("Form.component.ts"));
