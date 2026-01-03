@@ -7,9 +7,9 @@ import log from "#log";
 import reducer from "#reducer";
 import $router from "#request/router";
 import s_layout_depth from "#symbol/layout-depth";
-import pkg from "@rcompat/fs/project/package";
+import fs from "@rcompat/fs";
 
-const core_pkg = await pkg(import.meta.url);
+const core_pkg = await fs.project.package(import.meta.dirname);
 const { version } = await core_pkg.json() as { version: string };
 
 async function pre(app: BuildApp) {

@@ -33,7 +33,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.8.0"
+    "@rcompat/type": "^0.9.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"

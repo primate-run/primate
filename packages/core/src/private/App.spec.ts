@@ -1,12 +1,10 @@
 import BuildApp from "#build/App";
 import config from "#config/index";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 import test from "@rcompat/test";
 
-const root = new FileRef("/test/project");
-const test_config = config({
-  modules: [],
-});
+const root = fs.ref("/test/project");
+const test_config = config({ modules: [] });
 
 class TestApp extends BuildApp {
   constructor() {

@@ -6,7 +6,8 @@ import multiselect from "@rcompat/cli/prompts/multiselect";
 import outro from "@rcompat/cli/prompts/outro";
 import select from "@rcompat/cli/prompts/select";
 import text from "@rcompat/cli/prompts/text";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
+import type { FileRef } from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";
 
 function abort() {
@@ -94,7 +95,7 @@ export default async function init() {
     });
     if (typeof ans === "symbol" || is_cancel(ans)) return abort();
 
-    target = new FileRef(ans);
+    target = fs.ref(ans);
     if (await empty(target)) {
       directory = ans;
       break; // valid directory found, exit loop

@@ -8,7 +8,7 @@ import reducer from "#reducer";
 import TargetManager from "#target/Manager";
 import dict from "@rcompat/dict";
 import entries from "@rcompat/dict/entries";
-import type FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
 
 const doubled = (set: string[]) =>
   set.find((part: string, i: number, array: string[]) =>

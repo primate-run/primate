@@ -25,10 +25,10 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/cli": "^0.13.0",
-    "@rcompat/io": "^0.2.0",
-    "@rcompat/runtime": "^0.8.0",
-    "@rcompat/webview": "^0.17.1",
+    "@rcompat/cli": "^0.14.0",
+    "@rcompat/io": "^0.3.0",
+    "@rcompat/runtime": "^0.9.0",
+    "@rcompat/webview": "^0.18.0",
     "pema": "workspace:^"
   },
   "peerDependencies": {

@@ -24,14 +24,14 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.5.0",
-    "@rcompat/fs": "^0.24.2",
-    "@rcompat/io": "^0.2.0",
+    "@rcompat/assert": "^0.6.0",
+    "@rcompat/fs": "^0.25.1",
+    "@rcompat/io": "^0.3.0",
     "@ruby/head-wasm-wasi": "^2.7.2",
     "@ruby/wasm-wasi": "^2.7.2"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.8.0"
+    "@rcompat/type": "^0.9.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"

@@ -1,5 +1,5 @@
 import type BuildApp from "#build/App";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 import type { Plugin } from "esbuild";
 
 export default function plugin_server_view(app: BuildApp): Plugin {
@@ -23,7 +23,7 @@ export default function plugin_server_view(app: BuildApp): Plugin {
         // couldn't resolve, don't interfere
         if (result.errors.length > 0 || !result.path) return null;
 
-        const resolved = new FileRef(result.path);
+        const resolved = fs.ref(result.path);
 
         // must live under app.path.views (e.g. app/views/...)
         const views_root = app.path.views.path;
@@ -49,7 +49,7 @@ export default function plugin_server_view(app: BuildApp): Plugin {
         const name = args.path.slice("view:".length);
 
         for (const ext of app.extensions) {
-          const file = new FileRef(`${app.path.views.path}/${name}${ext}`);
+          const file = app.path.views.join(`${name}${ext}`);
           if (await file.exists()) {
             return { path: file.path, namespace: "primate-view-original" };
           }
@@ -59,7 +59,7 @@ export default function plugin_server_view(app: BuildApp): Plugin {
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-view-original" }, async args => {
-        const file = new FileRef(args.path);
+        const file = fs.ref(args.path);
         const binder = app.binder(file);
         if (!binder) return null;
         const contents = await binder(file, {

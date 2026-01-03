@@ -1,4 +1,4 @@
-import type FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
 import type { MaybePromise } from "@rcompat/type";
 
 type Options = {

@@ -1,7 +1,7 @@
 import type BuildApp from "#build/App";
 import fail from "#fail";
 import log from "#log";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 import type { Plugin } from "esbuild";
 import { createRequire } from "node:module";
 
@@ -21,13 +21,14 @@ export default function plugin_server_store(app: BuildApp): Plugin {
             const module_path = requirer.resolve(args.path, {
               paths: [args.resolveDir],
             });
-            const module_dir = new FileRef(module_path).directory;
+            const module_dir = fs.ref(module_path).directory;
             // built-ins have no .node and would otherwise cause global search
             if (module_dir.path === ".") return null;
 
             // check if this module has .node files
-            const node_files = await module_dir.list({
-              filter: file => file.path.endsWith(".node"),
+            const node_files = await module_dir.files({
+              recursive: true,
+              filter: info => info.path.endsWith(".node"),
             });
 
             if (node_files.length > 0) {

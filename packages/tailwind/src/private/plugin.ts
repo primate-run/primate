@@ -1,5 +1,6 @@
 import collect from "#collect";
-import FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
+import fs from "@rcompat/fs";
 import tailwindcss from "@tailwindcss/postcss";
 import autoprefixer from "autoprefixer";
 import type { Plugin } from "esbuild";
@@ -17,7 +18,7 @@ export default function tailwindPlugin(options: TailwindPluginOptions): Plugin {
 
     setup(build) {
       build.onLoad({ filter: /\.css$/ }, async (args) => {
-        const css = await FileRef.text(args.path);
+        const css = await fs.text(args.path);
         const has_tailwind = /@(?:tailwind|import\s+["']tailwindcss)/.test(css);
         if (!has_tailwind) return null;
 

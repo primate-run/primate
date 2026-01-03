@@ -1,5 +1,4 @@
 import test from "primate/test";
-import FileRef from "@rcompat/fs/FileRef";
 
 const expected = "<ng-component ngh=\"1\"><a href=\"/redirect\">redirect</a><h1>";
 

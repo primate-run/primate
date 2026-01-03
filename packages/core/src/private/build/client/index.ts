@@ -53,7 +53,8 @@ export default async function build_client(app: BuildApp) {
   app.plugin("client", plugin_server_stamp(app));
   app.plugin("client", plugin_entrypoint(app));
 
-  const imports = await app.path.static.list({
+  const imports = await app.path.static.files({
+    recursive: true,
     filter: file => /\.(?:js|ts|css)$/.test(file.path),
   });
   imports.forEach(file => {

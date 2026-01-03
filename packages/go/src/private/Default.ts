@@ -7,7 +7,7 @@ import log from "@primate/core/log";
 import type NextBuild from "@primate/core/NextBuild";
 import assert from "@rcompat/assert";
 import user from "@rcompat/env/user";
-import type FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
 import io from "@rcompat/io";
 
 const COMMAND = await io.which("go");

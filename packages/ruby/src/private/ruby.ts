@@ -1,8 +1,6 @@
-import FileRef from "@rcompat/fs/FileRef";
-import root from "@rcompat/fs/project/root";
+import fs from "@rcompat/fs";
 
-const ruby_path = (await root())
-  .join("node_modules/@ruby/head-wasm-wasi/dist/ruby+stdlib.wasm");
-const ruby_wasm = await FileRef.arrayBuffer(ruby_path) as ArrayBuffer;
+const wasm_path = "node_modules/@ruby/head-wasm-wasi/dist/ruby+stdlib.wasm";
+const wasm = (await fs.project.root()).join(wasm_path);
 
-export default await WebAssembly.compile(ruby_wasm);
+export default await WebAssembly.compile(await fs.arrayBuffer(wasm));

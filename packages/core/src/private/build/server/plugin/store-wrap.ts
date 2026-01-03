@@ -1,5 +1,5 @@
 import type BuildApp from "#build/App";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 import type { Plugin } from "esbuild";
 
 export default function plugin_server_store_wrap(app: BuildApp): Plugin {
@@ -13,7 +13,7 @@ export default function plugin_server_store_wrap(app: BuildApp): Plugin {
         // only TS/JS
         if (!/\.([tj]s)$/.test(args.path)) return null;
 
-        const file = new FileRef(args.path);
+        const file = fs.ref(args.path);
         const storesRoot = app.path.stores.path;
 
         // only files under app/stores

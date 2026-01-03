@@ -4,7 +4,7 @@ import build from "#build/hook";
 import log from "#log";
 import resolve_paths from "#paths";
 import s_layout_depth from "#symbol/layout-depth";
-import type FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
 

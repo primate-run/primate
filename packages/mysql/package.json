@@ -24,12 +24,12 @@
     "test": "npm run build && npx proby"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.8.0"
+    "@rcompat/type": "^0.9.0"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.5.0",
-    "@rcompat/is": "^0.3.1",
+    "@rcompat/assert": "^0.6.0",
+    "@rcompat/is": "^0.4.0",
     "mysql2": "^3.16.0",
     "pema": "workspace:"
   },

@@ -1,6 +1,6 @@
 import type ServeApp from "#serve/App";
 import Streamable from "@rcompat/fs/Streamable";
-import type StreamSource from "@rcompat/fs/StreamSource";
+import type { StreamSource } from "@rcompat/fs";
 import MIME from "@rcompat/http/mime";
 
 const encodeRFC5987 = (s: string) =>

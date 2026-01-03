@@ -1,8 +1,7 @@
 import handlebars from "@primate/handlebars";
 import markdown from "@primate/markdown";
 import svelte from "@primate/svelte";
-import type FileRef from "@rcompat/fs/FileRef";
-import root from "@rcompat/fs/project/root";
+import fs, { type FileRef } from "@rcompat/fs";
 import config from "primate/config";
 import { createHighlighter } from "shiki";
 import grain from "./grain.json" with { type: "json" };
@@ -202,7 +201,9 @@ export default config({
         let replacement = "";
 
         for (const { folder, fullMatch } of replacements) {
-          const files = await (await root()).join("snippets", folder).list();
+          const files = await (await fs.project.root())
+            .join("snippets", folder)
+            .files({ recursive: true });
           const has_tabs = files.length > 1;
 
           if (has_tabs) {

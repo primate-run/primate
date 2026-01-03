@@ -1,7 +1,7 @@
 import fail from "#fail";
 import type ViewOptions from "#frontend/ViewOptions";
 import type ResponseFunction from "#response/ResponseFunction";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";
 
 const extensions = ["extension", "fullExtension"] as const;
@@ -24,7 +24,7 @@ const backmap: Dict<string> = {
 };
 
 function no_frontend(view: string) {
-  const extension = new FileRef(view).fullExtension.slice(1);
+  const extension = fs.ref(view).fullExtension.slice(1);
   const hasPkg = extension in backmap;
   const error = "No frontend for {0}";
   const fix = hasPkg ? ", did you configure {1}?" : "";
@@ -59,7 +59,7 @@ function view(name: any, props?: Dict, options?: ViewOptions): ResponseFunction 
   const _name: string = name;
   return async (app, transfer, request) => {
     const found_view = extensions
-      .map(extension => app.frontends[new FileRef(_name)[extension]])
+      .map(extension => app.frontends[fs.ref(_name)[extension]])
       .find(extension => extension !== undefined)
       ?.(_name, props, options)(app, transfer, request);
     if (found_view !== undefined) return found_view;

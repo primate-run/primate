@@ -1,6 +1,6 @@
 import type BuildApp from "#build/App";
 import fail from "#fail";
-import type FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
 
@@ -26,7 +26,8 @@ export default function plugin_server_database_default(app: BuildApp): Plugin {
 
         if (!await base.exists()) return default_db;
 
-        const dbs = await base.list({
+        const dbs = await base.files({
+          recursive: true,
           filter: f => f.name.endsWith(".ts") || f.name.endsWith(".js"),
         });
         const n = dbs.length;

@@ -26,9 +26,8 @@ export default function plugin_server_wasm(app: BuildApp): Plugin {
 
         return {
           contents: `
-            import FileRef from "primate/fs/FileRef";
-            const file = new FileRef("${wasm_file.path}");
-            export default await file.bytes();
+            import fs from "@rcompat/fs";
+            export default await fs.ref("${wasm_file.path}").bytes();
           `,
           loader: "js",
           resolveDir: app.root.path,

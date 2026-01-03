@@ -1,5 +1,4 @@
 import type BuildApp from "#build/App";
-import fail from "#fail";
 import type { Plugin } from "esbuild";
 
 export default function plugin_server_config(app: BuildApp): Plugin {

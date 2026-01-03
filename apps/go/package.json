@@ -15,6 +15,6 @@
     "@primate/svelte": "workspace:^",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "svelte": "^5.46.0"
+    "svelte": "^5.46.1"
   }
 }

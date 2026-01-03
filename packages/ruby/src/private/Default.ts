@@ -7,7 +7,7 @@ import log from "@primate/core/log";
 import type NextBuild from "@primate/core/NextBuild";
 import verbs from "@primate/core/request/verbs";
 import assert from "@rcompat/assert";
-import type FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
 import io from "@rcompat/io";
 
 const GEM = "primate-run";

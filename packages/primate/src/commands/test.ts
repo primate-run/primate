@@ -2,7 +2,7 @@ import { tests, type Body, type MockedResponse } from "#test";
 import build from "@primate/core/build";
 import color from "@rcompat/cli/color";
 import entries from "@rcompat/dict/entries";
-import root from "@rcompat/fs/project/root";
+import fs from "@rcompat/fs";
 import equals from "@rcompat/test/equals";
 import includes from "@rcompat/test/includes";
 import type { Dict, MaybePromise } from "@rcompat/type";
@@ -28,7 +28,7 @@ export default async () => {
   await build({ mode: "testing" });
   const app = (await serve()).default;
 
-  const files = await (await root()).join(directory)
+  const files = await (await fs.project.root()).join(directory)
     .list({ filter: f => f.path.endsWith(".ts") || f.path.endsWith(".js") });
 
   // side effects

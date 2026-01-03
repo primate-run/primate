@@ -3,24 +3,24 @@ import bye from "#bye";
 import type Config from "#config/Config";
 import default_config from "#config/index";
 import fail from "#fail";
-import log from "#log";
-import type FileRef from "@rcompat/fs/FileRef";
-import root from "@rcompat/fs/project/root";
-import dict from "@rcompat/dict";
 import Flags from "#Flags";
+import log from "#log";
+import dict from "@rcompat/dict";
+import type { FileRef } from "@rcompat/fs";
+import fs from "@rcompat/fs";
 
 const no_config = (config?: Config) =>
   config === undefined || dict.empty(config);
 
-const find_config = async (project_root: FileRef) => {
-  const ts_config = project_root.join("config/app.ts");
+const find_config = async (root: FileRef) => {
+  const ts_config = root.join("config/app.ts");
   if (await ts_config.exists()) return ts_config;
-  const js_config = project_root.join("config/app.js");
+  const js_config = root.join("config/app.js");
   if (await js_config.exists()) return js_config;
 };
 
-const get_config = async (project_root: FileRef) => {
-  const config = await find_config(project_root);
+const get_config = async (root: FileRef) => {
+  const config = await find_config(root);
   if (config !== undefined) {
     try {
       const imported = await config.import("default");
@@ -37,11 +37,10 @@ const get_config = async (project_root: FileRef) => {
 
 export default async (input: typeof Flags.input) => {
   try {
-    const package_root = await root();
+    const root = await fs.project.root();
     const flags = Flags.parse(input);
-    const config = await get_config(package_root) as Config;
-
-    const app = await new BuildApp(package_root, config, flags).init();
+    const config = await get_config(root) as Config;
+    const app = await new BuildApp(root, config, flags).init();
 
     await (app as BuildApp).buildInit();
     return true;

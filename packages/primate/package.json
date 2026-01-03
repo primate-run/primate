@@ -26,15 +26,15 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/args": "^0.10.0",
-    "@rcompat/cli": "^0.13.0",
-    "@rcompat/dict": "^0.2.0",
-    "@rcompat/fs": "^0.24.2",
-    "@rcompat/http": "~0.20.1",
-    "@rcompat/test": "^0.7.0"
+    "@rcompat/args": "^0.11.0",
+    "@rcompat/cli": "^0.14.0",
+    "@rcompat/dict": "^0.3.0",
+    "@rcompat/fs": "^0.25.1",
+    "@rcompat/http": "~0.21.0",
+    "@rcompat/test": "^0.8.0"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.8.0"
+    "@rcompat/type": "^0.9.0"
   },
   "engines": {
     "node": ">=20"
@@ -43,8 +43,7 @@
     "#*": {
       "apekit": "./src/private/*.ts",
       "default": "./lib/private/*.js"
-    },
-    "#runtime/FileRef": "@rcompat/fs/FileRef"
+    }
   },
   "exports": {
     "./tsconfig": "./lib/app.tsconfig.json",

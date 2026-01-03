@@ -1,6 +1,6 @@
 import Runtime from "#Runtime";
 import fail from "@primate/core/fail";
-import type FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
 
 const script_re = /(?<=<script)>(?<code>.*?)(?=<\/script>)/gus;
 const webc_class_name_re = /export default class (?<name>.*?) extends/u;

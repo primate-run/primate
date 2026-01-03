@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@primate/markdown": "workspace:^",
-    "marked": "^16.2.1",
+    "marked": "^17.0.1",
     "primate": "workspace:^"
   }
 }

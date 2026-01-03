@@ -1,5 +1,5 @@
 import Module from "#Module";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 import p from "pema";
 
 export default p({
@@ -9,8 +9,8 @@ export default p({
     host: p.string.default("localhost"),
     port: p.uint.port().default(6161),
     ssl: {
-      cert: p.union(FileRef, p.string).optional(),
-      key: p.union(FileRef, p.string).optional(),
+      cert: p.union(fs.FileRef, p.string).optional(),
+      key: p.union(fs.FileRef, p.string).optional(),
     },
     static: {
       root: p.string.default("/"),

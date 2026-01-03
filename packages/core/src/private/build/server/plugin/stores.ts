@@ -1,5 +1,5 @@
 import type BuildApp from "#build/App";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 import type { Plugin } from "esbuild";
 
 export default function plugin_server_stores(app: BuildApp): Plugin {
@@ -13,15 +13,15 @@ export default function plugin_server_stores(app: BuildApp): Plugin {
 
       build.onLoad({ filter: /.*/, namespace: "primate-stores" }, async () => {
         const stores = await Promise.all(
-          (await base.list({ filter: /\.[jt]s$/ }))
+          (await base.files({ recursive: true, filter: /\.[jt]s$/ }))
             .map(async path => `${path}`.replace(base.toString(), _ => "")),
         );
 
         const contents = `
         const stores = {};
         ${stores.map(path => path.slice(1, -".js".length)).map((bare, i) =>
-          `import * as store${i} from "${FileRef.webpath(`app:store/${bare}`)}";
-           stores["${FileRef.webpath(bare)}"] = store${i}.default;`,
+          `import * as store${i} from "${fs.webpath(`app:store/${bare}`)}";
+           stores["${fs.webpath(bare)}"] = store${i}.default;`,
         ).join("\n")}
         export default stores;
       `;

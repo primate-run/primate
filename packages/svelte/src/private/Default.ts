@@ -1,6 +1,6 @@
 import create_root from "#create-root";
 import Runtime from "#Runtime";
-import type FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
 import { compile, compileModule } from "svelte/compiler";
 
 export default class Default extends Runtime {

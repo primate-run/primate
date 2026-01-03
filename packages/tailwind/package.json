@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.24.2",
+    "@rcompat/fs": "^0.25.1",
     "@tailwindcss/postcss": "^4.1.18",
     "autoprefixer": "^10.4.23",
     "pema": "workspace:^",

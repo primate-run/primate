@@ -24,7 +24,9 @@ export default function plugin_server_assets(app: BuildApp): Plugin {
 
       build.onLoad({ filter: /.*/, namespace: "primate-assets" }, async () => {
         if (app.mode === "production") {
-          const client_files = await app.runpath(location.client).list();
+          const client_files = await app.runpath(location.client).files({
+            recursive: true,
+          });
 
           const client_assets: Dict<{ mime: string; data: string }> = {};
           for (const file of client_files) {
@@ -38,7 +40,9 @@ export default function plugin_server_assets(app: BuildApp): Plugin {
           }
 
           const static_dir = app.root.join(location.static);
-          const static_files = await static_dir.list();
+          const static_files = await static_dir.files({
+            recursive: true,
+          });
 
           const static_assets: Dict<{ mime: string; data: string }> = {};
           for (const file of static_files) {

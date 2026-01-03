@@ -19,7 +19,7 @@ import type Instantiation from "#wasm/Instantiation";
 import type Tagged from "#wasm/Tagged";
 import assert from "@rcompat/assert";
 import BufferView from "@rcompat/bufferview";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 import utf8 from "@rcompat/string/utf8";
 import type { MaybePromise } from "@rcompat/type";
 import { WASI } from "node:wasi";
@@ -101,7 +101,7 @@ const instantiate = async (args: Init) => {
 
   type MethodFunc = (request: WasmRequest) => MaybePromise<WasmResponse>;
 
-  const wasmFileRef = new FileRef(args.filename);
+  const wasmFileRef = fs.ref(args.filename);
   const wasmImports = args.imports ?? {};
   const storesByName = args.stores;
   const storeIdsByName = new Map(Object.keys(storesByName).map((e, i) => [e, i]));
@@ -232,7 +232,7 @@ const instantiate = async (args: Init) => {
   const storeCount = wrapSuspending<readonly [StoreID], MaybePromise<STORE_OPERATION_RESULT>>(async (id: StoreID) => {
     if (!stores.has(id)) return STORE_NOT_FOUND_ERROR;
     const store = stores.get(id)!;
-    const criteria = decodeJson(new BufferView(received))
+    const criteria = decodeJson(new BufferView(received));
     const count = await store.count(criteria);
     payload = new Uint8Array(4);
     new DataView(payload.buffer).setUint32(0, count, true);

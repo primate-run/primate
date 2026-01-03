@@ -1,9 +1,9 @@
 import type BuildApp from "#build/App";
-import pkg from "@rcompat/fs/project/package";
+import fs from "@rcompat/fs";
 import type { Plugin } from "esbuild";
 import { createRequire } from "node:module";
 
-const core_pkg = await pkg(import.meta.url);
+const core_pkg = await fs.project.package(import.meta.dirname);
 const core_root = core_pkg.directory.path;
 const requirer = createRequire(import.meta.url);
 

@@ -5,7 +5,7 @@ import fail from "@primate/core/fail";
 import log from "@primate/core/log";
 import type NextBuild from "@primate/core/NextBuild";
 import assert from "@rcompat/assert";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 import io from "@rcompat/io";
 
 const PACKAGE = "primate-run";
@@ -60,7 +60,7 @@ export default class Default extends Runtime {
     const requirements_txt = app.root.join("requirements.txt");
     let packages: string[] = [];
     if (await requirements_txt.exists()) {
-      const requirements = await FileRef.text(requirements_txt);
+      const requirements = await fs.text(requirements_txt);
       packages = requirements
         .split("\n")
         .filter(line => line.trim() && !line.startsWith("#"))

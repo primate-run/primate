@@ -1,4 +1,5 @@
-import type FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
+import fs from "@rcompat/fs";
 
 function glob_to_regex(pattern: string): RegExp {
   const normalized = pattern.replace(/^\.\//, "");
@@ -20,9 +21,10 @@ export default async function collect(
 ): Promise<string[]> {
   const regexes = patterns.map(p => glob_to_regex(p));
 
-  return (await root.list({
+  return (await root.files({
+    recursive: true,
     filter: file => {
-      const relative = file.debase(root, "/").path;
+      const relative = fs.ref(file.path).debase(root, "/").path;
       return regexes.some(regex => regex.test(relative));
     },
   })).map(f => f.path);

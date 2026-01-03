@@ -13,7 +13,7 @@
   "dependencies": {
     "@primate/react": "workspace:^",
     "@primate/sqlite": "workspace:^",
-    "@rcompat/assert": "^0.5.0",
+    "@rcompat/assert": "^0.6.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
     "react": "^19.2.3",

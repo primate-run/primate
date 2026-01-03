@@ -1,7 +1,8 @@
 import type BuildApp from "#build/App";
 import fail from "#fail";
 import wrap from "#route/wrap";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
+import type { FileRef } from "@rcompat/fs";
 import type { Plugin } from "esbuild";
 
 const contents = "export default {};";
@@ -26,7 +27,7 @@ export default function plugin_server_route(app: BuildApp): Plugin {
         let extension: string | undefined;
 
         for (const e of extensions) {
-          const candidate = new FileRef(base.path + e);
+          const candidate = fs.ref(base.path + e);
           if (await candidate.exists()) {
             file = candidate;
             extension = e;

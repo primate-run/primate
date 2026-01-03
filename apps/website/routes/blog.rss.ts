@@ -1,4 +1,4 @@
-import xml from "@rcompat/http/mime/extension/xml";
+import MIME from "@rcompat/http/mime";
 import views from "app:views";
 import response from "primate/response";
 import route from "primate/route";
@@ -21,7 +21,7 @@ route.get(async () => {
   ;
   const props = { description, entries: blog_posts };
   const options = {
-    headers: { "Content-Type": xml },
+    headers: { "Content-Type": MIME.APPLICATION_XML },
     partial: true,
   };
 

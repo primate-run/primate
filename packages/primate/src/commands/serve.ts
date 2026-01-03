@@ -1,12 +1,11 @@
-import FileRef from "@rcompat/fs/FileRef";
-import root from "@rcompat/fs/project/root";
+import fs from "@rcompat/fs";
 import get_flag from "./get-flag.js";
 
 const load = async () => {
   try {
-    return await root();
+    return await fs.project.root();
   } catch {
-    return FileRef.resolve();
+    return fs.resolve();
   }
 };
 

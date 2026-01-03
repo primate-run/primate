@@ -1,5 +1,5 @@
 import type BuildApp from "#build/App";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 import type { Plugin } from "esbuild";
 
 export default function plugin_server_store(app: BuildApp): Plugin {
@@ -29,7 +29,7 @@ export default function plugin_server_store(app: BuildApp): Plugin {
         const name = args.path.slice("store:".length);
 
         for (const ext of app.extensions) {
-          const file = new FileRef(`${app.path.stores.path}/${name}${ext}`);
+          const file = fs.ref(`${app.path.stores.path}/${name}${ext}`);
           if (await file.exists()) {
             // special namespace to bypass auto-wrap
             return { path: file.path, namespace: "primate-store-raw" };
@@ -40,7 +40,7 @@ export default function plugin_server_store(app: BuildApp): Plugin {
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-store-raw" }, async args => {
-        const file = new FileRef(args.path);
+        const file = fs.ref(args.path);
         const source = await file.text();
         return {
           contents: source,

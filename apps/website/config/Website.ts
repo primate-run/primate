@@ -4,9 +4,9 @@ import type NextBuild from "@primate/core/NextBuild";
 import type NextHandle from "@primate/core/NextHandle";
 import type NextServe from "@primate/core/NextServe";
 import type ServeApp from "@primate/core/ServeApp";
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 import Status from "@rcompat/http/Status";
-import type RequestFacade from "primate/RequestFacade";
+import type { RequestFacade } from "primate/request";
 
 const cookie = (name: string, value: string, secure: boolean) =>
   `${name}=${value};HttpOnly;Path=/;${secure};SameSite=Strict`;
@@ -62,7 +62,7 @@ export default class Website extends Module {
       setup(build) {
         build.onLoad({ filter: /\.woff2$/ }, async args => {
           return {
-            contents: await FileRef.bytes(args.path),
+            contents: await fs.bytes(args.path),
             loader: "file",
           };
         });
@@ -73,7 +73,10 @@ export default class Website extends Module {
 
     // collect guide categories and names
     const base = views.join("content", "guides");
-    const guides = await views.join("content", "guides").collect();
+    const guides = await views.join("content", "guides").files({
+      recursive: true,
+      filter: info => info.kind === "file",
+    });
     const categories = new Map<string, { name: string; path: string }[]>();
     for (const guide of guides) {
       const name = ((await guide.text()).split("\n")[1].slice("name: ".length));

@@ -1,5 +1,5 @@
 import type BuildApp from "#build/App";
-import type FileRef from "@rcompat/fs/FileRef";
+import type { FileInfo, FileRef } from "@rcompat/fs";
 import type { Plugin } from "esbuild";
 
 export default function plugin_server_virtual_routes(app: BuildApp): Plugin {
@@ -7,7 +7,7 @@ export default function plugin_server_virtual_routes(app: BuildApp): Plugin {
     `(${app.extensions.map(e => e.replace(".", "\\.")).join("|")})$`,
   );
 
-  const is_route_file = (f: FileRef) =>
+  const is_route_file = (f: FileInfo) =>
     !f.name.endsWith("~") &&
     !f.name.startsWith(".") &&
     extension_pattern.test(f.path);
@@ -22,19 +22,20 @@ export default function plugin_server_virtual_routes(app: BuildApp): Plugin {
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-routes" }, async () => {
-        const route_files = await routes_path.list({ filter: is_route_file });
-        const watchDirs = new Set<string>();
+        const route_files = await routes_path.files({
+          filter: is_route_file,
+          recursive: true,
+        });
+        const watch_dirs = new Set<string>();
 
-        const findDirs = async (dir: FileRef) => {
-          watchDirs.add(dir.path);
+        const find_dirs = async (dir: FileRef) => {
+          watch_dirs.add(dir.path);
           const entries = await dir.list();
           for (const entry of entries) {
-            if (await entry.isDirectory()) {
-              await findDirs(entry);
-            }
+            if (await entry.kind() === "directory") await find_dirs(entry);
           }
         };
-        await findDirs(app.path.routes);
+        await find_dirs(app.path.routes);
 
         const contents = `
           const route = [];
@@ -50,7 +51,7 @@ export default function plugin_server_virtual_routes(app: BuildApp): Plugin {
           contents,
           loader: "js",
           resolveDir: app.root.path,
-          watchDirs: [...watchDirs],
+          watchDirs: [...watch_dirs],
           watchFiles: route_files.map(f => f.path),
         };
       });

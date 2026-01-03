@@ -18,7 +18,8 @@ import type RequestFacade from "#request/RequestFacade";
 import type ServeApp from "#serve/App";
 import hash from "@rcompat/crypto/hash";
 import fn from "@rcompat/fn";
-import FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
+import fs from "@rcompat/fs";
 import MIME from "@rcompat/http/mime";
 import Status from "@rcompat/http/Status";
 import type { Dict, MaybePromise } from "@rcompat/type";
@@ -28,7 +29,7 @@ type Layout = (app: ServeApp, transfer: Dict, request: RequestFacade)
   => View;
 
 async function normalize(path: string, frontend: string) {
-  const file = new FileRef(path);
+  const file = fs.ref(path);
   const basename = path.slice(0, -file.fullExtension.length);
   return `p_${await hash(`${basename}.${frontend}`)}`;
 }
@@ -235,7 +236,7 @@ export default abstract class FrontendModule<
             });
             build.onLoad({ filter }, async () => {
               const contents = (await compile.client!(root.create(app.depth(), app.i18n_active),
-                new FileRef("/tmp"), true)).js;
+                fs.ref("/tmp"), true)).js;
               return contents ? { contents, loader: "js", resolveDir } : null;
             });
           }
@@ -257,8 +258,10 @@ export default abstract class FrontendModule<
             return { namespace: `${name}`, path };
           });
           build.onLoad({ filter: views_filter }, async () => {
-            const views = await views_base
-              .list({ filter: c => fileExtensions.includes(c.fullExtension) });
+            const views = await views_base.files({
+              recursive: true,
+              filter: c => fileExtensions.includes(c.fullExtension),
+            });
             let contents = "";
             for (const view of views) {
               const { path } = view.debase(views_base, "/");
@@ -273,7 +276,7 @@ export default abstract class FrontendModule<
             e.replace(".", "\\.")).join("|")})$`);
 
           build.onLoad({ filter }, async args => {
-            const file = new FileRef(args.path);
+            const file = fs.ref(args.path);
             // compile file to JavaScript and potentially CSS
             const compiled = await compile.client!(await file.text(), file
               , false);

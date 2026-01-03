@@ -15,7 +15,7 @@
     "@plsp/svelte": "^0.1.0",
     "@primate/sqlite": "workspace:^",
     "@primate/svelte": "workspace:^",
-    "@rcompat/assert": "^0.5.0",
+    "@rcompat/assert": "^0.6.0",
     "bits-ui": "^2.14.4",
     "mode-watcher": "^1.1.0",
     "pema": "workspace:^",
