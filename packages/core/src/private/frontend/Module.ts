@@ -104,9 +104,7 @@ export default abstract class FrontendModule<
       ? await this.render(server.view, server.props)
       : { body: "", head: "" };
 
-    if (!this.client) {
-      return { body, head, headers };
-    }
+    if (!this.client) return { body, head, headers };
 
     const app_asset = app.assets.find(asset =>
       asset.src?.includes("app") && asset.src.endsWith(".js"),
@@ -137,17 +135,10 @@ export default abstract class FrontendModule<
       }
       const views = (await Promise.all((layouts as Layout[])
         .map(layout => layout(app, { as_layout: true }, request))))
-        /* set the actual page as the last view */
+        // set the actual page as the last view
         .concat(this.#load(view, props, app));
 
-      const $request = {
-        context: request.context,
-        cookies: request.cookies.toJSON(),
-        headers: request.headers.toJSON(),
-        path: request.path.toJSON(),
-        query: request.query.toJSON(),
-        url: request.url,
-      };
+      const $request = request.toJSON();
       const $props = this.layouts
         ? {
           views: await fn.async.map(views, ({ name }) => this.normalize(name)),

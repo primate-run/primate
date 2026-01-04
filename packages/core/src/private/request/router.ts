@@ -1,6 +1,6 @@
 import AppError from "#AppError";
 import fail from "#fail";
-import type FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
 import FileRouter from "@rcompat/fs/FileRouter";
 
 const error_entries = Object.entries({
@@ -14,7 +14,7 @@ const allowed = {
   replacements: ["a-Z", "0-9", "-", "_", "+", "[", "]", "."],
   text: "letters ({1}), digits ({2}), {3}, {4}, {5}, {6}, {7}",
 };
-const specials = ["guard", "error", "layout"];
+const specials = ["error", "hook", "layout"];
 const _ = allowed.re.source.slice(1, -1);
 
 const p = /^(?:[^[\]]+|\[(?:\.{3})?[a-zA-Z0-9_]+\]|\[\[(?:\.{3})?[a-zA-Z0-9_]+\]\])$/;
@@ -26,7 +26,7 @@ export default async (directory: FileRef, extensions: string[]) => {
       extensions,
       specials: {
         error: { recursive: false },
-        guard: { recursive: true },
+        hook: { recursive: true },
         layout: { recursive: true },
       },
     });

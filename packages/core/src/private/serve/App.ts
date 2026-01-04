@@ -27,8 +27,8 @@ import HandleModule from "#serve/module/Handle";
 import SessionModule from "#session/SessionModule";
 import tags from "#tags";
 import assert from "@rcompat/assert";
-import entries from "@rcompat/dict/entries";
-import FileRef from "@rcompat/fs/FileRef";
+import type { FileRef } from "@rcompat/fs";
+import fs from "@rcompat/fs";
 import FileRouter from "@rcompat/fs/FileRouter";
 import type Actions from "@rcompat/http/Actions";
 import type Conf from "@rcompat/http/Conf";
@@ -121,7 +121,7 @@ export default class ServeApp extends App {
   };
   #i18n_config?: I18NConfig;
   constructor(rootfile: string, init: ServeInit) {
-    const dir = new FileRef(rootfile).directory;
+    const dir = fs.ref(rootfile).directory;
     super(dir, init.config, {
       mode: init.mode,
       target: init.target,
@@ -151,8 +151,8 @@ export default class ServeApp extends App {
       extensions: [".js"],
       specials: {
         error: { recursive: false },
-        guard: { recursive: true },
         layout: { recursive: true },
+        hook: { recursive: true },
       },
     }, init.routes.map(s => s[0]));
 
@@ -203,7 +203,7 @@ export default class ServeApp extends App {
   }
 
   loadView<T = ServerView>(name: string) {
-    const f = new FileRef(name).path;
+    const f = fs.ref(name).path;
     const frontends = Object.keys(this.frontends);
     const extension = frontends.find(frontend => f.endsWith(frontend));
     const base = extension === undefined ? name : f.slice(0, -extension.length);
@@ -282,7 +282,7 @@ export default class ServeApp extends App {
         code: inline ? code : "",
         inline,
         integrity: await hash(code),
-        src: FileRef.join(this.#init.config.http.static.root, src ?? "").path,
+        src: fs.join(this.#init.config.http.static.root, src ?? "").path,
         type,
       });
     }
@@ -312,12 +312,12 @@ export default class ServeApp extends App {
     return this.#pages[page_name];
   }
 
-  async #try_serve(file: FileRef) {
-    if (await file.exists() && await file.isFile()) {
-      return new Response(file.stream(), {
+  async #try_serve(ref: FileRef) {
+    if (await ref.exists() && await ref.kind() === "file") {
+      return new Response(ref.stream(), {
         headers: {
-          "Content-Type": MIME.resolve(file.name),
-          "Content-Length": String(await file.size()),
+          "Content-Type": MIME.resolve(ref.name),
+          "Content-Length": String(await ref.size()),
         },
         status: Status.OK,
       });
@@ -343,7 +343,7 @@ export default class ServeApp extends App {
 
     const asset = this.#serve_assets.client[pathname] ??
       this.#serve_assets.static[pathname];
-    if (asset) {
+    if (asset !== undefined) {
       const binary = atob(asset.data);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) {
@@ -382,8 +382,9 @@ export default class ServeApp extends App {
     } else {
       const client_dir = this.root.join(location.client);
       const files = await client_dir.exists()
-        ? await client_dir.list({
-          filter: file => file.extension === ".js" || file.extension === ".css",
+        ? await client_dir.files({
+          recursive: true,
+          filter: info => info.extension === ".js" || info.extension === ".css",
         })
         : [];
 
@@ -440,7 +441,6 @@ export default class ServeApp extends App {
 
   async route(request: RequestFacade) {
     const { original, url } = request;
-
     const pathname = normalize(url.pathname);
     const route = this.router.match(original);
     if (route === undefined) {
@@ -449,40 +449,38 @@ export default class ServeApp extends App {
     }
 
     const verb = original.method.toLowerCase() as Verb;
-    const { errors = [], guards = [], layouts = [] } = entries(route.specials)
-      .map(([key, value]) => [`${key}s`, value ?? []])
-      .map(([key, value]) => [key, value.map(v => {
-        const verbs = router.get(v);
-        const routeHandler = verbs[verb];
-        return routeHandler?.handler;
-      }).filter(Boolean).toReversed() as RouteHandler[]])
-      .get();
-
+    const specials = route.specials;
+    const errors = (specials.error ?? [])
+      .map(v => router.get(v)[verb]?.handler)
+      .filter(Boolean)
+      .toReversed() as RouteHandler[];
+    const layouts = (specials.layout ?? [])
+      .map(v => router.get(v)[verb]?.handler)
+      .filter(Boolean)
+      .toReversed() as RouteHandler[];
+    const hooks = (specials.hook ?? [])
+      .toReversed()
+      .flatMap(v => router.getHooks(v));
     const verbs = router.get(route.path)!;
-    const routePath = verbs[verb];
+    const route_path = verbs[verb];
 
-    if (routePath === undefined) {
+    if (route_path === undefined) {
       throw fail("route {0} has no {1} verb", route.path, verb);
     }
 
-    const parseBody = routePath.options.parseBody;
-    const body = parseBody ?? this.config("request.body.parse")
+    const handler = route_path.handler;
+    const parse_body = route_path.options.parseBody;
+    const body = parse_body ?? this.config("request.body.parse")
       ? await RequestBody.parse(original, url)
       : RequestBody.none();
+    const refined = Object.assign(Object.create(request), {
+      body,
+      path: new RequestBag(route.params as PartialDict<string>, "path", {
+        normalize: k => k.toLowerCase(),
+        raw: url.pathname,
+      }),
+    });
 
-    return {
-      errors,
-      guards,
-      handler: routePath.handler,
-      layouts,
-      request: {
-        ...request,
-        body,
-        path: new RequestBag(route.params as PartialDict<string>, "path", {
-          normalize: k => k.toLowerCase(),
-          raw: url.pathname,
-        }),
-      },
-    };
+    return { errors, hooks, layouts, handler, request: refined };
   }
 }

@@ -130,10 +130,10 @@ export default async () => {
     const verb = test.verb.toUpperCase();
 
     if (failed !== undefined) {
-      const routeText = typeof test.route === "string"
+      const route_text = typeof test.route === "string"
         ? test.route
         : new URL(test.route.url).pathname;
-      console.log(color.red(`${verb} ${routeText}`));
+      console.log(color.red(`${verb} ${route_text}`));
       const expected = JSON.stringify(failed[1]);
       const actual = JSON.stringify(failed[2]);
       const n = first_error(expected, actual)!;

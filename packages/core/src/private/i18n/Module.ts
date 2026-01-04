@@ -133,27 +133,19 @@ export default class I18NModule extends Module {
       .split(",")
       .map(s => s.split(";")[0].trim())
       .filter(Boolean);
-
     const mode = this.#persist;
-
-    const cookieLocale =
-      mode === "cookie" ? request.cookies.try(COOKIE_NAME) : undefined;
-
-    const locale = cookieLocale ??
+    const cookie_locale = mode === "cookie"
+      ? request.cookies.try(COOKIE_NAME)
+      : undefined;
+    const locale = cookie_locale ??
       pick(client_locales, server_locales) ??
       this.#defaultLocale;
 
-    return next({
-      ...request,
-      context: {
-        ...request.context,
-        i18n: {
-          currency: this.#currency,
-          mode,
-          locale,
-          locales: server_locales,
-        },
-      },
-    });
+    return next(request.set("i18n", {
+      currency: this.#currency,
+      mode,
+      locale,
+      locales: server_locales,
+    }));
   }
 }
