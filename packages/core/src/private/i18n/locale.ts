@@ -1,7 +1,5 @@
-import type { Dict } from "@rcompat/type";
+import type Catalog from "#i18n/Catalog";
 
-type MessageMap = Dict<string>;
-
-export default function locale<const M extends MessageMap>(messages: M): M {
+export default function locale<const M extends Catalog>(messages: M): M {
   return messages;
 }

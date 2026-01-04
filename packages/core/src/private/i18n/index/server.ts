@@ -5,36 +5,27 @@ import type Config from "#i18n/Config";
 import DEFAULT_PERSIST_MODE from "#i18n/constant/DEFAULT_PERSIST_MODE";
 import format from "#i18n/format";
 import Formatter from "#i18n/Formatter";
+import type {
+  DotPaths,
+  EntriesOf,
+  ParamsFromEntries,
+  PathValue,
+} from "#i18n/index/types";
+import resolve from "#i18n/resolve";
 import server_storage from "#i18n/storage";
 import sInternal from "#i18n/symbol/internal";
-import type TypeOf from "#i18n/TypeOf";
 import sConfig from "#symbol/config";
 import type { Dict } from "@rcompat/type";
-
-type EntryOf<Body extends string> =
-  Body extends `${infer Name}:${infer Spec}`
-  ? { __name: Name & string; __type: TypeOf<Spec> }
-  : { __name: Body & string; __type: string };
-
-type EntriesOf<S extends string> =
-  S extends `${infer _}{${infer Body}}${infer Rest}`
-  ? EntryOf<Body> | EntriesOf<Rest>
-  : never;
-
-type ParamsFromEntries<E> =
-  [E] extends [never] ? Dict : {
-    [K in E as K extends { __name: infer N extends string } ? N : never]:
-    K extends { __type: infer T } ? T : never
-  };
 
 export default function i18n<const C extends Catalogs>(config: Config<C>) {
   type Locale = keyof C & string;
   type Schema = C[typeof config.defaultLocale] extends Catalog
     ? C[typeof config.defaultLocale]
     : never;
-
-  type Key = keyof Schema & string;
-  type Message<K extends Key> = Schema[K] & string;
+  type Key = DotPaths<Schema> & string;
+  type Resolved<K extends string> =
+    [K] extends [Key] ? PathValue<Schema, K> : never;
+  type Message<K extends Key> = Extract<Resolved<K>, string>;
   type Params<K extends Key> = ParamsFromEntries<EntriesOf<Message<K>>>;
 
   const catalogs: Catalogs = config.locales as Catalogs;
@@ -55,17 +46,24 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
       : [key: K, params: Params<K>])
     : [`[i18n] Missing locale key "${K & string}".`];
 
-  function t<K extends string>(...args: Args<K>): string {
+  type Result<K extends string> =
+    K extends Key
+    ? (Resolved<K> extends string ? string : Resolved<K>)
+    : string;
+
+  function t<K extends string>(...args: Args<K>): Result<K> {
     const active_locale = get_locale();
     const formatter = new Formatter(active_locale);
-    const [key, maybe_params] = args as [Key, Dict?];
-    const active = catalogs[active_locale];
+    const [key, params] = args as [string, Dict?];
     const translated =
-      (active && active[key]) ??
-      (default_catalog && default_catalog[key]) ??
+      resolve(catalogs[active_locale], key) ??
+      resolve(default_catalog, key) ??
       String(key);
 
-    return format(translated, maybe_params ?? {}, currency, formatter);
+    if (typeof translated === "string") {
+      return format(translated, params ?? {}, currency, formatter) as Result<K>;
+    }
+    return translated as Result<K>;
 
   }
 

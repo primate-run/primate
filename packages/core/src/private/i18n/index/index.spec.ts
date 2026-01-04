@@ -2,7 +2,7 @@ import i18n from "#i18n/index/server";
 import type TypeOf from "#i18n/TypeOf";
 import test from "@rcompat/test";
 
-const enConfig = {
+const en_config = {
   defaultLocale: "en" as const,
   locales: {
     en: {
@@ -81,11 +81,25 @@ const enConfig = {
       large: "Processing {count:n|{count} item|{count} items}",
       dup: "Processing {n:n|1 file|{n} files} in {n} {n:n|batch|batches}",
       decimal_bf: "Progress: {pct:n|{pct}% complete|{pct}% complete}",
+
+      // nested objects/arrays
+      onboarding: {
+        steps: [
+          { title: "Category setup", description: "..." },
+          { title: "Income", description: "..." },
+          { title: "Expenses", description: "..." },
+        ],
+        greeting: "Welcome {name}",
+        added: "Added {n:n|{n} item|{n} items}",
+        plain: ["a", "b", "c"],
+      },
+      a: { b: "nested" },
+      "a.b": "flat",
     },
   },
 };
 
-const deConfig = {
+const de_config = {
   defaultLocale: "de" as const,
   currency: "EUR" as const,
   locales: {
@@ -160,12 +174,26 @@ const deConfig = {
       large: "Verarbeitung von {count:n|{count} Element|{count} Elementen}",
       dup: "{n:n|1 Datei|{n} Dateien} in {n} {n:n|Charge|Chargen} verarbeitet",
       decimal_bf: "Fortschritt: {pct:n|{pct}%|{pct}%} abgeschlossen",
+
+      // nested objects/arrays
+      onboarding: {
+        steps: [
+          { title: "Kategorieeinrichtung", description: "..." },
+          { title: "Einkommen", description: "..." },
+          { title: "Ausgaben", description: "..." },
+        ],
+        greeting: "Willkommen {name}",
+        added: "{n} {n:n|Eintrag|Einträge} hinzugefügt",
+        plain: ["a", "b", "c"],
+      },
+      a: { b: "verschachtelt" },
+      "a.b": "flach",
     },
   },
 };
 
-const en = i18n(enConfig) as any;
-const de = i18n(deConfig) as any;
+const en = i18n(en_config) as any;
+const de = i18n(de_config) as any;
 
 test.case("simple message without parameters", assert => {
   assert(en("simple")).equals("Hello world");
@@ -476,4 +504,32 @@ test.case("Infinity number", assert => {
   const input = { count: Infinity };
   assert(en("count", input)).equals("You have ∞ items");
   assert(de("count", input)).equals("Du hast ∞ Artikel");
+});
+
+test.case("nested objects/arrays via dot-path", assert => {
+  const steps = en("onboarding.steps") as any;
+  assert(Array.isArray(steps)).true();
+  assert(steps.length).equals(3);
+  assert(steps[0].title).equals("Category setup");
+
+  assert(en("onboarding.steps.0.title")).equals("Category setup");
+  assert(de("onboarding.steps.1.title")).equals("Einkommen");
+
+  assert(en("onboarding.greeting", { name: "Sam" })).equals("Welcome Sam");
+  assert(de("onboarding.greeting", { name: "Sam" })).equals("Willkommen Sam");
+
+  // deep string still formats (parity)
+  assert(en("onboarding.added", { n: 2 })).equals("Added 2 items");
+  assert(de("onboarding.added", { n: 2 })).equals("2 Einträge hinzugefügt");
+
+  // array indices supported
+  assert(en("onboarding.plain.1")).equals("b");
+
+  // missing deep path falls back to key string
+  assert(en("onboarding.steps.99.title")).equals("onboarding.steps.99.title");
+});
+
+test.case("flat keys win over dot-path traversal", assert => {
+  assert(en("a.b")).equals("flat");
+  assert(de("a.b")).equals("flach");
 });
