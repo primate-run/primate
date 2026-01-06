@@ -93,8 +93,6 @@ const en_config = {
         added: "Added {n:n|{n} item|{n} items}",
         plain: ["a", "b", "c"],
       },
-      a: { b: "nested" },
-      "a.b": "flat",
     },
   },
 };
@@ -186,8 +184,6 @@ const de_config = {
         added: "{n} {n:n|Eintrag|Einträge} hinzugefügt",
         plain: ["a", "b", "c"],
       },
-      a: { b: "verschachtelt" },
-      "a.b": "flach",
     },
   },
 };
@@ -529,7 +525,13 @@ test.case("nested objects/arrays via dot-path", assert => {
   assert(en("onboarding.steps.99.title")).equals("onboarding.steps.99.title");
 });
 
-test.case("flat keys win over dot-path traversal", assert => {
-  assert(en("a.b")).equals("flat");
-  assert(de("a.b")).equals("flach");
+test.case("reject dotted catalog keys (runtime)", assert => {
+  assert(() => i18n({
+    defaultLocale: "en" as const,
+    locales: {
+      en: {
+        "bad.key": "nope",
+      },
+    },
+  } as any)).throws();
 });

@@ -6,10 +6,6 @@
 export default function resolve(root: unknown, key: string): unknown {
   if (root == null) return undefined;
 
-  if (typeof root === "object" && Object.hasOwn(root, key)) {
-    return (root as any)[key];
-  }
-
   const parts = key.split(".");
   let current: any = root;
 

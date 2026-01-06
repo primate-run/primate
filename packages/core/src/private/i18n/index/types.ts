@@ -7,6 +7,7 @@ type EntryOf<Body extends string> =
   : { __name: Body & string; __type: string };
 
 export type EntriesOf<S extends string> =
+  string extends S ? never :
   S extends `${infer _}{${infer Body}}${infer Rest}`
   ? EntryOf<Body> | EntriesOf<Rest>
   : never;
@@ -17,30 +18,30 @@ export type ParamsFromEntries<E> =
     K extends { __type: infer T } ? T : never
   };
 
-type Join<A extends string, B extends string> = `${A}.${B}`;
-
-type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
+type Prev = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8];
 type Primitive = string | number | boolean | null | undefined;
+type NoDot<K extends string> = K extends `${string}.${string}` ? never : K;
+type ObjKeys<T> = NoDot<Extract<keyof T, string>>;
 
-export type DotPaths<T, D extends number = 7> =
+export type DotPaths<T, D extends number = 6> =
   [D] extends [never] ? never :
   T extends Primitive ? never :
   T extends readonly (infer E)[] ?
-  `${number}` | Join<`${number}`, DotPaths<E, Prev[D]>>
+  `${number}` | `${number}.${DotPaths<E, Prev[D]> & string}`
   : T extends object ?
   string extends keyof T ? string :
   {
-    [K in Extract<keyof T, string>]:
-    K | (
+    [K in ObjKeys<T>]:
+    | K
+    | (
       DotPaths<T[K], Prev[D]> extends infer R
-      ? R extends string ? Join<K, R> : never
+      ? R extends string ? `${K}.${R}` : never
       : never
     )
-  }[Extract<keyof T, string>]
+  }[ObjKeys<T>]
   : never;
 
-export type PathValue<T, P extends string, D extends number = 7> =
+export type PathValue<T, P extends string, D extends number = 6> =
   string extends P ? unknown :
   [D] extends [never] ? unknown :
   P extends `${infer Head}.${infer Tail}`

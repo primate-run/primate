@@ -16,6 +16,7 @@ import type {
 } from "#i18n/index/types";
 import resolve from "#i18n/resolve";
 import sInternal from "#i18n/symbol/internal";
+import validate from "#i18n/validate";
 import sConfig from "#symbol/config";
 import type { Dict, MaybePromise } from "@rcompat/type";
 
@@ -31,6 +32,9 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
   type Params<K extends Key> = ParamsFromEntries<EntriesOf<Message<K>>>;
 
   const catalogs: Catalogs = config.locales as Catalogs;
+  for (const [locale, catalog] of Object.entries(catalogs)) {
+    validate(catalog, locale);
+  }
   const default_catalog = catalogs[config.defaultLocale] as Schema;
   let active_locale: Locale = config.defaultLocale;
   const currency = config.currency ?? "USD";
