@@ -15,10 +15,10 @@ export default function plugin_server_store(app: BuildApp): Plugin {
         const name = args.path;
         return {
           contents: `
-            import database from "app:database";
-            import wrap from "primate/database/wrap";
+            import db from "app:db";
+            import wrap from "primate/db/wrap";
             import schema from "store:${name}";
-            export default wrap("${name}", schema, database);
+            export default wrap("${name}", schema, db);
           `,
           loader: "js",
           resolveDir: app.path.stores.path,

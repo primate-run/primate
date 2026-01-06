@@ -1,5 +1,5 @@
-import InMemoryDatabase from "#database/InMemoryDatabase";
-import Store from "#database/Store";
+import InMemoryDB from "#db/InMemoryDB";
+import Store from "#db/Store";
 import type SessionHandle from "#session/SessionHandle";
 import SessionModule from "#session/SessionModule";
 import storage from "#session/storage";
@@ -16,7 +16,7 @@ const new_store = () => new Store({
   a: p.number.optional(),
   b: p.number.optional(),
   v: p.number.optional(),
-}, { database: new InMemoryDatabase(), name: "session" });
+}, { db: new InMemoryDB(), name: "session" });
 
 class MultiHeaders {
   #map = new Map<string, string[]>();

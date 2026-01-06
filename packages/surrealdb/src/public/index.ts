@@ -1,3 +1,3 @@
-import Database from "#Database";
+import SurrealDB from "#SurrealDB";
 
-export default (config: typeof Database.config) => new Database(config);
+export default (config: typeof SurrealDB.config) => new SurrealDB(config);

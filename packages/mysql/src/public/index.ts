@@ -1,3 +1,3 @@
-import Database from "#Database";
+import MySQL from "#MySQL";
 
-export default (config: typeof Database.config) => new Database(config);
+export default (config: typeof MySQL.config) => new MySQL(config);

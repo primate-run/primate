@@ -1,3 +1,3 @@
-import Database from "#Database";
+import PostgreSQL from "#PostgreSQL";
 
-export default (config: typeof Database.config) => new Database(config);
+export default (config: typeof PostgreSQL.config) => new PostgreSQL(config);

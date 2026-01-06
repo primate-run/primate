@@ -1,5 +1,5 @@
 import type BuildApp from "#build/App";
-import type { FileInfo, FileRef } from "@rcompat/fs";
+import type { FileInfo } from "@rcompat/fs";
 import type { Plugin } from "esbuild";
 
 export default function plugin_server_virtual_routes(app: BuildApp): Plugin {
@@ -26,17 +26,6 @@ export default function plugin_server_virtual_routes(app: BuildApp): Plugin {
           filter: is_route_file,
           recursive: true,
         });
-        const watch_dirs = new Set<string>();
-
-        const find_dirs = async (dir: FileRef) => {
-          watch_dirs.add(dir.path);
-          const entries = await dir.list();
-          for (const entry of entries) {
-            if (await entry.kind() === "directory") await find_dirs(entry);
-          }
-        };
-        await find_dirs(app.path.routes);
-
         const contents = `
           const route = [];
           ${route_files.map((file, i) => {
@@ -46,12 +35,15 @@ export default function plugin_server_virtual_routes(app: BuildApp): Plugin {
         }).join("\n")}
           export default route;
         `;
+        const watchDirs = (await app.path.routes.dirs({
+          recursive: true,
+        })).map(f => f.toString());
 
         return {
           contents,
           loader: "js",
           resolveDir: app.root.path,
-          watchDirs: [...watch_dirs],
+          watchDirs,
           watchFiles: route_files.map(f => f.path),
         };
       });

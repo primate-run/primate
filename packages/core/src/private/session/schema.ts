@@ -1,5 +1,5 @@
-import InMemoryDatabase from "#database/InMemoryDatabase";
-import Store from "#database/Store";
+import InMemoryDB from "#db/InMemoryDB";
+import Store from "#db/Store";
 import p from "pema";
 
 export default p({
@@ -13,6 +13,6 @@ export default p({
     return new Store({
       id: p.primary,
       session_id: p.string.uuid(),
-    }, { database: new InMemoryDatabase(), name: "session" });
+    }, { db: new InMemoryDB(), name: "session" });
   }),
 });

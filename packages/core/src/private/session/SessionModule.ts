@@ -1,4 +1,4 @@
-import type DatabaseStore from "#database/Store";
+import type DBStore from "#db/Store";
 import fail from "#fail";
 import Module from "#Module";
 import type NextHandle from "#module/NextHandle";
@@ -32,7 +32,7 @@ const cookie = (name: string, value: string, options: CookieOptions) => {
 
 export default class SessionModule extends Module {
   name = "builtin/session";
-  #store: DatabaseStore<StoreSchema>;
+  #store: DBStore<StoreSchema>;
   #secure: boolean;
   #config: Config;
 

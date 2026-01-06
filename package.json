@@ -19,7 +19,7 @@
     "knip": "knip"
   },
   "devDependencies": {
-    "@rcompat/fs": "^0.25.1",
+    "@rcompat/fs": "^0.25.2",
     "@rcompat/test": "^0.8.0",
     "@types/deno": "^2.5.0",
     "@types/node": "^25.0.3",

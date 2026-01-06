@@ -1,3 +1,3 @@
-import Database from "#Database";
+import SQLite from "#SQLite";
 
-export default (config?: typeof Database.config) => new Database(config);
+export default (config?: typeof SQLite.config) => new SQLite(config);

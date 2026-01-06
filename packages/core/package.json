@@ -31,7 +31,7 @@
     "@rcompat/crypto": "^0.14.0",
     "@rcompat/dict": "^0.3.0",
     "@rcompat/fn": "^0.3.0",
-    "@rcompat/fs": "^0.25.1",
+    "@rcompat/fs": "^0.25.2",
     "@rcompat/http": "^0.21.0",
     "@rcompat/io": "^0.3.0",
     "@rcompat/is": "^0.4.0",

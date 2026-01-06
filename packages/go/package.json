@@ -26,7 +26,7 @@
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.6.0",
     "@rcompat/env": "^0.12.0",
-    "@rcompat/fs": "^0.25.1",
+    "@rcompat/fs": "^0.25.2",
     "@rcompat/io": "^0.3.0"
   },
   "devDependencies": {

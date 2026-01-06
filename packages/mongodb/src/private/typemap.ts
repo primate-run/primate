@@ -1,5 +1,5 @@
 import type ColumnTypes from "#ColumnTypes";
-import type { TypeMap } from "@primate/core/database";
+import type { TypeMap } from "@primate/core/db";
 import type { TypedArray } from "@rcompat/type";
 import { Binary, Decimal128, ObjectId } from "mongodb";
 

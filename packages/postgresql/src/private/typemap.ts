@@ -1,5 +1,5 @@
 import type ColumnTypes from "#ColumnTypes";
-import type { TypeMap } from "@primate/core/database";
+import type { TypeMap } from "@primate/core/db";
 
 function identity<C extends keyof ColumnTypes>(column: C): {
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];

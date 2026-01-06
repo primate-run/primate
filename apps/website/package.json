@@ -13,7 +13,7 @@
     "@primate/handlebars": "workspace:^",
     "@primate/markdown": "workspace:^",
     "@primate/svelte": "workspace:^",
-    "@rcompat/fs": "^0.25.1",
+    "@rcompat/fs": "^0.25.2",
     "@rcompat/http": "^0.21.0",
     "@rcompat/string": "^0.13.0",
     "primate": "workspace:^",

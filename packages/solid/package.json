@@ -30,7 +30,7 @@
   "dependencies": {
     "@babel/core": "^7.28.5",
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.25.1",
+    "@rcompat/fs": "^0.25.2",
     "@rcompat/runtime": "^0.9.0",
     "babel-preset-solid": "^1.9.10"
   },
