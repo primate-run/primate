@@ -56,17 +56,17 @@ const normalize = (pathname: string) => deroot(deslash(pathname));
 
 const to_csp = (config_csp: Entry<CSP>[], assets: CSP, override: CSP) =>
   config_csp
-  // only csp entries in the config will be enriched
-  .map<Entry<CSP>>(([key, directives]) =>
-    // enrich with application assets
-    [key, assets[key] ? directives.concat(...assets[key]) : directives],
-  )
-  .map<Entry<CSP>>(([key, directives]) =>
-    // enrich with explicit csp
-    [key, override[key] ? directives.concat(...override[key]) : directives],
-  )
-  .map(([key, directives]) => `${key} ${directives.join(" ")}`)
-  .join(";");
+    // only csp entries in the config will be enriched
+    .map<Entry<CSP>>(([key, directives]) =>
+      // enrich with application assets
+      [key, assets[key] ? directives.concat(...assets[key]) : directives],
+    )
+    .map<Entry<CSP>>(([key, directives]) =>
+      // enrich with explicit csp
+      [key, override[key] ? directives.concat(...override[key]) : directives],
+    )
+    .map(([key, directives]) => `${key} ${directives.join(" ")}`)
+    .join(";");
 
 const render_head = (assets: Asset[], head?: string) => {
   const fonts = assets.filter(asset => asset.src?.endsWith(".woff2"));
@@ -424,8 +424,10 @@ export default class ServeApp extends App {
           status: Status.INTERNAL_SERVER_ERROR,
         });
       }
-    }, { ...this.get<Conf>(s_http),
-        timeout: this.mode === "development" ? 0 : undefined });
+    }, {
+      ...this.get<Conf>(s_http),
+      timeout: this.mode === "development" ? 0 : undefined
+    });
 
     log.system("started {0}", this.url);
   };

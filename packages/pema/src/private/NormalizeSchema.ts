@@ -27,15 +27,11 @@ type NormalizeSchema<S> =
   S extends Parsed<unknown> ? S :
   S extends null ? NullType :
   S extends undefined ? UndefinedType :
-  S extends string ? LiteralType<S> :
-  S extends number ? LiteralType<S> :
-  S extends boolean ? LiteralType<S> :
+  S extends string | number | boolean ? LiteralType<S> :
   S extends AbstractNewable ? ConstructorType<S> :
-  S extends [infer O] ? O extends Schema ?
-  ArrayType<NormalizeSchema<O>> : never :
+  S extends [Schema] ? ArrayType<NormalizeSchema<S[0]>> :
   S extends Schema[] ? TupleType<NormalizeSchemaArray<S>> :
   S extends Record<string, unknown> ? ObjectType<NormalizeSchemaObject<S>> :
-  never
-  ;
+  never;
 
 export type { NormalizeSchema as default };

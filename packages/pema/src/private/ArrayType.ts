@@ -100,41 +100,31 @@ export default class ArrayType<T extends Parsed<unknown>>
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (!is<T[]>(x, _ => !!x && Array.isArray(x))) {
-      throw new ParseError(error("array", x, options));
-    }
+    if (!Array.isArray(x)) throw new ParseError(error("array", x, options));
 
     const base = options[ParsedKey] ?? "";
+    const item = this.#item;
+    const len = x.length;
 
-    let last = 0;
-    x.forEach((v, i) => {
+    for (let i = 0; i < len; i++) {
       // sparse array check
-      if (i > last) {
+      if (!(i in x)) {
         throw new ParseError([{
-          ...error(this.#item.name, undefined, options)[0],
-          path: join(base, last),
+          ...error(item.name, undefined, options)[0],
+          path: join(base, i),
         }]);
       }
-      const validator = this.#item;
-      validator.parse(v, next(i, options));
-      last++;
-    });
-
-    // sparse array with end slots
-    if (x.length > last) {
-      throw new ParseError([{
-        ...error(this.#item.name, undefined, options)[0],
-        path: join(base, last),
-      }]);
+      item.parse(x[i], next(i, options));
     }
 
-    for (const v of this.#validators) {
+    const validators = this.#validators;
+    for (let i = 0; i < validators.length; i++) {
       try {
-        v(x);
+        validators[i](x);
       } catch (e) {
         if (e instanceof ParseError) {
           const rebased = (e.issues ?? [])
-            .map(i => ({ ...i, path: rebase(base, i.path) }));
+            .map(issue => ({ ...issue, path: rebase(base, issue.path) }));
           throw new ParseError(rebased);
         }
         throw e;

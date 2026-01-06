@@ -1,10 +1,9 @@
 import DefaultType from "#DefaultType";
 import error from "#error";
 import GenericType from "#GenericType";
-import schema from "#index";
 import type Infer from "#Infer";
-import type InferSchema from "#InferSchema";
 import isParsedType from "#is-parsed-type";
+import type NormalizeSchema from "#NormalizeSchema";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import ParseError from "#ParseError";
@@ -18,7 +17,7 @@ import type { TupleToUnion } from "@rcompat/type";
 type InferUnion<T extends Schema[]> = TupleToUnion<{
   [K in keyof T]:
   T[K] extends Schema
-  ? InferSchema<T[K]>
+  ? NormalizeSchema<T[K]>["infer"]
   : "union-never"
 }>;
 
@@ -79,21 +78,20 @@ export default class UnionType<T extends Parsed<unknown>[]>
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    // union parses when any of its members parses
-    const parsed = this.#of.map(type => {
-      const validator = isParsedType(type) ? type : schema(type);
+    for (const type of this.#of) {
       try {
-        validator.parse(x, options);
-        return true;
+        type.parse(x, options);
+        return x as never;
       } catch (e) {
-        return e as ParseError;
+        if (!(e instanceof ParseError)) {
+          throw e;
+        }
+        // continue to next
       }
-    });
-    if (!parsed.some(r => r === true)) {
-      throw new ParseError(error(union_error(this.#of), x, options));
     }
 
-    return x as never;
+    // all types failed
+    throw new ParseError(error(union_error(this.#of), x, options));
   }
 
   toJSON() {

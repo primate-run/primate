@@ -1,7 +1,7 @@
 import error from "#error";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
-import type InferSchema from "#InferSchema";
+import type NormalizeSchema from "#NormalizeSchema";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import ParseError from "#ParseError";
@@ -13,7 +13,7 @@ import type OptionalTrait from "#trait/Optional";
 type InferTuple<T extends Schema[]> = {
   [K in keyof T]:
   T[K] extends Schema
-  ? InferSchema<T[K]>
+  ? NormalizeSchema<T[K]>["infer"]
   : "tuple-never"
 };
 
