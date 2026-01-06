@@ -79,3 +79,11 @@ test.case("input type with nested defaults", assert => {
     config: { host: "custom", port: 8080 }, // Should apply port default
   });
 });
+
+test.case("non-object input throws", assert => {
+  const o = object({ foo: string.default("bar") });
+
+  assert(() => o.parse(null)).throws("expected object, got null");
+  assert(() => o.parse(42)).throws("expected object, got `42` (number)");
+  assert(() => o.parse("str")).throws("expected object, got `str` (string)");
+});

@@ -1,5 +1,5 @@
 import DefaultType from "#DefaultType";
-import error from "#error";
+import fail from "#fail";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import isParsedType from "#is-parsed-type";
@@ -91,7 +91,7 @@ export default class UnionType<T extends Parsed<unknown>[]>
     }
 
     // all types failed
-    throw new ParseError(error(union_error(this.#of), x, options));
+    throw fail(union_error(this.#of), x, options);
   }
 
   toJSON() {

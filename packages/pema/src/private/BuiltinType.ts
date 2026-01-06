@@ -1,7 +1,6 @@
 import CoerceKey from "#CoerceKey";
-import error from "#error";
+import fail from "#fail";
 import type Infer from "#Infer";
-import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import Type from "#Type";
 import type { AbstractNewable, Newable } from "@rcompat/type";
@@ -30,9 +29,7 @@ export default abstract class BuiltinType<StaticType, Name extends string>
     const $options = { ...this.#options, ...options };
     const $x = $options.coerce === true ? this[CoerceKey](x) : x;
 
-    if (!($x instanceof this.Type)) {
-      throw new ParseError(error(this.name, $x, $options));
-    }
+    if (!($x instanceof this.Type)) throw fail(this.name, $x, $options);
 
     return $x as never;
   }

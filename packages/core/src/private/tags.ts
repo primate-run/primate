@@ -14,7 +14,12 @@ const nctag = (name: string, properties: Dict) =>
   tag(name, { ...properties, close: false });
 
 export default {
-  font({ as = "font", crossorigin = "true", href, rel = "preload", type }: Font) {
+  font({
+    as = "font",
+    crossorigin = "true",
+    href,
+    rel = "preload",
+    type }: Font) {
     return nctag("link", { attributes: { as, crossorigin, href, rel, type } });
   },
   // inline: <script type integrity>...</script>

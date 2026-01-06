@@ -36,9 +36,9 @@ class Router {
         verb, active);
     }
 
-    const routes = this.#routes;
-    if (!(active in routes)) routes[active] = {};
-    routes[active][verb] = { handler, options: options ?? {} };
+    const _routes = this.#routes;
+    if (!(active in _routes)) _routes[active] = {};
+    _routes[active][verb] = { handler, options: options ?? {} };
   }
 
   addHook(fn: RequestHook) {

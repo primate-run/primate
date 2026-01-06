@@ -1,5 +1,5 @@
-import error from "#error";
 import expected from "#expected";
+import fail from "#fail";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
@@ -8,17 +8,10 @@ import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import join from "#path/join";
+import next from "#path/next";
 import type RecordTypeKey from "#RecordTypeKey";
 import type OptionalTrait from "#trait/Optional";
-
-const nextOptions = (k: string, options?: ParseOptions) => {
-  const base = options?.[ParsedKey] ?? "";
-  return options === undefined
-    ? { [ParsedKey]: join("", k) }
-    : { ...options, [ParsedKey]: join(base, k) };
-};
-
-const is_numeric = (string: string) => /^-?\d+(\.\d+)?$/.test(string);
+import is from "@rcompat/is";
 
 export default class RecordType<
   Key extends RecordTypeKey,
@@ -43,9 +36,8 @@ export default class RecordType<
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (typeof x !== "object" || x === null) {
-      throw new ParseError(error("object", x, options));
-    }
+    if (!is.dict(x)) throw fail("object", x, options);
+
     const key_name = this.#key.name;
     const keys = Object.keys(x);
     const symbols = Object.getOwnPropertySymbols(x);
@@ -62,14 +54,14 @@ export default class RecordType<
       }
 
       keys.forEach(k => {
-        if (key_name === "string" && is_numeric(k)) {
+        if (key_name === "string" && is.numeric(k)) {
           throw new ParseError([{
             input: x,
             message: expected("string key", +k),
             path: join(base, k),
           }]);
         }
-        if (key_name === "number" && !is_numeric(k)) {
+        if (key_name === "number" && !is.numeric(k)) {
           throw new ParseError([{
             input: x,
             message: expected("number key", k),
@@ -78,7 +70,7 @@ export default class RecordType<
         }
 
         this.#value.parse((x as Record<number | string, unknown>)[k],
-          nextOptions(k, options));
+          next(k, options));
       });
     }
 

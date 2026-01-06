@@ -1,10 +1,9 @@
-import error from "#error";
+import fail from "#fail";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import type NormalizeSchema from "#NormalizeSchema";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
-import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import next from "#path/next";
 import type Schema from "#Schema";
@@ -36,22 +35,24 @@ export default class TupleType<T extends Parsed<unknown>[]>
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (!(!!x && Array.isArray(x))) {
-      throw new ParseError(error("array", x, options));
-    }
+    if (!Array.isArray(x)) throw fail("array", x, options);
 
-    this.#items.forEach((v, i) => {
-      v.parse(x[i], next(i, options));
-    });
+    const items = this.#items;
+    const len = items.length;
 
-    x.forEach((v, i) => {
-      if (i >= this.#items.length) {
-        throw new ParseError(error("undefined", v, next(i, options)));
-      }
-    });
+    // validate each expected item
+    for (let i = 0; i < len; i++) items[i].parse(x[i], next(i, options));
+
+    // reject extra items
+    if (x.length > len) throw fail("undefined", x[len], next(len, options));
 
     return x as never;
   }
 
-  toJSON() { return { type: this.name, of: this.#items.map(i => i.toJSON()) }; }
+  toJSON() {
+    return {
+      type: this.name,
+      of: this.#items.map(i => i.toJSON()),
+    };
+  }
 }

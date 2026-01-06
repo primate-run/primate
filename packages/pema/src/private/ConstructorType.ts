@@ -1,8 +1,7 @@
 import DefaultType from "#DefaultType";
-import error from "#error";
+import fail from "#fail";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
-import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import type DefaultTrait from "#trait/Default";
 import type { AbstractNewable } from "@rcompat/type";
@@ -26,9 +25,7 @@ export default class ConstructorType<C extends AbstractNewable>
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (!(x instanceof this.#type)) {
-      throw new ParseError(error(this.name, x, options));
-    }
+    if (!(x instanceof this.#type)) throw fail(this.name, x, options);
 
     return x as never;
   }

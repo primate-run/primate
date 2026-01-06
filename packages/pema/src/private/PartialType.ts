@@ -1,5 +1,5 @@
 import DefaultType from "#DefaultType";
-import error from "#error";
+import fail from "#fail";
 import type Infer from "#Infer";
 import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
@@ -40,7 +40,7 @@ export default class PartialType<D extends Partialable>
   }
 
   parse(x: unknown, options: ParseOptions = {}): InferPartial<D> {
-    if (!is.dict(x)) throw new ParseError(error("object", x, options));
+    if (!is.dict(x)) throw fail("object", x, options);
 
     const input = x;
     const out: Dict = {};

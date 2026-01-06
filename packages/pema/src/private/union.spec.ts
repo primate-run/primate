@@ -5,7 +5,11 @@ import type BooleanType from "#BooleanType";
 import type ConstructorType from "#ConstructorType";
 import type DefaultType from "#DefaultType";
 import type LiteralType from "#LiteralType";
+import type NullType from "#NullType";
+import number from "#number";
+import type NumberType from "#NumberType";
 import type ObjectType from "#ObjectType";
+import type OptionalType from "#OptionalType";
 import string from "#string";
 import type StringType from "#StringType";
 import union from "#union";
@@ -91,4 +95,20 @@ test.case("default", assert => {
   assert(bs_def_s1.parse(undefined)).equals("foo");
   assert(bs_def_b.parse(undefined)).equals(true);
   assert(bs_def_b1.parse(undefined)).equals(true);
+});
+
+test.case("nullable", assert => {
+  const sn = union(string, null);
+  assert(sn).type<UnionType<[StringType, NullType]>>();
+  assert(sn.parse("foo")).equals("foo").type<string | null>();
+  assert(sn.parse(null)).equals(null);
+  assert(() => sn.parse(undefined)).throws();
+});
+
+test.case("optional", assert => {
+  const u = union(string.optional(), number);
+  assert(u).type<UnionType<[OptionalType<StringType>, NumberType]>>();
+  assert(u.parse("foo")).equals("foo")/*.type<string | number | undefined>()*/;
+  assert(u.parse(42)).equals(42);
+  assert(u.parse(undefined)).equals(undefined);
 });

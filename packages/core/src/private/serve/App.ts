@@ -105,8 +105,8 @@ export default class ServeApp extends App {
   #csp: CSP = {};
   #assets: Asset[] = [];
   #serve_assets: {
-    client: Dict<{ mime: string; data: string }>;
-    static: Dict<{ mime: string; data: string }>;
+    client: PartialDict<{ mime: string; data: string }>;
+    static: PartialDict<{ mime: string; data: string }>;
   };
 
   #pages: Dict<string>;
@@ -216,13 +216,13 @@ export default class ServeApp extends App {
   };
 
   headers(csp = {}) {
-    const http_csp = Object.entries(this.config("http.csp") ?? {}) as Entry<CSP>[];
+    const base = Object.entries(this.config("http.csp") ?? {}) as Entry<CSP>[];
 
     return {
       ...this.config("http.headers") ?? {},
-      ...http_csp.length === 0 ? {} : {
+      ...base.length === 0 ? {} : {
         "Content-Security-Policy": to_csp(
-          http_csp,
+          base,
           this.#csp,
           csp),
       },
@@ -258,8 +258,10 @@ export default class ServeApp extends App {
       headers: {
         "Content-Type": MIME.TEXT_HTML,
         ...this.headers(),
-        ...body_length ? { ...headers, "Content-Length": String(body_length) } : headers,
-      }, status: status as number,
+        ...body_length ? {
+          ...headers, "Content-Length": String(body_length),
+        } : headers,
+      }, status,
     });
   };
 
@@ -294,8 +296,11 @@ export default class ServeApp extends App {
   create_csp() {
     this.#csp = this.#assets.map(({ integrity, type: directive }) =>
       [`${directive === "style" ? "style" : "script"}-src`, integrity])
-      .reduce((csp: CSP, [directive, hash]) =>
-        ({ ...csp, [directive]: csp[directive as keyof CSP]!.concat(`'${hash}'`) }),
+      .reduce((csp: CSP, [directive, _hash]) =>
+      ({
+        ...csp,
+        [directive]: csp[directive as keyof CSP]!.concat(`'${_hash}'`),
+      }),
         { "script-src": [], "style-src": [] },
       );
   };
@@ -324,7 +329,7 @@ export default class ServeApp extends App {
     }
   }
 
-  async serveAsset(pathname: string) {
+  async serve_assets(pathname: string) {
     const static_root = this.config("http.static.root");
 
     if (!pathname.startsWith(static_root)) return undefined;
@@ -341,25 +346,23 @@ export default class ServeApp extends App {
       return undefined;
     }
 
-    const asset = this.#serve_assets.client[pathname] ??
-      this.#serve_assets.static[pathname];
-    if (asset !== undefined) {
-      const binary = atob(asset.data);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
+    const assets = this.#serve_assets;
+    const asset = assets.client[pathname] ?? assets.static[pathname];
+    if (asset === undefined) return undefined;
 
-      return new Response(bytes, {
-        headers: {
-          "Content-Type": asset.mime,
-          "Content-Length": String(bytes.length),
-        },
-        status: Status.OK,
-      });
+    const binary = atob(asset.data);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
     }
 
-    return undefined;
+    return new Response(bytes, {
+      headers: {
+        "Content-Type": asset.mime,
+        "Content-Length": String(bytes.length),
+      },
+      status: Status.OK,
+    });
   }
 
   async start() {
@@ -369,7 +372,7 @@ export default class ServeApp extends App {
           .filter(([src]) => src.endsWith(".css") || src.endsWith(".js"))
           .map(async ([src, asset]) => {
             const type = src.endsWith(".css") ? "style" : "js";
-            const code = atob(asset.data);
+            const code = atob(asset!.data);
 
             return {
               code,
@@ -426,7 +429,7 @@ export default class ServeApp extends App {
       }
     }, {
       ...this.get<Conf>(s_http),
-      timeout: this.mode === "development" ? 0 : undefined
+      timeout: this.mode === "development" ? 0 : undefined,
     });
 
     log.system("started {0}", this.url);

@@ -7,21 +7,13 @@ import type Parsed from "#Parsed";
 import type Schema from "#Schema";
 import type TupleType from "#TupleType";
 import type UndefinedType from "#UndefinedType";
-import type { AbstractNewable, EmptyObject } from "@rcompat/type";
-
-type IsEmptyObject<T> = keyof T extends never ? true : false;
+import type { AbstractNewable } from "@rcompat/type";
 
 type NormalizeSchemaArray<T extends Schema[]> =
   { [K in keyof T]: NormalizeSchema<T[K]> };
 
 type NormalizeSchemaObject<T extends Record<string, unknown>> =
-  IsEmptyObject<T> extends true
-  ? EmptyObject
-  : {
-    -readonly [K in keyof T]: T[K] extends Parsed<unknown>
-    ? T[K]
-    : NormalizeSchema<T[K]>
-  };
+  { -readonly [K in keyof T]: NormalizeSchema<T[K]> };
 
 type NormalizeSchema<S> =
   S extends Parsed<unknown> ? S :

@@ -1,6 +1,7 @@
 import DefaultType from "#DefaultType";
 import error from "#error";
 import schemafail from "#error/schemafail";
+import fail from "#fail";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
@@ -28,9 +29,6 @@ type Next<T> = {
 function isPrimitive(x: Parsed<unknown>): x is PrimitiveType<unknown, string> {
   return x instanceof PrimitiveType;
 }
-
-const is = <T>(x: unknown, validator: (t: unknown) => boolean): x is T =>
-  validator(x);
 
 export default class ArrayType<T extends Parsed<unknown>>
   extends GenericType<T, Infer<T>[], "ArrayType">
@@ -100,7 +98,7 @@ export default class ArrayType<T extends Parsed<unknown>>
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (!Array.isArray(x)) throw new ParseError(error("array", x, options));
+    if (!Array.isArray(x)) throw fail("array", x, options);
 
     const base = options[ParsedKey] ?? "";
     const item = this.#item;

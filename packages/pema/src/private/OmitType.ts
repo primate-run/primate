@@ -1,3 +1,4 @@
+import fail from "#fail";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import type ObjectType from "#ObjectType";
@@ -32,21 +33,21 @@ export default class OmitType<
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (typeof x !== "object" || x === null) {
-      throw new Error("Expected object");
-    }
-    const result: any = {};
+    if (typeof x !== "object" || x === null) throw fail("object", x, options);
+
+    const out: Dict = {};
     const props = this.#properties as Dict<Parsed<unknown>>;
+
     for (const k in props) {
       const field = props[k];
       const r = field.parse((x as any)[k], {
         ...options, [ParsedKey]: join(options[ParsedKey] ?? "", String(k)),
       });
       if (r !== undefined) {
-        result[k] = r;
+        out[k] = r;
       }
     }
-    return result as never;
+    return out as never;
   }
 
   toJSON() {

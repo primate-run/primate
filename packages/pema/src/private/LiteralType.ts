@@ -1,14 +1,12 @@
-import error from "#error";
+import fail from "#fail";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
-import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 
 type Literal = string | boolean | number;
-type InferLiteral<T extends Literal> = T;
 
 export default class LiteralType<T extends Literal> extends
-  GenericType<T, InferLiteral<T>, "LiteralType"> {
+  GenericType<T, T, "LiteralType"> {
   #literal: T;
 
   constructor(literal: T) {
@@ -29,9 +27,8 @@ export default class LiteralType<T extends Literal> extends
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (x !== this.#literal) {
-      throw new ParseError(error(this.name, x, options));
-    }
+    if (x !== this.#literal) throw fail(this.name, x, options);
+
     return x as never;
   }
 

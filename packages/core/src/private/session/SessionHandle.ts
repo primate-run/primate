@@ -19,7 +19,9 @@ export default class SessionHandle<Data> {
 
     this.#id = id;
     this.#data = data;
-    this.#schema = schema?.parse ? schema : { parse: (x: unknown) => x as Data };
+    this.#schema = schema?.parse
+      ? schema
+      : { parse: (x: unknown) => x as Data };
   }
 
   get exists() {

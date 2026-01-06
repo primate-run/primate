@@ -1,3 +1,4 @@
+import fail from "#fail";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import type InferInputSchema from "#InferInputSchema";
@@ -5,6 +6,7 @@ import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
 import next from "#path/next";
 import type Serialized from "#Serialized";
+import is from "@rcompat/is";
 import type { Dict, Newable } from "@rcompat/type";
 
 export default class ObjectType<P extends Dict<Parsed<unknown>>>
@@ -45,17 +47,13 @@ export default class ObjectType<P extends Dict<Parsed<unknown>>>
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     const $options = { ...this.#options, ...options };
 
-    let _x = x;
-    if (typeof x !== "object" || x === null) {
-      _x = {};
-    }
+    if (x !== undefined && !is.dict(x)) throw fail("object", x, $options);
 
+    const input = x ?? {};
     const out: Dict = {};
     for (const k in this.#properties) {
-      const parsed = this.#properties[k].parse((_x as any)[k], next(k, $options));
-      if (parsed !== undefined) {
-        out[k] = parsed;
-      }
+      const parsed = this.#properties[k].parse(input[k], next(k, $options));
+      if (parsed !== undefined) out[k] = parsed;
     }
     return out as never;
   }

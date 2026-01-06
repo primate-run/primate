@@ -1,6 +1,5 @@
-import error from "#error";
+import fail from "#fail";
 import type Infer from "#Infer";
-import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import PrimitiveType from "#PrimitiveType";
 import Storeable from "#Storeable";
@@ -18,14 +17,9 @@ export default class PrimaryType
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    // the primary type is an optional ype
-    if (x === undefined) {
-      return x as Infer<this>;
-    }
-
-    if (typeof x !== "string") {
-      throw new ParseError(error(this.name, x, options));
-    }
+    // the primary type is an optional type
+    if (x === undefined) return x as Infer<this>;
+    if (typeof x !== "string") throw fail(this.name, x, options);
 
     return x as never;
   }

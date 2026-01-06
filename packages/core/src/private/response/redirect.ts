@@ -103,7 +103,7 @@ export default (location: string, status?: Redirection): ResponseFunction =>
     headers: {
       "Content-Length": String(0),
       Location: location,
-      "Cache-Control": 'no-cache',
+      "Cache-Control": "no-cache",
     },
     status: status ?? Status.FOUND,
   });
