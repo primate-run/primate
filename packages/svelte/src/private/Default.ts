@@ -1,7 +1,15 @@
 import create_root from "#create-root";
 import Runtime from "#Runtime";
 import type { FileRef } from "@rcompat/fs";
+import esbuild from "esbuild";
 import { compile, compileModule } from "svelte/compiler";
+
+const strip = (code: string) => {
+  return esbuild.transformSync(code, {
+    loader: "ts",
+    format: "esm",
+  }).code;
+};
 
 export default class Default extends Runtime {
   root = {
@@ -15,7 +23,7 @@ export default class Default extends Runtime {
       const accessors = true;
       const { css, js } = file.path.endsWith(".js") || file.path.endsWith(".ts")
         // runes in .svelte.[j|t]s
-        ? compileModule(text, { generate: "client" })
+        ? compileModule(strip(text), { generate: "client" })
         : compile(text, { accessors, generate: "client" })
         ;
       return { css: css?.code ?? "", js: js.code };
@@ -23,7 +31,7 @@ export default class Default extends Runtime {
     server: (text: string, file?: FileRef) => {
       const { js } = file?.path.endsWith(".js") || file?.path.endsWith(".ts")
         // runes in .svelte.[j|t]s
-        ? compileModule(text, { generate: "server" })
+        ? compileModule(strip(text), { generate: "server" })
         : compile(text, { generate: "server" })
         ;
       return js.code;
