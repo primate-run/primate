@@ -1,7 +1,8 @@
 <script lang="ts">
   import t from "#i18n";
-  import Link from "components/Link.svelte";
+  import Link from "../components/Link.svelte";
   import type Post from "#component/Post";
+  import { counter } from "#lib/Counter.svelte";
 
   const {
     posts = [],
@@ -10,7 +11,6 @@
     posts: Post[];
     title: string;
   } = $props();
-  let count = $state(0);
 </script>
 
 <svelte:head>
@@ -32,15 +32,15 @@
 <div>
   <button
     onclick={() => {
-      count = count - 1;
+      counter.count = counter.count - 1;
     }}>-</button
   >
   <button
     onclick={() => {
-      count = count + 1;
+      counter.count = counter.count + 1;
     }}>+</button
   >
-  {count}
+  {counter.count}
 </div>
 <h3>{$t("switch_language")}</h3>
 <button disabled={$t.loading} onclick={() => t.locale.set("en-US")}
