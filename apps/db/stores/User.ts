@@ -1,5 +1,5 @@
 import p from "pema";
-import store from "primate/store";
+import store from "primate/orm/store";
 
 export default store({
   id: p.primary,

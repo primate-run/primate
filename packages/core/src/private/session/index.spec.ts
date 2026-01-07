@@ -1,5 +1,5 @@
 import InMemoryDB from "#db/InMemoryDB";
-import Store from "#db/Store";
+import Store from "#db/orm/Store";
 import type SessionHandle from "#session/SessionHandle";
 import SessionModule from "#session/SessionModule";
 import storage from "#session/storage";

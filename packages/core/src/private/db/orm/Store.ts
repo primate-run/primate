@@ -1,4 +1,4 @@
-import type Changeset from "#db/Changeset";
+import type Changeset from "#db/orm/Changeset";
 import type DB from "#db/DB";
 import type Schema from "#db/Schema";
 import wrap from "#db/symbol/wrap";
@@ -61,12 +61,12 @@ type Config = {
 /**
  * Database-backed store.
  *
- * A `DBStore` exposes a typed, validated interface over a relational or
+ * A `Store` exposes a typed, validated interface over a relational or
  * document database table/collection. It pairs a Pema schema with a uniform
  * CRUD/query API.
  *
  */
-export default class DBStore<S extends StoreSchema>
+export default class Store<S extends StoreSchema>
   implements Serializable {
   #schema: S;
   #type: StoreType<S>;
@@ -119,7 +119,7 @@ export default class DBStore<S extends StoreSchema>
   }
 
   static new<S extends StoreSchema>(schema: S, config: Config = {}) {
-    return new DBStore<S>(schema, config);
+    return new Store<S>(schema, config);
   }
 
   get #as() {

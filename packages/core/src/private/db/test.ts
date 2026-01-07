@@ -1,5 +1,5 @@
 import type DB from "#db/DB";
-import Store from "#db/Store";
+import Store from "#db/orm/Store";
 import test from "@rcompat/test";
 import any from "@rcompat/test/any";
 import type { Dict } from "@rcompat/type";

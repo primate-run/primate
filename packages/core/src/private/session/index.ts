@@ -1,4 +1,4 @@
-import type DBStore from "#db/Store";
+import type Store from "#db/orm/Store";
 import configSchema from "#session/schema";
 import type SessionFacade from "#session/SessionFacade";
 import local_storage from "#session/storage";
@@ -12,7 +12,7 @@ type Infer<S extends StoreSchema> = X<Omit<InferStore<S>, "id" | "session_id">>;
 
 // overload 1: store provided -> typed
 export default function session<S extends StoreSchema>(
-  config: { store: DBStore<S> } & Partial<ConfigInput>,
+  config: { store: Store<S> } & Partial<ConfigInput>,
 ): SessionFacade<Infer<S>>;
 
 // overload 2: store omitted -> unknown
@@ -21,7 +21,7 @@ export default function session(
 ): SessionFacade<unknown>;
 
 export default function session<S extends StoreSchema>(
-  config?: Partial<ConfigInput> & { store?: DBStore<S> },
+  config?: Partial<ConfigInput> & { store?: Store<S> },
 ): SessionFacade<any> {
   const parsed = configSchema.parse(config ?? {});
   const store = parsed.store;

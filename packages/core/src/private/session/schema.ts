@@ -1,5 +1,5 @@
 import InMemoryDB from "#db/InMemoryDB";
-import Store from "#db/Store";
+import Store from "#db/orm/Store";
 import p from "pema";
 
 export default p({

@@ -16,7 +16,7 @@ export default function plugin_server_store(app: BuildApp): Plugin {
         return {
           contents: `
             import db from "app:db";
-            import wrap from "primate/db/wrap";
+            import wrap from "primate/orm/wrap";
             import schema from "store:${name}";
             export default wrap("${name}", schema, db);
           `,

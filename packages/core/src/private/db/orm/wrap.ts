@@ -1,5 +1,5 @@
 import type DB from "#db/DB";
-import type Store from "#db/Store";
+import type Store from "#db/orm/Store";
 import wrap from "#db/symbol/wrap";
 import type { StoreSchema } from "pema";
 
