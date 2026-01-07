@@ -16,14 +16,16 @@ export { default as UndefinedType } from "#UndefinedType";
 export { default as UnionType } from "#UnionType";
 export { default as UnknownType } from "#UnknownType";
 
+export type { default as DataKey } from "#DataKey";
 export type { default as DataType } from "#DataType";
 export type { default as Id } from "#Id";
 export type { default as InferStore } from "#InferStore";
+export type { default as InferStoreOut } from "#InferStoreOut";
 export type { default as Issue } from "#Issue";
 export type { default as JSONPayload } from "#json/JSONPayload";
-export type { default as StoreSchema } from "#StoreSchema";
-export type { default as StoreId } from "#StoreId";
 export type { default as Schema } from "#Schema";
-export type { default as InferStoreOut } from "#InferStoreOut";
 export type { default as Serialized } from "#Serialized";
+export type { default as Storable } from "#Storable";
+export type { default as StoreId } from "#StoreId";
+export type { default as StoreSchema } from "#StoreSchema";
 

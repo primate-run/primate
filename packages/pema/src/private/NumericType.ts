@@ -1,7 +1,7 @@
 import type DataKey from "#DataKey";
 import type ParseOptions from "#ParseOptions";
 import PrimitiveType from "#PrimitiveType";
-import type Storeable from "#Storeable";
+import type Storable from "#Storable";
 import type Validator from "#Validator";
 import max from "#validator/max";
 import min from "#validator/min";
@@ -19,7 +19,7 @@ export default abstract class NumericType<
   T extends bigint | number,
   Name extends string>
   extends PrimitiveType<T, Name>
-  implements Storeable<Key> {
+  implements Storable<Key> {
   #datatype: Key;
 
   constructor(

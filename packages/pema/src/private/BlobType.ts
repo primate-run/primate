@@ -1,9 +1,9 @@
 import BuiltinType from "#BuiltinType";
-import Storeable from "#Storeable";
+import Storable from "#Storable";
 
 export default class BlobType
   extends BuiltinType<Blob, "BlobType">
-  implements Storeable<"blob"> {
+  implements Storable<"blob"> {
 
   get Type() {
     return Blob;
@@ -18,6 +18,6 @@ export default class BlobType
   }
 
   toJSON() {
-    return Storeable.serialize(this);
+    return Storable.serialize(this);
   }
 }

@@ -2,14 +2,14 @@ import coerce from "#coerce/int";
 import CoerceKey from "#CoerceKey";
 import NumericType from "#NumericType";
 import type ParseOptions from "#ParseOptions";
-import type Storeable from "#Storeable";
+import type Storable from "#Storable";
 import type UintDataType from "#UintDataType";
 import integer from "#validator/integer";
 import port from "#validator/port";
 
 export default class UintType<T extends UintDataType>
   extends NumericType<T, number, "UintType">
-  implements Storeable<T> {
+  implements Storable<T> {
   [CoerceKey] = coerce;
 
   get name() {

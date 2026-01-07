@@ -1,11 +1,11 @@
 import CoerceKey from "#CoerceKey";
 import PrimitiveType from "#PrimitiveType";
-import Storeable from "#Storeable";
+import Storable from "#Storable";
 import is from "@rcompat/is";
 
 export default class BooleanType
   extends PrimitiveType<boolean, "BooleanType">
-  implements Storeable<"boolean"> {
+  implements Storable<"boolean"> {
 
   get name() {
     return "boolean" as const;
@@ -20,6 +20,6 @@ export default class BooleanType
   }
 
   toJSON() {
-    return Storeable.serialize(this);
+    return Storable.serialize(this);
   }
 }

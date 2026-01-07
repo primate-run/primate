@@ -1,9 +1,9 @@
 import BuiltinType from "#BuiltinType";
-import Storeable from "#Storeable";
+import Storable from "#Storable";
 
 export default class URLType
   extends BuiltinType<URL, "URLType">
-  implements Storeable<"url"> {
+  implements Storable<"url"> {
 
   get Type() {
     return URL;
@@ -18,6 +18,6 @@ export default class URLType
   }
 
   toJSON() {
-    return Storeable.serialize(this);
+    return Storable.serialize(this);
   }
 }

@@ -2,7 +2,7 @@ import type K from "#DataKey";
 import Parsed from "#Parsed";
 import type Serialized from "#Serialized";
 
-export default abstract class Storeable<T extends K = K>
+export default abstract class Storable<T extends K = K>
   extends Parsed<unknown> {
   abstract get datatype(): T;
   abstract toJSON(): Serialized;

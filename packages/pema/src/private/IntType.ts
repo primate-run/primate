@@ -3,12 +3,12 @@ import CoerceKey from "#CoerceKey";
 import type IntDataType from "#IntDataType";
 import NumericType from "#NumericType";
 import type ParseOptions from "#ParseOptions";
-import type Storeable from "#Storeable";
+import type Storable from "#Storable";
 import integer from "#validator/integer";
 
 export default class IntType<T extends IntDataType>
   extends NumericType<T, number, "IntType">
-  implements Storeable<T> {
+  implements Storable<T> {
   [CoerceKey] = coerce;
 
   get name() {

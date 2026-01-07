@@ -1,7 +1,7 @@
 import GenericType from "#GenericType";
-import type Storeable from "#Storeable";
+import type Storable from "#Storable";
 
-const storeable = (x: unknown): x is Storeable =>
+const storable = (x: unknown): x is Storable =>
   !!x && typeof x === "object" && "datatype" in x;
 
 export default abstract class VirtualType<
@@ -13,9 +13,8 @@ export default abstract class VirtualType<
   abstract get schema(): Type;
 
   get datatype() {
-    if (storeable(this.schema)) {
-      return this.schema.datatype;
-    }
+    if (storable(this.schema)) return this.schema.datatype;
+
     throw new Error("cannot be used in a store");
   }
 }

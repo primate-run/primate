@@ -2,11 +2,11 @@ import fail from "#fail";
 import type Infer from "#Infer";
 import type ParseOptions from "#ParseOptions";
 import PrimitiveType from "#PrimitiveType";
-import Storeable from "#Storeable";
+import Storable from "#Storable";
 
 export default class PrimaryType
   extends PrimitiveType<string | undefined, "PrimaryType">
-  implements Storeable<"primary"> {
+  implements Storable<"primary"> {
 
   get name() {
     return "primary" as const;
@@ -25,6 +25,6 @@ export default class PrimaryType
   }
 
   toJSON() {
-    return Storeable.serialize(this);
+    return Storable.serialize(this);
   }
 }

@@ -1,6 +1,6 @@
 import schemafail from "#error/schemafail";
 import PrimitiveType from "#PrimitiveType";
-import Storeable from "#Storeable";
+import Storable from "#Storable";
 import email from "#validator/email";
 import ends_with from "#validator/ends-with";
 import isotime from "#validator/isotime";
@@ -13,7 +13,7 @@ import uuid from "#validator/uuid";
 
 export default class StringType
   extends PrimitiveType<string, "StringType">
-  implements Storeable<"string"> {
+  implements Storable<"string"> {
 
   get name() {
     return "string" as const;
@@ -66,6 +66,6 @@ export default class StringType
   }
 
   toJSON() {
-    return Storeable.serialize(this);
+    return Storable.serialize(this);
   }
 }
