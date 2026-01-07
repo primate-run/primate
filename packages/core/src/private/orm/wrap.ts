@@ -1,6 +1,6 @@
 import type DB from "#db/DB";
-import type Store from "#db/orm/Store";
 import wrap from "#db/symbol/wrap";
+import type Store from "#orm/Store";
 import type { StoreSchema } from "pema";
 
 export default function wrapStore<T extends StoreSchema>(

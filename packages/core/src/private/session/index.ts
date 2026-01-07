@@ -1,4 +1,4 @@
-import type Store from "#db/orm/Store";
+import type Store from "#orm/Store";
 import configSchema from "#session/schema";
 import type SessionFacade from "#session/SessionFacade";
 import local_storage from "#session/storage";

@@ -1,4 +1,4 @@
-import type Store from "#db/orm/Store";
+import type Store from "#orm/Store";
 import fail from "#fail";
 import Module from "#Module";
 import type NextHandle from "#module/NextHandle";

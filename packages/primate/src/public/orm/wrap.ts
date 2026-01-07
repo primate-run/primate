@@ -1,1 +1,1 @@
-export { default } from "@primate/core/db/orm/wrap";
+export { default } from "@primate/core/orm/wrap";

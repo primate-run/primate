@@ -1,9 +1,9 @@
-import type Changeset from "#db/orm/Changeset";
 import type DB from "#db/DB";
 import type Schema from "#db/Schema";
 import wrap from "#db/symbol/wrap";
 import type Types from "#db/Types";
 import fail from "#fail";
+import type Changeset from "#orm/Changeset";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { Dict, Serializable } from "@rcompat/type";
