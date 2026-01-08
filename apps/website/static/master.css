@@ -480,6 +480,10 @@ article a.deeplink {
   padding-left: 3rem;
 }
 
+.sidebar .depth-4 {
+  padding-left: 4rem;
+}
+
 .sidebar li.active {
   border-left: 1px solid var(--sidebar-active);
 }
