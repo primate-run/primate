@@ -229,4 +229,6 @@ export default abstract class DB {
   }): MaybePromise<number>;
 
   abstract delete(as: As, args: { criteria: Dict }): MaybePromise<number>;
+
+  abstract lastId(name: string, pk: string): MaybePromise<number | bigint>;
 };

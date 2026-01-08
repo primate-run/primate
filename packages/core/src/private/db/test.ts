@@ -1,4 +1,6 @@
 import type DB from "#db/DB";
+import key from "#orm/key";
+import relation from "#orm/relation";
 import Store from "#orm/Store";
 import test from "@rcompat/test";
 import any from "@rcompat/test/any";
@@ -10,7 +12,7 @@ function pick<
   P extends string[],
 >(record: D, ...projection: P) {
   return Object.fromEntries(Object.entries(record)
-    .filter(([key]) => projection.includes(key)));
+    .filter(([k]) => projection.includes(k)));
 };
 
 const users = {
@@ -25,22 +27,37 @@ type User = keyof typeof users;
 export default <D extends DB>(db: D) => {
   test.ended(() => db.close());
 
-  const _Post = new Store({
-    id: p.primary,
+  const Post = new Store({
+    id: key.primary(p.string),
     title: p.string,
     user_id: p.uint,
   }, { db, name: "post" });
 
-  _Post.update;
+  Post.update;
 
   const User = new Store({
+    id: key.primary(p.string),
     age: p.u8.optional(),
-    id: p.primary,
     lastname: p.string.optional(),
     name: p.string.default("Donald"),
   }, { db: db, name: "user" });
 
+  const UserN = new Store({
+    id: key.primary(p.u32),
+    age: p.u8.optional(),
+    lastname: p.string.optional(),
+    name: p.string.default("Donald"),
+  }, { db: db, name: "user_n" });
+
+  const UserB = new Store({
+    id: key.primary(p.u128),
+    age: p.u8.optional(),
+    lastname: p.string.optional(),
+    name: p.string.default("Donald"),
+  }, { db: db, name: "user_b" });
+
   const Type = new Store({
+    id: key.primary(p.string),
     boolean: p.boolean.optional(),
     date: p.date.optional(),
     f32: p.f32.optional(),
@@ -50,7 +67,6 @@ export default <D extends DB>(db: D) => {
     i32: p.i32.optional(),
     i64: p.i64.optional(),
     i8: p.i8.optional(),
-    id: p.primary,
     string: p.string.optional(),
     u128: p.u128.optional(),
     u16: p.u16.optional(),
@@ -61,11 +77,17 @@ export default <D extends DB>(db: D) => {
 
   const bootstrap = async (tester: () => Promise<void>) => {
     await User.collection.create();
+    await UserN.collection.create();
+    await UserB.collection.create();
     for (const user of Object.values(users)) {
       await User.insert(user);
+      await UserN.insert(user);
+      await UserB.insert(user);
     }
     await tester();
     await User.collection.delete();
+    await UserN.collection.delete();
+    await UserB.collection.delete();
   };
 
   const typestrap = async (tester: () => Promise<void>) => {
@@ -78,6 +100,12 @@ export default <D extends DB>(db: D) => {
     await User.collection.create();
 
     const donald = await User.insert({ age: 30, name: "Donald" });
+    assert(donald).type<{
+      id: string;
+      age?: number;
+      lastname?: string;
+      name: string;
+    }>();
     assert(await User.has(donald.id)).true();
 
     const ryan = await User.insert({ age: 40, name: "Ryan" });
@@ -85,6 +113,62 @@ export default <D extends DB>(db: D) => {
     assert(await User.has(ryan.id)).true();
 
     await User.collection.delete();
+  });
+
+  test.case("insert - primary key is optional", async assert => {
+    await User.collection.create();
+    const user = await User.insert({ name: "Test" });
+    assert(user.id).type<string>();
+    assert(await User.has(user.id)).true();
+    await User.collection.delete();
+
+    await UserN.collection.create();
+    const userN = await UserN.insert({ name: "Test" });
+    assert(userN.id).type<number>();
+    assert(await UserN.has(userN.id)).true();
+    await UserN.collection.delete();
+
+    await UserB.collection.create();
+    const userB = await UserB.insert({ name: "Test" });
+    assert(userB.id).type<bigint>();
+    assert(await UserB.has(userB.id)).true();
+    await UserB.collection.delete();
+  });
+
+  test.case("find - types", async assert => {
+    await bootstrap(async () => {
+      assert(await User.find({ name: "Ryan" })).type<{
+        id: string;
+        age?: number;
+        lastname?: string;
+        name: string;
+      }[]>();
+      assert(await UserN.find({ name: "Ryan" })).type<{
+        id: number;
+        age?: number;
+        lastname?: string;
+        name: string;
+      }[]>();
+      assert(await UserB.find({ name: "Ryan" })).type<{
+        id: bigint;
+        age?: number;
+        lastname?: string;
+        name: string;
+      }[]>();
+    });
+  });
+
+  test.case("find - select narrows type", async assert => {
+    await bootstrap(async () => {
+      const _users = await User.find({}, { select: { id: true, name: true } });
+      assert(_users).type<{ id: string; name: string }[]>();
+
+      const _usersN = await UserN.find({}, { select: { id: true, name: true } });
+      assert(_usersN).type<{ id: number; name: string }[]>();
+
+      const _usersB = await UserB.find({}, { select: { id: true, name: true } });
+      assert(_usersB).type<{ id: bigint; name: string }[]>();
+    });
   });
 
   test.case("find - basic query", async assert => {
@@ -425,35 +509,35 @@ export default <D extends DB>(db: D) => {
   [8, 16, 32].forEach(n => {
     test.case(`type - l${n}`, async assert => {
       await typestrap(async () => {
-        const key = `i${n}`;
+        const k = `i${n}`;
 
         // lower bound
         const lb = -(2 ** (n - 1));
-        const t = await Type.insert({ [key]: lb });
-        assert(t[any(key)]).equals(lb);
-        assert((await Type.get(t.id))[any(key)]).equals(lb);
+        const t = await Type.insert({ [k]: lb });
+        assert(t[any(k)]).equals(lb);
+        assert((await Type.get(t.id))[any(k)]).equals(lb);
 
         // upper bound
         const ub = 2 ** (n - 1) - 1;
-        await Type.update(t.id, { [key]: ub });
-        assert((await Type.get(t.id))[any(key)]).equals(ub);
+        await Type.update(t.id, { [k]: ub });
+        assert((await Type.get(t.id))[any(k)]).equals(ub);
       });
     });
 
     test.case(`type - u${n}`, async assert => {
       await typestrap(async () => {
-        const key = `u${n}`;
+        const k = `u${n}`;
 
         // lower bound
         const lb = 0;
-        const t = await Type.insert({ [key]: lb });
-        assert(t[any(key)]).equals(lb);
-        assert((await Type.get(t.id))[any(key)]).equals(lb);
+        const t = await Type.insert({ [k]: lb });
+        assert(t[any(k)]).equals(lb);
+        assert((await Type.get(t.id))[any(k)]).equals(lb);
 
         // upper bound
         const ub = 2 ** n - 1;
-        await Type.update(t.id, { [key]: ub });
-        assert((await Type.get(t.id))[any(key)]).equals(ub);
+        await Type.update(t.id, { [k]: ub });
+        assert((await Type.get(t.id))[any(k)]).equals(ub);
       });
     });
   });
@@ -461,37 +545,37 @@ export default <D extends DB>(db: D) => {
   [64n, 128n].forEach(i => {
     test.case(`type - i${i}`, async assert => {
       await typestrap(async () => {
-        const key = `i${i}`;
+        const k = `i${i}`;
 
         // lower bound
         const lb = -(2n ** (i - 1n));
-        const t = await Type.insert({ [key]: lb });
-        assert(t[any(key)]).equals(lb);
-        assert((await Type.get(t.id))[any(key)]).equals(lb);
+        const t = await Type.insert({ [k]: lb });
+        assert(t[any(k)]).equals(lb);
+        assert((await Type.get(t.id))[any(k)]).equals(lb);
 
         // upper bound
         const ub = 2n ** (i - 1n) - 1n;
-        const tu = await Type.insert({ [key]: ub });
-        assert(tu[any(key)]).equals(ub);
-        assert((await Type.get(tu.id))[any(key)]).equals(ub);
+        const tu = await Type.insert({ [k]: ub });
+        assert(tu[any(k)]).equals(ub);
+        assert((await Type.get(tu.id))[any(k)]).equals(ub);
       });
     });
 
     test.case(`type - u${i}`, async assert => {
       await typestrap(async () => {
-        const key = `u${i}`;
+        const k = `u${i}`;
 
         // lower bound
         const lb = 0n;
-        const t = await Type.insert({ [key]: lb });
-        assert(t[any(key)]).equals(lb);
-        assert((await Type.get(t.id))[any(key)]).equals(lb);
+        const t = await Type.insert({ [k]: lb });
+        assert(t[any(k)]).equals(lb);
+        assert((await Type.get(t.id))[any(k)]).equals(lb);
 
         // upper bound
         const ub = 2n ** i - 1n;
-        const tu = await Type.insert({ [key]: ub });
-        assert(tu[any(key)]).equals(ub);
-        assert((await Type.get(tu.id))[any(key)]).equals(ub);
+        const tu = await Type.insert({ [k]: ub });
+        assert(tu[any(k)]).equals(ub);
+        assert((await Type.get(tu.id))[any(k)]).equals(ub);
       });
     });
   });
@@ -694,7 +778,7 @@ export default <D extends DB>(db: D) => {
   test.case("quote safety - reserved table & column names", async assert => {
     // this stresses identifier quoting in CREATE/INSERT/SELECT/UPDATE/DELETE
     const Reserved = new Store({
-      id: p.primary,
+      id: key.primary(p.string),
       // deliberately reserved-looking column name
       order: p.u8.optional(),
       name: p.string,

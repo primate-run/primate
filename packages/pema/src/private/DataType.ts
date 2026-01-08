@@ -9,7 +9,6 @@ type DataType = {
   i32: number;
   i64: bigint;
   i8: number;
-  primary: string;
   string: string;
   time: string;
   u128: bigint;
