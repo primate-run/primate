@@ -97,7 +97,6 @@ const typemap: TypeMap<ColumnTypes> = {
   i32: ident("NUMBER"),
   i64: ident("BIGINT"),
   i8: ident("NUMBER"),
-  primary: ident("STRING"),
   string: ident("STRING"),
   time: ident("STRING"),
   u128: ident("BIGINT"),
@@ -147,17 +146,18 @@ export default class InMemoryDB extends DB {
   create<O extends Dict>(as: As, args: { record: Dict }) {
     assert.nonempty(args.record, "empty record");
 
-    const record: Dict = {
-      ...args.record,
-      id: args.record.id ?? crypto.randomUUID(),
-    };
-
+    const record: Dict = args.record;
     const collection = this.#use(as.name);
-    assert.string(record.id, fail("id must be string, got {0}", record.id));
+    const pk = as.pk;
 
-    if (collection.find(stored => stored.id === record.id)) {
-      throw fail("id {0} already exists in the database", record.id);
+    if (pk !== null) {
+      assert.true(["string", "number", "bigint"].includes(typeof record[pk]),
+        fail("pk must be string, number or bigint, got {0}", record[pk]));
+      if (collection.find(stored => stored[pk] === record[pk])) {
+        throw fail("pk {0} already exists in the database", record[pk]);
+      }
     }
+
     collection.push({ ...record });
 
     return record as MaybePromise<O>;
@@ -237,5 +237,13 @@ export default class InMemoryDB extends DB {
       .filter(record => !match(record, args.criteria));
 
     return size_before - this.#use(as.name).length;
+  }
+
+  lastId(name: string, pk: string): number | bigint {
+
+    const collection = this.#use(name);
+    if (collection.length === 0) return 0;
+
+    return collection[collection.length - 1][pk] as number | bigint;
   }
 }

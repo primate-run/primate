@@ -1,4 +1,5 @@
 import InMemoryDB from "#db/InMemoryDB";
+import key from "#orm/key";
 import Store from "#orm/Store";
 import type SessionHandle from "#session/SessionHandle";
 import SessionModule from "#session/SessionModule";
@@ -7,7 +8,7 @@ import test from "@rcompat/test";
 import p from "pema";
 
 const new_store = () => new Store({
-  id: p.primary,
+  id: key.primary(p.string),
   session_id: p.string.uuid(),
   foo: p.string.optional(),
   user: p.string.optional(),
@@ -69,7 +70,7 @@ test.case("types", async assert => {
 
   const store = new_store();
   const session_id = crypto.randomUUID();
-  store.insert({ session_id, foo: "bar" });
+  await store.insert({ session_id, foo: "bar" });
 
   await run(store, session_id, () => {
     const s = session<X>();

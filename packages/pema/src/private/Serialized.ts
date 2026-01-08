@@ -31,7 +31,6 @@ type StructuralSerialized =
   | { type: "schema"; of: Serialized }
   | { type: "omit"; properties: Dict<Serialized> }
   | { type: "pure" }
-  | { type: "primary" }
   ;
 
 type Serialized =

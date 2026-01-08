@@ -1,13 +1,22 @@
 import type DB from "#db/DB";
-import type Schema from "#db/Schema";
 import wrap from "#db/symbol/wrap";
 import type Types from "#db/Types";
 import fail from "#fail";
 import type Changeset from "#orm/Changeset";
+import type ForeignKey from "#orm/ForeignKey";
+import parse from "#orm/parse";
+import type {
+  ExtractSchema,
+  InferRecord,
+  Insertable,
+  PrimaryKeyField,
+  Relation,
+  StoreInput,
+} from "#orm/types";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { Dict, Serializable } from "@rcompat/type";
-import type { Id, InferStore, StoreId, StoreSchema } from "pema";
+import type { DataKey, Storable } from "pema";
 import StoreType from "pema/StoreType";
 
 type X<T> = {
@@ -30,22 +39,17 @@ type QueryOperators<T> =
   //  T extends number ? T | NumberOperators | null :
   T | null;
 
-type Criteria<T extends StoreSchema> = X<{
-  // any criterion key can be omitted; if present, it can be a value or null
-  [K in keyof Omit<InferStore<T>, "id">]?: QueryOperators<InferStore<T>[K]>
-} & {
-  id?: StoreId<T> | null;
+type Criteria<T extends StoreInput> = X<{
+  [K in keyof InferRecord<T>]?: QueryOperators<InferRecord<T>[K]>
 }>;
 
 type Select<T> = {
   [K in keyof T]?: true;
 };
+
 type Sort<T> = {
   [K in keyof T]?: "asc" | "desc";
 };
-
-type Insertable<T extends StoreSchema> =
-  Omit<InferStore<T>, "id"> & { id?: StoreId<T> };
 
 type Filter<A, B = undefined> = B extends undefined ? A : {
   [K in keyof A as K extends keyof B
@@ -58,47 +62,58 @@ type Config = {
   name?: string;
 };
 
+type Schema<T extends StoreInput> = X<InferRecord<T>>;
+
+type PrimaryKeyValue<T extends StoreInput> =
+  InferRecord<T>[PrimaryKeyField<T>];
+
 /**
  * Database-backed store.
  *
  * A `Store` exposes a typed, validated interface over a relational or
  * document database table/collection. It pairs a Pema schema with a uniform
  * CRUD/query API.
- *
  */
-export default class Store<S extends StoreSchema>
+export default class Store<T extends StoreInput>
   implements Serializable {
-  #schema: S;
-  #type: StoreType<S>;
+  #schema: Dict<Storable<DataKey>>;
+  #type: StoreType<ExtractSchema<T>>;
   #types: Types;
   #nullables: Set<string>;
   #db?: DB;
   #name?: string;
+  #pk: string | null;
+  #fks: Map<string, ForeignKey<Storable<DataKey>>>;
+  #relations: Map<string, Relation>;
 
-  declare readonly Schema: Schema<S>;
+  declare readonly Schema: Schema<T>;
 
-  constructor(schema: S, config: Config = {}) {
+  constructor(input: T, config: Config = {}) {
+    const { pk, fks, relations, schema } = parse(input);
+
     this.#schema = schema;
-    this.#type = new StoreType(schema);
-    this.#types = Object.fromEntries(Object.entries(schema)
-      .map(([key, value]) => [key, value.datatype]));
+    this.#type = new StoreType(schema as ExtractSchema<T>);
+    this.#types = Object.fromEntries(
+      Object.entries(schema).map(([key, value]) => [key, value.datatype]),
+    );
     this.#name = config.name;
     this.#db = config.db;
+    this.#pk = pk;
+    this.#fks = fks;
+    this.#relations = relations;
     this.#nullables = new Set(
-      Object.entries(this.#type.properties)
+      Object.entries(this.#type.properties as Dict<{ nullable: boolean }>)
         .filter(([, v]) => v.nullable)
         .map(([k]) => k),
     );
   }
 
-  #parseCriteria(criteria: Criteria<S>) {
+  #parseCriteria(criteria: Criteria<T>) {
     for (const [field, value] of Object.entries(criteria)) {
       if (!(field in this.#types)) throw fail("unknown field {0}", field);
 
-      // skip null/undefined values
       if (value === null) continue;
 
-      // if it's an operator object, validate
       if (typeof value === "object") {
         const type = this.#types[field];
 
@@ -118,13 +133,14 @@ export default class Store<S extends StoreSchema>
     }
   }
 
-  static new<S extends StoreSchema>(schema: S, config: Config = {}) {
-    return new Store<S>(schema, config);
+  static new<T extends StoreInput>(input: T, config: Config = {}) {
+    return new Store<T>(input, config);
   }
 
   get #as() {
     return {
       name: this.name,
+      pk: this.#pk,
       types: this.#types,
     };
   }
@@ -140,7 +156,7 @@ export default class Store<S extends StoreSchema>
   }
 
   get infer() {
-    return undefined as unknown as InferStore<S>;
+    return undefined as unknown as InferRecord<T>;
   }
 
   get schema() {
@@ -174,68 +190,52 @@ export default class Store<S extends StoreSchema>
 
   /**
    * Count records.
-   *
-   * @param criteria Criteria to limit which records are counted.
-   * @returns Number of matching records (or total if no criteria given).
    */
-  async count(criteria?: Criteria<S> | { id: StoreId<S> }) {
+  async count(criteria?: Criteria<T>) {
     assert.maybe.dict(criteria);
     if (criteria) this.#parseCriteria(criteria);
 
-    return (await this.db.read(this.#as, {
+    return await this.db.read(this.#as, {
       count: true,
       criteria: criteria ?? {},
-    }));
+    });
   }
 
   /**
-   * Check whether a record with the given id exists.
-   *
-   * @param id Record id.
-   * @returns `true` if a record with the given id exists, otherwise `false`.
+   * Check whether a record with the given primary key exists.
    */
-  async has(id: StoreId<S>) {
-    assert.string(id);
+  async has(pkv: PrimaryKeyValue<T>) {
+    const pk = this.#pk;
+    if (pk === null) throw fail("store has no primary key");
 
-    // invariant: ids are primary keys and must be unique.
-    // if the driver ever returns more than one record, assert will fail.
-    // public contract remains just "true if it exists, false otherwise".
-    return (await this.count({ id })) === 1;
+    return (await this.count({ [pk]: pkv } as Criteria<T>)) === 1;
   }
 
   /**
-   * Get a record by id.
-   *
-   * @param id Record id.
-   * @throws If no record with the given id exists.
-   * @returns The record for the given id.
+   * Get a record by primary key.
    */
-  async get(id: Id): Promise<Schema<S>> {
-    assert.string(id);
+  async get(pkv: PrimaryKeyValue<T>): Promise<Schema<T>> {
+    const pk = this.#pk;
+    if (pk === null) throw fail("store has no primary key");
 
     const records = await this.db.read(this.#as, {
-      criteria: { id },
+      criteria: { [pk]: pkv },
       limit: 1,
     });
 
     assert.true(records.length <= 1);
 
-    if (records.length === 0) throw fail("no record with id {0}", id);
+    if (records.length === 0) throw fail("no record with {0} {1}", pk, pkv);
 
-    return this.#type.parse(records[0]) as Schema<S>;
+    return this.#type.parse(records[0]) as unknown as Schema<T>;
   }
 
   /**
-   * Try to get a record by id.
-   *
-   * @param id Record id.
-   * @returns The record if found, otherwise `undefined`.
+   * Try to get a record by primary key.
    */
-  async try(id: Id): Promise<Schema<S> | undefined> {
-    assert.string(id);
-
+  async try(pkv: PrimaryKeyValue<T>): Promise<Schema<T> | undefined> {
     try {
-      return await this.get(id);
+      return await this.get(pkv);
     } catch {
       return undefined;
     }
@@ -243,59 +243,47 @@ export default class Store<S extends StoreSchema>
 
   /**
    * Insert a single record.
-   *
-   * If `id` is omitted, the driver generates one. Input is validated
-   * according to the store schema.
-   *
-   * @param record Record to insert (id optional).
-   * @throws If a record with the same id already exists or validation fails.
-   * @returns The inserted record with id.
    */
-  async insert(record: Insertable<S>): Promise<Schema<S>> {
+  async insert(record: Insertable<T>): Promise<Schema<T>> {
     assert.dict(record);
 
-    return this.db.create(this.#as, { record: this.#type.parse(record) });
+    const pk = this.#pk;
+    let to_insert = record;
+
+    if (pk !== null && !(pk in record)) {
+      const lastId = await this.db.lastId(this.name, pk);
+      const type = this.#types[pk];
+      const pk_value = type === "string"
+        ? crypto.randomUUID()
+        : ["u128", "u64"].includes(type)
+          ? (BigInt(lastId) as bigint) + 1n
+          : (lastId as number) + 1;
+      to_insert = { ...record, [pk]: pk_value };
+    }
+
+    return this.db.create(this.#as, { record: this.#type.parse(to_insert) });
   }
 
   /**
-   * Update a single record.
-   *
-   * Change semantics:
-   * - missing / undefined -> leave field unchanged
-   * - null -> unset field (only for nullable fields, otherwise throw)
-   * - value -> set field to value
-   *
-   * Change input is validated according to the store schema.
-   *
-   * @param id Record id.
-   * @param changeset Changeset per the rules above.
-   * @throws If the id is missing, `.id` is present in `changeset`, attempting
-   * to unset a non-nullable field, validation fails, or no record is updated.
+   * Update a single record by primary key.
    */
-  update(id: Id, changeset: Changeset<S>): Promise<void>;
+  update(pkv: PrimaryKeyValue<T>, changeset: Changeset<T>): Promise<void>;
 
   /**
    * Update multiple records.
-   *
-   * Same change semantics as when updating a single record.
-   *
-   * @param criteria Criteria selecting which records to update.
-   * @param changeset Changeset per the rules above.
-   * @returns Number of updated records (may be 0).
    */
-  update(
-    criteria: Criteria<S>,
-    changeset: Changeset<S>,
-  ): Promise<number>;
+  update(criteria: Criteria<T>, changeset: Changeset<T>): Promise<number>;
 
   async update(
-    criteria: Criteria<S> | Id,
-    changeset: Changeset<S>,
+    criteria: Criteria<T> | PrimaryKeyValue<T>,
+    changeset: Changeset<T>,
   ) {
-    assert.true(is.string(criteria) || is.dict(criteria));
     assert.dict(changeset);
 
-    if ("id" in changeset) throw fail("{0} cannot be updated", ".id");
+    const pk = this.#pk;
+    if (pk !== null && pk in changeset) {
+      throw fail("{0} cannot be updated", pk);
+    }
 
     const changeset_entries = Object.entries(changeset);
     for (const [k, v] of changeset_entries) {
@@ -303,80 +291,76 @@ export default class Store<S extends StoreSchema>
         throw fail(".{0}: null not allowed (field not nullable)", k);
       }
     }
-    const toParse = Object.fromEntries(changeset_entries
-      .filter(([key, value]) => value !== null || !this.#nullables.has(key)),
+
+    const toParse = Object.fromEntries(
+      changeset_entries.filter(
+        ([key, value]) => value !== null || !this.#nullables.has(key),
+      ),
     );
-    const nulls = Object.fromEntries(changeset_entries
-      .filter(([key, value]) => value === null && this.#nullables.has(key)),
+    const nulls = Object.fromEntries(
+      changeset_entries.filter(
+        ([key, value]) => value === null && this.#nullables.has(key),
+      ),
     );
     const parsed = {
-      // parse delta, without nullable nulls
       ...this.#type.partial().parse(toParse),
       ...nulls,
-    } as Changeset<S>;
+    } as Changeset<T>;
 
-    return typeof criteria === "string"
-      ? this.#update_1(criteria, parsed)
-      : this.#update_n(criteria, parsed);
+    return is.dict(criteria)
+      ? this.#update_n(criteria, parsed)
+      : this.#update_1(criteria, parsed);
   }
 
-  async #update_1(id: Id, changeset: Changeset<S>) {
-    assert.string(id);
-    assert.dict(changeset);
+  async #update_1(pkv: PrimaryKeyValue<T>, changeset: Changeset<T>) {
+    const pk = this.#pk;
+    if (pk === null) throw fail("store has no primary key");
 
     const n = await this.db.update(this.#as, {
-      changeset: changeset,
-      criteria: { id },
+      changeset,
+      criteria: { [pk]: pkv },
     });
 
     assert.true(n === 1, `${n} records updated instead of 1`);
   }
 
-  async #update_n(criteria: Criteria<S>, changeset: Changeset<S>) {
+  async #update_n(criteria: Criteria<T>, changeset: Changeset<T>) {
     assert.dict(criteria);
-    assert.dict(changeset);
 
     this.#parseCriteria(criteria);
 
-    const count = await this.db.update(this.#as, {
-      changeset: changeset,
+    return await this.db.update(this.#as, {
+      changeset,
       criteria,
     });
-
-    return count;
   }
 
   /**
-   * Delete a single record.
-   *
-   * @param id Record id.
-   * @throws If no records with the given id exists.
+   * Delete a single record by primary key.
    */
-  delete(id: Id): Promise<void>;
+  delete(pkv: PrimaryKeyValue<T>): Promise<void>;
 
   /**
    * Delete multiple records.
-   *
-   * @param criteria Criteria selecting which records to delete.
-   * @returns Number of records deleted (may be 0).
    */
-  delete(criteria: Criteria<S>): Promise<number>;
+  delete(criteria: Criteria<T>): Promise<number>;
 
-  async delete(criteria: Criteria<S> | Id) {
-    return typeof criteria === "string"
-      ? this.#delete_1(criteria)
-      : this.#delete_n(criteria);
+  async delete(criteria: Criteria<T> | PrimaryKeyValue<T>) {
+    return is.dict(criteria)
+      ? this.#delete_n(criteria)
+      : this.#delete_1(criteria);
   }
 
-  async #delete_1(id: Id) {
-    assert.string(id);
+  async #delete_1(pkv: PrimaryKeyValue<T>) {
+    const pk = this.#pk;
+    if (pk === null) throw fail("store has no primary key");
 
-    const n = await this.db.delete(this.#as, { criteria: { id } });
+    const n = await this.db.delete(this.#as, { criteria: { [pk]: pkv } });
 
     assert.true(n === 1, `${n} records deleted instead of 1`);
   }
 
-  async #delete_n(criteria: Criteria<S>) {
+  async #delete_n(criteria: Criteria<T>) {
     assert.dict(criteria);
 
     this.#parseCriteria(criteria);
@@ -386,34 +370,30 @@ export default class Store<S extends StoreSchema>
 
   /**
    * Find matching records.
-   *
-   * @param criteria Criteria to match records by.
-   * @param options Query options.
-   * @returns Matching records, possibly projected/limited/sorted.
    */
-  find(criteria: Criteria<S>): Promise<Filter<Schema<S>>[]>;
+  find(criteria: Criteria<T>): Promise<Filter<Schema<T>>[]>;
   find(
-    criteria: Criteria<S>,
+    criteria: Criteria<T>,
     options: {
       limit?: number;
       select?: undefined;
-      sort?: Sort<Schema<S>>;
-    }
-  ): Promise<Filter<Schema<S>>[]>;
-  find<F extends Select<Schema<S>>>(
-    criteria: Criteria<S>,
+      sort?: Sort<Schema<T>>;
+    },
+  ): Promise<Filter<Schema<T>>[]>;
+  find<F extends Select<Schema<T>>>(
+    criteria: Criteria<T>,
     options?: {
       limit?: number;
       select?: F;
-      sort?: Sort<Schema<S>>;
-    }
-  ): Promise<Filter<Schema<S>, F>[]>;
-  async find<F extends Select<Schema<S>>>(
-    criteria: Criteria<S>,
+      sort?: Sort<Schema<T>>;
+    },
+  ): Promise<Filter<Schema<T>, F>[]>;
+  async find<F extends Select<Schema<T>>>(
+    criteria: Criteria<T>,
     options?: {
       limit?: number;
-      select?: Select<Schema<S>>;
-      sort?: Sort<Schema<S>>;
+      select?: Select<Schema<T>>;
+      sort?: Sort<Schema<T>>;
     },
   ) {
     assert.dict(criteria);
@@ -430,8 +410,8 @@ export default class Store<S extends StoreSchema>
       sort: options?.sort as Dict<"asc" | "desc">,
     });
 
-    return result as Filter<Schema<S>, F>[];
-  };
+    return result as Filter<Schema<T>, F>[];
+  }
 
   toJSON() {
     return this.#type.toJSON();
@@ -447,13 +427,4 @@ export default class Store<S extends StoreSchema>
     Object.assign(this, extensions);
     return this as this & A;
   }
-
-  /**
-   * *Create a custom query.*
-   *
-   * @returns a buildable query
-  */
-  /*query(): Query<S> {
-    return new Query(this.#schema);
-  }*/
-};
+}
