@@ -107,14 +107,9 @@ function parse(request: Request): RequestFacade {
         url: this.url,
       };
     },
-  };
 
-  Object.defineProperty(facade, sContext, {
-    value: new RequestContext(),
-    enumerable: false,
-    configurable: false,
-    writable: false,
-  });
+    [sContext]: new RequestContext(),
+  };
 
   return facade;
 };

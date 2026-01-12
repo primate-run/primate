@@ -1,5 +1,5 @@
-import views from "app:views";
 import type Component from "@primate/markdown/Component";
+import views from "app:views";
 import response from "primate/response";
 import route from "primate/route";
 
@@ -20,8 +20,10 @@ route.get(request => {
       .map(post => ({
         href: post.slice(base.length + 1),
         ...app.loadView<Post>(`${post}.md`),
+        md: "",
       }))
-      .toSorted((a, b) => a.meta.epoch < b.meta.epoch ? 1 : - 1);
+      .toSorted((a, b) => a.meta.epoch < b.meta.epoch ? 1 : - 1)
+      ;
     const config = request.config;
     return response.view("Blog.svelte", { app: config, posts }, {
       placeholders: request.placeholders,
