@@ -32,10 +32,8 @@ const conditions = {
 };
 
 export default async function build_server(app: BuildApp) {
-  const extensions = app.frontendExtensions;
-
   app.plugin("server", plugin_node_imports(app));
-  if (extensions.length > 0) app.plugin("server", plugin_frontend(app));
+  app.plugin("server", plugin_frontend(app));
   app.plugin("server", plugin_view(app));
   app.plugin("server", plugin_store(app));
   app.plugin("server", plugin_store_wrap(app));

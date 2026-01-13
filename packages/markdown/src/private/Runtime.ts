@@ -32,16 +32,16 @@ export default class Runtime extends FrontendModule<Component> {
   static input = Runtime.schema.input;
 
   constructor(config: typeof Runtime.input = {}) {
-    const { marked: markedOptions, pretransform, ...superConfig } = config;
-    super(superConfig);
+    const { marked: marked_options, pretransform, ...super_config } = config;
+    super(super_config);
 
-    assert.maybe.dict(markedOptions);
+    assert.maybe.dict(marked_options);
     assert.maybe.function(pretransform);
 
     this.#pretransform = (pretransform ?? ((m: string) => m)) as Pretransform;
 
-    const renderer = { ...markedOptions?.renderer ?? {} };
-    marked.use({ ...markedOptions, renderer });
+    const renderer = { ...marked_options?.renderer ?? {} };
+    marked.use({ ...marked_options, renderer });
   }
 
   get pretransform() {

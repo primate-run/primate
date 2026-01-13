@@ -9,6 +9,7 @@ export default function plugin_server_frontend(app: BuildApp): Plugin {
   return {
     name: "primate/server/frontend",
     setup(build) {
+      if (app.frontendExtensions.length === 0) return;
       build.onLoad({ filter, namespace: "file" }, async args => {
         const file = fs.ref(args.path);
         const binder = app.binder(file);

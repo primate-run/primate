@@ -51,7 +51,7 @@ export default abstract class FrontendModule<
   compile: {
     client?: (text: string, file: FileRef, root: boolean) =>
       MaybePromise<{ css?: null | string; js: string }>;
-    server?: (text: string, file?: FileRef) => MaybePromise<string>;
+    server?: (text: string, file: FileRef) => MaybePromise<string>;
   } = {};
   css?: {
     filter: RegExp;
@@ -104,7 +104,18 @@ export default abstract class FrontendModule<
       ? await this.render(server.view, server.props)
       : { body: "", head: "" };
 
-    if (!this.client) return { body, head, headers };
+    if (!this.client) {
+      if (app.mode === "development") {
+        const app_asset = app.assets.find(asset =>
+          asset.src?.includes("app") && asset.src.endsWith(".js"),
+        );
+        if (!app_asset) throw fail("Could not find app.js in assets");
+        const app_script =
+          `<script type="module" src="${app_asset.src}"></script>`;
+        return { body, head: head.concat(app_script), headers };
+      }
+      return { body, head, headers };
+    }
 
     const app_asset = app.assets.find(asset =>
       asset.src?.includes("app") && asset.src.endsWith(".js"),
@@ -204,6 +215,10 @@ export default abstract class FrontendModule<
   }
 
   publish(app: BuildApp) {
+    if (app.mode === "development") {
+      app.frontends.set(this.name, [...this.fileExtensions]);
+    }
+
     if (this.compile.client) {
       const { compile, css, fileExtensions, name, root, conditions } = this;
       const _normalize = this.normalize.bind(this);
@@ -299,7 +314,6 @@ export default abstract class FrontendModule<
     this.fileExtensions.forEach(e => {
       app.bind(e, async (file, { context }) => {
         if (context === "views" && !this.ssr) return "";
-
         // production: just compile to JS, don't bundle yet
         if (this.compile.server) {
           return await this.compile.server(await file.text(), file);
@@ -316,7 +330,8 @@ export default abstract class FrontendModule<
     // compile root server
     if (this.root !== undefined && this.compile.server !== undefined) {
       const source = await this.compile.server(
-        this.root.create(app.depth(), app.i18n_active));
+        this.root.create(app.depth(), app.i18n_active),
+        fs.ref(`root:${this.name}`));
       app.addRoot(this.rootname, source);
     }
 

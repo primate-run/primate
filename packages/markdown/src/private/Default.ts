@@ -1,4 +1,8 @@
 import Runtime from "#Runtime";
+import type BuildApp from "@primate/core/BuildApp";
+import type NextBuild from "@primate/core/NextBuild";
+import type { FileRef } from "@rcompat/fs";
+import fs from "@rcompat/fs";
 import string from "@rcompat/string";
 import type { Dict } from "@rcompat/type";
 import type { Tokens } from "marked";
@@ -58,26 +62,49 @@ function frontmatter(src: string): { body: string; meta: Dict | null } {
 
 export default class Default extends Runtime {
   compile = {
-    server: async (text: string) => {
-      const pretransformed = await this.pretransform(text);
-      const { body, meta } = frontmatter(pretransformed);
-      const tokens = marked.lexer(body);
-      const toc = tokens
-        .filter(token => token.type === "heading")
-        .map(token => ({
-          depth: (token as Tokens.Heading).depth,
-          slug: slugify((token as Tokens.Heading).text),
-          text: (token as Tokens.Heading).text,
-        }));
-
-      return string.dedent`
-        export default {
-          md: ${JSON.stringify(body)},
-          html: ${JSON.stringify(await marked.parse(body))},
-          toc: JSON.parse(${JSON.stringify(JSON.stringify(toc))}),
-          meta: ${meta ? JSON.stringify(meta) : "null"},
-        };
-      `;
-    },
+    server: async (_: string, file: FileRef) =>
+      `export { default } from "markdown:${file.path}";`,
   };
+
+  async build(app: BuildApp, next: NextBuild) {
+    const { pretransform } = this;
+    app.plugin("server", {
+      name: "markdown",
+      setup(build) {
+        build.onResolve({ filter: /^markdown:/ }, ({ path }) => {
+          const filePath = path.slice("markdown:".length);
+          return { path: filePath, namespace: "markdown" };
+        });
+
+        build.onLoad({ filter: /.*/, namespace: "markdown" }, async args => {
+          const text = await fs.text(args.path);
+          const { body, meta } = frontmatter(await pretransform(text));
+          const tokens = marked.lexer(body);
+          const toc = tokens
+            .filter(token => token.type === "heading")
+            .map(token => ({
+              depth: (token as Tokens.Heading).depth,
+              slug: slugify((token as Tokens.Heading).text),
+              text: (token as Tokens.Heading).text,
+            }));
+
+          return {
+            contents: string.dedent`
+              export default {
+                md: ${JSON.stringify(body)},
+                html: ${JSON.stringify(await marked.parse(body))},
+                toc: JSON.parse(${JSON.stringify(JSON.stringify(toc))}),
+                meta: ${meta ? JSON.stringify(meta) : "null"},
+              };
+            `,
+            loader: "js",
+            watchFiles: [args.path],
+          };
+        });
+      },
+    });
+
+    return super.build(app, next);
+  }
 }
+
