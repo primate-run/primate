@@ -1,6 +1,6 @@
 {
   "name": "@primate/tailwind",
-  "version": "0.3.1",
+  "version": "0.4.0-pre",
   "description": "Tailwind for Primate",
   "homepage": "https://primate.run/docs/style/tailwind",
   "bugs": "https://github.com/primate-run/primate/issues",

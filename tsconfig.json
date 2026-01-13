@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "esnext",
+    "rootDir": "${configDir}/src",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "${configDir}/lib",
+    "strict": true,
+    "skipLibCheck": true,
+    "customConditions": [
+      "apekit"
+    ],
+    "erasableSyntaxOnly": true
+  },
+  "include": [
+    "${configDir}/scripts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
