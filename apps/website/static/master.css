@@ -38,9 +38,9 @@
   --h1: var(--prs-text-xl);
   --h2: var(--prs-text-l);
   --h3: var(--prs-text-n);
-  --h4: var(--prs-text-s);
-  --h5: var(--prs-text-xs);
-  --h6: var(--prs-text-xxs);
+  --h4: var(--prs-text-m);
+  --h5: var(--prs-text-m);
+  --h6: var(--prs-text-m);
   --a: var(--prs-link);
 
   --bg: #fff;
@@ -131,6 +131,10 @@ h4 {
 
 h5 {
   font-size: var(--h5);
+}
+
+h6 {
+  font-size: var(--h6);
 }
 
 ul {
@@ -430,6 +434,7 @@ pre {
 
 table {
   border-collapse: collapse;
+  margin-bottom: 2.5rem;
 }
 
 th,
