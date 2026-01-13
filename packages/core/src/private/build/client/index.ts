@@ -92,6 +92,7 @@ export default async function build_client(app: BuildApp) {
   if (app.mode === "development") {
     const context = await esbuild.context(options);
     await context.watch();
+    await context.rebuild();
     await context.serve({ host: reload.host, port: reload.port });
   } else {
     await esbuild.build(options);
