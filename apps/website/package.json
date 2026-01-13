@@ -2,10 +2,9 @@
   "name": "@primate/app/website",
   "type": "module",
   "scripts": {
-    "build": "npm run copy && npx primate build",
+    "build": "npx primate build",
     "serve": "npx primate serve",
-    "start": "npm run copy && npx primate",
-    "copy": "rm -rf views/content && cp -a ../../docs views/content"
+    "start": "npx primate"
   },
   "dependencies": {
     "@plsp/svelte": "^0.1.0",
