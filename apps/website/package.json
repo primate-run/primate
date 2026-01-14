@@ -16,12 +16,12 @@
     "@rcompat/http": "^0.21.0",
     "@rcompat/string": "^0.13.0",
     "primate": "workspace:^",
-    "shiki": "^3.20.0",
-    "svelte": "^5.46.0"
+    "shiki": "^3.21.0",
+    "svelte": "^5.46.3"
   },
   "devDependencies": {
-    "@angular/common": "^21.0.6",
-    "@angular/core": "^21.0.6",
+    "@angular/common": "^21.0.8",
+    "@angular/core": "^21.0.8",
     "@primate/angular": "workspace:^",
     "@primate/go": "workspace:^",
     "@primate/mongodb": "workspace:^",
