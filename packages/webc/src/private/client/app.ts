@@ -6,7 +6,7 @@ type Props = {
   props: Dict;
 };
 
-export default class WebComponentsClient {
+export default class WebComponentsApp {
   static mount(view: string, props: Props) {
     globalThis.document.body.appendChild(new views[view](props.props));
   }
