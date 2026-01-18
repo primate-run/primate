@@ -32,4 +32,8 @@ export default class PrimaryKey<T extends Storable<DataKey>> {
   get nullable() {
     return false;
   }
+
+  parse(value: unknown) {
+    return this.#type.parse(value);
+  }
 }

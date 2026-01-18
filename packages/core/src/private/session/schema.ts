@@ -1,4 +1,4 @@
-import InMemoryDB from "#db/InMemoryDB";
+import MemoryDB from "#db/MemoryDB";
 import key from "#orm/key";
 import Store from "#orm/Store";
 import p from "pema";
@@ -14,6 +14,6 @@ export default p({
     return new Store({
       id: key.primary(p.string),
       session_id: p.string.uuid(),
-    }, { db: new InMemoryDB(), name: "session" }) as Store<any>;
+    }, { db: new MemoryDB(), name: "session" }) as Store<any>;
   }),
 });

@@ -22,4 +22,8 @@ export default class ForeignKey<T extends Storable<DataKey>> {
   get nullable() {
     return this.#type.nullable;
   }
+
+  parse(value: unknown) {
+    return this.#type.parse(value);
+  }
 }

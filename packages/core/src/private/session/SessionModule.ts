@@ -1,8 +1,8 @@
-import type Store from "#orm/Store";
 import fail from "#fail";
 import Module from "#Module";
 import type NextHandle from "#module/NextHandle";
 import type NextServe from "#module/NextServe";
+import type Store from "#orm/Store";
 import type RequestFacade from "#request/RequestFacade";
 import type ServeApp from "#serve/App";
 import type Config from "#session/Config";
@@ -64,18 +64,18 @@ export default class SessionModule extends Module {
 
     // Look up session by session_id
     const existing = sid !== undefined
-      ? await this.#store.find({ session_id: sid }, { limit: 1 })
+      ? await this.#store.find({ where: { session_id: sid }, limit: 1 })
       : [];
     const exists = existing.length > 0;
 
     let data: Record<string, unknown> | undefined = undefined;
-    let dbId: string | undefined = undefined;
+    let db_id: string | undefined = undefined;
 
     if (exists) {
       const record = existing[0];
       const { id: _id, session_id: _sid, ...rest } = record;
       data = rest;
-      dbId = _id as string;
+      db_id = _id as string;
     }
 
     const session_type = p.omit(this.#store.type, "id", "session_id");
@@ -126,14 +126,14 @@ export default class SessionModule extends Module {
       return response;
     }
 
-    // from here: session existed (dbId is defined)
+    // from here: session existed (db_id is defined)
 
     // fast-path: session exists, same id and not dirty -> noop
     if (snap.exists && snap.id === sid && !snap.dirty) return response;
 
     // current absent -> destroy + clear cookie
     if (!snap.exists) {
-      await this.#store.delete(dbId!);
+      await this.#store.delete(db_id!);
       response.headers.append("set-cookie", cookie(name, "", {
         ...options, maxAge: 0,
       }));
@@ -142,14 +142,14 @@ export default class SessionModule extends Module {
 
     // session recreated in route -> destroy old, create new, set cookie
     if (snap.id !== sid) {
-      await this.#store.delete(dbId!);
+      await this.#store.delete(db_id!);
       await this.#store.insert({ session_id: snap.id!, ...snap.data! });
       response.headers.append("set-cookie", cookie(name, snap.id!, options));
       return response;
     }
 
     // dirty -> replace session contents
-    await this.#store.update(dbId!, snap.data!);
+    await this.#store.update(db_id!, { set: snap.data! });
     return response;
   }
 }

@@ -27,7 +27,7 @@
   "dependencies": {
     "@rcompat/assert": "^0.6.0",
     "@rcompat/cli": "^0.14.0",
-    "@rcompat/is": "^0.4.0"
+    "@rcompat/is": "^0.4.1"
   },
   "devDependencies": {
     "@rcompat/type": "^0.9.0"

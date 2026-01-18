@@ -1,1 +1,1 @@
-export { default } from "@primate/core/db/InMemoryDB";
+export { default } from "@primate/core/db/MemoryDB";

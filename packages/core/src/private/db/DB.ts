@@ -7,14 +7,27 @@ import type Types from "#db/Types";
 import fail from "#fail";
 import assert from "@rcompat/assert";
 import entries from "@rcompat/dict/entries";
+import is from "@rcompat/is";
 import type { Dict, MaybePromise } from "@rcompat/type";
 import type { DataType, StoreSchema } from "pema";
 
+export type With = Dict<{
+  as: As;
+  kind: "one" | "many";
+  fk: string;
+  reverse?: boolean;
+  // subquery options (normalized by Store)
+  criteria: DataDict;
+  fields?: string[];
+  sort?: Sort;
+  limit?: number;
+}>;
+
 function required(operation: string) {
-  fail("{0}: at least one column required", operation);
+  return fail("{0}: at least one column required", operation);
 }
 
-function normalizeSort(direction: "asc" | "desc") {
+function normalize_sort(direction: "asc" | "desc") {
   if (typeof direction !== "string")
     throw fail("invalid sort direction {0}", direction);
 
@@ -77,7 +90,7 @@ export default abstract class DB {
     this.#assert(types, columns.map(([k]) => k));
 
     const order = columns
-      .map(([k, direction]) => `${this.#quote(k)} ${normalizeSort(direction)}`)
+      .map(([k, direction]) => `${this.#quote(k)} ${normalize_sort(direction)}`)
       .join(", ");
 
     return ` ORDER BY ${order}`;
@@ -96,24 +109,63 @@ export default abstract class DB {
     if (columns.length === 0) return "";
 
     const p = this.#bindPrefix; // "$" or ":"
+    const parts: string[] = [];
 
-    const parts = columns.map(column => {
-      const value = criteria[column];
+    for (const column of columns) {
+      const v = criteria[column];
 
       // null criteria
-      if (value === null) return `${this.#quote(column)} IS NULL`;
-
-      if (typeof value === "object") {
-        if ("$like" in value) {
-          return `${this.#quote(column)} LIKE ${p}${column}`;
-        }
-        //if ("$gte" in value) return `${this.#quote(column)} >= ${p}${column}`;
-
-        throw fail("unsupported operator in field {0}", column);
+      if (v === null) {
+        parts.push(`${this.#quote(column)} IS NULL`);
+        continue;
       }
 
-      return `${this.#quote(column)}=${p}${column}`;
-    });
+      // operator objects: only plain dicts
+      if (is.dict(v)) {
+        const ops = Object.entries(v);
+        if (ops.length === 0) throw fail("empty operator object");
+
+        for (const [op] of ops) {
+          const suffix = op.startsWith("$") ? op.slice(1) : op;
+          const bindKey = `${column}__${suffix}`;
+
+          switch (op) {
+            case "$like":
+              parts.push(`${this.#quote(column)} LIKE ${p}${bindKey}`);
+              break;
+
+            case "$gte":
+              parts.push(`${this.#quote(column)} >= ${p}${bindKey}`);
+              break;
+
+            case "$gt":
+            case "$after":
+              parts.push(`${this.#quote(column)} > ${p}${bindKey}`);
+              break;
+
+            case "$lte":
+              parts.push(`${this.#quote(column)} <= ${p}${bindKey}`);
+              break;
+
+            case "$lt":
+            case "$before":
+              parts.push(`${this.#quote(column)} < ${p}${bindKey}`);
+              break;
+
+            case "$ne":
+              parts.push(`${this.#quote(column)} != ${p}${bindKey}`);
+              break;
+
+            default:
+              throw fail("unsupported operator in field {0}", column);
+          }
+        }
+
+        continue;
+      }
+
+      parts.push(`${this.#quote(column)}=${p}${column}`);
+    }
 
     return `WHERE ${parts.join(" AND ")}`;
   }
@@ -167,13 +219,20 @@ export default abstract class DB {
     const out = Object.fromEntries(
       await Promise.all(
         Object.entries(object).map(async ([key, value]) => {
-          // support "s_" pseudo-namespace for SET params
-          const base = key.startsWith("s_") ? key.slice(2) : key;
+          // `bind()` is for scalar values only
+          if (is.dict(value)) {
+            throw fail("operator object cannot be bound directly for {0}", key);
+          }
+
+          const raw = key.startsWith("s_") ? key.slice(2) : key;
+          const base = raw.split("__")[0];
+
           const bound = await this.#bind(types[base], value);
           return [`${this.#bindPrefix}${key}`, bound];
         }),
       ),
     );
+
     return this.formatBinds(out);
   }
 
@@ -184,18 +243,35 @@ export default abstract class DB {
       // null isn't bound
       if (value === null) continue;
 
-      if (typeof value === "object") {
-        // extract primitive value from operator object
-        if ("$like" in value) {
-          if (typeof value.$like !== "string") {
-            throw fail("$like operator requires string value, got {0}",
-              typeof value.$like);
+      // only treat *plain dicts* as operator objects
+      if (is.dict(value)) {
+        const ops = Object.entries(value);
+        if (ops.length === 0) throw fail("empty operator object");
+
+        for (const [op, op_value] of ops) {
+          const suffix = op.startsWith("$") ? op.slice(1) : op;
+          const bind_key = `${key}__${suffix}`;
+
+          switch (op) {
+            case "$like":
+            case "$gte":
+            case "$gt":
+            case "$after":
+            case "$lte":
+            case "$lt":
+            case "$before":
+            case "$ne":
+              filtered[bind_key] = op_value as any;
+              break;
+            default:
+              throw fail("unsupported operator in field {0}", key);
           }
-          filtered[key] = value.$like;
         }
-      } else {
-        filtered[key] = value;
+
+        continue;
       }
+
+      filtered[key] = value;
     }
 
     return this.bind(types, filtered);
@@ -215,12 +291,15 @@ export default abstract class DB {
   abstract read(as: As, args: {
     count: true;
     criteria: Dict;
+    with?: never; // disallow relations for count reads
   }): MaybePromise<number>;
+
   abstract read(as: As, args: {
     criteria: Dict;
     fields?: string[];
     limit?: number;
     sort?: Sort;
+    with?: With;
   }): MaybePromise<Dict[]>;
 
   abstract update(as: As, args: {

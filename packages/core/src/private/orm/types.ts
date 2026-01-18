@@ -1,21 +1,15 @@
-import type BelongsToRelation from "#orm/BelongsToRelation";
 import type ForeignKey from "#orm/ForeignKey";
-import type HasManyRelation from "#orm/HasManyRelation";
-import type HasOneRelation from "#orm/HasOneRelation";
 import type PrimaryKey from "#orm/PrimaryKey";
+import type { ManyRelation, OneRelation } from "#orm/relation";
 import type { Dict } from "@rcompat/type";
 import type { DataKey, InferStore, Storable } from "pema";
 
-type Relation =
-  | BelongsToRelation<any, any>
-  | HasManyRelation<any, any>
-  | HasOneRelation<any, any>;
+type Relation = OneRelation<any, string> | ManyRelation<any, string>;
 
 type StoreField =
   | Storable<DataKey>
   | PrimaryKey<Storable<DataKey>>
-  | ForeignKey<Storable<DataKey>>
-  | Relation;
+  | ForeignKey<Storable<DataKey>>;
 
 type StoreInput = Dict<StoreField>;
 
@@ -24,7 +18,7 @@ type PrimaryKeyField<T extends StoreInput> = {
 }[keyof T] & keyof InferRecord<T>;
 
 type ExtractSchema<T extends StoreInput> = {
-  [K in keyof T as T[K] extends Relation ? never : K]:
+  [K in keyof T]:
   T[K] extends PrimaryKey<infer P> ? P :
   T[K] extends ForeignKey<infer P> ? P :
   T[K] extends Storable<DataKey> ? T[K] :

@@ -1,4 +1,4 @@
-import InMemoryDB from "#db/InMemoryDB";
+import MemoryDB from "#db/MemoryDB";
 import key from "#orm/key";
 import Store from "#orm/Store";
 import type SessionHandle from "#session/SessionHandle";
@@ -17,7 +17,7 @@ const new_store = () => new Store({
   a: p.number.optional(),
   b: p.number.optional(),
   v: p.number.optional(),
-}, { db: new InMemoryDB(), name: "session" });
+}, { db: new MemoryDB(), name: "session" });
 
 class MultiHeaders {
   #map = new Map<string, string[]>();
@@ -113,7 +113,7 @@ test.case("no base, create -> set cookie", async assert => {
   assert(cookies.length).equals(1);
   const session_id = cookies[0].split(";")[0].split("=")[1];
   assert(!!session_id).true();
-  assert((await store.find({ session_id }))[0]!.user).equals("u1");
+  assert((await store.find({ where: { session_id } }))[0]!.user).equals("u1");
 });
 
 test.case("base, no final -> destroy, clear cookie", async assert => {
@@ -181,5 +181,5 @@ test.case("base, rotation -> destroy, create, set cookie", async assert => {
   const cookies = response.headers.getAll("set-cookie");
   assert(cookies.length).equals(1);
   const new_id = cookies[0].split(";")[0].split("=")[1];
-  assert((await store.find({ session_id: new_id }))[0].v).equals(2);
+  assert((await store.find({ where: { session_id: new_id } }))[0].v).equals(2);
 });

@@ -21,7 +21,7 @@
   "devDependencies": {
     "@rcompat/fs": "^0.25.2",
     "@rcompat/io": "^0.3.0",
-    "@rcompat/test": "^0.8.0",
+    "@rcompat/test": "^0.8.2",
     "@types/deno": "^2.5.0",
     "@types/node": "^25.0.8",
     "apekit": "^0.0.42",

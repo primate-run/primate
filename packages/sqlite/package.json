@@ -28,7 +28,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.6.0",
-    "@rcompat/is": "^0.4.0",
+    "@rcompat/is": "^0.4.1",
     "@rcompat/sqlite": "^0.8.0"
   },
   "devDependencies": {

@@ -9,6 +9,6 @@ type OrNull<T> = {
   [P in keyof T]?: null | T[P];
 };
 
-type Changeset<T extends StoreInput> = X<OrNull<InferStore<ExtractSchema<T>>>>;
+type $Set<T extends StoreInput> = X<OrNull<InferStore<ExtractSchema<T>>>>;
 
-export type { Changeset as default };
+export type { $Set as default };

@@ -34,7 +34,7 @@
     "@rcompat/fs": "^0.25.2",
     "@rcompat/http": "^0.21.0",
     "@rcompat/io": "^0.3.0",
-    "@rcompat/is": "^0.4.0",
+    "@rcompat/is": "^0.4.1",
     "@rcompat/kv": "^0.6.0",
     "@rcompat/runtime": "^0.9.0",
     "@rcompat/string": "^0.13.0",
