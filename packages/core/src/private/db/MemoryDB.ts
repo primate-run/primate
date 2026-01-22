@@ -21,6 +21,21 @@ function comparable(x: unknown) {
   return x as any;
 };
 
+function like_re(pattern: string, flags = "") {
+  // SQL LIKE: % = any chars (incl newline), _ = single char (incl newline)
+  return new RegExp(
+    "^" + escape_re(pattern)
+      .replace(/%/g, "[\\s\\S]*")
+      .replace(/_/g, "[\\s\\S]") +
+    "$", flags);
+}
+
+function ensure_string_op(op: string, op_value: unknown) {
+  if (typeof op_value !== "string") {
+    throw fail("{0} operator requires string, got {1}", op, typeof op_value);
+  }
+}
+
 function match(record: Dict, criteria: Dict) {
   return Object.entries(criteria).every(([k, v]) => {
     const value = record[k];
@@ -28,7 +43,7 @@ function match(record: Dict, criteria: Dict) {
     if (v === undefined) throw fail("undefined criteria for {0}", k);
 
     // null criteria (IS NULL semantics in this DB == key absent)
-    if (v === null) return !Object.hasOwn(record, k);
+    if (v === null) return value === null || value === undefined;
 
     // operator objects: only plain dicts
     if (is.dict(v)) {
@@ -40,13 +55,16 @@ function match(record: Dict, criteria: Dict) {
       for (const [op, op_value] of Object.entries(v)) {
         switch (op) {
           case "$like": {
-            if (typeof op_value !== "string") {
-              throw fail("$like operator requires string, got {0}", typeof op_value);
-            }
-            const regex = new RegExp(
-              "^" + escape_re(op_value).replace(/%/g, ".*").replace(/_/g, ".") + "$",
-            );
-            if (!regex.test(String(value))) return false;
+            ensure_string_op("$like", op_value);
+            if (typeof value !== "string") return false;
+            if (!like_re(op_value as string).test(value)) return false;
+            break;
+          }
+
+          case "$ilike": {
+            ensure_string_op("$ilike", op_value);
+            if (typeof value !== "string") return false;
+            if (!like_re(op_value as string, "i").test(value)) return false;
             break;
           }
 

@@ -24,7 +24,10 @@ import StoreType from "pema/StoreType";
 
 type X<T> = { [K in keyof T]: T[K] } & {};
 
-type StringOperators = { $like?: string };
+type StringOperators = {
+  $like?: string;
+  $ilike?: string;
+};
 
 type NumberOperators = {
   $gt?: number;
@@ -133,6 +136,19 @@ type Config<R extends Dict<Relation>> = {
 
 type ReadSort = Dict<"asc" | "desc">;
 
+function guard_options<
+  T extends object,
+  const K extends readonly (keyof T & string)[],
+>(options: T | undefined, allowed: K) {
+  if (options === undefined) return;
+
+  const allowed_set = new Set<string>(allowed as readonly string[]);
+
+  for (const k of Object.keys(options)) {
+    if (!allowed_set.has(k)) throw fail("unknown option {0}", k);
+  }
+}
+
 function is_number_key(k: string) {
   return k === "u8"
     || k === "u16" || k === "u32"
@@ -163,7 +179,7 @@ function key_exists(key: string) {
 
 const registry = new Map<Dict, Store<any>>();
 
-const STRING_OPERATORS = ["$like"];
+const STRING_OPERATORS = ["$like", "$ilike"];
 const NUMBER_OPERATORS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
 const BIGINT_OPERATORS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
 const DATE_OPERATORS = ["$before", "$after", "$ne"];
@@ -352,7 +368,7 @@ export default class Store<
 
           if (datatype === "string" || datatype === "time") {
             if (!STRING_OPERATORS.includes(op)) throw unknown_operator(op);
-            if (!is.string(op_value)) throw fail("$like must be a string");
+            if (!is.string(op_value)) throw fail("$(i)like must be a string");
             continue;
           }
 
@@ -438,8 +454,8 @@ export default class Store<
     for (const [k, v] of Object.entries(record)) {
       if (!(k in this.#types)) throw unknown_field(k);
       if (v === undefined) throw fail("undefined value for {0}", k);
-      if (v === null && !this.#nullables.has(k)) {
-        throw fail(".{0}: null not allowed (field not nullable)", k);
+      if (v === null) {
+        throw fail(".{0}: null is not allowed on insert; omit key instead", k);
       }
     }
   }
@@ -493,6 +509,7 @@ export default class Store<
     if (pk === null) throw fail("store has no primary key");
 
     assert.maybe.dict(options);
+    guard_options(options, ["select", "with"]);
     assert.maybe.array(options?.select);
 
     if (options?.select) this.#validate_select(options.select, this.#types);
@@ -587,14 +604,7 @@ export default class Store<
     const to_parse = Object.fromEntries(
       entries.filter(([k, v]) => !(v === null && this.#nullables.has(k))),
     );
-    const nulls = Object.fromEntries(
-      entries.filter(([k, v]) => v === null && this.#nullables.has(k)),
-    );
-
-    const parsed = {
-      ...(this.#type.parse(to_parse)),
-      ...nulls,
-    };
+    const parsed = this.#type.parse(to_parse);
 
     return this.db.create(this.#as, { record: parsed });
   }
@@ -723,6 +733,7 @@ export default class Store<
     },
   ): Promise<WithRelations<Projected<Schema<T>, S>, R, W>[]> {
     assert.maybe.dict(options);
+    guard_options(options, ["where", "select", "sort", "limit", "with"]);
     assert.maybe.dict(options?.where);
     assert.maybe.array(options?.select);
     assert.maybe.dict(options?.sort);

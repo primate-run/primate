@@ -11,6 +11,8 @@ import is from "@rcompat/is";
 import type { Dict, MaybePromise } from "@rcompat/type";
 import type { DataType, StoreSchema } from "pema";
 
+type BindPrefix = "$" | ":" | "";
+
 export type With = Dict<{
   as: As;
   kind: "one" | "many";
@@ -38,11 +40,11 @@ function normalize_sort(direction: "asc" | "desc") {
 }
 
 export default abstract class DB {
-  #bindPrefix: string;
+  #bind_prefix: BindPrefix;
   abstract close(): MaybePromise<void>;
 
-  constructor(bindPrefix?: string) {
-    this.#bindPrefix = bindPrefix ?? "";
+  constructor(bind_prefix?: "$" | ":") {
+    this.#bind_prefix = bind_prefix ?? "";
   }
 
   #assert(types: Types, columns: string[]) {
@@ -102,13 +104,22 @@ export default abstract class DB {
     return limit !== undefined ? ` LIMIT ${limit}` : "";
   }
 
+  like(prefix: BindPrefix, column: string, bind_key: string, icase: boolean) {
+    // default: ANSI-ish fallback (works most places, not always indexed)
+    const quoted = this.#quote(column);
+    const rhs = `${prefix}${bind_key}`;
+    return icase
+      ? `LOWER(${quoted}) LIKE LOWER(${rhs})`
+      : `${quoted} LIKE ${rhs}`;
+  }
+
   toWhere(types: Types, criteria: DataDict) {
     const columns = Object.keys(criteria);
     this.#assert(types, columns);
 
     if (columns.length === 0) return "";
 
-    const p = this.#bindPrefix; // "$" or ":"
+    const prefix = this.#bind_prefix;
     const parts: string[] = [];
 
     for (const column of columns) {
@@ -127,33 +138,37 @@ export default abstract class DB {
 
         for (const [op] of ops) {
           const suffix = op.startsWith("$") ? op.slice(1) : op;
-          const bindKey = `${column}__${suffix}`;
+          const bind_key = `${column}__${suffix}`;
 
           switch (op) {
             case "$like":
-              parts.push(`${this.#quote(column)} LIKE ${p}${bindKey}`);
+              parts.push(this.like(prefix, column, bind_key, false));
+              break;
+
+            case "$ilike":
+              parts.push(this.like(prefix, column, bind_key, true));
               break;
 
             case "$gte":
-              parts.push(`${this.#quote(column)} >= ${p}${bindKey}`);
+              parts.push(`${this.#quote(column)} >= ${prefix}${bind_key}`);
               break;
 
             case "$gt":
             case "$after":
-              parts.push(`${this.#quote(column)} > ${p}${bindKey}`);
+              parts.push(`${this.#quote(column)} > ${prefix}${bind_key}`);
               break;
 
             case "$lte":
-              parts.push(`${this.#quote(column)} <= ${p}${bindKey}`);
+              parts.push(`${this.#quote(column)} <= ${prefix}${bind_key}`);
               break;
 
             case "$lt":
             case "$before":
-              parts.push(`${this.#quote(column)} < ${p}${bindKey}`);
+              parts.push(`${this.#quote(column)} < ${prefix}${bind_key}`);
               break;
 
             case "$ne":
-              parts.push(`${this.#quote(column)} != ${p}${bindKey}`);
+              parts.push(`${this.#quote(column)} != ${prefix}${bind_key}`);
               break;
 
             default:
@@ -164,7 +179,7 @@ export default abstract class DB {
         continue;
       }
 
-      parts.push(`${this.#quote(column)}=${p}${column}`);
+      parts.push(`${this.#quote(column)}=${prefix}${column}`);
     }
 
     return `WHERE ${parts.join(" AND ")}`;
@@ -177,7 +192,7 @@ export default abstract class DB {
 
     if (columns.length === 0) throw required("set");
 
-    const p = this.#bindPrefix; // "$" or ":"
+    const p = this.#bind_prefix; // "$" or ":"
 
     const set = `SET ${columns.map(c =>
       `${this.#quote(c)}=${p}s_${c}`).join(", ")}`;
@@ -228,7 +243,7 @@ export default abstract class DB {
           const base = raw.split("__")[0];
 
           const bound = await this.#bind(types[base], value);
-          return [`${this.#bindPrefix}${key}`, bound];
+          return [`${this.#bind_prefix}${key}`, bound];
         }),
       ),
     );
@@ -238,6 +253,7 @@ export default abstract class DB {
 
   async bindCriteria(types: Types, criteria: DataDict): Promise<Dict> {
     const filtered: DataDict = {};
+    this.#assert(types, Object.keys(criteria));
 
     for (const [key, value] of Object.entries(criteria)) {
       // null isn't bound
@@ -254,6 +270,7 @@ export default abstract class DB {
 
           switch (op) {
             case "$like":
+            case "$ilike":
             case "$gte":
             case "$gt":
             case "$after":

@@ -284,15 +284,15 @@ export default <D extends DB>(db: D) => {
   }
 
   function $user$(label: string, body: Body) {
-    $user(`security - ${label}`, body);
+    $user(`security: ${label}`, body);
   }
 
   function $type(label: string, body: Body) {
-    $store(`type - ${label}`, Type, body);
+    $store(`type: ${label}`, Type, body);
   }
 
   function $rel(label: string, body: Body) {
-    test.case(`relation - ${label}`, async assert => {
+    test.case(`relation: ${label}`, async assert => {
       await Author.collection.create();
       await Article.collection.create();
       await Profile.collection.create();
@@ -330,7 +330,7 @@ export default <D extends DB>(db: D) => {
   }
 
   function $rel$(label: string, body: Body) {
-    $rel(`security - ${label}`, body);
+    $rel(`security: ${label}`, body);
   }
   function security_pair<Base, With>(
     base_prefix: "where" | "find",
@@ -416,36 +416,43 @@ export default <D extends DB>(db: D) => {
     assert(await User.has(ryan.id)).true();
   });
 
-  $store("insert - primary key is optional (string)", User, async assert => {
+  $store("insert: primary key is optional (string)", User, async assert => {
     const user = await User.insert({ name: "Test" });
     assert(user.id).type<string>();
     assert(await User.has(user.id)).true();
   });
 
-  $store("insert - primary key is optional (number)", UserN, async assert => {
+  $store("insert: primary key is optional (number)", UserN, async assert => {
     const user = await UserN.insert({ name: "Test" });
     assert(user.id).type<number>();
     assert(await UserN.has(user.id)).true();
   });
 
-  $store("insert - primary key is optional (bigint)", UserB, async assert => {
+  $store("insert: primary key is optional (bigint)", UserB, async assert => {
     const user = await UserB.insert({ name: "Test" });
     assert(user.id).type<bigint>();
     assert(await UserB.has(user.id)).true();
   });
 
-  $store("insert - defaults apply", User, async assert => {
+  $store("insert: defaults apply", User, async assert => {
     const u = await User.insert({} as any);
     assert(u.name).equals("Donald");
   });
 
-  $user("find - empty object equals no options", async assert => {
+  $store("insert: reject null values", User, async assert => {
+    await throws_message(assert, "null is not allowed on insert", () => {
+      // lastname is optional, but null is forbidden on insert
+      return User.insert({ name: "Nullman", lastname: null } as any);
+    });
+  });
+
+  $user("find: empty object equals no options", async assert => {
     const a = await User.find();
     const b = await User.find({});
     assert(a.length).equals(b.length);
   });
 
-  $user("find - $like: handles regex metacharacters", async assert => {
+  $user("find: $like: handles regex metacharacters", async assert => {
     await User.insert({ name: "A[1]" });
 
     const got = await User.find({
@@ -457,7 +464,7 @@ export default <D extends DB>(db: D) => {
     assert(got[0].name).equals("A[1]");
   });
 
-  $user("find - types", async assert => {
+  $user("find: types", async assert => {
     const where = { name: "Ryan" };
     assert(await User.find({ where })).type<{
       id: string;
@@ -479,7 +486,7 @@ export default <D extends DB>(db: D) => {
     }[]>();
   });
 
-  $user("find - select narrows type", async assert => {
+  $user("find: select narrows type", async assert => {
     const select = ["id", "name"] as const;
 
     const users = await User.find({ select });
@@ -492,12 +499,12 @@ export default <D extends DB>(db: D) => {
     assert(users_b).type<{ id: bigint; name: string }[]>();
   });
 
-  $user("find - basic query", async assert => {
+  $user("find: basic query", async assert => {
     const result = await User.find({ where: { name: "Ryan" } });
     assert(result.length).equals(1);
   });
 
-  $user("find - sorting by multiple fields", async assert => {
+  $user("find: sorting by multiple fields", async assert => {
     // sorting by multiple fields: age descending, then Lastname ascending
     const sorted = await User.find({
       select: ["age", "name"],
@@ -519,7 +526,7 @@ export default <D extends DB>(db: D) => {
     });
   });
 
-  $user("find - sorting ascending and descending", async assert => {
+  $user("find: sorting ascending and descending", async assert => {
     const ascending = await User.find({
       select: ["age", "name"],
       sort: { age: "asc" },
@@ -540,7 +547,7 @@ export default <D extends DB>(db: D) => {
     assert(descending[0]).equals(pick(USERS.ben, "name", "age"));
   });
 
-  $user("find - null criteria uses IS NULL semantics", async assert => {
+  $user("find: null criteria uses IS NULL semantics", async assert => {
     // inserted fixtures include Jeremy without a lastname (NULL in DB)
     // querying with { lastname: null } should find him
     const rows = await User.find({
@@ -555,7 +562,7 @@ export default <D extends DB>(db: D) => {
     }
   });
 
-  $user("find - $like operator for strings", async assert => {
+  $user("find: $like operator for strings", async assert => {
     const prefix = await User.find({ where: { name: { $like: "J%" } } });
     assert(prefix.length).equals(1);
     if (prefix.length > 0) assert(prefix[0].name).equals("Just Jeremy");
@@ -577,7 +584,7 @@ export default <D extends DB>(db: D) => {
     assert(none.length).equals(0);
   });
 
-  $user("find - $like with null/undefined fields", async assert => {
+  $user("find: $like with null/undefined fields", async assert => {
     // Jeremy has no lastname (null), should not match ANY $like patterns
     const results = await User.find({
       where: { lastname: { $like: "%ll%" } },
@@ -588,14 +595,14 @@ export default <D extends DB>(db: D) => {
     assert(names).equals(["Ben", "Paul"]);
   });
 
-  $user("find - $like: reject non-string types", async assert => {
+  $user("find: $like: reject non-string types", async assert => {
     await throws(assert, () => {
       // age is u8, should not accept $like
       return User.find({ where: { age: { $like: "30%" } } } as any);
     });
   });
 
-  $user("update - single record", async assert => {
+  $user("update: single record", async assert => {
     const [donald] = (await User.find({ where: { name: "Donald" } }));
 
     await User.update(donald.id, { set: { age: 35 } });
@@ -605,7 +612,7 @@ export default <D extends DB>(db: D) => {
     assert(updated).equals({ ...USERS.donald, age: 35, id: donald.id });
   });
 
-  $user("update - unset fields", async assert => {
+  $user("update: unset fields", async assert => {
     const [donald] = (await User.find({ where: { name: "Donald" } }));
 
     assert(donald.age).equals(30);
@@ -621,7 +628,25 @@ export default <D extends DB>(db: D) => {
     assert(updated_paul).equals({ id: updated_paul.id, name: "Paul" });
   });
 
-  $user("update - multiple records", async assert => {
+  $user("update: cannot unset required fields", async assert => {
+    const [donald] = await User.find({ where: { name: "Donald" } });
+
+    await throws_message(assert, "null not allowed", () => {
+      // name is required (non-nullable) -> cannot be unset
+      return User.update(donald.id, { set: { name: null } } as any);
+    });
+  });
+
+  $user("update: cannot unset required fields (multi-update)", async assert => {
+    await throws_message(assert, "null not allowed", () => {
+      return User.update({
+        where: { name: { $like: "D%" } },
+        set: { name: null },
+      } as any);
+    });
+  });
+
+  $user("update: multiple records", async assert => {
     const n_updated = await User.update({
       where: { age: 40 },
       set: { age: 45 },
@@ -633,7 +658,7 @@ export default <D extends DB>(db: D) => {
     assert(updated.length).equals(2);
   });
 
-  $user("update - criteria and changeset share a column", async assert => {
+  $user("update: criteria and changeset share a column", async assert => {
     // Donald has age 30; update age using criteria on the same column
     const n = await User.update({ where: { age: 30 }, set: { age: 31 } });
     assert(n).equals(1);
@@ -645,13 +670,13 @@ export default <D extends DB>(db: D) => {
     assert(donald.age).equals(31);
   });
 
-  $user("update - update all", async assert => {
+  $user("update: update all", async assert => {
     await User.update({ set: { age: 99 } });
     const users = await User.find();
     for (const user of users) assert(user.age!).equals(99);
   });
 
-  $user("update - $like criteria", async assert => {
+  $user("update: $like criteria", async assert => {
     // update all users whose names start with "J"
     const updated = await User.update({
       where: { name: { $like: "J%" } },
@@ -663,7 +688,7 @@ export default <D extends DB>(db: D) => {
     assert(jeremy[0].age).equals(25);
   });
 
-  $user("delete - single record", async assert => {
+  $user("delete: single record", async assert => {
     const [donald] = await User.find({ where: { name: "Donald" } });
     await User.delete(donald.id);
 
@@ -671,7 +696,7 @@ export default <D extends DB>(db: D) => {
     assert(deleted.length).equals(0);
   });
 
-  $user("delete - multiple records", async assert => {
+  $user("delete: multiple records", async assert => {
     const n = await User.delete({ where: { age: 40 } });
     assert(n).equals(2);
 
@@ -680,7 +705,7 @@ export default <D extends DB>(db: D) => {
     assert(remaining[0].name).equals("Just Jeremy");
   });
 
-  $user("delete - $like criteria", async assert => {
+  $user("delete: $like criteria", async assert => {
     // delete all users with "Miller" lastname
     const deleted = await User.delete({
       where: { lastname: { $like: "%Miller%" } },
@@ -702,7 +727,7 @@ export default <D extends DB>(db: D) => {
     assert(await User.count({ where: { age: 35 } })).equals(0);
   });
 
-  $user("count - $like operator", async assert => {
+  $user("count: $like operator", async assert => {
     assert(await User.count({ where: { name: { $like: "J%" } } })).equals(1);
     assert(await User.count({ where: { lastname: { $like: "%er" } } }))
       .equals(2);
@@ -943,19 +968,48 @@ export default <D extends DB>(db: D) => {
     await throws(assert, () => User.delete({ where: { nope: 1 } as any }));
   });
 
-  /*$user$("number operators: reject on non-number fields", async assert => {
+  $user$("number operators: reject on non-number fields", async assert => {
     await throws(assert, () => {
       // name is string, should not accept $gte
-      return User.find({ name: { $gte: 10 } } as any);
+      return User.find({ where: { name: { $gte: 10 } } as any });
     });
-  });*/
+  });
 
-  /*$user$("mixed operators: reject invalid combinations", async assert => {
+  $user$("mixed operators: reject invalid combinations", async assert => {
     await throws(assert, () => {
       // can't mix string and number operators
-      return User.find({ name: { $like: "test%", $gte: 5 } } as any);
+      return User.find({ where: { name: { $like: "test%", $gte: 5 } } as any });
     });
-  });*/
+  });
+
+  $store("insert: reject null values", User, async assert => {
+    await throws_message(assert, "null is not allowed on insert", () => {
+      // lastname is optional, but null is forbidden on insert
+      return User.insert({ name: "Nullman", lastname: null } as any);
+    });
+  });
+
+  $store("insert: reject null on required fields", User, async assert => {
+    await throws_message(assert, "null is not allowed on insert", () => {
+      // name is required, but passing null explicitly is still forbidden
+      return User.insert({ name: null } as any);
+    });
+  });
+
+  $store("insert: omission stores NULL", User, async assert => {
+    const u = await User.insert({ name: "NoLast" });
+
+    const [got] = await User.find({
+      where: { id: u.id } as any,
+      select: ["id", "name", "lastname"],
+    });
+
+    assert(got.id).equals(u.id);
+    assert(got.name).equals("NoLast");
+
+    // returned shape must not contain null
+    assert(got.lastname).undefined();
+  });
 
   $store("reserved table / column names", Reserved, async assert => {
     const a = await Reserved.insert({ name: "alpha", order: 1 });
@@ -1218,14 +1272,14 @@ export default <D extends DB>(db: D) => {
     });
   });
 
-  $user("get/try - missing id", async assert => {
+  $user("get/try: missing id", async assert => {
     const missing = `missing-${Date.now()}-${Math.random()}`;
 
     await throws(assert, () => User.get(missing));
     assert(await User.try(missing)).undefined();
   });
 
-  $rel("get/try - missing id (with relations)", async assert => {
+  $rel("get/try: missing id (with relations)", async assert => {
     const missing = `missing-${Date.now()}-${Math.random()}`;
 
     await throws(assert, () => Article.get(missing,
@@ -1233,7 +1287,7 @@ export default <D extends DB>(db: D) => {
     assert(await Article.try(missing, { with: { author: true } })).undefined();
   });
 
-  $rel("get/try - missing id (+ parent)", async assert => {
+  $rel("get/try: missing id (+ parent)", async assert => {
     const missing = `missing-${Date.now()}-${Math.random()}`;
 
     await throws(assert, () => Author.get(missing, {
@@ -1244,7 +1298,7 @@ export default <D extends DB>(db: D) => {
     })).undefined();
   });
 
-  $user("try - does not swallow invalid options", async assert => {
+  $user("try: does not swallow invalid options", async assert => {
     const [u] = await User.find({ select: ["id"] });
 
     await throws_message(assert, "empty select", () => {
@@ -1253,7 +1307,7 @@ export default <D extends DB>(db: D) => {
     });
   });
 
-  $type("where - treat date as literal value (not operator)", async assert => {
+  $type("where: treat date as literal value (not operator)", async assert => {
     const d = new Date();
 
     const inserted = await Type.insert({ date: d });
@@ -1265,7 +1319,7 @@ export default <D extends DB>(db: D) => {
     assert(got[0].id).equals(inserted.id);
   });
 
-  $type("where - number operators ($gt/$gte/$lt/$lte/$ne)", async assert => {
+  $type("where: number operators ($gt/$gte/$lt/$lte/$ne)", async assert => {
     // use a marker to avoid cross-test interference if the DB isn't reset
     await Type.insert({ string: "ops-num", u8: 201 });
     await Type.insert({ string: "ops-num", u8: 202 });
@@ -1296,7 +1350,7 @@ export default <D extends DB>(db: D) => {
     assert(lte.map(r => (r as any).u8)).equals([201, 202]);
   });
 
-  $type("where - bigint operators ($gt/$gte/$lt/$lte/$ne)", async assert => {
+  $type("where: bigint operators ($gt/$gte/$lt/$lte/$ne)", async assert => {
     await Type.insert({ string: "ops-big", u64: 201n });
     await Type.insert({ string: "ops-big", u64: 202n });
     await Type.insert({ string: "ops-big", u64: 203n });
@@ -1320,7 +1374,7 @@ export default <D extends DB>(db: D) => {
     assert(ne.map(r => (r as any).u64)).equals([201n, 203n]);
   });
 
-  $type("where - datetime operators ($before/$after/$ne)", async assert => {
+  $type("where: datetime operators ($before/$after/$ne)", async assert => {
     const d1 = new Date("2020-01-01T00:00:00.000Z");
     const d2 = new Date("2020-01-02T00:00:00.000Z");
     const d3 = new Date("2020-01-03T00:00:00.000Z");
@@ -1348,7 +1402,7 @@ export default <D extends DB>(db: D) => {
     assert(ne.map(r => (r as any).date.getTime())).equals([d1.getTime(), d3.getTime()]);
   });
 
-  $type("where - operator validation errors", async assert => {
+  $type("where: operator validation errors", async assert => {
     const throws_includes = async (needle: string, fn: () => any) => {
       try {
         await fn();
@@ -1387,7 +1441,33 @@ export default <D extends DB>(db: D) => {
     });
   });
 
-  $user("find - $like: underscore is single-character *", async assert => {
+  $store("where: null matches omitted optional field", User, async assert => {
+    const u = await User.insert({ name: "NoLast" });
+
+    const rows = await User.find({
+      where: { id: u.id, lastname: null } as any,
+      select: ["id"],
+    });
+
+    assert(rows.length).equals(1);
+    assert(rows[0].id).equals(u.id);
+  });
+
+  $user("where: null matches unset via update", async assert => {
+    const [paul] = await User.find({ where: { name: "Paul" } });
+
+    await User.update(paul.id, { set: { lastname: null } });
+
+    const rows = await User.find({
+      where: { id: paul.id, lastname: null } as any,
+      select: ["id"],
+    });
+
+    assert(rows.length).equals(1);
+    assert(rows[0].id).equals(paul.id);
+  });
+
+  $user("find: $like: underscore is single-character *", async assert => {
     await User.insert({ name: "A1" });
     await User.insert({ name: "A12" });
 
@@ -1406,7 +1486,7 @@ export default <D extends DB>(db: D) => {
     assert(two.map(r => r.name)).equals(["A12"]);
   });
 
-  $user("find - $like: question mark is literal", async assert => {
+  $user("find: $like: question mark is literal", async assert => {
     await User.insert({ name: "A?" });
     await User.insert({ name: "A1" });
 
@@ -1420,7 +1500,7 @@ export default <D extends DB>(db: D) => {
     assert(got.map(r => r.name)).equals(["A?"]);
   });
 
-  $rel("try - does not swallow invalid relation name", async assert => {
+  $rel("try: does not swallow invalid relation name", async assert => {
     const [row] = await Article.find({ select: ["id"] });
 
     await throws_message(assert, "unknown relation", () => {
@@ -1463,7 +1543,7 @@ export default <D extends DB>(db: D) => {
     assert(got.author).null();
   });
 
-  $user("get/try - happy path", async assert => {
+  $user("get/try: happy path", async assert => {
     const [u] = await User.find({ where: { name: "Donald" } });
 
     const got = await User.get(u.id);
@@ -1471,6 +1551,54 @@ export default <D extends DB>(db: D) => {
 
     const tried = await User.try(u.id);
     assert(tried?.id).equals(u.id);
+  });
+
+  $user$("find: unknown option keys throw", async assert => {
+    await throws(assert, () => {
+      // wrong call-shape (looks like where but isn't nested)
+      return User.find({ name: "John" } as any);
+    });
+
+    await throws(assert, () => {
+      // totally unknown option
+      return User.find({ banana: true } as any);
+    });
+  });
+
+  $user("find: $like is case-sensitive", async assert => {
+    await User.insert({ name: "MiXeDCase" });
+
+    const no = await User.find({ where: { name: { $like: "mixed%" } } });
+    assert(no.length).equals(0);
+
+    const yes = await User.find({ where: { name: { $like: "MiXeD%" } } });
+    assert(yes.length).equals(1);
+    assert(yes[0].name).equals("MiXeDCase");
+  });
+
+  $user("find: $ilike is case-insensitive", async assert => {
+    await User.insert({ name: "MiXeDCase2" });
+
+    const rows = await User.find({ where: { name: { $ilike: "mixed%" } } });
+    assert(rows.length).equals(1);
+    assert(rows[0].name).equals("MiXeDCase2");
+  });
+
+  $user$("get: unknown option keys throw", async assert => {
+    const u = await User.insert({ name: "Guard", age: 1 } as any);
+
+    await throws(assert, () => {
+      // get only accepts { select?, with? }
+      return User.get((u as any).id, { where: { name: "Guard" } } as any);
+    });
+
+    await throws(assert, () => {
+      return User.get((u as any).id, { sort: { name: "asc" } } as any);
+    });
+
+    await throws(assert, () => {
+      return User.get((u as any).id, { banana: true } as any);
+    });
   });
 
   $rel("with + select (no id)", async assert => {
@@ -1494,7 +1622,7 @@ export default <D extends DB>(db: D) => {
       const [row] = await Article.find({ select: ["id"] });
 
       const got = await Article.get(row.id, {
-        select: ["title"],            // intentionally omit author_id
+        select: ["title"], // intentionally omit author_id
         with: { author: true },
       });
 
