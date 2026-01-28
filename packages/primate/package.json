@@ -31,7 +31,7 @@
     "@rcompat/dict": "^0.3.0",
     "@rcompat/fs": "^0.25.2",
     "@rcompat/http": "~0.21.0",
-    "@rcompat/test": "^0.8.2"
+    "@rcompat/test": "^0.8.3"
   },
   "devDependencies": {
     "@rcompat/type": "^0.9.0"

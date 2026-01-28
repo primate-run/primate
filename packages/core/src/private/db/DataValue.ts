@@ -5,6 +5,7 @@ type Scalar = DataType[DataKey] | null;
 
 type OperatorObject = Partial<{
   $like: string;
+  $ilike: string;
 
   $gt: number | bigint;
   $gte: number | bigint;

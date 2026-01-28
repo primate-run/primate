@@ -1,10 +1,13 @@
 import type As from "#db/As";
+import type AsPK from "#db/AsPK";
 import type DataDict from "#db/DataDict";
 import type DataKey from "#db/DataKey";
+import E from "#db/error";
+import type PK from "#db/PK";
 import type Sort from "#db/Sort";
 import type TypeMap from "#db/TypeMap";
 import type Types from "#db/Types";
-import fail from "#fail";
+import type With from "#db/With";
 import assert from "@rcompat/assert";
 import entries from "@rcompat/dict/entries";
 import is from "@rcompat/is";
@@ -13,30 +16,13 @@ import type { DataType, StoreSchema } from "pema";
 
 type BindPrefix = "$" | ":" | "";
 
-export type With = Dict<{
-  as: As;
-  kind: "one" | "many";
-  fk: string;
-  reverse?: boolean;
-  // subquery options (normalized by Store)
-  criteria: DataDict;
-  fields?: string[];
-  sort?: Sort;
-  limit?: number;
-}>;
+function normalize_sort(key: string, direction: "asc" | "desc") {
+  if (!is.string(direction)) throw E.sort_invalid();
 
-function required(operation: string) {
-  return fail("{0}: at least one column required", operation);
-}
+  const l = direction.toLowerCase();
+  if (l !== "asc" && l !== "desc") throw E.sort_invalid_value(key, direction);
 
-function normalize_sort(direction: "asc" | "desc") {
-  if (typeof direction !== "string")
-    throw fail("invalid sort direction {0}", direction);
-
-  const lowered = direction.toLowerCase();
-  if (lowered !== "asc" && lowered !== "desc")
-    throw fail("invalid sort direction {0}", direction);
-  return lowered.toUpperCase();
+  return l.toUpperCase();
 }
 
 export default abstract class DB {
@@ -50,19 +36,15 @@ export default abstract class DB {
   #assert(types: Types, columns: string[]) {
     const known = new Set(Object.keys(types));
     const unknown = columns.filter(c => !known.has(c));
-    if (unknown.length > 0) {
-      throw fail("unknown column(s) {0}", unknown.join(", "));
-    }
+    if (unknown.length > 0) throw E.fields_unknown(unknown);
   }
 
   #quote(name: string) {
-    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-      throw fail("invalid identifier {0}", name);
-    }
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) E.identifier_invalid(name);
     return `\`${name}\``;
   }
 
-  ident(name: string) {
+  quote(name: string) {
     return this.#quote(name);
   }
 
@@ -73,28 +55,28 @@ export default abstract class DB {
   toSelect(types: Types, columns?: string[]) {
     assert.maybe.array(columns);
 
-    if (!columns) return "*";
-    if (columns.length === 0) throw required("select");
+    if (columns === undefined) return "*";
+    if (columns.length === 0) throw E.field_required("select");
 
     this.#assert(types, columns);
 
     return columns.map(this.#quote).join(", ");
   }
 
-  toSort(types: Types, sort?: Sort) {
+  toSort(types: Types, sort?: Sort, alias?: string) {
     assert.maybe.dict(sort);
-
-    if (!sort) return "";
-
+    if (sort === undefined) return "";
     const columns = Object.entries(sort);
-    if (columns.length === 0) throw required("sort");
-
+    if (columns.length === 0) throw E.field_required("sort");
     this.#assert(types, columns.map(([k]) => k));
 
     const order = columns
-      .map(([k, direction]) => `${this.#quote(k)} ${normalize_sort(direction)}`)
+      .map(([k, direction]) => {
+        const quoted = this.#quote(k);
+        const col = alias ? `${alias}.${quoted}` : quoted;
+        return `${col} ${normalize_sort(k, direction)}`;
+      })
       .join(", ");
-
     return ` ORDER BY ${order}`;
   }
 
@@ -113,8 +95,8 @@ export default abstract class DB {
       : `${quoted} LIKE ${rhs}`;
   }
 
-  toWhere(types: Types, criteria: DataDict) {
-    const columns = Object.keys(criteria);
+  toWhere(types: Types, where: DataDict) {
+    const columns = Object.keys(where);
     this.#assert(types, columns);
 
     if (columns.length === 0) return "";
@@ -123,9 +105,9 @@ export default abstract class DB {
     const parts: string[] = [];
 
     for (const column of columns) {
-      const v = criteria[column];
+      const v = where[column];
 
-      // null criteria
+      // null where
       if (v === null) {
         parts.push(`${this.#quote(column)} IS NULL`);
         continue;
@@ -134,7 +116,7 @@ export default abstract class DB {
       // operator objects: only plain dicts
       if (is.dict(v)) {
         const ops = Object.entries(v);
-        if (ops.length === 0) throw fail("empty operator object");
+        if (ops.length === 0) throw E.operator_empty(column);
 
         for (const [op] of ops) {
           const suffix = op.startsWith("$") ? op.slice(1) : op;
@@ -172,7 +154,7 @@ export default abstract class DB {
               break;
 
             default:
-              throw fail("unsupported operator in field {0}", column);
+              throw E.operator_unknown(column, op);
           }
         }
 
@@ -190,7 +172,7 @@ export default abstract class DB {
 
     this.#assert(types, columns);
 
-    if (columns.length === 0) throw required("set");
+    if (columns.length === 0) throw E.field_required("set");
 
     const p = this.#bind_prefix; // "$" or ":"
 
@@ -221,9 +203,29 @@ export default abstract class DB {
   abstract get typemap(): TypeMap;
 
   abstract schema: {
-    create(name: string, description: StoreSchema): MaybePromise<void>;
+    create(name: string, description: StoreSchema, pk: PK): MaybePromise<void>;
     delete(name: string): MaybePromise<void>;
   };
+
+  aliases(tables: string[]) {
+    const counts: Dict<number> = {};
+    const result: Dict<string> = {};
+
+    for (const table of tables) {
+      const prefix = table[0].toLowerCase();
+      counts[prefix] ??= 0;
+      result[table] = `${prefix}${counts[prefix]++}`;
+    }
+
+    return result;
+  }
+
+  select(aliases: Dict, as: As, fields?: string[]) {
+    const alias = aliases[as.name];
+    return (fields ?? Object.keys(as.types))
+      .map(f => `${alias}.${this.quote(f)} AS ${alias}_${f}`)
+      .join(", ");
+  }
 
   // identity
   formatBinds(binds: Dict): Dict {
@@ -235,9 +237,7 @@ export default abstract class DB {
       await Promise.all(
         Object.entries(object).map(async ([key, value]) => {
           // `bind()` is for scalar values only
-          if (is.dict(value)) {
-            throw fail("operator object cannot be bound directly for {0}", key);
-          }
+          if (is.dict(value)) throw E.operator_scalar(key);
 
           const raw = key.startsWith("s_") ? key.slice(2) : key;
           const base = raw.split("__")[0];
@@ -251,18 +251,18 @@ export default abstract class DB {
     return this.formatBinds(out);
   }
 
-  async bindCriteria(types: Types, criteria: DataDict): Promise<Dict> {
+  async bindWhere(types: Types, where: DataDict): Promise<Dict> {
     const filtered: DataDict = {};
-    this.#assert(types, Object.keys(criteria));
+    this.#assert(types, Object.keys(where));
 
-    for (const [key, value] of Object.entries(criteria)) {
+    for (const [key, value] of Object.entries(where)) {
       // null isn't bound
       if (value === null) continue;
 
       // only treat *plain dicts* as operator objects
       if (is.dict(value)) {
         const ops = Object.entries(value);
-        if (ops.length === 0) throw fail("empty operator object");
+        if (ops.length === 0) throw E.operator_empty(key);
 
         for (const [op, op_value] of ops) {
           const suffix = op.startsWith("$") ? op.slice(1) : op;
@@ -281,7 +281,7 @@ export default abstract class DB {
               filtered[bind_key] = op_value as any;
               break;
             default:
-              throw fail("unsupported operator in field {0}", key);
+              throw E.operator_unknown(key, op);
           }
         }
 
@@ -307,12 +307,12 @@ export default abstract class DB {
 
   abstract read(as: As, args: {
     count: true;
-    criteria: Dict;
+    where: Dict;
     with?: never; // disallow relations for count reads
   }): MaybePromise<number>;
 
   abstract read(as: As, args: {
-    criteria: Dict;
+    where: Dict;
     fields?: string[];
     limit?: number;
     sort?: Sort;
@@ -320,11 +320,11 @@ export default abstract class DB {
   }): MaybePromise<Dict[]>;
 
   abstract update(as: As, args: {
-    changeset: Dict;
-    criteria: Dict;
+    set: Dict;
+    where: Dict;
   }): MaybePromise<number>;
 
-  abstract delete(as: As, args: { criteria: Dict }): MaybePromise<number>;
+  abstract delete(as: As, args: { where: Dict }): MaybePromise<number>;
 
-  abstract lastId(name: string, pk: string): MaybePromise<number | bigint>;
+  abstract lastId(as: AsPK): MaybePromise<number | bigint>;
 };
