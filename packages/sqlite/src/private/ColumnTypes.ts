@@ -6,7 +6,6 @@ type Validate<T extends { [K in keyof T]: PrimitiveParam }> = T;
 type ColumnTypes = Validate<{
   BLOB: TypedArray;
   INTEGER: bigint | number;
-  "INTEGER PRIMARY KEY": number;
   NULL: null;
   REAL: number;
   TEXT: string;

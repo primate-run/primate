@@ -1,6 +1,5 @@
 import type ColumnTypes from "#ColumnTypes";
 import type { TypeMap } from "@primate/core/db";
-import is from "@rcompat/is";
 
 function identity<C extends keyof ColumnTypes>(column: C): {
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];
@@ -76,16 +75,6 @@ const typemap: TypeMap<ColumnTypes> = {
     },
   },
   i8: number("INTEGER"),
-  primary: {
-    bind(value) {
-      if (is.numeric(value)) return Number(value);
-      throw new Error(`\`${value}\` is not a valid primary key value`);
-    },
-    column: "INTEGER PRIMARY KEY",
-    unbind(value) {
-      return String(value);
-    },
-  },
   string: identity("TEXT"),
   time: identity("TEXT"),
   u128: {

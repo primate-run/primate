@@ -1,9 +1,9 @@
-import type DataDict from "#db/DataDict";
 import type DB from "#db/DB";
-import type { With as DBWith } from "#db/DB";
+import E from "#db/error";
+import type PK from "#db/PK";
 import wrap from "#db/symbol/wrap";
 import type Types from "#db/Types";
-import fail from "#fail";
+import type DBWith from "#db/With";
 import type ForeignKey from "#orm/ForeignKey";
 import parse from "#orm/parse";
 import type PrimaryKey from "#orm/PrimaryKey";
@@ -23,6 +23,13 @@ import type { DataKey, Storable } from "pema";
 import StoreType from "pema/StoreType";
 
 type X<T> = { [K in keyof T]: T[K] } & {};
+
+type Query = {
+  where?: unknown;
+  select?: unknown;
+  sort?: unknown;
+  limit?: unknown;
+};
 
 type StringOperators = {
   $like?: string;
@@ -136,6 +143,8 @@ type Config<R extends Dict<Relation>> = {
 
 type ReadSort = Dict<"asc" | "desc">;
 
+const VALID_IDENTIFIER = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
 function guard_options<
   T extends object,
   const K extends readonly (keyof T & string)[],
@@ -145,7 +154,7 @@ function guard_options<
   const allowed_set = new Set<string>(allowed as readonly string[]);
 
   for (const k of Object.keys(options)) {
-    if (!allowed_set.has(k)) throw fail("unknown option {0}", k);
+    if (!allowed_set.has(k)) throw E.option_unknown(k);
   }
 }
 
@@ -161,28 +170,12 @@ function is_bigint_key(k: string) {
     || k === "i64" || k === "i128";
 }
 
-function invalid_criteria(field: string) {
-  return fail("invalid criteria for {0}", field);
-}
-function undefined_criteria(field: string) {
-  return fail("undefined criteria for {0}", field);
-}
-function unknown_operator(operator: string) {
-  return fail("unknown operator {0}", operator);
-}
-function unknown_field(field: string) {
-  return fail("unknown field {0}", field);
-}
-function key_exists(key: string) {
-  return fail("key {0} already exists on store", key);
-}
-
 const registry = new Map<Dict, Store<any>>();
 
-const STRING_OPERATORS = ["$like", "$ilike"];
-const NUMBER_OPERATORS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
-const BIGINT_OPERATORS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
-const DATE_OPERATORS = ["$before", "$after", "$ne"];
+const STRING_OPS = ["$like", "$ilike"];
+const NUMBER_OPS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
+const BIGINT_OPS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
+const DATE_OPS = ["$before", "$after", "$ne"];
 
 /**
  * Database-backed store.
@@ -201,7 +194,7 @@ export default class Store<
   #nullables: Set<string>;
   #db?: DB;
   #name?: string;
-  #pk: string | null;
+  #pk: PK;
   #fks: Map<string, ForeignKey<Storable<DataKey>>>;
   #relations: R;
 
@@ -220,7 +213,6 @@ export default class Store<
     this.#pk = pk;
     this.#fks = fks;
     this.#relations = (config.relations ?? {}) as R;
-
     this.#nullables = new Set(
       Object.entries(this.#type.properties as Dict<{ nullable: boolean }>)
         .filter(([, v]) => v.nullable)
@@ -249,8 +241,9 @@ export default class Store<
     const db = this.db;
     const name = this.name;
     const schema = this.#schema;
+    const pk = this.#pk;
     return {
-      create: () => db.schema.create(name, schema),
+      create: () => db.schema.create(name, schema, pk),
       delete: () => db.schema.delete(name),
     };
   }
@@ -274,7 +267,7 @@ export default class Store<
   }
 
   get db() {
-    if (this.#db === undefined) throw fail("store missing database");
+    if (this.#db === undefined) throw E.db_missing();
     return this.#db;
   }
 
@@ -283,11 +276,23 @@ export default class Store<
   }
 
   get name() {
-    if (this.#name === undefined) throw fail("store missing name");
-    return this.#name;
+    const name = this.#name;
+    if (name === undefined) throw E.store_name_required();
+    if (!VALID_IDENTIFIER.test(name)) throw E.identifier_invalid(name);
+    return name;
   }
 
-  #with(options: With<R> | undefined): DBWith | undefined {
+  #parse_query(query: Query, types: Types) {
+    const { where, select, sort, limit } = query;
+
+    if (where !== undefined) this.#parse_where(where, types);
+    if (select !== undefined) this.#parse_select(select, types);
+    if (sort !== undefined) this.#parse_sort(sort, types);
+    if (limit !== undefined && !is.uint(limit)) throw E.limit_invalid();
+
+  }
+
+  #with(options?: With<R>) {
     if (options === undefined) return undefined;
 
     const plan: DBWith = {};
@@ -296,102 +301,89 @@ export default class Store<
       if (query === undefined) continue;
 
       const relation = this.#relations[name] as Relation | undefined;
-      if (relation === undefined) throw fail("unknown relation {0}", name);
+      if (relation === undefined) throw E.relation_unknown(name);
 
       const store = registry.get(relation.schema);
-      if (store === undefined) throw fail("no store registered for schema");
-      const target_types = store.types;
+      if (store === undefined) throw E.unregistered_schema();
+
       const { pk: target_pk } = parse(relation.schema);
+      const target_types = store.types;
 
-      const target_as = {
-        name: store.name,
-        pk: target_pk,
-        types: target_types,
-      };
-
-      let where: Dict | undefined;
-      let select: readonly string[] | undefined;
-      let sort: Dict | undefined;
-      let limit: number | undefined;
-
-      if (query !== true) {
-        assert.maybe.dict(query);
-        assert.maybe.dict((query as any).where);
-        assert.maybe.array((query as any).select);
-        assert.maybe.dict((query as any).sort);
-        assert.maybe.uint((query as any).limit);
-
-        if ((query as any).where) where = (query as any).where;
-        if ((query as any).select) select = (query as any).select;
-        if ((query as any).sort) sort = (query as any).sort;
-        if ((query as any).limit) limit = (query as any).limit;
-
-        if (where) this.#validate_where(where, target_types);
-        if (select) this.#validate_select(select, target_types);
-        if (sort) this.#validate_sort(sort, target_types);
-      }
-
-      plan[name] = {
-        as: target_as,
+      const base = {
+        as: { name: store.name, pk: target_pk, types: target_types },
         kind: relation.type,
         fk: relation.fk,
-        reverse: (relation as any).reverse === true,
-        criteria: (where ?? {}) as DataDict,
-        fields: select ? [...select] : undefined,
-        sort: sort as ReadSort | undefined,
-        limit,
+        reverse: "reverse" in relation && relation.reverse === true,
+      };
+
+      if (query === true) {
+        plan[name] = { ...base, where: {} };
+        continue;
+      }
+
+      this.#parse_query(query, target_types);
+
+      plan[name] = {
+        ...base,
+        where: query.where ?? {},
+        fields: query.select ? [...query.select] : undefined,
+        sort: query.sort,
+        limit: query.limit,
       };
     }
 
     return plan;
   }
 
-  #validate_where(where: Dict, types: Types) {
-    for (const [field, value] of Object.entries(where)) {
-      if (!(field in types)) throw unknown_field(field);
-      if (value === undefined) throw undefined_criteria(field);
+  #parse_where(where: unknown, types: Types) {
+    if (!is.dict(where)) throw E.where_invalid();
 
-      const datatype = types[field];
+    for (const [k, value] of Object.entries(where)) {
+      if (!VALID_IDENTIFIER.test(k)) throw E.identifier_invalid(k);
+      if (!(k in types)) throw E.field_unknown(k, "where");
+      if (value === undefined) throw E.field_undefined(k, "where");
+
+      const datatype = types[k];
 
       // null criteria (IS NULL semantics)
       if (value === null) continue;
 
       // arrays are always invalid
-      if (Array.isArray(value)) throw invalid_criteria(field);
+      if (is.array(value)) throw E.where_invalid_value(k, value);
 
       if (is.dict(value)) {
         const ops = Object.entries(value);
-        if (ops.length === 0) throw fail("empty operator object");
+        if (ops.length === 0) throw E.operator_empty(k);
 
-        for (const [op, op_value] of ops) {
-          if (op_value === undefined) throw undefined_criteria(field);
+        for (const [op, op_val] of ops) {
+          if (op_val === undefined) throw E.field_undefined(k, "where");
 
           if (datatype === "string" || datatype === "time") {
-            if (!STRING_OPERATORS.includes(op)) throw unknown_operator(op);
-            if (!is.string(op_value)) throw fail("$(i)like must be a string");
+            if (!STRING_OPS.includes(op)) throw E.operator_unknown(k, op);
+            if (!is.string(op_val)) throw E.operator_type_string(k, op, op_val);
             continue;
           }
 
           if (is_number_key(datatype)) {
-            if (!NUMBER_OPERATORS.includes(op)) throw unknown_operator(op);
-            if (!is.number(op_value)) throw invalid_criteria(field);
+            if (!NUMBER_OPS.includes(op)) throw E.operator_unknown(k, op);
+            if (!is.number(op_val)) throw E.operator_type_number(k, op, op_val);
             continue;
           }
 
           if (is_bigint_key(datatype)) {
-            if (!BIGINT_OPERATORS.includes(op)) throw unknown_operator(op);
-            if (!is.bigint(op_value)) throw invalid_criteria(field);
+            if (!BIGINT_OPS.includes(op)) throw E.operator_unknown(k, op);
+            if (!is.bigint(op_val)) throw E.operator_type_bigint(k, op, op_val);
             continue;
           }
 
           if (datatype === "datetime") {
-            if (!DATE_OPERATORS.includes(op)) throw unknown_operator(op);
-            if (!is.date(op_value)) throw invalid_criteria(field);
+            if (!DATE_OPS.includes(op)) throw E.operator_unknown(k, op);
+            if (!is.date(op_val)) throw E.operator_type_date(k, op, op_val);
             continue;
           }
 
           // url/boolean/blob: no operator objects
-          throw unknown_operator(op);
+          throw E.operator_unknown(k, op);
         }
 
         continue;
@@ -400,63 +392,66 @@ export default class Store<
       switch (datatype) {
         case "string":
         case "time":
-          if (!is.string(value)) throw invalid_criteria(field);
+          if (!is.string(value)) throw E.where_invalid_value(k, value);
           continue;
         case "u8": case "u16": case "u32":
         case "i8": case "i16": case "i32":
         case "f32": case "f64":
-          if (!is.number(value)) throw invalid_criteria(field);
+          if (!is.number(value)) throw E.where_invalid_value(k, value);
           continue;
         case "u64": case "u128": case "i64": case "i128":
-          if (!is.bigint(value)) throw invalid_criteria(field);
+          if (!is.bigint(value)) throw E.where_invalid_value(k, value);
           continue;
         case "datetime":
-          if (!is.date(value)) throw invalid_criteria(field);
+          if (!is.date(value)) throw E.where_invalid_value(k, value);
           continue;
         case "boolean":
-          if (!is.boolean(value)) throw invalid_criteria(field);
+          if (!is.boolean(value)) throw E.where_invalid_value(k, value);
           continue;
         case "url":
-          if (!is.url(value)) throw invalid_criteria(field);
+          if (!is.url(value)) throw E.where_invalid_value(k, value);
           continue;
         case "blob":
-          if (!is.blob(value)) throw invalid_criteria(field);
+          if (!is.blob(value)) throw E.where_invalid_value(k, value);
           continue;
         default:
-          throw invalid_criteria(field);
+          throw E.where_invalid_value(k, value);
       }
     }
   }
 
-  #validate_select(select: readonly unknown[], types: Types) {
-    if (select.length === 0) throw fail("empty select");
+  #parse_select(select: unknown, types: Types) {
+    if (!is.array(select)) throw E.select_invalid();
+    if (select.length === 0) throw E.select_empty();
     const seen = new Set<string>();
-    for (const k of select) {
-      if (typeof k !== "string") throw fail("select keys must be strings");
-      if (!(k in types)) throw fail("unknown select field {0}", k);
-      // duplicate isn't harmful, but it's usually a thought error
-      if (seen.has(k)) throw fail("duplicate select field {0}", k);
-      seen.add(k);
+    for (const [i, v] of select.entries()) {
+      if (!is.string(v)) throw E.select_invalid_value(i, v);
+      if (!VALID_IDENTIFIER.test(v)) throw E.identifier_invalid(v);
+      if (!(v in types)) throw E.field_unknown(v, "select");
+      // duplicate isn't harmful, but usually a thought error
+      if (seen.has(v)) throw E.field_duplicate(v, "select");
+      seen.add(v);
     }
   }
 
-  #validate_sort(sort: Dict, types: Types) {
+  #parse_sort(sort: unknown, types: Types) {
+    if (!is.dict(sort)) throw E.sort_invalid();
     const keys = Object.keys(sort);
-    if (keys.length === 0) throw fail("empty sort");
+    if (keys.length === 0) throw E.sort_empty();
 
-    for (const [k, dir] of Object.entries(sort)) {
-      if (!(k in types)) throw fail("unknown sort field {0}", k);
-      if (dir !== "asc" && dir !== "desc") throw fail("invalid sort direction");
+    for (const [k, direction] of Object.entries(sort)) {
+      if (!is.string(direction)) throw E.sort_invalid_value(k, direction);
+      if (!(k in types)) throw E.field_unknown(k, "sort");
+      const l = direction.toLowerCase();
+      if (l !== "asc" && l !== "desc") throw E.sort_invalid_value(k, direction);
     }
   }
 
-  #validate_inserted(record: Dict) {
+  #parse_insert(record: Dict) {
     for (const [k, v] of Object.entries(record)) {
-      if (!(k in this.#types)) throw unknown_field(k);
-      if (v === undefined) throw fail("undefined value for {0}", k);
-      if (v === null) {
-        throw fail(".{0}: null is not allowed on insert; omit key instead", k);
-      }
+      if (!(k in this.#types)) throw E.field_unknown(k, "insert");
+      if (v === undefined) throw E.field_undefined(k, "insert");
+      if (v === null) throw E.null_not_allowed(k);
     }
   }
 
@@ -464,13 +459,13 @@ export default class Store<
    * Count records
    */
   async count(options?: { where?: Where<T> }) {
-    assert.maybe.dict(options);
-    assert.maybe.dict(options?.where);
-    if (options?.where) this.#validate_where(options.where, this.#types);
+    this.#parse_query(options ?? {}, this.#types);
+
+    if (is.defined(options) && "with" in options) throw E.count_with_invalid();
 
     return await this.db.read(this.#as, {
       count: true,
-      criteria: (options?.where ?? {}),
+      where: (options?.where ?? {}),
     });
   }
 
@@ -478,9 +473,8 @@ export default class Store<
    * Check whether a record with the given primary key exists.
    */
   async has(pkv: PrimaryKeyValue<T>) {
-    const pk = this.#pk;
-    if (pk === null) throw fail("store has no primary key");
-    return (await this.count({ where: { [pk]: pkv } as Where<T> })) === 1;
+    if (this.#pk === null) throw E.pk_undefined(this.name);
+    return (await this.count({ where: { [this.#pk]: pkv } as Where<T> })) === 1;
   }
 
   /**
@@ -506,27 +500,22 @@ export default class Store<
     options?: { select?: readonly string[]; with?: With<R> },
   ) {
     const pk = this.#pk;
-    if (pk === null) throw fail("store has no primary key");
+    if (pk === null) throw E.pk_undefined(this.name);
 
-    assert.maybe.dict(options);
     guard_options(options, ["select", "with"]);
-    assert.maybe.array(options?.select);
-
-    if (options?.select) this.#validate_select(options.select, this.#types);
+    this.#parse_query(options ?? {}, this.#types);
 
     const $with = this.#with(options?.with);
-
     const records = await this.db.read(this.#as, {
-      criteria: { [pk]: pkv },
+      where: { [pk]: pkv },
       fields: options?.select ? [...options.select] : undefined,
-      limit: 1,
       with: $with,
     });
 
     assert.true(records.length <= 1);
 
     if (records.length === 0) {
-      const err = fail("no record with {0} {1}", pk, pkv);
+      const err = E.record_not_found(pk, pkv);
       (err as any).not_found = true;
       throw err;
     }
@@ -566,7 +555,7 @@ export default class Store<
   async try(
     pkv: PrimaryKeyValue<T>,
     options?: { select?: readonly string[]; with?: With<R> },
-  ): Promise<any> {
+  ) {
     try {
       return await this.get(pkv, options as any);
     } catch (error) {
@@ -581,14 +570,15 @@ export default class Store<
   async insert(record: Insertable<T>): Promise<Schema<T>> {
     assert.dict(record);
 
-    this.#validate_inserted(record);
+    this.#parse_insert(record);
 
+    const types = this.#types;
     const pk = this.#pk;
     let to_insert = record;
 
     if (pk !== null && !(pk in record)) {
-      const last_id = await this.db.lastId(this.name, pk);
-      const type = this.#types[pk];
+      const last_id = await this.db.lastId({ name: this.name, pk, types });
+      const type = types[pk];
 
       const pk_value =
         type === "string"
@@ -604,9 +594,8 @@ export default class Store<
     const to_parse = Object.fromEntries(
       entries.filter(([k, v]) => !(v === null && this.#nullables.has(k))),
     );
-    const parsed = this.#type.parse(to_parse);
 
-    return this.db.create(this.#as, { record: parsed });
+    return this.db.create(this.#as, this.#type.parse(to_parse));
   }
 
   /**
@@ -624,20 +613,18 @@ export default class Store<
     options?: { set: $Set<T> },
   ) {
     const by_pk = options !== undefined;
-    const set = (by_pk ? options.set : (arg0 as any).set) as $Set<T>;
+    const set: $Set<T> = by_pk
+      ? options.set
+      : (arg0 as { where?: Where<T>; set: $Set<T> }).set;
 
-    assert.dict(set);
-
-    if (Object.keys(set).length === 0) throw fail("empty changeset");
+    if (!is.dict(set) || is.empty(set)) throw E.set_empty();
 
     const pk = this.#pk;
-    if (pk !== null && pk in set) throw fail("{0} cannot be updated", pk);
+    if (pk !== null && pk in set) throw E.pk_immutable(pk);
 
     for (const [k, v] of Object.entries(set)) {
-      if (!(k in this.#types)) throw unknown_field(k);
-      if (v === null && !this.#nullables.has(k)) {
-        throw fail(".{0}: null not allowed (field not nullable)", k);
-      }
+      if (!(k in this.#types)) throw E.field_unknown(k, "set");
+      if (v === null && !this.#nullables.has(k)) throw E.null_not_allowed(k);
     }
 
     const entries = Object.entries(set);
@@ -655,21 +642,19 @@ export default class Store<
       return this.#update_1(arg0 as PrimaryKeyValue<T>, parsed);
     }
 
-    const where = (arg0 as any).where as Where<T> | undefined;
-    assert.maybe.dict(where);
-
-    if (where !== undefined) this.#validate_where(where, this.#types);
+    const where = (arg0 as { where?: Where<T>; set: $Set<T> }).where;
+    if (where !== undefined) this.#parse_where(where, this.#types);
 
     return this.#update_n((where ?? {}) as Where<T>, parsed);
   }
 
   async #update_1(pkv: PrimaryKeyValue<T>, set: $Set<T>) {
     const pk = this.#pk;
-    if (pk === null) throw fail("store has no primary key");
+    if (pk === null) throw E.pk_undefined(this.name);
 
     const n = await this.db.update(this.#as, {
-      changeset: set,
-      criteria: { [pk]: pkv },
+      set: set,
+      where: { [pk]: pkv },
     });
 
     assert.true(n === 1, `${n} records updated instead of 1`);
@@ -677,8 +662,8 @@ export default class Store<
 
   async #update_n(where: Where<T>, set: $Set<T>) {
     return await this.db.update(this.#as, {
-      changeset: set,
-      criteria: where,
+      set: set,
+      where: where,
     });
   }
 
@@ -693,11 +678,10 @@ export default class Store<
   delete(options: { where: Where<T> }): Promise<number>;
 
   async delete(pkv_or_options: PrimaryKeyValue<T> | { where: Where<T> }) {
-    if (is.dict(pkv_or_options) && "where" in pkv_or_options) {
-      const where = (pkv_or_options as any).where as Where<T>;
-      assert.dict(where);
-      if (Object.keys(where).length === 0) throw fail("empty where");
-      this.#validate_where(where, this.#types);
+    if (is.dict(pkv_or_options)) {
+      const where = pkv_or_options.where as Where<T>;
+      if (!is.dict(where) || is.empty(where)) throw E.where_required();
+      this.#parse_where(where, this.#types);
       return this.#delete_n(where);
     }
 
@@ -706,14 +690,14 @@ export default class Store<
 
   async #delete_1(pkv: PrimaryKeyValue<T>) {
     const pk = this.#pk;
-    if (pk === null) throw fail("store has no primary key");
+    if (pk === null) throw E.pk_undefined(this.name);
 
-    const n = await this.db.delete(this.#as, { criteria: { [pk]: pkv } });
+    const n = await this.db.delete(this.#as, { where: { [pk]: pkv } });
     assert.true(n === 1, `${n} records deleted instead of 1`);
   }
 
   async #delete_n(where: Where<T>) {
-    return await this.db.delete(this.#as, { criteria: where });
+    return await this.db.delete(this.#as, { where: where });
   }
 
   /**
@@ -732,22 +716,15 @@ export default class Store<
       with?: W;
     },
   ): Promise<WithRelations<Projected<Schema<T>, S>, R, W>[]> {
-    assert.maybe.dict(options);
     guard_options(options, ["where", "select", "sort", "limit", "with"]);
-    assert.maybe.dict(options?.where);
-    assert.maybe.array(options?.select);
-    assert.maybe.dict(options?.sort);
-    assert.maybe.uint(options?.limit);
 
-    if (options?.where) this.#validate_where(options.where, this.#types);
-    if (options?.select) this.#validate_select(options.select, this.#types);
-    if (options?.sort) this.#validate_sort(options.sort, this.#types);
+    this.#parse_query(options ?? {}, this.#types);
 
     const result = await this.db.read(this.#as, {
-      criteria: (options?.where ?? {}) as any,
-      fields: options?.select ? [...(options.select as readonly string[])] : undefined,
+      where: options?.where ?? {},
+      fields: options?.select ? [...options.select] : undefined,
       limit: options?.limit,
-      sort: options?.sort as unknown as ReadSort,
+      sort: options?.sort as ReadSort | undefined,
       with: this.#with(options?.with),
     });
 
@@ -760,8 +737,9 @@ export default class Store<
 
   extend<A extends Dict>(extensor: (This: this) => A): this & A {
     const extensions = extensor(this);
+    const keys = Object.keys(extensions);
 
-    for (const k of Object.keys(extensions)) if (k in this) throw key_exists(k);
+    for (const k of keys) if (k in this) throw E.key_duplicate(k);
 
     Object.assign(this, extensions);
     return this as this & A;

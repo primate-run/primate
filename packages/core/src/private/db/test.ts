@@ -1,4 +1,5 @@
 import type DB from "#db/DB";
+import { Code } from "#db/error";
 import key from "#orm/key";
 import relation from "#orm/relation";
 import Store from "#orm/Store";
@@ -8,35 +9,37 @@ import any from "@rcompat/test/any";
 import type { Dict } from "@rcompat/type";
 import p from "pema";
 
-type ThrowsFn = (assert: Asserter, fn: () => Promise<any>) => Promise<any>;
 type Body = (assert: Asserter) => Promise<void>;
 
 const BAD_WHERE: {
   label: string;
   base: Dict;
   with: Dict;
-  expected?: string;
+  expected: Code;
 }[] = [
     {
-      label: "reject array criteria value",
+      label: "reject array where value",
       base: { name: ["Donald"] },
       with: { title: ["foo a"] },
+      expected: Code.where_invalid_value,
     },
     {
       label: "reject empty operator object",
       base: { name: {} },
       with: { title: {} },
+      expected: Code.operator_empty,
     },
     {
-      label: "reject undefined criteria value",
+      label: "reject undefined where value",
       base: { age: undefined },
       with: { title: undefined },
+      expected: Code.field_undefined,
     },
     {
       label: "reject unknown operator",
       base: { name: { $nope: "x" } },
       with: { title: { $nope: "x" } },
-      expected: "unknown operator",
+      expected: Code.operator_unknown,
     },
   ];
 
@@ -44,25 +47,25 @@ const BAD_SELECT: {
   label: string;
   base: unknown[];
   with: unknown[];
-  expected?: string;
+  expected: Code;
 }[] = [
     {
       label: "reject empty select",
       base: [],
       with: [],
-      expected: "empty select",
+      expected: Code.select_empty,
     },
     {
       label: "reject unknown select column",
       base: ["nope"],
       with: ["nope"],
-      expected: "unknown select field",
+      expected: Code.field_unknown,
     },
     {
       label: "reject duplicate select fields",
       base: ["id", "id"],
       with: ["id", "id"],
-      expected: "duplicate select field",
+      expected: Code.field_duplicate,
     },
   ];
 
@@ -70,31 +73,31 @@ const BAD_SORT: {
   label: string;
   base: Dict;
   with: Dict;
-  expected?: string;
+  expected: Code;
 }[] = [
     {
       label: "reject empty sort",
       base: {},
       with: {},
-      expected: "empty sort",
+      expected: Code.sort_empty,
     },
     {
       label: "reject unknown sort column",
       base: { nope: "asc" },
       with: { nope: "asc" },
-      expected: "unknown sort field",
+      expected: Code.field_unknown,
     },
     {
       label: "reject invalid direction",
       base: { age: "ascending" },
       with: { title: "ascending" },
-      expected: "invalid sort direction",
+      expected: Code.sort_invalid_value,
     },
     {
       label: "reject undefined direction",
       base: { age: undefined },
       with: { title: undefined },
-      expected: "invalid sort direction",
+      expected: Code.sort_invalid_value,
     },
   ];
 
@@ -102,15 +105,24 @@ const BAD_WHERE_COLUMN: {
   label: string;
   base: Dict;
   with: Dict;
-  expected?: string;
+  expected: Code;
 }[] = [
     {
       label: "reject unknown criteria column",
       base: { nope: "x" },
       with: { nope: "x" },
-      expected: "unknown field",
+      expected: Code.field_unknown,
     },
   ];
+
+const USERS = {
+  ben: { age: 60, lastname: "Miller", name: "Ben" },
+  donald: { age: 30, lastname: "Duck", name: "Donald" },
+  jeremy: { age: 20, name: "Just Jeremy" },
+  paul: { age: 40, lastname: "Miller", name: "Paul" },
+  ryan: { age: 40, lastname: "Wilson", name: "Ryan" },
+};
+type User = keyof typeof USERS;
 
 function pick<
   D extends Dict,
@@ -121,38 +133,14 @@ function pick<
   ) as Pick<D, P[number]>;
 }
 
-async function throws(assert: Asserter, fn: () => Promise<any>) {
+async function throws(assert: Asserter, code: Code, fn: () => Promise<any>) {
   try {
     await fn();
     assert(false).true();
   } catch (error) {
-    assert(true).true();
-    return error;
+    assert((error as any).code).equals(code);
   }
 }
-
-async function throws_message(
-  assert: Asserter,
-  expected: string,
-  fn: () => Promise<any>,
-) {
-  try {
-    await fn();
-    assert(false).true();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    assert(message.includes(expected)).true();
-  }
-}
-
-const USERS = {
-  ben: { age: 60, lastname: "Miller", name: "Ben" },
-  donald: { age: 30, lastname: "Duck", name: "Donald" },
-  jeremy: { age: 20, name: "Just Jeremy" },
-  paul: { age: 40, lastname: "Miller", name: "Paul" },
-  ryan: { age: 40, lastname: "Wilson", name: "Ryan" },
-};
-type User = keyof typeof USERS;
 
 export default <D extends DB>(db: D) => {
   test.ended(() => db.close());
@@ -338,28 +326,25 @@ export default <D extends DB>(db: D) => {
     mk: () => { base: Base; with: With },
     run_base: (base: Base) => Promise<any>,
     run_with: (w: With) => Promise<any>,
-    opts?: { throws?: ThrowsFn; expected?: string },
+    expected: Code,
   ) {
-    const run: ThrowsFn =
-      opts?.expected
-        ? (a, fn) => throws_message(a, opts.expected!, fn)
-        : (opts?.throws ?? throws);
+    const run = throws;
 
     $user$(`${base_prefix}: ${label}`, async assert => {
       const { base } = mk();
-      await run(assert, () => run_base(base));
+      await run(assert, expected, () => run_base(base));
     });
 
     $rel$(`with: ${base_prefix}: ${label}`, async assert => {
       const { with: w } = mk();
-      await run(assert, () => run_with(w));
+      await run(assert, expected, () => run_with(w));
     });
   }
 
   function bad_where(
     label: string,
     mk: () => { base: Dict; with: Dict },
-    opts?: { throws?: ThrowsFn; expected?: string },
+    expected: Code,
   ) {
     return security_pair(
       "where",
@@ -367,14 +352,14 @@ export default <D extends DB>(db: D) => {
       mk,
       base => User.find({ where: base }),
       w => Author.find({ with: { articles: { where: w } } }),
-      opts,
+      expected,
     );
   }
 
   function bad_select(
     label: string,
     mk: () => { base: any; with: any },
-    opts?: { throws?: ThrowsFn; expected?: string },
+    expected: Code,
   ) {
     return security_pair(
       "find",
@@ -382,14 +367,14 @@ export default <D extends DB>(db: D) => {
       mk,
       base => User.find({ select: base }),
       w => Author.find({ with: { articles: { select: w } } }),
-      opts,
+      expected,
     );
   }
 
   function bad_sort(
     label: string,
     mk: () => { base: any; with: any },
-    opts?: { throws?: ThrowsFn; expected?: string },
+    expected: Code,
   ) {
     return security_pair(
       "find",
@@ -397,7 +382,7 @@ export default <D extends DB>(db: D) => {
       mk,
       base => User.find({ sort: base }),
       w => Author.find({ with: { articles: { sort: w } } }),
-      opts,
+      expected,
     );
   }
 
@@ -440,7 +425,7 @@ export default <D extends DB>(db: D) => {
   });
 
   $store("insert: reject null values", User, async assert => {
-    await throws_message(assert, "null is not allowed on insert", () => {
+    await throws(assert, Code.null_not_allowed, () => {
       // lastname is optional, but null is forbidden on insert
       return User.insert({ name: "Nullman", lastname: null } as any);
     });
@@ -596,7 +581,7 @@ export default <D extends DB>(db: D) => {
   });
 
   $user("find: $like: reject non-string types", async assert => {
-    await throws(assert, () => {
+    await throws(assert, Code.operator_unknown, () => {
       // age is u8, should not accept $like
       return User.find({ where: { age: { $like: "30%" } } } as any);
     });
@@ -631,14 +616,14 @@ export default <D extends DB>(db: D) => {
   $user("update: cannot unset required fields", async assert => {
     const [donald] = await User.find({ where: { name: "Donald" } });
 
-    await throws_message(assert, "null not allowed", () => {
+    await throws(assert, Code.null_not_allowed, () => {
       // name is required (non-nullable) -> cannot be unset
       return User.update(donald.id, { set: { name: null } } as any);
     });
   });
 
   $user("update: cannot unset required fields (multi-update)", async assert => {
-    await throws_message(assert, "null not allowed", () => {
+    await throws(assert, Code.null_not_allowed, () => {
       return User.update({
         where: { name: { $like: "D%" } },
         set: { name: null },
@@ -658,7 +643,7 @@ export default <D extends DB>(db: D) => {
     assert(updated.length).equals(2);
   });
 
-  $user("update: criteria and changeset share a column", async assert => {
+  $user("update: where and changeset share a column", async assert => {
     // Donald has age 30; update age using criteria on the same column
     const n = await User.update({ where: { age: 30 }, set: { age: 31 } });
     assert(n).equals(1);
@@ -668,6 +653,12 @@ export default <D extends DB>(db: D) => {
 
     const [donald] = await User.find({ where: { name: "Donald" } });
     assert(donald.age).equals(31);
+  });
+
+  $rel("count: no with", async assert => {
+    await throws(assert, Code.count_with_invalid, async () => {
+      await Author.count({ with: { articles: true } } as any);
+    });
   });
 
   $user("update: update all", async assert => {
@@ -859,7 +850,7 @@ export default <D extends DB>(db: D) => {
   });
 
   $user$("find: reject non-array select", async assert => {
-    await throws_message(assert, "array", () => {
+    await throws(assert, Code.select_invalid, () => {
       return User.find({ select: {} as any });
     });
   });
@@ -873,48 +864,48 @@ export default <D extends DB>(db: D) => {
     }
   });
 
-  $user$("update: reject unknown change column", async assert => {
+  $user$("update: reject unknown field on set", async assert => {
     const [donald] = await User.find({ where: { name: "Donald" } });
-    await throws(assert, () => {
+    await throws(assert, Code.field_unknown, () => {
       return User.update(donald.id, { set: { nope: 1 } } as any);
     });
   });
 
-  $user$("update: reject empty changes object", async assert => {
+  $user$("update: reject empty set object", async assert => {
     const [donald] = await User.find({ where: { name: "Donald" } });
-    await throws(assert, () => {
+    await throws(assert, Code.set_empty, () => {
       return User.update(donald.id, { set: {} } as any);
     });
   });
 
   $user$("update: reject updating primary key", async assert => {
     const [donald] = await User.find({ where: { name: "Donald" } });
-    await throws(assert, () => {
+    await throws(assert, Code.pk_immutable, () => {
       return User.update(donald.id, { set: { id: "nope" } } as any);
     });
   });
 
   $user$("update: reject missing set", async assert => {
-    await throws(assert, () => {
+    await throws(assert, Code.set_empty, () => {
       return User.update({ where: { name: "Donald" } } as any);
     });
   });
 
-  $user$("delete: reject missing criteria", async assert => {
-    await throws(assert, () => {
+  $user$("delete: reject missing where", async assert => {
+    await throws(assert, Code.where_required, () => {
       return User.delete({} as any);
     });
   });
 
-  $user$("inject invalid identifier (criteria)", async assert => {
+  $user$("inject invalid identifier (where)", async assert => {
     // attempted injection via bogus key
-    await throws(assert, () => {
+    await throws(assert, Code.identifier_invalid, () => {
       return User.find({ where: { "name; DROP TABLE user;": "x" } } as any);
     });
   });
 
   $user$("inject invalid identifier (select)", async assert => {
-    await throws(assert, () => {
+    await throws(assert, Code.identifier_invalid, () => {
       return User.find({ select: ["name; DROP TABLE user;"] as any });
     });
   });
@@ -941,56 +932,52 @@ export default <D extends DB>(db: D) => {
     assert(after.lastname).undefined();
   });
 
-  $user$("count: reject unknown criteria column", async assert => {
-    await throws(assert, () => {
+  $user$("count: reject unknown where column", async assert => {
+    await throws(assert, Code.field_unknown, () => {
       return User.count({ where: { nope: 1 } } as any);
     });
   });
 
   $user$("$like: reject unknown field", async assert => {
-    await throws(assert, () => {
+    await throws(assert, Code.field_unknown, () => {
       return User.find({ where: { unknown: { $like: "test%" } } } as any);
     });
   });
 
   $user$("insert: reject unknown column", async assert => {
-    await throws(assert, () => User.insert({ name: "X", nope: 1 } as any));
+    await throws(assert, Code.field_unknown, () => {
+      return User.insert({ name: "X", nope: 1 } as any);
+    });
   });
 
   $user$("update: reject unknown where column", async assert => {
-    await throws(assert, () => User.update({
+    await throws(assert, Code.field_unknown, () => User.update({
       where: { nope: 1 } as any,
       set: { age: 1 },
     }));
   });
 
   $user$("delete: reject unknown where column", async assert => {
-    await throws(assert, () => User.delete({ where: { nope: 1 } as any }));
+    await throws(assert, Code.field_unknown, () =>
+      User.delete({ where: { nope: 1 } as any }));
   });
 
   $user$("number operators: reject on non-number fields", async assert => {
-    await throws(assert, () => {
+    await throws(assert, Code.operator_unknown, () => {
       // name is string, should not accept $gte
       return User.find({ where: { name: { $gte: 10 } } as any });
     });
   });
 
   $user$("mixed operators: reject invalid combinations", async assert => {
-    await throws(assert, () => {
+    await throws(assert, Code.operator_unknown, () => {
       // can't mix string and number operators
       return User.find({ where: { name: { $like: "test%", $gte: 5 } } as any });
     });
   });
 
-  $store("insert: reject null values", User, async assert => {
-    await throws_message(assert, "null is not allowed on insert", () => {
-      // lastname is optional, but null is forbidden on insert
-      return User.insert({ name: "Nullman", lastname: null } as any);
-    });
-  });
-
   $store("insert: reject null on required fields", User, async assert => {
-    await throws_message(assert, "null is not allowed on insert", () => {
+    await throws(assert, Code.null_not_allowed, () => {
       // name is required, but passing null explicitly is still forbidden
       return User.insert({ name: null } as any);
     });
@@ -1267,7 +1254,7 @@ export default <D extends DB>(db: D) => {
   });
 
   $rel$("with: reject unknown relation name", async assert => {
-    await throws(assert, () => {
+    await throws(assert, Code.relation_unknown, () => {
       return Author.find({ with: { nope: true } as any });
     });
   });
@@ -1275,24 +1262,23 @@ export default <D extends DB>(db: D) => {
   $user("get/try: missing id", async assert => {
     const missing = `missing-${Date.now()}-${Math.random()}`;
 
-    await throws(assert, () => User.get(missing));
+    await throws(assert, Code.record_not_found, () => User.get(missing));
     assert(await User.try(missing)).undefined();
   });
 
   $rel("get/try: missing id (with relations)", async assert => {
     const missing = `missing-${Date.now()}-${Math.random()}`;
 
-    await throws(assert, () => Article.get(missing,
-      { with: { author: true } }));
+    await throws(assert, Code.record_not_found, () =>
+      Article.get(missing, { with: { author: true } }));
     assert(await Article.try(missing, { with: { author: true } })).undefined();
   });
 
   $rel("get/try: missing id (+ parent)", async assert => {
     const missing = `missing-${Date.now()}-${Math.random()}`;
 
-    await throws(assert, () => Author.get(missing, {
-      with: { articles: true, profile: true },
-    }));
+    await throws(assert, Code.record_not_found, () =>
+      Author.get(missing, { with: { articles: true, profile: true } }));
     assert(await Author.try(missing, {
       with: { articles: true, profile: true },
     })).undefined();
@@ -1301,8 +1287,7 @@ export default <D extends DB>(db: D) => {
   $user("try: does not swallow invalid options", async assert => {
     const [u] = await User.find({ select: ["id"] });
 
-    await throws_message(assert, "empty select", () => {
-      // programmer error: should throw, not return undefined
+    await throws(assert, Code.select_empty, () => {
       return User.try(u.id, { select: [] as any });
     });
   });
@@ -1399,44 +1384,35 @@ export default <D extends DB>(db: D) => {
       where: { string: "ops-date", date: { $ne: d2 } },
       sort: { date: "asc" },
     });
-    assert(ne.map(r => (r as any).date.getTime())).equals([d1.getTime(), d3.getTime()]);
+    assert(ne.map(r => (r as any).date.getTime()))
+      .equals([d1.getTime(), d3.getTime()]);
   });
 
   $type("where: operator validation errors", async assert => {
-    const throws_includes = async (needle: string, fn: () => any) => {
-      try {
-        await fn();
-        assert(true).false(); // should not reach
-      } catch (e) {
-        const msg = String((e as any)?.message ?? e);
-        assert(msg.includes(needle)).true();
-      }
-    };
-
-    await throws_includes("empty operator object", () => {
+    await throws(assert, Code.operator_empty, () => {
       return Type.find({ where: { u8: {} as any } });
     });
 
     // string/time: only $like
-    await throws_includes("unknown operator", () => {
+    await throws(assert, Code.operator_unknown, () => {
       return Type.find({ where: { string: { $gt: 1 } as any } });
     });
 
     // number: no $like
-    await throws_includes("unknown operator", () => {
+    await throws(assert, Code.operator_unknown, () => {
       return Type.find({ where: { u8: { $like: "x" } as any } });
     });
 
     // datetime: no $gt
-    await throws_includes("unknown operator", () => {
+    await throws(assert, Code.operator_unknown, () => {
       return Type.find({ where: { date: { $gt: new Date() } as any } });
     });
 
-    await throws_includes("invalid criteria", () => {
+    await throws(assert, Code.operator_type_number, () => {
       return Type.find({ where: { u8: { $gt: "nope" } as any } });
     });
 
-    await throws_includes("invalid criteria", () => {
+    await throws(assert, Code.operator_type_date, () => {
       return Type.find({ where: { date: { $before: "nope" } as any } });
     });
   });
@@ -1503,14 +1479,14 @@ export default <D extends DB>(db: D) => {
   $rel("try: does not swallow invalid relation name", async assert => {
     const [row] = await Article.find({ select: ["id"] });
 
-    await throws_message(assert, "unknown relation", () => {
+    await throws(assert, Code.relation_unknown, () => {
       // programmer error: should throw, not return undefined
       return Article.try(row.id, { with: { nope: true } as any });
     });
   });
 
   $rel$("with: reject non-array relation select", async assert => {
-    await throws_message(assert, "array", () => {
+    await throws(assert, Code.select_invalid, () => {
       return Author.find({
         with: {
           articles: {
@@ -1522,7 +1498,7 @@ export default <D extends DB>(db: D) => {
   });
 
   $rel$("with: reject non-uint relation limit", async assert => {
-    await throws(assert, () => {
+    await throws(assert, Code.limit_invalid, () => {
       return Author.find({
         with: {
           articles: {
@@ -1554,12 +1530,12 @@ export default <D extends DB>(db: D) => {
   });
 
   $user$("find: unknown option keys throw", async assert => {
-    await throws(assert, () => {
+    await throws(assert, Code.option_unknown, () => {
       // wrong call-shape (looks like where but isn't nested)
       return User.find({ name: "John" } as any);
     });
 
-    await throws(assert, () => {
+    await throws(assert, Code.option_unknown, () => {
       // totally unknown option
       return User.find({ banana: true } as any);
     });
@@ -1587,17 +1563,27 @@ export default <D extends DB>(db: D) => {
   $user$("get: unknown option keys throw", async assert => {
     const u = await User.insert({ name: "Guard", age: 1 } as any);
 
-    await throws(assert, () => {
+    await throws(assert, Code.option_unknown, () => {
       // get only accepts { select?, with? }
       return User.get((u as any).id, { where: { name: "Guard" } } as any);
     });
 
-    await throws(assert, () => {
+    await throws(assert, Code.option_unknown, () => {
       return User.get((u as any).id, { sort: { name: "asc" } } as any);
     });
 
-    await throws(assert, () => {
+    await throws(assert, Code.option_unknown, () => {
       return User.get((u as any).id, { banana: true } as any);
+    });
+  });
+
+  $user$("inject invalid identifier (table name)", async assert => {
+    const BadStore = new Store({
+      id: key.primary(p.string),
+    }, { db, name: "users; DROP TABLE users" });
+
+    await throws(assert, Code.identifier_invalid, async () => {
+      await BadStore.collection.create();
     });
   });
 
@@ -1630,23 +1616,19 @@ export default <D extends DB>(db: D) => {
       assert(got.author).not.null();
     });
 
-  function ex(expected?: string) {
-    return expected ? { expected } : undefined;
-  }
-
   for (const c of BAD_WHERE) {
-    bad_where(c.label, () => ({ base: c.base, with: c.with }), ex(c.expected));
+    bad_where(c.label, () => ({ base: c.base, with: c.with }), c.expected);
   }
 
   for (const c of BAD_SELECT) {
-    bad_select(c.label, () => ({ base: c.base, with: c.with }), ex(c.expected));
+    bad_select(c.label, () => ({ base: c.base, with: c.with }), c.expected);
   }
 
   for (const c of BAD_SORT) {
-    bad_sort(c.label, () => ({ base: c.base, with: c.with }), ex(c.expected));
+    bad_sort(c.label, () => ({ base: c.base, with: c.with }), c.expected);
   }
 
   for (const c of BAD_WHERE_COLUMN) {
-    bad_where(c.label, () => ({ base: c.base, with: c.with }), ex(c.expected));
+    bad_where(c.label, () => ({ base: c.base, with: c.with }), c.expected);
   }
 };
