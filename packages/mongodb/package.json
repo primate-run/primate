@@ -27,7 +27,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.6.0",
-    "@rcompat/dict": "^0.3.0",
+    "@rcompat/dict": "^0.3.1",
     "mongodb": "^6.17.0",
     "pema": "workspace:"
   },

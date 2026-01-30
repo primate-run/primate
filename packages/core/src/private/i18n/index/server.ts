@@ -17,6 +17,7 @@ import sInternal from "#i18n/symbol/internal";
 import validate from "#i18n/validate";
 import sConfig from "#symbol/config";
 import type { Dict } from "@rcompat/type";
+import is from "@rcompat/is";
 
 export default function i18n<const C extends Catalogs>(config: Config<C>) {
   type Locale = keyof C & string;
@@ -64,7 +65,7 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
       resolve(default_catalog, key) ??
       String(key);
 
-    if (typeof translated === "string") {
+    if (is.string(translated)) {
       return format(translated, params ?? {}, currency, formatter) as Result<K>;
     }
     return translated as Result<K>;

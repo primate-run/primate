@@ -1,4 +1,5 @@
 import type Formatter from "#i18n/Formatter";
+import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
 
 export default function format(
@@ -74,9 +75,11 @@ export default function format(
 
       case "d":
       case "date": {
-        const d = typeof value === "number"
+        const d = is.number(value)
           ? new Date(value)
-          : value instanceof Date ? value : new Date(NaN);
+          : is.date(value)
+            ? value
+            : new Date(NaN);
         return formatter.date(d);
       }
 

@@ -29,7 +29,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.6.0",
-    "@rcompat/is": "^0.4.1",
+    "@rcompat/is": "^0.4.2",
     "mysql2": "^3.16.0",
     "pema": "workspace:"
   },

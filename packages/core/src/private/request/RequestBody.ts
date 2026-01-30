@@ -1,5 +1,6 @@
 import fail from "#fail";
 import MIME from "@rcompat/http/mime";
+import is from "@rcompat/is";
 import type { Dict, JSONValue, Schema } from "@rcompat/type";
 
 type Form = Dict<string>;
@@ -20,7 +21,7 @@ async function anyform(request: Request) {
   const files: Dict<File> = Object.create(null);
 
   for (const [key, value] of (await request.formData()).entries()) {
-    if (typeof value === "string") {
+    if (is.string(value)) {
       form[key] = value;
     } else {
       files[key] = value;

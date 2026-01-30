@@ -36,6 +36,7 @@ import MIME from "@rcompat/http/mime";
 import serve from "@rcompat/http/serve";
 import type Server from "@rcompat/http/Server";
 import Status from "@rcompat/http/Status";
+import is from "@rcompat/is";
 import utf8 from "@rcompat/string/utf8";
 import type { Dict, PartialDict } from "@rcompat/type";
 import p from "pema";
@@ -245,12 +246,12 @@ export default class ServeApp extends App {
   }
 
   body_length(body: BodyInit | null): number {
-    return typeof body === "string" ? utf8.size(body) : 0;
+    return is.string(body) ? utf8.size(body) : 0;
   }
 
   respond(body: BodyInit | null, init?: ResponseInit) {
     const { headers, status } = p({
-      headers: p.record(p.string, p.string),
+      headers: p.dict(),
       status: p.uint.values(Status).default(Status.OK),
     }).parse(init);
     const body_length = this.body_length(body);

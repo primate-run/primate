@@ -2,6 +2,7 @@ import type ServeApp from "#serve/App";
 import Streamable from "@rcompat/fs/Streamable";
 import type { StreamSource } from "@rcompat/fs";
 import MIME from "@rcompat/http/mime";
+import is from "@rcompat/is";
 
 const encodeRFC5987 = (s: string) =>
   encodeURIComponent(s).replace(/['()*]/g, c =>
@@ -44,7 +45,7 @@ export default function binary(source: StreamSource, init?: ResponseInit) {
     const out = new Headers(headers);
     out.set("Content-Disposition", toContentDisposition(name));
 
-    if (source instanceof Blob) {
+    if (is.blob(source)) {
       source.type && out.set("Content-Type", source.type);
       out.set("Content-Length", String(source.size));
     }

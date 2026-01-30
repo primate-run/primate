@@ -1,5 +1,6 @@
 import kSerialize from "#session/k-serialize";
 import assert from "@rcompat/assert";
+import is from "@rcompat/is";
 import type { Schema } from "@rcompat/type";
 
 export default class SessionHandle<Data> {
@@ -56,8 +57,7 @@ export default class SessionHandle<Data> {
     if (!this.exists) throw new Error("cannot set() on non-existent session");
 
     const previous = this.#data as Readonly<Data>;
-    // @ts-expect-error TEST
-    const candidate = typeof next === "function" ? next(previous) : next;
+    const candidate = is.function(next) ? next(previous) : next;
     this.#data = this.#schema.parse(candidate);
     this.#dirty = true;
   }
