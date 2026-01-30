@@ -74,11 +74,13 @@ export default async function build_client(app: BuildApp) {
     bundle: true,
     format: "esm",
   };
+  const NO_HR = app.config("hotreload.exclude") ?? [];
   const mode_options: esbuild.BuildOptions = app.mode === "development"
     ? {
       banner: {
-        js: `new EventSource("${reload.path}").addEventListener("change",
-      () => globalThis.location.reload());`,
+        js: `const NO_HR=${JSON.stringify(NO_HR)};
+          new EventSource("${reload.path}").addEventListener("change",
+          () => !NO_HR.includes(location.pathname) && location.reload());`,
       },
       entryNames: "app",
       minify: false,

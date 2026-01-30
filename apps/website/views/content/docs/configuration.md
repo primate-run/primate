@@ -18,7 +18,6 @@ into the defaults.
 
 |Option|Default|Description|
 |-|-|-|
-|[build](#build)|`{}`|esbuild options|
 |[http.csp](#http-csp)|`{}`|
 |[http.headers](#http-headers)|`{}`|default HTTP response headers|
 |[http.host](#http-host)|`"localhost"`|server host|
@@ -28,17 +27,6 @@ into the defaults.
 |[http.static.root](#http-static-root)|`"/"`|web path of static assets|
 |[modules](#modules)|`[]`|extension modules|
 |[request.body.parse](#request-body-parse)|`true`|parse request body|
-
-### `build`
-
-Options to be passed to the esbuild builder. The following properties are
-overridden.
-
-| | |
-|-|-|
-|`outdir`|set to `build` inside project root|
-|`stdin.resolveDir`|set to project root|
-|`tsconfigRaw`|preset|
 
 ### `http.csp`
 The Content Security Policy (CSP) to use.

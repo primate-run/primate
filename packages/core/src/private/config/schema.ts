@@ -4,8 +4,8 @@ import p from "pema";
 
 export default p({
   http: {
-    csp: p.record(p.string, p.array(p.string)).optional(),
-    headers: p.record(p.string, p.string).optional(),
+    csp: p.dict(p.array(p.string)).optional(),
+    headers: p.dict().optional(),
     host: p.string.default("localhost"),
     port: p.uint.port().default(6161),
     ssl: {
@@ -15,6 +15,9 @@ export default p({
     static: {
       root: p.string.default("/"),
     },
+  },
+  hotreload: {
+    exclude: p.array(p.string).optional(),
   },
   modules: p.array(p.constructor(Module)).optional(),
   request: {
