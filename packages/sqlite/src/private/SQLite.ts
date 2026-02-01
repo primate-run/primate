@@ -1,39 +1,23 @@
 import typemap from "#typemap";
 import type {
-  As, AsPK, DataDict, DB, PK, Sort, TypeMap, Types, With,
+  As, AsPK, DataDict, DB, PK, Sort, Types, With,
 } from "@primate/core/db";
 import E from "@primate/core/db/error";
+import type { ReadArgs, ReadRelationsArgs } from "@primate/core/db/sql";
 import sql from "@primate/core/db/sql";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
-import type { Param } from "@rcompat/sqlite";
+import type { PrimitiveParam } from "@rcompat/sqlite";
 import Client from "@rcompat/sqlite";
 import type { Dict } from "@rcompat/type";
 import type { DataKey, StoreSchema } from "pema";
 import p from "pema";
 
-interface ReadArgs {
-  where: DataDict;
-  fields?: string[];
-  sort?: Sort;
-  limit?: number;
-}
-
-interface ReadRelationsArgs extends ReadArgs {
-  with: With;
-}
-
-type Binds = Param | undefined;
+type Binds = Dict<PrimitiveParam>;
 
 type CMP_OPERATOR = ">" | ">=" | "<" | "<=";
 
 const BIND_BY = "$";
-const SQL_OPS: Dict<">" | ">=" | "<" | "<="> = {
-  $gt: ">", $after: ">",
-  $gte: ">=",
-  $lt: "<", $before: "<",
-  $lte: "<=",
-};
 const UNSIGNED_BIGINT_TYPES = ["u64", "u128"];
 const SIGNED_BIGINT_TYPES = ["i128"];
 const BIGINT_STRING_TYPES = [...UNSIGNED_BIGINT_TYPES, ...SIGNED_BIGINT_TYPES];
@@ -41,10 +25,6 @@ const BIGINT_STRING_TYPES = [...UNSIGNED_BIGINT_TYPES, ...SIGNED_BIGINT_TYPES];
 const schema = p({
   database: p.string.default(":memory:"),
 });
-
-function has_with(args: ReadArgs & { with?: With }): args is ReadRelationsArgs {
-  return args.with !== undefined;
-}
 
 function like_to_glob(pattern: string) {
   let out = "";
@@ -109,7 +89,7 @@ function i_cmp(field: string, bind: string, op: ">" | ">=" | "<" | "<=") {
 
 function cmp_expr(field: string, key: string, op: string, datatype: string) {
   const rhs = `${BIND_BY}${key}`;
-  const sql_op = SQL_OPS[op];
+  const sql_op = sql.OPS[op];
   assert.defined(sql_op, E.operator_unknown(field, op));
 
   if (BIGINT_STRING_TYPES.includes(datatype)) {
@@ -128,6 +108,59 @@ function like(field: string, key: string, case_insensitive: boolean) {
   if (case_insensitive) return `LOWER(${field}) LIKE LOWER(${rhs})`;
 
   return `CAST(${field} AS TEXT) GLOB ${rhs}`;
+}
+
+function get_column(key: DataKey) {
+  return typemap[key].column;
+}
+
+function use_join(relations: With): boolean {
+  const rels = Object.values(relations);
+  if (rels.length !== 1) return false;
+
+  const r = rels[0];
+  return (
+    !r.reverse &&
+    r.kind === "many" &&
+    r.limit === undefined &&
+    r.sort === undefined &&
+    Object.keys(r.where).length === 0
+  );
+}
+
+function bind_value(key: DataKey, value: unknown) {
+  return value === null ? null : typemap[key].bind(value as never);
+}
+
+function unbind_value(key: DataKey, value: unknown) {
+  return typemap[key].unbind(value as never);
+}
+
+async function bind(types: Types, object: DataDict): Promise<Binds> {
+  const out: Binds = {};
+
+  for (const [key, value] of Object.entries(object)) {
+    if (is.dict(value)) throw E.operator_scalar(key);
+
+    const raw = key.startsWith("s_") ? key.slice(2) : key;
+    const base = raw.split("__")[0];
+
+    out[`${BIND_BY}${key}`] = await bind_value(types[base], value);
+  }
+
+  return out;
+}
+
+function unbind(types: Types, object: Dict): Dict {
+  const out: Dict = {};
+
+  for (const [key, value] of Object.entries(object)) {
+    if (value !== null) {
+      out[key] = unbind_value(types[key], value);
+    }
+  }
+
+  return out;
 }
 
 export default class SQLite implements DB {
@@ -152,25 +185,33 @@ export default class SQLite implements DB {
     return this.#db.prepare(query);
   }
 
-  #capture(name: string, query: string, binds: Binds) {
+  #query_one<T>(as: As, query: string, binds: Binds) {
+    this.#capture(as.name, query, binds);
+    const [row] = this.#sql(query).all(binds) as [T];
+    return row;
+  }
+
+  #query_all(as: As, query: string, binds: Binds) {
+    this.#capture(as.name, query, binds);
+    const rows = this.#sql(query).all(binds) as Dict[];
+    return rows.map(r => unbind(as.types, r));
+  }
+
+  #query_run(query: string, binds: Binds) {
+    return Number(this.#sql(query).run(binds).changes);
+  }
+
+  #capture(table: string, query: string, binds: Binds) {
     if (!this.#debug) return;
 
     type Details = { detail: string }[];
 
     const rows = this.#sql(`EXPLAIN QUERY PLAN ${query}`).all(binds) as Details;
-    this.#explain[name] = { query, plans: rows.map(r => r.detail) };
+    this.#explain[table] = { query, plans: rows.map(r => r.detail) };
   }
 
   get explain() {
     return this.#explain;
-  }
-
-  get typemap() {
-    return typemap as unknown as TypeMap<Dict>;
-  }
-
-  #column(key: DataKey) {
-    return this.typemap[key].column;
   }
 
   get schema() {
@@ -179,7 +220,7 @@ export default class SQLite implements DB {
         const columns: string[] = [];
 
         for (const [key, value] of Object.entries(store)) {
-          const column = `${sql.quote(key)} ${this.#column(value.datatype)}`;
+          const column = `${sql.quote(key)} ${get_column(value.datatype)}`;
           columns.push(key === pk ? `${column} PRIMARY KEY` : column);
         }
 
@@ -251,7 +292,7 @@ export default class SQLite implements DB {
     return `WHERE ${parts.join(" AND ")}`;
   }
 
-  async #bind_where(types: Types, where: DataDict): Promise<Dict> {
+  async #bind_where(types: Types, where: DataDict): Promise<Binds> {
     const filtered: DataDict = {};
 
     for (const [field, value] of Object.entries(where)) {
@@ -287,55 +328,26 @@ export default class SQLite implements DB {
       filtered[field] = value;
     }
 
-    return this.#bind(types, filtered);
+    return bind(types, filtered);
   }
 
-  #bind_value(key: DataKey, value: unknown) {
-    return value === null ? null : this.typemap[key].bind(value as never);
-  }
-
-  #unbind_value(key: DataKey, value: unknown) {
-    return this.typemap[key].unbind(value);
-  }
-
-  async #bind(types: Types, object: DataDict): Promise<Dict> {
-    const out: Dict = {};
-
-    for (const [key, value] of Object.entries(object)) {
-      if (is.dict(value)) throw E.operator_scalar(key);
-
-      const raw = key.startsWith("s_") ? key.slice(2) : key;
-      const base = raw.split("__")[0];
-
-      out[`${BIND_BY}${key}`] = await this.#bind_value(types[base], value);
-    }
-
-    return out;
-  }
-
-  #unbind(types: Types, object: Dict): Dict {
-    const out: Dict = {};
-
-    for (const [key, value] of Object.entries(object)) {
-      if (value !== null) {
-        out[key] = this.#unbind_value(types[key], value);
-      }
-    }
-
-    return out;
-  }
-
-  async #set(types: Types, set: DataDict) {
+  #set(set: DataDict) {
     const columns = Object.keys(set);
 
     if (columns.length === 0) throw E.field_required("set");
 
-    const SET = `SET ${columns.map(c =>
+    return `SET ${columns.map(c =>
       `${sql.quote(c)}=${BIND_BY}s_${c}`).join(", ")}`;
-    const raw = Object.fromEntries(columns.map(c => [`s_${c}`, set[c]]));
-    const binds = await this.#bind(types, raw);
+  }
 
-    return { SET, binds };
+  async #bind_set(types: Types, set: DataDict) {
+    const columns = Object.keys(set);
+
+    if (columns.length === 0) throw E.field_required("set");
+    const raw = Object.fromEntries(columns.map(c => [`s_${c}`, set[c]]));
+    const binds = await bind(types, raw);
+
+    return binds;
   }
 
   async create<O extends Dict>(as: As, record: Dict): Promise<O> {
@@ -350,7 +362,7 @@ export default class SQLite implements DB {
           VALUES (${keys.map(k => `${BIND_BY}${k}`).join(", ")})`
       : `INSERT INTO ${sql.table(as)} DEFAULT VALUES`;
 
-    this.#sql(query).run(await this.#bind(as.types, data) as Binds);
+    this.#sql(query).run(await bind(as.types, data));
 
     return record as O;
   }
@@ -381,39 +393,21 @@ export default class SQLite implements DB {
 
     if (args.count === true) return this.#count(as, args.where);
 
-    if (has_with(args)) {
-      return this.#use_join(args.with)
-        ? this.#read_with_joins(as, args)
+    if (sql.hasWith(args)) {
+      return use_join(args.with)
+        ? this.#read_joined(as, args)
         : this.#read_phased(as, args);
     }
 
     return this.#read_base(as, args);
   }
 
-  #use_join(relations: With): boolean {
-    const rels = Object.values(relations);
-    if (rels.length !== 1) return false;
-
-    const r = rels[0];
-    return (
-      !r.reverse &&
-      r.kind === "many" &&
-      r.limit === undefined &&
-      r.sort === undefined &&
-      Object.keys(r.where).length === 0
-    );
-  }
-
   async #count(as: As, where: DataDict) {
     const WHERE = this.#where(as.types, where);
-
-    const binds = await this.#bind_where(as.types, where) as Binds;
+    const binds = await this.#bind_where(as.types, where);
     const query = `SELECT COUNT(*) AS n FROM ${sql.table(as)} ${WHERE}`;
 
-    const [{ n }] = this.#sql(query).all(binds);
-    this.#capture(as.name, query, binds);
-
-    return Number(n);
+    return Number(this.#query_one<{ n: bigint }>(as, query, binds).n);
   }
 
   async #read_base(as: As, args: ReadArgs): Promise<Dict[]> {
@@ -422,13 +416,10 @@ export default class SQLite implements DB {
     const ORDER_BY = sql.orderBy(as.types, args.sort);
     const LIMIT = sql.limit(args.limit);
     const table = sql.table(as);
-
     const query = `SELECT ${SELECT} FROM ${table} ${WHERE}${ORDER_BY}${LIMIT}`;
-    const binds = await this.#bind_where(as.types, args.where) as Binds;
-    const rows = this.#sql(query).all(binds) as Dict[];
-    this.#capture(as.name, query, binds);
+    const binds = await this.#bind_where(as.types, args.where);
 
-    return rows.map(r => this.#unbind(as.types, r));
+    return this.#query_all(as, query, binds);
   }
 
   async #read_phased(as: As, args: ReadRelationsArgs) {
@@ -458,109 +449,109 @@ export default class SQLite implements DB {
     base_rows: Dict[],
     out: Dict[],
     name: string,
-    rel: NonNullable<With[string]>,
+    relation: NonNullable<With[string]>,
   ) {
-    const { as: target_as, kind, fk, reverse, where, fields, sort, limit } = rel;
+    const by = relation.reverse ? relation.as.pk : relation.fk;
+    if (by === null) throw E.relation_requires_pk("target");
 
-    const target_join_col = reverse ? target_as.pk : fk;
-    if (target_join_col === null) throw E.relation_requires_pk("target");
-
-    const parent_join_col = reverse ? fk : as.pk;
-    if (parent_join_col === null) throw E.relation_requires_pk("parent");
+    const parent_by = relation.reverse ? relation.fk : as.pk;
+    if (parent_by === null) throw E.relation_requires_pk("parent");
 
     const join_values = [...new Set(
-      base_rows.map(r => r[parent_join_col]).filter(v => v != null),
+      base_rows.map(r => r[parent_by]).filter(v => v != null),
     )];
+    const is_many = relation.kind === "many";
+    const many = is_many ? [] : null;
 
     if (join_values.length === 0) {
-      const empty = kind === "many" ? [] : null;
-      for (const row of out) row[name] = empty;
+      for (const row of out) row[name] = many;
       return;
     }
 
-    const related = await this.#load_related(
-      target_as, target_join_col, join_values, where, fields, sort, kind, limit,
-    );
+    const related = await this.#load_related({ by, join_values, ...relation });
 
     const grouped = new Map<unknown, Dict[]>();
     for (const row of related) {
-      const key = row[target_join_col];
+      const key = row[by];
       if (key == null) continue;
       if (!grouped.has(key)) grouped.set(key, []);
       grouped.get(key)!.push(row);
     }
 
     for (let i = 0; i < out.length; i++) {
-      const join_value = base_rows[i][parent_join_col];
+      const join_value = base_rows[i][parent_by];
 
       if (join_value == null) {
-        out[i][name] = kind === "many" ? [] : null;
+        out[i][name] = many;
         continue;
       }
 
       const rows = grouped.get(join_value) ?? [];
-      out[i][name] = kind === "many"
-        ? rows.map(r => sql.project(r, fields))
-        : (rows[0] ? sql.project(rows[0], fields) : null);
+      out[i][name] = is_many
+        ? rows.map(r => sql.project(r, relation.fields))
+        : (rows[0] ? sql.project(rows[0], relation.fields) : null);
     }
   }
 
-  async #load_related(
-    as: As,
-    by: string,
-    join_values: unknown[],
-    where: DataDict,
-    fields?: string[],
-    sort?: Sort,
-    kind?: "one" | "many",
-    limit?: number,
-  ) {
-    const per_parent = kind === "one" ? 1 : limit;
-
+  async #load_related(args: {
+    as: As;
+    by: string;
+    join_values: unknown[];
+    where: DataDict;
+    fields?: string[];
+    sort?: Sort;
+    kind?: "one" | "many";
+    limit?: number;
+  }) {
+    const per_parent = args.kind === "one" ? 1 : args.limit;
     const in_binds: DataDict = {};
     const placeholders: string[] = [];
-    join_values.forEach((v, i) => {
-      const key = `${by}__in${i}`;
+    args.join_values.forEach((v, i) => {
+      const key = `${args.by}__in${i}`;
       in_binds[key] = v as DataDict[string];
       placeholders.push(`${BIND_BY}${key}`);
     });
+    const where = this.#where(args.as.types, args.where);
+    const where_part = where ? where.slice("WHERE ".length) : "";
+    const in_part = `${sql.quote(args.by)} IN (${placeholders.join(", ")})`;
 
-    const crit_where = this.#where(as.types, where);
-    const crit_part = crit_where ? crit_where.slice("WHERE ".length) : "";
-    const in_part = `${sql.quote(by)} IN (${placeholders.join(", ")})`;
-
-    const where_parts = crit_part ? [`(${crit_part})`, `(${in_part})`] : [in_part];
+    const where_parts = where_part
+      ? [`(${where_part})`, `(${in_part})`]
+      : [in_part];
     const WHERE = `WHERE ${where_parts.join(" AND ")}`;
 
-    const all_cols = Object.keys(as.types);
-    const base_fields = fields && fields.length > 0 ? fields : all_cols;
-    const select_fields = [...new Set([...base_fields, by])];
-    const SELECT = sql.selectList(as.types, select_fields);
+    const all_columns = Object.keys(args.as.types);
+    const base_fields = args.fields !== undefined && args.fields.length > 0
+      ? args.fields
+      : all_columns;
+    const select_fields = [...new Set([...base_fields, args.by])];
+    const SELECT = sql.selectList(args.as.types, select_fields);
 
-    const base_order = `${sql.quote(by)} ASC`;
-    const user_order = sql.orderBy(as.types, sort).replace(/^ ORDER BY /, "");
+    const base_order = `${sql.quote(args.by)} ASC`;
+    const user_order = sql.orderBy(args.as.types, args.sort)
+      .replace(/^ ORDER BY /, "");
     const ORDER_BY = user_order
       ? ` ORDER BY ${base_order}, ${user_order}`
       : ` ORDER BY ${base_order}`;
 
-    const crit_binds = await this.#bind_where(as.types, where);
-    const in_binds_bound = await this.#bind(as.types, in_binds);
+    const crit_binds = await this.#bind_where(args.as.types, args.where);
+    const in_binds_bound = await bind(args.as.types, in_binds);
 
     let query: string;
     let binds: Binds;
 
     if (per_parent !== undefined) {
-      const per_key = `${by}__limit__per_parent`;
+      const per_key = `${args.by}__limit__per_parent`;
 
       query = `
         WITH ranked AS (
           SELECT
             ${SELECT},
             ROW_NUMBER() OVER (
-              PARTITION BY ${sql.quote(by)}
+              PARTITION BY ${sql.quote(args.by)}
               ${user_order ? `ORDER BY ${user_order}` : ""}
             ) AS __rn
-          FROM ${sql.table(as)}
+          FROM ${sql.table(args.as)}
           ${WHERE}
         )
         SELECT ${SELECT}
@@ -570,20 +561,15 @@ export default class SQLite implements DB {
       `;
 
       binds = {
-        ...(crit_binds as Dict),
-        ...(in_binds_bound as Dict),
+        ...crit_binds, ...in_binds_bound,
         [`${BIND_BY}${per_key}`]: per_parent,
-      } as Binds;
+      };
     } else {
-      query = `SELECT ${SELECT} FROM ${sql.table(as)} ${WHERE}${ORDER_BY}`;
-      binds = { ...(crit_binds as Dict), ...(in_binds_bound as Dict) } as Binds;
+      query = `SELECT ${SELECT} FROM ${sql.table(args.as)} ${WHERE}${ORDER_BY}`;
+      binds = { ...crit_binds, ...in_binds_bound };
     }
 
-    const rows = this.#sql(query).all(binds) as Dict[];
-
-    this.#capture(as.name, query, binds);
-
-    return rows.map(r => this.#unbind(as.types, r));
+    return this.#query_all(args.as, query, binds);
   }
 
   #join(aliases: Dict<string>, parent_as: As, rel: NonNullable<With[string]>) {
@@ -658,7 +644,7 @@ export default class SQLite implements DB {
     return [...grouped.values()];
   }
 
-  async #read_with_joins(as: As, args: ReadRelationsArgs): Promise<Dict[]> {
+  async #read_joined(as: As, args: ReadRelationsArgs): Promise<Dict[]> {
     const { where, fields, sort, with: _with } = args;
 
     if (as.pk === null) throw E.relation_requires_pk("parent");
@@ -685,7 +671,7 @@ export default class SQLite implements DB {
     const WHERE = this.#where(as.types, where, alias);
     const ORDER_BY = sql.orderBy(as.types, sort, alias);
 
-    const binds = await this.#bind_where(as.types, where) as Binds;
+    const binds = await this.#bind_where(as.types, where);
     const query = `SELECT ${SELECT} FROM ${FROM} ${JOINS} ${WHERE} ${ORDER_BY}`;
     const rows = this.#sql(query).all(binds) as Dict[];
 
@@ -699,22 +685,22 @@ export default class SQLite implements DB {
     assert.dict(args.where);
 
     const WHERE = this.#where(as.types, args.where);
-    const { SET, binds: set_binds } = await this.#set(as.types, args.set);
-    const crit_binds = await this.#bind_where(as.types, args.where);
-    const binds = { ...crit_binds, ...set_binds } as Binds;
+    const where_binds = await this.#bind_where(as.types, args.where);
+    const SET = this.#set(args.set);
+    const set_binds = await this.#bind_set(as.types, args.set);
     const query = `UPDATE ${sql.table(as)} ${SET} ${WHERE}`;
 
-    return Number(this.#sql(query).run(binds).changes);
+    return this.#query_run(query, { ...where_binds, ...set_binds });
   }
 
   async delete(as: As, args: { where: DataDict }) {
     assert.nonempty(args.where);
 
     const WHERE = this.#where(as.types, args.where);
-    const binds = await this.#bind_where(as.types, args.where) as Binds;
     const query = `DELETE FROM ${sql.table(as)} ${WHERE}`;
+    const binds = await this.#bind_where(as.types, args.where);
 
-    return Number(this.#sql(query).run(binds).changes);
+    return this.#query_run(query, binds);
   }
 
   async lastId(as: AsPK) {

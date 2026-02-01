@@ -1,9 +1,22 @@
 import type As from "#db/As";
+import type DataDict from "#db/DataDict";
 import type Sort from "#db/Sort";
 import type Types from "#db/Types";
+import type With from "#db/With";
 import E from "#db/error";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
+
+export interface ReadArgs {
+  where: DataDict;
+  fields?: string[];
+  sort?: Sort;
+  limit?: number;
+}
+
+export interface ReadRelationsArgs extends ReadArgs {
+  with: With;
+}
 
 function normalize_sort(key: string, direction: "asc" | "desc") {
   if (!is.string(direction)) throw E.sort_invalid();
@@ -22,6 +35,15 @@ function quote(name: string) {
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) throw E.identifier_invalid(name);
   return `\`${name}\``;
 }
+
+const OPS: Dict<">" | ">=" | "<" | "<="> = {
+  $gt: ">",
+  $gte: ">=",
+  $lt: "<",
+  $lte: "<=",
+  $after: ">",
+  $before: "<",
+};
 
 const sql = {
   quote,
@@ -89,6 +111,10 @@ const sql = {
     return out;
   },
 
+  hasWith(args: ReadArgs & { with?: With }): args is ReadRelationsArgs {
+    return args.with !== undefined;
+  },
+  OPS,
 };
 
 export default sql;

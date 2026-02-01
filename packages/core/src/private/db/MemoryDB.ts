@@ -1,10 +1,8 @@
 import type As from "#db/As";
 import type AsPK from "#db/AsPK";
-import type ColumnTypes from "#db/ColumnTypes";
 import type DB from "#db/DB";
 import type DataDict from "#db/DataDict";
 import type Sort from "#db/Sort";
-import type TypeMap from "#db/TypeMap";
 import type With from "#db/With";
 import E from "#db/error";
 import assert from "@rcompat/assert";
@@ -134,45 +132,8 @@ function toSorted<T extends Dict>(d1: T, d2: T, sort: Sort) {
     }, 0);
 }
 
-function ident<C extends keyof ColumnTypes>(column: C): {
-  bind: (value: ColumnTypes[C]) => ColumnTypes[C];
-  column: C;
-  unbind: (value: ColumnTypes[C]) => ColumnTypes[C];
-} {
-  return {
-    bind: value => value,
-    column,
-    unbind: value => value,
-  };
-}
-
-const typemap: TypeMap<ColumnTypes> = {
-  blob: ident("BLOB"),
-  boolean: ident("BOOLEAN"),
-  datetime: ident("DATE"),
-  f32: ident("NUMBER"),
-  f64: ident("NUMBER"),
-  i128: ident("BIGINT"),
-  i16: ident("NUMBER"),
-  i32: ident("NUMBER"),
-  i64: ident("BIGINT"),
-  i8: ident("NUMBER"),
-  string: ident("STRING"),
-  time: ident("STRING"),
-  u128: ident("BIGINT"),
-  u16: ident("NUMBER"),
-  u32: ident("NUMBER"),
-  u64: ident("BIGINT"),
-  u8: ident("NUMBER"),
-  url: ident("URL"),
-};
-
 export default class MemoryDB implements DB {
   #tables: PartialDict<Dict[]> = {};
-
-  get typemap() {
-    return typemap as unknown as TypeMap<Dict>;
-  }
 
   #new(name: string) {
     if (this.#tables[name] !== undefined) return;

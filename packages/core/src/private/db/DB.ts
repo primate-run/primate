@@ -2,14 +2,11 @@ import type As from "#db/As";
 import type AsPK from "#db/AsPK";
 import type PK from "#db/PK";
 import type Sort from "#db/Sort";
-import type TypeMap from "#db/TypeMap";
 import type With from "#db/With";
 import type { Dict, MaybePromise } from "@rcompat/type";
 import type { StoreSchema } from "pema";
 
 export default interface DB {
-  typemap: TypeMap;
-
   schema: {
     create(name: string, description: StoreSchema, pk: PK): MaybePromise<void>;
     delete(name: string): MaybePromise<void>;
