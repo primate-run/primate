@@ -257,7 +257,7 @@ export default config({
 
 Grain routes follow similar patterns to other Primate backends.
 
-```gr
+```
 // routes/hello.gr
 module Hello
 

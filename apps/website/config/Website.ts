@@ -72,8 +72,8 @@ export default class Website extends Module {
     const views = app.path.views;
 
     // collect guide categories and names
-    const base = views.join("content", "guides");
-    const guides = await views.join("content", "guides").files({
+    const base = views.join("docs", "guides");
+    const guides = await base.files({
       recursive: true,
       filter: info => info.kind === "file",
     });

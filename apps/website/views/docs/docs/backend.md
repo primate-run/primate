@@ -12,12 +12,10 @@ or mix them in the same app for different routes.
 | Backend | Routes | Body | Query | Sessions | Stores | WebSocket | Validation |
 | ------- | ------ | ---- | ----- | -------- | ------ | --------- | ---------- |
 | [Go]    | ✓      | ✓    | ✓     | ✓        |        |           | ✓          |
-| [Grain] | ✓      | ✓    | ✓     | ✓        | ✓      | ✓         |            |
 | [Python]| ✓      | ✓    | ✓     | ✓        |        |           | ✓          |
 | [Ruby]  | ✓      | ✓    | ✓     | ✓        |        |           | ✓          |
 
 [Go]: /docs/backend/go
-[Grain]: /docs/backend/grain
 [Python]: /docs/backend/python
 [Ruby]: /docs/backend/ruby
 
@@ -40,7 +38,7 @@ Pyodide for Python).
 
 ### Pre-Compiled Languages
 
-*Go*, *Grain*
+*Go*
 
 Compiled languages with strong type systems, memory safety, and excellent
 WebAssembly support. Well-suited for high-performance APIs and complex
@@ -100,12 +98,6 @@ var _ = route.Get(func(request route.Request) any { ... })
 var _ = route.Post(func(request route.Request) any { ... })
 ```
 
-```gr
-// Grain
-provide let get = (request: Request) => { ... }
-provide let post = (request: Request) => { ... }
-```
-
 ```python
 # Python
 @Route.get
@@ -141,18 +133,6 @@ if request.Query.Has("name") {
 json, err := request.Body.JSON()
 ```
 
-```gr
-// Grain - Query parameters
-let query = Request.getQuery(request)
-match (Map.get("name", query)) {
-  Some(value) => JsonString(value),
-  None => JsonString("name missing")
-}
-
-// Grain - JSON body
-Body.json(request)
-```
-
 ## Response Types
 
 ### Data Responses
@@ -163,20 +143,12 @@ Return structured data as JSON:
 return map[string]any{"message": "Hello"}
 ```
 
-```gr
-JsonObject([("message", JsonString("Hello"))])
-```
-
 ### Views
 
 Render frontend components:
 
 ```go
 return response.View("component.html", data)
-```
-
-```gr
-Response.view("component.html", props = data)
 ```
 
 ### Redirects
@@ -187,19 +159,9 @@ Redirect to other routes:
 return response.Redirect("/other-route")
 ```
 
-```gr
-Response.redirect("/other-route")
-```
-
 ## Database Operations
 
 Built-in store operations:
-
-```gr
-// Grain
-let User = Store.store("User")
-let user = Store.insert(User, userData)
-```
 
 ## Session Management
 
@@ -211,25 +173,6 @@ session.Create(map[string]any{"user": "john"})
 data := session.Get()
 ```
 
-```gr
-// Grain
-Session.create(JsonObject([("user", JsonString("john"))]))
-let session = Session.get()
-```
-
-## WebSocket Support
-
-Real-time communication endpoints:
-
-```gr
-// Grain
-Response.ws(
-  message = Some((socket, payload) => {
-    WebSocket.send(socket, payload) // Echo back
-  })
-)
-```
-
 ## Mixing Backends
 
 Multiple backends can coexist; each handles its own file extensions:
@@ -238,10 +181,9 @@ Multiple backends can coexist; each handles its own file extensions:
 import config from "primate/config";
 import go from "@primate/go";
 import python from "@primate/python";
-import grain from "@primate/grain";
 
 export default config({
-  modules: [go(), python(), grain()],
+  modules: [go(), python()],
 });
 ```
 
@@ -251,7 +193,6 @@ Routes can be implemented in different languages:
 routes/
 ├── auth.go          # Go authentication
 ├── api.py           # Python data processing
-├── websocket.gr     # Grain real-time features
 └── admin.rb         # Ruby admin interface
 ```
 
@@ -262,7 +203,6 @@ routes/
 Each backend uses its native package manager:
 
 - **Go** — `go.mod` and `go get`
-- **Grain** — Built-in modules and includes
 - **Python** — `requirements.txt` and `pip`
 - **Ruby** — `Gemfile` and `bundle`
 
