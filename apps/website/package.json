@@ -4,7 +4,8 @@
   "scripts": {
     "build": "npx primate build",
     "serve": "npx primate serve",
-    "start": "npx primate"
+    "start": "npx primate",
+    "deps": "pnpm -r --filter={pema,@primate/core,@primate/handlebars,@primate/svelte,@primate/markdown,primate} build"
   },
   "dependencies": {
     "@plsp/svelte": "^0.1.0",
