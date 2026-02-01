@@ -18,8 +18,9 @@
     "!/**/*.spec.*"
   ],
   "bin": "lib/bin.js",
+  "types": "lib/index.d.ts",
   "scripts": {
-    "build": "npm run clean && tsc && cp src/app.tsconfig.json lib",
+    "build": "npm run clean && tsc && cp src/{app.tsconfig.json,index.d.ts} lib",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
@@ -46,6 +47,9 @@
     }
   },
   "exports": {
+    ".": {
+      "types": "./lib/index.d.ts"
+    },
     "./tsconfig": "./lib/app.tsconfig.json",
     "./runtime/*": {
       "apekit": "./src/runtime/*.ts",

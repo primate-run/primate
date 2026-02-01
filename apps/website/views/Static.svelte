@@ -1,12 +1,13 @@
 <script>
   import Header from "#component/Header";
   import Sidebar from "#component/Sidebar";
+  import config from "#config/config";
 
-  export let content, toc, app, path;
+  export let content, toc, path;
 
   let previous, next, sidebar, title;
   $: {
-    sidebar = app.theme.sidebar;
+    sidebar = config.theme.sidebar;
     const flattened = sidebar.flatMap((item) => item.items);
     const index = flattened.findIndex((item) => item.href === path);
     previous = flattened[index - 1];
@@ -15,7 +16,7 @@
   }
 </script>
 
-<Header {app} {title} />
+<Header {title} />
 <main>
   {#if sidebar !== undefined}
     <Sidebar {sidebar} {toc} {path} />

@@ -4,7 +4,6 @@
   import Icon from "#component/Icon";
   import Guides from "#component/Guides";
 
-  export let app;
   export let title = "The Universal Web Framework";
   export let examples = { frontend: "", backend: "", runtime: "", i18n: "" };
   export let guides;
@@ -20,7 +19,7 @@
   }
 </script>
 
-<Header {app} {title} />
+<Header {title} />
 
 <main class="homepage">
   <section class="hero">

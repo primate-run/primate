@@ -3,7 +3,7 @@
   import Footer from "#component/Footer";
   import Icon from "#component/Icon";
 
-  export let content, meta, app, category;
+  export let content, meta, category;
 
   // split page into sections at <hr> or <hr/>
   const sections = content
@@ -32,7 +32,7 @@
   const title = `${meta.title} | guide`;
 </script>
 
-<Header {app} {title} />
+<Header {title} />
 
 <main class="guide">
   <article>

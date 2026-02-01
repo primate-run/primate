@@ -120,6 +120,6 @@ export default class Website extends Module {
       "theme-color": scheme === "dark" ? "#1b1b1b" : "#ffffff",
     };
 
-    return next({ ...request, config: this.#config, placeholders });
+    return next(request.set("placeholders", placeholders));
   }
 };

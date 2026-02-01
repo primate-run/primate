@@ -1,10 +1,10 @@
 <script>
   import Header from "#component/Header";
 
-  export let app, pathname;
+  export let pathname;
 </script>
 
-<Header {app} title="Page not found" />
+<Header title="Page not found" />
 <main>
   <article>
     <h1>Page not found</h1>

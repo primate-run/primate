@@ -3,7 +3,7 @@ import route from "primate/route";
 
 const base = "https://primate.run";
 const names = views.map(view =>
-  [view[0].slice("content/".length), view[1].default.meta?.title]);
+  [view[0].slice("docs/".length), (view[1] as any).default.meta?.title]);
 const docs = names
   .filter(name => name[0].startsWith("docs"))
   .map(name => `- [${name[1]}](${base}/${name[0]}.md)`)

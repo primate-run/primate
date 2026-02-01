@@ -3,12 +3,11 @@
   import Footer from "#component/Footer";
   import Guides from "#component/Guides";
 
-  export let app;
   export let title = "The Universal Web Framework";
   export let guides;
 </script>
 
-<Header {app} {title} />
+<Header {title} />
 
 <main>
   <Guides {guides} />

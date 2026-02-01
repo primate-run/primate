@@ -2,10 +2,10 @@
   import { onMount } from "svelte";
   import Icons from "#component/Icons";
   import Icon from "#component/Icon";
+  import config from "#config/config";
 
-  export let app, title;
+  export let title;
 
-  const { theme } = app;
   const part = (link) => link.split("/")[1];
   const toggleColorScheme = () =>
     colorscheme.update((value) => (value === "dark" ? "light" : "dark"));
@@ -99,19 +99,19 @@
   <div class="search"></div>
 
   <ul class="navbar">
-    {#each theme.navbar as { link, label }}
+    {#each config.theme.navbar as { link, label }}
       <li>
         <a href={link} class={highlight(link)}>{label}</a>
       </li>
     {/each}
 
-    <div class="divider" />
+    <div class="divider"></div>
 
     <button class="ic" on:click={toggleColorScheme}>
       <Icon name={$colorscheme === "dark" ? "sun" : "moon"} />
     </button>
 
-    {#each theme.links as link}
+    {#each config.theme.links as link}
       <a class="ic" href={link.href}>
         <Icon name={link.icon} />
       </a>

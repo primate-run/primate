@@ -1,7 +1,7 @@
 <script>
   import Header from "#component/Header";
 
-  export let app, posts;
+  export let posts;
 
   function toExcerpt(post) {
     const end = post.html.indexOf("</p>");
@@ -12,7 +12,7 @@
   const iso = (epoch) => new Date(epoch).toISOString().slice(0, 10);
 </script>
 
-<Header {app} title="Blog" />
+<Header title="Blog" />
 
 <main class="blog">
   <article class="blog-index">

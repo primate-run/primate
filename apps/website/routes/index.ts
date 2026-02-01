@@ -1,3 +1,4 @@
+import Index from "#view/Index";
 import type Component from "@primate/markdown/Component";
 import response from "primate/response";
 import route from "primate/route";
@@ -9,11 +10,11 @@ route.get(request => {
     const examples = Object.fromEntries(example_names
       .map(section => [
         section,
-        app.loadView<Component>(`content/home/${section}.md`).html]));
+        app.loadView<Component>(`docs/home/${section}.md`).html]));
     const guides = await app.root.join("guides.json").json();
-    const props = { app: request.config, examples, guides };
-    const options = { placeholders: request.placeholders };
+    const props = { examples, guides };
+    const options = { placeholders: request.get("placeholders") };
 
-    return response.view("Index.svelte", props, options)(app, ...args);
+    return response.view(Index, props, options)(app, ...args);
   };
 });

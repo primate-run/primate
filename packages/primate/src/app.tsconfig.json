@@ -9,6 +9,9 @@
     "skipLibCheck": true,
     "erasableSyntaxOnly": true,
     "exactOptionalPropertyTypes": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "types": [
+      "primate"
+    ]
   }
 }

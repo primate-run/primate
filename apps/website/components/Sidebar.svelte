@@ -16,7 +16,7 @@
       return;
     }
 
-    // Map sidebar hashes -> <li>, only if the target exists in the page
+    // map sidebar hashes -> <li>, only if the target exists in the page
     const links = Array.from(sidebar.querySelectorAll("li a[href*='#']"));
     const idToLi = new Map();
 

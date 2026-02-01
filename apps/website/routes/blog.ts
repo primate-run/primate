@@ -1,9 +1,10 @@
+import Blog from "#view/Blog";
 import type Component from "@primate/markdown/Component";
 import views from "app:views";
 import response from "primate/response";
 import route from "primate/route";
 
-const base = "content/blog";
+const base = "docs/blog";
 
 type Post = {
   meta: {
@@ -15,7 +16,7 @@ type Post = {
 route.get(request => {
   return async app => {
     const blog_posts =
-      views.map(([a]) => a).filter(a => a.startsWith("content/blog"));
+      views.map(([a]) => a).filter(a => a.startsWith("docs/blog"));
     const posts = blog_posts
       .map(post => ({
         href: post.slice(base.length + 1),
@@ -24,9 +25,8 @@ route.get(request => {
       }))
       .toSorted((a, b) => a.meta.epoch < b.meta.epoch ? 1 : - 1)
       ;
-    const config = request.config;
-    return response.view("Blog.svelte", { app: config, posts }, {
-      placeholders: request.placeholders,
+    return response.view(Blog, { posts }, {
+      placeholders: request.get("placeholders"),
     })(app, {}, request);
   };
 });;
