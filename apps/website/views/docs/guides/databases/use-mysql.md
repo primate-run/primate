@@ -3,7 +3,7 @@ title: Use MySQL
 ---
 
 Add MySQL as a database with the `@primate/mysql` module. Configure it in
-`config/database`; Primate connects to it and provides a unified API.
+`config/db`; Primate connects to it and provides a unified API.
 
 !!!
 Ensure MySQL is running and accessible.
@@ -23,7 +23,7 @@ npm install @primate/mysql
 
 ### 2) Configure
 
-Create `config/database/index.ts` as a default database.
+Create `config/db/index.ts` as a default database.
 
 ```ts
 import mysql from "@primate/mysql";
@@ -46,11 +46,12 @@ automatically, being the default database.
 
 ```ts
 // stores/User.ts
-import store from "primate/store";
+import store from "primate/orm/store";
+import key from "primate/orm/key";
 import p from "pema";
 
 export default store({
-  id: p.primary,
+  id: key.primary(p.u32),
   name: p.string,
   email: p.string.email(),
 });

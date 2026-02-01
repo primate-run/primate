@@ -1,7 +1,8 @@
 import p from "pema";
-import store from "primate/store";
+import key from "primate/orm/key";
+import store from "primate/orm/store";
 
 export default store({
-  id: p.primary,
+  id: key.primary(p.u32),
   value: p.i8.range(-20, 20),
 });

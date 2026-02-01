@@ -30,10 +30,11 @@ Create a file under `stores` and export a store.
 
 ```ts title="#store/Post.ts"
 import p from "pema";
-import store from "primate/store";
+import store from "primate/orm/store";
+import key from "primate/orm/key";
 
 export default store({
-  id: p.primary,
+  id: key.primary(p.u32),
   title: p.string.max(100),
   body: p.string,
   created: p.date.default(() => new Date()),
@@ -56,13 +57,13 @@ Override with a [custom name](#custom-name).
 If you don't configure a database, the default one is in‑memory, great for
 prototyping and tests. To add a database, install a Primate driver.
 
-[s=stores/database/install]
+[s=stores/db/install]
 
 ## Create a database file
 
-Create `config/database` and place your database file there.
+Create `config/db` and place your database file there.
 
-[s=stores/database/config]
+[s=stores/db/config]
 
 !!!
 Name the file freely. For the main driver, use `index.ts` or `default.ts`.
@@ -134,11 +135,12 @@ inline or in separate files for modularity.
 
 ```ts
 // stores/User.ts
-import p from "p";
-import store from "primate/store";
+import p from "pema";
+import store from "primate/orm/store";
+import key from "primate/orm/key";
 
 export default store({
-  id: p.primary,
+  id: key.primary(p.u32),
   name: p.string,
   age: p.u8.range(0, 120),
   lastname: p.string.optional(),
@@ -160,11 +162,12 @@ Create a base store:
 
 ```ts
 // stores/User.ts
-import p from "p";
-import store from "primate/store";
+import p from "pema";
+import store from "primate/orm/store";
+import key from "primate/orm/key";
 
 export default store({
-  id: p.primary,
+  id: key.primary(p.u32),
   name: p.string,
   age: p.u8.range(0, 120),
   lastname: p.string.optional(),
@@ -435,14 +438,16 @@ By default, stores use the app's default database. If you have multiple
 databases in your app, you can **pin** a store to a specific one.
 
 ```ts
-import store from "primate/store";
-// config/database/postgresql.ts
-import postgresql from "#database/postgresql";
+import p from "pema";
+import store from "primate/orm/store";
+import key from "primate/orm/key";
+// config/db/postgresql.ts
+import postgresql from "#db/postgresql";
 import p from "p";
 
 export default store(
   {
-    id: p.primary,
+    id: key.primary(p.u32),
     message: p.string,
     created: p.date.default(() => new Date()),
   },
@@ -461,12 +466,13 @@ Override the default table or collection name with `name`. Useful for exposing
 part of a table as a store.
 
 ```ts
-import store from "primate/store";
+import store from "primate/orm/store";
+import key from "primate/orm/key";
 import p from "p";
 
 export default store(
   {
-    id: p.primary,
+    id: key.primary(p.u32),
     message: p.string,
     created: p.date.default(() => new Date()),
   },

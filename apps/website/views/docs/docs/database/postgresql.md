@@ -19,7 +19,7 @@ You need a running PostgreSQL server and a database/user with access.
 ### Configure
 
 ```ts
-// config/database/index.ts
+// config/db/index.ts
 import postgresql from "@primate/postgresql";
 
 export default postgresql({

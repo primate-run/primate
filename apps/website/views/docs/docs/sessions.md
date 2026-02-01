@@ -61,10 +61,11 @@ First create the store inside `stores`.
 
 ```ts
 import p from "pema";
-import store from "primate/store";
+import store from "primate/orm/store";
+import key from "primate/orm/key";
 
 export default store({
-  id: p.primary,
+  id: key.primary(p.u32),
   session_id: p.string.uuid(),
   user_id: p.number,
   last_active: p.date,
@@ -143,10 +144,11 @@ store.
 
 ```ts
 import p from "pema";
-import store from "primate/store";
+import store from "primate/orm/store";
+import key from "primate/orm/key";
 
 export default store({
-  id: p.primary,
+  id: key.primary(p.u32),
   session_id: p.string.uuid(),
   token: p.string.min(10),
 });

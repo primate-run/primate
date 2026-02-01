@@ -4,8 +4,8 @@ title: Using databases
 
 # Databases
 
-Databases back stores. You define them under `config/database`, import them
-via `#database`, and use them in stores (or directly).
+Databases back stores. You define them under `config/db`, import them via `#db`,
+and use them in stores (or directly).
 
 ## Overview
 
@@ -19,14 +19,14 @@ via `#database`, and use them in stores (or directly).
 
 ## Default resolution
 
-Primate resolves the **default database** from `config/database` as follows.
+Primate resolves the **default database** from `config/db` as follows.
 
 1. If the directory is **missing** or **empty**, Primate writes
-   `config/database/index.ts` with:
+   `config/db/index.ts` with:
 
    ```ts
-   import DefaultDatabase from "primate/database/default";
-   export default new DefaultDatabase();
+   import db from "primate/db";
+   export default db();
    ```
 
    This is an **in-memory, ephemeral** database (no persistence).
@@ -35,33 +35,33 @@ Primate resolves the **default database** from `config/database` as follows.
 4. Else if there is exactly one file, use that file.
 5. If multiple files exist and none is `index`/`default`, throw an error.
 
-This default is what `#database` imports.
+This default is what `#db` imports.
 
 !!!
-**TypeScript note** — the compiler cannot map `#database` to "the only file in
-config/database". If you use rule 4, create `config/database/index.ts` that
-re-exports your file. Runtime discovery still works without it, but TS needs
-the stub to resolve `#database`.
+**TypeScript note** — the compiler cannot map `#db` to "the only file in
+config/db". If you use rule 4, create `config/db/index.ts` that re-exports your
+file. Runtime discovery still works without it, but TS needs the stub to resolve
+`#db`.
 !!!
 
 ## Import paths
 
-* `#database` -> `config/database/index.(ts|js)` or `default.(ts|js)`, or the
-  sole file, per the resolution rules above
-* `#database/<name>` -> `config/database/<name>.ts` or `.js`.
+* `#db` -> `config/db/index.(ts|js)` or `default.(ts|js)`, or the sole file,
+per the resolution rules above
+* `#db/<name>` -> `config/db/<name>.ts` or `.js`.
 
 Examples:
 
 ```ts
-// config/database/postgresql.ts
+// config/db/postgresql.ts
 import postgresql from "@primate/postgresql";
 export default postgresql({ /* connection options */ });
 ```
 
 ```ts
 // anywhere
-import db from "#database";             // default database
-import pg from "#database/postgresql";  // named database
+import db from "#db";             // default database
+import pg from "#db/postgresql";  // named database
 ```
 
 ## Using databases in stores
@@ -70,13 +70,14 @@ Stores use the **default** database unless pinned. Pin a store by passing a
 `database` in the second argument.
 
 ```ts
-import store from "primate/store";
-import postgresql from "#database/postgresql";
+import postgresql from "#db/postgresql";
 import p from "pema";
+import store from "primate/orm/store";
+import key from "primate/orm/key";
 
 export default store(
-  { id: p.primary, title: p.string },
-  { database: postgresql },
+  { id: key.primary(p.u32), title: p.string },
+  { db: postgresql },
 );
 ```
 
@@ -89,7 +90,7 @@ and export your own module with the operations you need.
 
 ```ts
 // stores/Custom.ts
-import db from "#database";
+import db from "#db";
 
 // the db client is lazily initialized on first use and reused afterwards.
 export default new class Custom {
@@ -154,7 +155,7 @@ Drivers adapt these to their backends (SQL, Mongo queries).
 
 ```
 config/
-  database/
+  db/
     index.ts            # default db (or default.ts, or single file)
     postgresql.ts       # extra named dbs as needed
 stores/

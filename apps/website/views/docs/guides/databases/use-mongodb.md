@@ -3,7 +3,7 @@ title: Use MongoDB
 ---
 
 Add MongoDB as a database with the `@primate/mongodb` module. Configure it in
-`config/database`; Primate connects to it and provides a unified API.
+`config/db`; Primate connects to it and provides a unified API.
 
 !!!
 Ensure MongoDB is running and accessible.
@@ -21,7 +21,7 @@ Install the Primate MongoDB package.
 
 ### 2) Configure
 
-Create `config/database/index.ts` as a default database.
+Create `config/db/index.ts` as a default database.
 
 [s=guides/databases/use-mongodb/configure]
 

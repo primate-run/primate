@@ -42,7 +42,7 @@ Reside inside `config`. May be authored in Javascript or TypeScript.
 | [app.ts](/docs/configuration#app-ts)              | app options               |
 | [session.ts](/docs/configuration#session-ts)      | session shape and options |
 | [i18n.ts](/docs/configuration#i18n-ts)            | i18n options              |
-| [database/\*.ts](/docs/configuration#database-ts) | database options          |
+| [db/\*.ts](/docs/configuration#db-ts)             | database options          |
 
 ## Route files
 

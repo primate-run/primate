@@ -147,6 +147,6 @@ Currency to use in localization.
 
 Locale persistance mode.
 
-## `database/*.ts`
+## `db/*.ts`
 
-[s=configuration/database-ts]
+[s=configuration/db-ts]

@@ -3,7 +3,7 @@ title: Use PostgreSQL
 ---
 
 Add PostgreSQL as a database with the `@primate/postgresql` module. Configure
-it in `config/database`; Primate connects to it and provides a unified API.
+it in `config/db`; Primate connects to it and provides a unified API.
 
 !!!
 Ensure PostgreSQL is running and accessible.
@@ -23,7 +23,7 @@ npm install @primate/postgresql
 
 ### 2) Configure
 
-Create `config/database/index.ts` as a default database.
+Create `config/db/index.ts` as a default database.
 
 ```ts
 import postgresql from "@primate/postgresql";
@@ -46,11 +46,12 @@ automatically, being the default database.
 
 ```ts
 // stores/User.ts
-import store from "primate/store";
+import store from "primate/orm/store";
+import key from "primate/orm/key";
 import p from "pema";
 
 export default store({
-  id: p.primary,
+  id: key.primary(p.u32),
   name: p.string,
   email: p.string.email(),
 });
