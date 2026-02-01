@@ -5,6 +5,14 @@ import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
 
 export default function plugin_server_db_default(app: BuildApp): Plugin {
+  const resolveDir = app.root.path;
+  const base = app.path.config.join("db");
+  const default_db = {
+    contents: "import db from \"primate/db\"; export default db();",
+    loader: "js",
+    resolveDir,
+  } as const;
+
   return {
     name: "primate/server/db-default",
     setup(build) {
@@ -13,26 +21,14 @@ export default function plugin_server_db_default(app: BuildApp): Plugin {
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-db" }, async () => {
-        const base = app.path.config.join("db");
-
-        const default_db = {
-          contents: `
-            import DefaultDB from "primate/db/default";
-            export default new DefaultDB();
-          `,
-          loader: "js" as const,
-          resolveDir: app.root.path,
-        };
-
         if (!await base.exists()) return default_db;
 
         const dbs = await base.files({
           recursive: true,
           filter: f => f.name.endsWith(".ts") || f.name.endsWith(".js"),
         });
-        const n = dbs.length;
 
-        if (n === 0) return default_db;
+        if (dbs.length === 0) return default_db;
 
         const by_name: Dict<FileRef> = {};
         for (const d of dbs) by_name[d.name] = d;
@@ -40,9 +36,7 @@ export default function plugin_server_db_default(app: BuildApp): Plugin {
         const pick = (stem: string): FileRef | undefined =>
           by_name[`${stem}.ts`] ?? by_name[`${stem}.js`];
 
-        let db: FileRef | undefined = pick("index");
-
-        if (db === undefined) db = pick("default");
+        let db = pick("index") ?? pick("default");
 
         if (db === undefined) {
           if (dbs.length === 1) db = dbs[0];
@@ -52,12 +46,10 @@ export default function plugin_server_db_default(app: BuildApp): Plugin {
           );
         }
 
-        const contents = `export { default } from ${JSON.stringify(db.path)};`;
-
         return {
-          contents,
+          contents: `export { default } from ${JSON.stringify(db.path)};`,
           loader: "js",
-          resolveDir: app.root.path,
+          resolveDir,
         };
       });
     },
