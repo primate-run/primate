@@ -1,4 +1,3 @@
-import app_config from "./config.ts";
 import Website from "./Website.ts";
 import handlebars from "@primate/handlebars";
 import markdown from "@primate/markdown";
@@ -247,6 +246,6 @@ export default config({
       },
     }),
     svelte(),
-    new Website(app_config),
+    new Website(),
   ],
 });

@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import Icons from "#component/Icons";
   import Icon from "#component/Icon";
-  import config from "#config/config";
+  import theme from "#config/theme";
 
   export let title;
 
@@ -99,7 +99,7 @@
   <div class="search"></div>
 
   <ul class="navbar">
-    {#each config.theme.navbar as { link, label }}
+    {#each theme.navbar as { link, label }}
       <li>
         <a href={link} class={highlight(link)}>{label}</a>
       </li>
@@ -111,7 +111,7 @@
       <Icon name={$colorscheme === "dark" ? "sun" : "moon"} />
     </button>
 
-    {#each config.theme.links as link}
+    {#each theme.links as link}
       <a class="ic" href={link.href}>
         <Icon name={link.icon} />
       </a>

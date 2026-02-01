@@ -13,47 +13,11 @@ const cookie = (name: string, value: string, secure: boolean) =>
 
 const cookie_name = "color-scheme";
 
-type SidebarItem = {
-  active?: true;
-  href?: string;
-  items?: SidebarItem[];
-  title: string;
-  upcoming?: true;
-};
-
-type Sidebar = SidebarItem[];
-
-type Link = {
-  href: string;
-  icon: string;
-};
-type Config = {
-  blog: boolean;
-  description: string;
-  theme: {
-    links: Link[];
-    navbar: { label: string; link: string }[];
-    sidebar: Sidebar;
-  };
-  title: string;
-};
-
 export default class Website extends Module {
-  #app?: ServeApp;
-  #config: Config;
+  #secure = false;
 
   get name() {
     return "primate-website";
-  }
-
-  get app() {
-    return this.#app!;
-  }
-
-  constructor(config: Config) {
-    super();
-
-    this.#config = config;
   }
 
   async build(app: BuildApp, next: NextBuild) {
@@ -94,7 +58,7 @@ export default class Website extends Module {
   }
 
   serve(app: ServeApp, next: NextServe) {
-    this.#app = app;
+    this.#secure = app.secure;
 
     return next(app);
   }
@@ -107,7 +71,7 @@ export default class Website extends Module {
     if (color_scheme !== undefined) {
       return new Response(null, {
         headers: {
-          "set-cookie": cookie(cookie_name, color_scheme, this.app.secure),
+          "set-cookie": cookie(cookie_name, color_scheme, this.#secure),
         },
         status: Status.OK,
       });
