@@ -16,7 +16,7 @@ This page focuses on database stores, the most widely used.
 | Driver         | Maps to    | Examples                  |
 | -------------- | ---------- | ------------------------- |
 | SQL            | table      | SQLite, MySQL, PostgreSQL |
-| Document/NoSQL | collection | MongoDB, SurrealDB        |
+| Document/NoSQL | collection | MongoDB                   |
 
 Stores have:
 
@@ -406,7 +406,7 @@ await Post.find({ title: "Hello" });
 !!!
 **Operators:** String fields also support `$like` (e.g.,
 `{ name: { $like: "Jo%" } }`). Drivers translate this appropriately
-(SQL -> `LIKE`, MongoDB -> `$regex`, SurrealDB -> `string::matches()`).
+(SQL -> `LIKE`, MongoDB -> `$regex`).
 !!!
 
 ## Types for stores

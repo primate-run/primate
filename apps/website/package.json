@@ -36,7 +36,6 @@
     "@primate/ruby": "workspace:^",
     "@primate/solid": "workspace:^",
     "@primate/sqlite": "workspace:^",
-    "@primate/surrealdb": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@primate/vue": "workspace:^",
     "marked": "^17.0.1",

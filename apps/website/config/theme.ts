@@ -115,7 +115,6 @@ export default {
         "MySQL",
         "PostgreSQL",
         "SQLite",
-        "SurrealDB",
       ].toSorted().map(title => ({
         href: `/database/${title.replaceAll(" ", "-").toLowerCase()}`,
         title,

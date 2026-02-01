@@ -38,7 +38,6 @@
 [![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=fff&style=for-the-badge)](https://primate.run/docs/database/mysql)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192.svg?logo=postgresql&logoColor=fff&style=for-the-badge)](https://primate.run/docs/database/postgresql)
 [![SQLite](https://img.shields.io/badge/SQLite-07405e.svg?logo=sqlite&logoColor=fff&style=for-the-badge)](https://primate.run/docs/database/postgresql)
-[![SurrealDB](https://img.shields.io/badge/SurrealDB-FF00A0.svg?logo=surrealdb&logoColor=fff&style=for-the-badge)](https://primate.run/docs/database/surrealdb)
 
 ### License
 

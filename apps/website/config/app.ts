@@ -32,7 +32,6 @@ const sorting = [
   "PostgreSQL",
   "MySQL",
   "MongoDB",
-  "SurrealDB",
   // general
   "Store",
   "Route",

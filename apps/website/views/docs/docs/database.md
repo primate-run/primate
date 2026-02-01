@@ -15,7 +15,6 @@ via `#database`, and use them in stores (or directly).
 | [SQLite](/docs/database/sqlite)         | in-memory/file | relational  |
 | [MySQL](/docs/database/mysql)           | DBMS           | relational  |
 | [PostgreSQL](/docs/database/postgresql) | DBMS           | relational  |
-| [SurrealDB](/docs/database/surrealdb)   | in-memory/DBMS | multi-model |
 | [MongoDB](/docs/database/mongodb)       | DBMS           | document    |
 
 ## Default resolution
@@ -149,7 +148,7 @@ Helpers provided by the base `Database` class include:
 * binding: `bind()`, `bindCriteria()`, `unbind()`, `formatBinds()`
 * schema ops on `database.schema.create(name, schema)` and `delete()`
 
-Drivers adapt these to their backends (SQL, SurrealQL, Mongo queries).
+Drivers adapt these to their backends (SQL, Mongo queries).
 
 ## Typical project layout
 

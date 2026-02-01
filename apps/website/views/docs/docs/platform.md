@@ -122,7 +122,6 @@ a platform has not yet been wired up.
 | [MySQL]      | ✓    | ✓    | ✓         |              |
 | [PostgreSQL] | ✓    | ✓    | ✓         |              |
 | [SQLite]     | ✓    |      | ✓         | ✓            |
-| [SurrealDB]  | ✓    | ✓    | ✓         | ✓            |
 
 [Go]: /docs/backend/go
 [Python]: /docs/backend/python
@@ -132,4 +131,3 @@ a platform has not yet been wired up.
 [MySQL]: /docs/database/mysql
 [PostgreSQL]: /docs/database/postgresql
 [SQLite]: /docs/database/sqlite
-[SurrealDB]: /docs/database/surrealdb
