@@ -5,6 +5,9 @@
     "build": "npx primate build",
     "serve": "npx primate serve",
     "start": "npx primate",
+    "bun:build": "bunx --bun primate build",
+    "bun:serve": "bunx --bun primate serve",
+    "bun:start": "bunx --bun primate",
     "deps": "pnpm -r --filter={pema,@primate/core,@primate/handlebars,@primate/svelte,@primate/markdown,primate} build"
   },
   "dependencies": {
