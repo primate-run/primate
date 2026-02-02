@@ -3,6 +3,7 @@ import RequestBody from "#request/RequestBody";
 import RequestContext from "#request/RequestContext";
 import type RequestFacade from "#request/RequestFacade";
 import sContext from "#request/sContext";
+import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
 
 function decode(s: string) {
@@ -83,11 +84,11 @@ function parse(request: Request): RequestFacade {
       return this[sContext].get<T>(key);
     },
 
-    set<T>(key: string, value: T | ((prev: T | undefined) => T)) {
-      if (typeof value === "function") {
-        this[sContext].update<T>(key, value as any);
+    set(key: string, value: unknown | ((prev: unknown) => unknown)) {
+      if (is.function(value)) {
+        this[sContext].update(key, value);
       } else {
-        this[sContext].set<T>(key, value);
+        this[sContext].set(key, value);
       }
       return this;
     },

@@ -15,7 +15,21 @@ started.
 
 ## ORM relations
 
+### key.{primary,foreign}
+
+### relation.{one,many}
+
+### reverse
+
+### with
+
 ## Hooks
+
+Intro
+
+### `hook.ts` files
+
+### Context propagation
 
 ## Validated forms
 
@@ -34,6 +48,10 @@ where `key` is the default import from `primate/orm/key`. You now need to
 explicitly specify the data type of the primary key column. Primate supports
 strings (p.string), numbers (p.u8, p.u16, p.u32), and bigints (p.u64, p.128)
 for PK types.
+
+### ORM signatures changed
+
+### ORM select is now `string[]` instead of `Record<string, true>`
 
 ## What's next
 

@@ -56,14 +56,13 @@ const BACKEND_OPTIONS: { label: string; value: Backend }[] = [
   { label: "Grain", value: "grain" },
 ];
 
-type Database = "sqlite" | "postgresql" | "mysql" | "mongodb" | "surrealdb";
+type Database = "sqlite" | "postgresql" | "mysql" | "mongodb";
 
 const DATABASE_OPTIONS: { label: string; value: Database }[] = [
   { label: "SQLite", value: "sqlite" },
   { label: "PostgreSQL", value: "postgresql" },
   { label: "MySQL", value: "mysql" },
   { label: "MongoDB", value: "mongodb" },
-  { label: "SurrealDB", value: "surrealdb" },
 ];
 
 // peer deps per frontend (npm names)
