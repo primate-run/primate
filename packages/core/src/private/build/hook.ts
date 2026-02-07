@@ -1,12 +1,13 @@
+import type BuildApp from "#build/App";
 import build_client from "#build/client/index";
 import build_server from "#build/server/index";
-import type BuildApp from "#build/App";
 import fail from "#fail";
 import location from "#location";
 import log from "#log";
 import reducer from "#reducer";
 import $router from "#request/router";
 import s_layout_depth from "#symbol/layout-depth";
+import c from "@rcompat/cli/color";
 import fs from "@rcompat/fs";
 
 const core_pkg = await fs.project.package(import.meta.dirname);
@@ -49,7 +50,7 @@ async function post(app: BuildApp) {
   await build_client(app);
   await build_server(app);
 
-  log.system("build written to {0}", app.path.build);
+  log.print(`✓ build path  ${c.dim(app.path.build.path)}\n`);
 
   app.cleanup();
 

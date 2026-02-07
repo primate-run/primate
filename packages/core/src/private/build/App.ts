@@ -1,12 +1,12 @@
 import App from "#App";
 import type Binder from "#Binder";
 import build from "#build/hook";
-import log from "#log";
 import resolve_paths from "#paths";
 import s_layout_depth from "#symbol/layout-depth";
 import type { FileRef } from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
+import p from "pema";
 
 type PluginType = "server" | "client";
 
@@ -27,8 +27,6 @@ export default class BuildApp extends App {
   #entrypoint_imports: string[] = [];
 
   async buildInit() {
-    log.system("starting {0} build in {1} mode", this.target.name, this.mode);
-
     this.#paths = await resolve_paths(this.root, this.config("paths"));
     await build(this);
   }

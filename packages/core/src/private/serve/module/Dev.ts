@@ -1,7 +1,9 @@
+import log from "#log";
 import Module from "#Module";
 import type NextHandle from "#module/NextHandle";
 import type RequestFacade from "#request/RequestFacade";
 import type ServeApp from "#serve/App";
+import c from "@rcompat/cli/color";
 
 function pass(address: string, request: Request) {
   return fetch(address, {
@@ -16,22 +18,23 @@ function pass(address: string, request: Request) {
 export default class DevModule extends Module {
   name = "builtin/dev";
   #paths: string[];
-  #reload_url: string;
+  #reload: string;
 
   constructor(app: ServeApp) {
     super();
 
     const assets = app.assets.map(asset => asset.src);
-    const { host, port } = app.config("livereload");
     this.#paths = ["/esbuild"].concat(assets as string[]);
-    this.#reload_url = `http://${host}:${port}`;
+    const { host, port } = app.livereload;
+    this.#reload = `http://${host}:${port}`;
+    log.print(`↻ live reload ${c.dim(this.#reload)}\n`);
   }
 
   handle(request: RequestFacade, next: NextHandle) {
     const { pathname } = new URL(request.url);
 
     return this.#paths.includes(pathname)
-      ? pass(`${this.#reload_url}${pathname}`, request.original)
+      ? pass(`${this.#reload}${pathname}`, request.original)
       : next(request);
   }
 }

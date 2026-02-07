@@ -26,25 +26,29 @@ class Log {
     this.#level = level;
   }
 
+  print(message: string, ...params: unknown[]) {
+    print(mark(message, ...params));
+  }
+
   system(message: string, ...params: unknown[]) {
-    print(`${color.blue("++")} ${mark(message, ...params)}\n`);
+    print(`  ${mark(message, ...params)}\n`);
   }
 
   info(message: string, ...params: unknown[]) {
     if (this.#level === levels.info) {
-      print(color.green("--"), mark(message, ...params), "\n");
+      print(color.green("[INFO]"), mark(message, ...params), "\n");
     }
   }
 
   warn(message: string, ...params: unknown[]) {
     if (this.#level >= levels.warn) {
-      print(color.yellow("??"), mark(message, ...params), "\n");
+      print(color.yellow("[WARN]"), mark(message, ...params), "\n");
     }
   }
 
   error(error: unknown) {
     if (error instanceof AppError) {
-      print(color.red("!!"), error.message, "\n");
+      print(color.red("[ERROR]"), error.message, "\n");
     } else {
       console.error(error);
     }

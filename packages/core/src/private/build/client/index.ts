@@ -96,8 +96,7 @@ export default async function build_client(app: BuildApp) {
     const context = await esbuild.context(options);
     await context.watch();
     await context.rebuild();
-    const { host, port } = app.config("livereload");
-    await context.serve({ host, port });
+    await context.serve(app.livereload);
   } else {
     await esbuild.build(options);
   }

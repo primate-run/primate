@@ -18,8 +18,8 @@ export default p({
   },
   livereload: {
     exclude: p.array(p.string).optional(),
-    host: p.string.default("localhost"),
-    port: p.uint.port().default(6262),
+    host: p.string.optional(),
+    port: p.uint.port().optional(),
   },
   modules: p.array(p.constructor(Module)).optional(),
   request: {

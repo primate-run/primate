@@ -433,7 +433,10 @@ export default class ServeApp extends App {
       timeout: this.mode === "development" ? 0 : undefined,
     });
 
-    log.system("started {0}", this.url);
+    function bright(x: unknown) {
+      return `\x1b[38;2;0;200;255m${x}\x1b[0m`;
+    }
+    log.print(`» app url     ${bright(this.url)}\n`);
   };
 
   stop() {

@@ -9,6 +9,7 @@ import TargetManager from "#target/Manager";
 import dict from "@rcompat/dict";
 import entries from "@rcompat/dict/entries";
 import type { FileRef } from "@rcompat/fs";
+import p from "pema";
 
 const doubled = (set: string[]) =>
   set.find((part: string, i: number, array: string[]) =>
@@ -75,6 +76,15 @@ export default class App {
 
   get modules() {
     return [...this.#modules];
+  }
+
+  get livereload() {
+    const {
+      host = this.config("http.host"),
+      port = p.uint.port().parse(this.config("http.port") - 1),
+    } = this.config("livereload");
+
+    return { host, port };
   }
 
   get<T>(key: symbol) {

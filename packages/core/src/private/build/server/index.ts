@@ -3,7 +3,7 @@ import plugin_assets from "#build/server/plugin/assets";
 import plugin_config from "#build/server/plugin/config";
 import plugin_db_default from "#build/server/plugin/db-default";
 import plugin_frontend from "#build/server/plugin/frontend";
-import plugin_hot_reload from "#build/server/plugin/hot-reload";
+import plugin_live_reload from "#build/server/plugin/live-reload";
 import plugin_native_addons from "#build/server/plugin/native-addons";
 import plugin_node_imports from "#build/server/plugin/node-imports";
 import plugin_requires from "#build/server/plugin/requires";
@@ -38,7 +38,7 @@ export default async function build_server(app: BuildApp) {
   app.plugin("server", plugin_store(app));
   app.plugin("server", plugin_store_wrap(app));
   app.plugin("server", plugin_db_default(app));
-  if (app.mode === "development") app.plugin("server", plugin_hot_reload(app));
+  if (app.mode === "development") app.plugin("server", plugin_live_reload(app));
   app.plugin("server", plugin_virtual_pages(app));
   app.plugin("server", plugin_virtual_routes(app));
   app.plugin("server", plugin_route(app));

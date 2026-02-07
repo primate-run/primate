@@ -3,12 +3,12 @@ import fail from "#fail";
 import type ServeApp from "#serve/App";
 import type { Plugin } from "esbuild";
 
-export default function plugin_server_hot_reload(app: BuildApp): Plugin {
+export default function plugin_server_live_reload(app: BuildApp): Plugin {
   let build_n = 0;
   let serve_app: ServeApp | undefined;
 
   return {
-    name: "primate/server/hot-reload",
+    name: "primate/server/live-reload",
     setup(build) {
       build.onEnd(async (result) => {
         // don't do anything on errors
@@ -31,7 +31,7 @@ export default function plugin_server_hot_reload(app: BuildApp): Plugin {
 
           build_n++;
         } catch (err) {
-          fail("[primate/server/hot-reload] failed to import {0}", filename);
+          fail("[primate/server/live-reload] failed to import {0}", filename);
           console.error(err);
         }
       });
