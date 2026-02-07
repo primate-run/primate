@@ -3,7 +3,6 @@ import plugin_alias from "#build/client/plugin/alias";
 import plugin_entrypoint from "#build/client/plugin/entrypoint";
 import plugin_frontend from "#build/client/plugin/frontend";
 import plugin_server_stamp from "#build/client/plugin/server-stamp";
-import reload from "#build/client/reload";
 import location from "#location";
 import * as esbuild from "esbuild";
 
@@ -74,12 +73,12 @@ export default async function build_client(app: BuildApp) {
     bundle: true,
     format: "esm",
   };
-  const NO_HR = app.config("hotreload.exclude") ?? [];
+  const NO_HR = app.config("livereload.exclude") ?? [];
   const mode_options: esbuild.BuildOptions = app.mode === "development"
     ? {
       banner: {
         js: `const NO_HR=${JSON.stringify(NO_HR)};
-          new EventSource("${reload.path}").addEventListener("change",
+          new EventSource("/esbuild").addEventListener("change",
           () => !NO_HR.includes(location.pathname) && location.reload());`,
       },
       entryNames: "app",
@@ -97,7 +96,8 @@ export default async function build_client(app: BuildApp) {
     const context = await esbuild.context(options);
     await context.watch();
     await context.rebuild();
-    await context.serve({ host: reload.host, port: reload.port });
+    const { host, port } = app.config("livereload");
+    await context.serve({ host, port });
   } else {
     await esbuild.build(options);
   }

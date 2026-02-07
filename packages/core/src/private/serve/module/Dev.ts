@@ -1,4 +1,3 @@
-import reload from "#build/client/reload";
 import Module from "#Module";
 import type NextHandle from "#module/NextHandle";
 import type RequestFacade from "#request/RequestFacade";
@@ -13,6 +12,7 @@ function pass(address: string, request: Request) {
   } as RequestInit);
 }
 
+// https://esbuild.github.io/api/#live-reload
 export default class DevModule extends Module {
   name = "builtin/dev";
   #paths: string[];
@@ -22,14 +22,15 @@ export default class DevModule extends Module {
     super();
 
     const assets = app.assets.map(asset => asset.src);
-    this.#paths = ([reload.path]).concat(assets as string[]);
-    this.#reload_url = `http://${reload.host}:${reload.port}`;
+    const { host, port } = app.config("livereload");
+    this.#paths = ["/esbuild"].concat(assets as string[]);
+    this.#reload_url = `http://${host}:${port}`;
   }
 
   handle(request: RequestFacade, next: NextHandle) {
     const { pathname } = new URL(request.url);
 
-    return this.#paths.includes(pathname as "/esbuild")
+    return this.#paths.includes(pathname)
       ? pass(`${this.#reload_url}${pathname}`, request.original)
       : next(request);
   }

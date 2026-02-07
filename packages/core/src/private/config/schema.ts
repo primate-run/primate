@@ -16,8 +16,10 @@ export default p({
       root: p.string.default("/"),
     },
   },
-  hotreload: {
+  livereload: {
     exclude: p.array(p.string).optional(),
+    host: p.string.default("localhost"),
+    port: p.uint.port().default(6262),
   },
   modules: p.array(p.constructor(Module)).optional(),
   request: {
