@@ -137,16 +137,13 @@ function toSorted<T extends Dict>(d1: T, d2: T, sort: Sort) {
 export default class MemoryDB implements DB {
   #tables: PartialDict<Dict[]> = {};
 
-  #new(name: string) {
-    if (this.#tables[name] !== undefined) return;
-    this.#tables[name] = [];
+  #new(as: As) {
+    if (this.#tables[as.table] !== undefined) return;
+    this.#tables[as.table] = [];
   }
 
-  #drop(name: string) {
-    if (this.#tables[name] === undefined) {
-      // do nothing
-    }
-    delete this.#tables[name];
+  #drop(table: string) {
+    if (this.#tables[table] !== undefined) delete this.#tables[table];
   }
 
   #use(name: string) {
@@ -165,7 +162,7 @@ export default class MemoryDB implements DB {
   close() { }
 
   #next_id(as: As) {
-    const table = this.#use(as.name);
+    const table = this.#use(as.table);
     const size = table.length;
     const pk = assert.defined(as.pk);
     const type = as.types[pk];
@@ -181,7 +178,7 @@ export default class MemoryDB implements DB {
 
   create<O extends Dict>(as: As, record: Dict) {
     assert.nonempty(record, "empty record");
-    const table = this.#use(as.name);
+    const table = this.#use(as.table);
     const pk = as.pk;
 
     let to_insert = record;
@@ -223,7 +220,7 @@ export default class MemoryDB implements DB {
   }): Dict[] | number {
     assert.dict(args.where);
 
-    const table = this.#use(as.name);
+    const table = this.#use(as.table);
     const matches = table.filter(r => match(r, args.where));
 
     if (args.count === true) return matches.length;
@@ -268,7 +265,7 @@ export default class MemoryDB implements DB {
       const r_sort = rel.sort;
       const r_limit = rel.limit;
       const r_fields = rel.fields ?? [];
-      const target = this.#use(target_as.name);
+      const target = this.#use(target_as.table);
 
       function project_rel(row: Dict) {
         if (r_fields.length === 0) return { ...row };
@@ -352,7 +349,7 @@ export default class MemoryDB implements DB {
     assert.nonempty(args.set);
     assert.dict(args.where);
 
-    const table = this.#use(as.name);
+    const table = this.#use(as.table);
     const matched = table.filter(record => match(record, args.where));
     const pk = as.pk;
 
@@ -371,11 +368,11 @@ export default class MemoryDB implements DB {
   delete(as: As, args: { where: DataDict }) {
     assert.nonempty(args.where);
 
-    const table = this.#use(as.name);
+    const table = this.#use(as.table);
     const size_before = table.length;
 
-    this.#tables[as.name] = table.filter(record => !match(record, args.where));
+    this.#tables[as.table] = table.filter(record => !match(record, args.where));
 
-    return size_before - this.#use(as.name).length;
+    return size_before - this.#use(as.table).length;
   }
 }

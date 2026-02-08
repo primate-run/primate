@@ -54,10 +54,6 @@ const OPS: Dict<">" | ">=" | "<" | "<="> = {
 const sql = {
   quote,
 
-  table(as: As) {
-    return quote(as.name);
-  },
-
   selectList(types: Types, columns?: string[]) {
     if (columns === undefined) return "*";
     if (columns.length === 0) throw E.field_required("select");
@@ -99,7 +95,7 @@ const sql = {
   },
 
   select(aliases: Dict<string>, as: As, fields?: string[]) {
-    const alias = aliases[as.name];
+    const alias = aliases[as.table];
     return (fields ?? Object.keys(as.types))
       .map(f => `${alias}.${quote(f)} AS ${alias}_${f}`)
       .join(", ");
@@ -166,6 +162,65 @@ const sql = {
   expandFields(as: As, fields: string[] | undefined, relations: With) {
     const fks = Object.values(relations).flatMap(r => r.reverse ? [r.fk] : []);
     return sql.fields(fields, as.pk, ...fks);
+  },
+
+  nest<T>(
+    as: As,
+    args: { rows: Dict[]; aliases: Dict<string> },
+    relation_args: ReadRelationsArgs,
+    unbind: (type: DataKey, value: unknown) => T,
+  ): Dict[] {
+    if (as.pk === null) throw E.relation_requires_pk("parent");
+
+    const base_alias = args.aliases[as.table];
+    const base_pk_key = `${base_alias}_${as.pk}`;
+    const base_fields = relation_args.fields ?? Object.keys(as.types);
+    const grouped = new Map<unknown, Dict>();
+
+    for (const base_row of args.rows) {
+      const pk_value = base_row[base_pk_key];
+      const relation_entries = Object.entries(relation_args.with);
+
+      if (!grouped.has(pk_value)) {
+        const parent: Dict = {};
+        for (const f of base_fields) {
+          const v = base_row[`${base_alias}_${f}`];
+          if (v == null) continue;
+          parent[f] = unbind(as.types[f], v);
+        }
+        for (const [name, relation] of relation_entries) {
+          parent[name] = relation.kind === "many" ? [] : null;
+        }
+        grouped.set(pk_value, parent);
+      }
+
+      const parent = grouped.get(pk_value)!;
+
+      for (const [name, relation] of relation_entries) {
+        const alias = args.aliases[relation.as.table];
+        const pk = relation.as.pk;
+        if (pk === null) continue;
+
+        const pk_key = `${alias}_${pk}`;
+        if (base_row[pk_key] == null) continue;
+
+        const fields = relation.fields ?? Object.keys(relation.as.types);
+        const row: Dict = {};
+        for (const field of fields) {
+          const v = base_row[`${alias}_${field}`];
+          if (v == null) continue;
+          row[field] = unbind(relation.as.types[field], v);
+        }
+
+        if (relation.kind === "many") {
+          (parent[name] as Dict[]).push(row);
+        } else if (parent[name] === null) {
+          parent[name] = row;
+        }
+      }
+    }
+
+    return [...grouped.values()];
   },
 
   OPS,

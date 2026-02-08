@@ -269,7 +269,7 @@ export default class Store<
 
   get #as() {
     return {
-      name: this.name,
+      table: this.name,
       pk: this.#pk,
       generate_pk: this.#generate_pk,
       types: this.#types,
@@ -280,10 +280,9 @@ export default class Store<
     const db = this.db;
     const name = this.name;
     const schema = this.#schema;
-    const pk = this.#pk;
-    const generate_pk = this.#generate_pk;
+    const as = this.#as;
     return {
-      create: () => db.schema.create(name, schema, pk, generate_pk),
+      create: () => db.schema.create(as, schema),
       delete: () => db.schema.delete(name),
     };
   }
@@ -351,7 +350,7 @@ export default class Store<
 
       const base = {
         as: {
-          name: store.name,
+          table: store.name,
           pk: target_pk,
           types: target_types,
         },

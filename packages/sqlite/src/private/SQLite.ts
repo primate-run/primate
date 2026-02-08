@@ -1,8 +1,5 @@
 import typemap from "#typemap";
-import type {
-  As,
-  DataDict, DB, PK, Sort, Types, With,
-} from "@primate/core/db";
+import type { As, DataDict, DB, Sort, Types, With } from "@primate/core/db";
 import E from "@primate/core/db/error";
 import type { ReadArgs, ReadRelationsArgs } from "@primate/core/db/sql";
 import sql from "@primate/core/db/sql";
@@ -18,6 +15,26 @@ type Binds = Dict<PrimitiveParam>;
 type CMP_OPERATOR = ">" | ">=" | "<" | "<=";
 
 const BIND_BY = "$";
+
+function Q(strings: TemplateStringsArray, ...values: (string | unknown[])[]) {
+  return strings.reduce((result, string, i) => {
+    if (i === values.length) return result + string;
+
+    const value = values[i];
+    let processed: string;
+
+    if (Array.isArray(value)) {
+      processed = value.join(", ");
+    } else if (typeof value === "string") {
+
+      processed = sql.quote(value);
+    } else {
+      throw "Q: use only strings or arrays";
+    }
+
+    return result + string + processed;
+  }, "");
+};
 
 const schema = p({ database: p.string.default(":memory:") });
 
@@ -55,9 +72,9 @@ function u_cmp(field: string, a: string, b: string, op: CMP_OPERATOR) {
   }
 }
 
-function i_cmp(field: string, bind: string, op: ">" | ">=" | "<" | "<=") {
+function i_cmp(field: string, binding: string, op: ">" | ">=" | "<" | "<=") {
   const a = `CAST(${field} AS TEXT)`;
-  const b = `CAST(${bind} AS TEXT)`;
+  const b = `CAST(${binding} AS TEXT)`;
   const a_neg = `(${a} LIKE '-%')`;
   const b_neg = `(${b} LIKE '-%')`;
   const a_abs = `CASE WHEN ${a_neg} THEN SUBSTR(${a}, 2) ELSE ${a} END`;
@@ -117,7 +134,7 @@ function unbind_value(key: DataKey, value: unknown) {
   return typemap[key].unbind(value as never);
 }
 
-async function bind(types: Types, fields: DataDict) {
+async function bind(types: Types, fields: Dict) {
   const out: Binds = {};
 
   for (const [key, value] of Object.entries(fields)) {
@@ -159,7 +176,7 @@ export default class SQLite implements DB {
   }
 
   #query_all(as: As, query: string, binds: Binds) {
-    this.#capture(as.name, query, binds);
+    this.#capture(as.table, query, binds);
     const rows = this.#sql(query).all(binds) as Dict[];
     return rows.map(r => unbind(as.types, r));
   }
@@ -183,26 +200,25 @@ export default class SQLite implements DB {
 
   get schema() {
     return {
-      create: (name: string, store: StoreSchema, pk: PK, pk_generate: boolean) => {
+      create: (as: As, store: StoreSchema) => {
         const columns: string[] = [];
 
         for (const [key, value] of Object.entries(store)) {
           const column_type = get_column(value.datatype);
           const column = `${sql.quote(key)} ${column_type}`;
-          const is_integer = column_type === "INTEGER";
-          if (key === pk) {
-            const generate = pk_generate && is_integer ? " AUTOINCREMENT" : "";
+          const is_int = column_type === "INTEGER";
+          if (key === as.pk) {
+            const generate = as.generate_pk && is_int ? " AUTOINCREMENT" : "";
             columns.push(`${column} PRIMARY KEY${generate}`);
           } else {
             columns.push(column);
           }
         }
 
-        this.#sql(`CREATE TABLE IF NOT EXISTS
-          ${sql.quote(name)} (${columns.join(", ")})`).run();
+        this.#sql(Q`CREATE TABLE IF NOT EXISTS ${as.table} (${columns})`).run();
       },
-      delete: (name: string) => {
-        this.#sql(`DROP TABLE IF EXISTS ${sql.quote(name)}`).run();
+      delete: (table: string) => {
+        this.#sql(Q`DROP TABLE IF EXISTS ${table}`).run();
       },
     };
   }
@@ -306,18 +322,19 @@ export default class SQLite implements DB {
 
     if (columns.length === 0) throw E.field_required("set");
 
-    return `SET ${columns.map(c =>
-      `${sql.quote(c)}=${BIND_BY}s_${c}`).join(", ")}`;
+    const SET = columns.map(c => `${sql.quote(c)}=${BIND_BY}s_${c}`).join(", ");
+
+    return `SET ${SET}`;
   }
 
   async #bind_set(types: Types, set: DataDict) {
     const columns = Object.keys(set);
 
     if (columns.length === 0) throw E.field_required("set");
-    const raw = Object.fromEntries(columns.map(c => [`s_${c}`, set[c]]));
-    const binds = await bind(types, raw);
 
-    return binds;
+    const raw = Object.fromEntries(columns.map(c => [`s_${c}`, set[c]]));
+
+    return await bind(types, raw);
   }
 
   #generate_pk(as: As) {
@@ -327,10 +344,8 @@ export default class SQLite implements DB {
     if (type === "string") return crypto.randomUUID();
 
     if (sql.BIGINT_STRING_TYPES.includes(type)) {
-      const col = sql.quote(pk);
-      const table = sql.quote(as.name);
-      const query = `SELECT ${col} AS v
-        FROM ${table} ORDER BY LENGTH(${col}) DESC, ${col} DESC LIMIT 1`;
+      const query = Q`SELECT ${pk} AS v
+        FROM ${as.table} ORDER BY LENGTH(${pk}) DESC, ${pk} DESC LIMIT 1`;
       const rows = this.#sql(query).all() as { v: string | null }[];
       return rows[0]?.v ? BigInt(rows[0].v) + 1n : 1n;
     }
@@ -338,21 +353,27 @@ export default class SQLite implements DB {
     throw "unreachable";
   }
 
+  #create(record: Dict) {
+    const fields = Object.keys(record);
+    return [
+      fields.map(sql.quote),
+      fields.map(field => `${BIND_BY}${field}`),
+    ];
+  }
+
   async create<O extends Dict>(as: As, record: Dict): Promise<O> {
     assert.dict(record);
 
     const pk = as.pk;
-    const data = record as DataDict;
-    const keys = Object.keys(data);
-    const table = sql.quote(as.name);
+    const table = as.table;
 
     // PK provided or none defined, simple insert
     if (pk === null || pk in record) {
+      const [keys, values] = this.#create(record);
       const query = keys.length > 0
-        ? `INSERT INTO ${table} (${keys.map(sql.quote).join(", ")})
-         VALUES (${keys.map(k => `${BIND_BY}${k}`).join(", ")})`
-        : `INSERT INTO ${table} DEFAULT VALUES`;
-      this.#sql(query).run(await bind(as.types, data));
+        ? Q`INSERT INTO ${as.table} (${keys}) VALUES (${values})`
+        : Q`INSERT INTO ${as.table} DEFAULT VALUES`;
+      this.#sql(query).run(await bind(as.types, record));
       return record as O;
     }
 
@@ -362,12 +383,11 @@ export default class SQLite implements DB {
 
     // integer types, use RETURNING
     if (!sql.BIGINT_STRING_TYPES.includes(type) && type !== "string") {
+      const [keys, values] = this.#create(record);
       const query = keys.length > 0
-        ? `INSERT INTO ${table} (${keys.map(sql.quote).join(", ")})
-         VALUES (${keys.map(k => `${BIND_BY}${k}`).join(", ")})
-         RETURNING ${sql.quote(pk)}`
-        : `INSERT INTO ${table} DEFAULT VALUES RETURNING ${sql.quote(pk)}`;
-      const rows = this.#sql(query).all(await bind(as.types, data)) as Dict[];
+        ? Q`INSERT INTO ${table} (${keys}) VALUES (${values}) RETURNING ${pk}`
+        : Q`INSERT INTO ${table} DEFAULT VALUES RETURNING ${pk}`;
+      const rows = this.#sql(query).all(await bind(as.types, record)) as Dict[];
       const pk_value = unbind_value(type, rows[0][pk]);
       return { ...record, [pk]: pk_value } as O;
     }
@@ -375,9 +395,8 @@ export default class SQLite implements DB {
     // string or bigint, generate manually
     const pk_value = this.#generate_pk(as);
     const to_insert = { ...record, [pk]: pk_value } as DataDict;
-    const insert_keys = Object.keys(to_insert);
-    const query = `INSERT INTO ${table} (${insert_keys.map(sql.quote).join(", ")})
-      VALUES (${insert_keys.map(k => `${BIND_BY}${k}`).join(", ")})`;
+    const [keys, values] = this.#create(to_insert);
+    const query = Q`INSERT INTO ${table} (${keys}) VALUES (${values})`;
     this.#sql(query).run(await bind(as.types, to_insert));
     return to_insert as O;
   }
@@ -420,9 +439,10 @@ export default class SQLite implements DB {
   async #count(as: As, where: DataDict) {
     const WHERE = this.#where(as.types, where);
     const binds = await this.#bind_where(as.types, where);
-    const query = `SELECT COUNT(*) AS n FROM ${sql.table(as)} ${WHERE}`;
+    const table = as.table;
+    const query = `SELECT COUNT(*) AS n FROM ${sql.quote(table)} ${WHERE}`;
 
-    this.#capture(as.name, query, binds);
+    this.#capture(table, query, binds);
 
     const rows = this.#sql(query).all(binds) as { n: bigint }[];
 
@@ -432,7 +452,7 @@ export default class SQLite implements DB {
     const n = rows[0].n;
     assert.bigint(n, `COUNT returned non-bigint: ${typeof n}`);
 
-    if (n > BigInt(Number.MAX_SAFE_INTEGER)) throw E.count_overflow(as.name, n);
+    if (n > BigInt(Number.MAX_SAFE_INTEGER)) throw E.count_overflow(table, n);
 
     return Number(n);
   }
@@ -487,7 +507,6 @@ export default class SQLite implements DB {
 
     for (const row of related) {
       const key = row[by];
-      if (key === null) continue;
       grouped.set(key, grouped.get(key)?.concat(row) ?? [row]);
     }
 
@@ -546,11 +565,13 @@ export default class SQLite implements DB {
       ? ` ORDER BY ${base_order}, ${user_order}`
       : ` ORDER BY ${base_order}`;
 
-    const crit_binds = await this.#bind_where(args.as.types, args.where);
+    const where_binds = await this.#bind_where(args.as.types, args.where);
     const in_binds_bound = await bind(args.as.types, in_binds);
 
     let query: string;
     let binds: Binds;
+
+    const table = args.as.table;
 
     if (per_parent !== undefined) {
       const per_key = `${args.by}__limit__per_parent`;
@@ -563,7 +584,7 @@ export default class SQLite implements DB {
               PARTITION BY ${sql.quote(args.by)}
               ${user_order ? `ORDER BY ${user_order}` : ""}
             ) AS __rn
-          FROM ${sql.table(args.as)}
+          FROM ${sql.quote(table)}
           ${WHERE}
         )
         SELECT ${SELECT}
@@ -573,21 +594,21 @@ export default class SQLite implements DB {
       `;
 
       binds = {
-        ...crit_binds, ...in_binds_bound,
+        ...where_binds, ...in_binds_bound,
         [`${BIND_BY}${per_key}`]: per_parent,
       };
     } else {
-      query = `SELECT ${SELECT} FROM ${sql.table(args.as)} ${WHERE}${ORDER_BY}`;
-      binds = { ...crit_binds, ...in_binds_bound };
+      query = `SELECT ${SELECT} FROM ${sql.quote(table)} ${WHERE}${ORDER_BY}`;
+      binds = { ...where_binds, ...in_binds_bound };
     }
 
     return this.#query_all(args.as, query, binds);
   }
 
   #join(as: As, aliases: Dict<string>, relation: NonNullable<With[string]>) {
-    const parent_alias = aliases[as.name];
-    const alias = aliases[relation.as.name];
-    const table = sql.table(relation.as);
+    const parent_alias = aliases[as.table];
+    const alias = aliases[relation.as.table];
+    const table = sql.quote(relation.as.table);
 
     const by = relation.reverse ? relation.as.pk : relation.fk;
     const parent_by = relation.reverse ? relation.fk : as.pk;
@@ -601,62 +622,6 @@ export default class SQLite implements DB {
     return `LEFT JOIN ${table} ${alias} ON ${left} = ${right}`;
   }
 
-  #nest(as: As,
-    args: { rows: Dict[]; aliases: Dict<string> },
-    relation_args: ReadRelationsArgs): Dict[] {
-    if (as.pk === null) throw E.relation_requires_pk("parent");
-
-    const base_alias = args.aliases[as.name];
-    const base_pk_key = `${base_alias}_${as.pk}`;
-    const base_fields = relation_args.fields ?? Object.keys(as.types);
-    const grouped = new Map<unknown, Dict>();
-
-    for (const base_row of args.rows) {
-      const pk_value = base_row[base_pk_key];
-      const relation_entries = Object.entries(relation_args.with);
-
-      if (!grouped.has(pk_value)) {
-        const parent: Dict = {};
-        for (const f of base_fields) {
-          const v = base_row[`${base_alias}_${f}`];
-          if (v === null || v === undefined) continue;
-          parent[f] = unbind_value(as.types[f], v);
-        }
-        for (const [name, relation] of relation_entries) {
-          parent[name] = relation.kind === "many" ? [] : null;
-        }
-        grouped.set(pk_value, parent);
-      }
-
-      const parent = grouped.get(pk_value) ?? {};
-
-      for (const [name, relation] of relation_entries) {
-        const alias = args.aliases[relation.as.name];
-        const pk = relation.as.pk;
-        if (pk === null) continue;
-
-        const pk_key = `${alias}_${pk}`;
-        if (base_row[pk_key] == null) continue;
-
-        const fields = relation.fields ?? Object.keys(relation.as.types);
-        const row: Dict = {};
-        for (const field of fields) {
-          const v = base_row[`${alias}_${field}`];
-          if (v === null || v === undefined) continue;
-          row[field] = unbind_value(relation.as.types[field], v);
-        }
-
-        if (relation.kind === "many") {
-          (parent[name] as Dict[]).push(row);
-        } else if (parent[name] === null) {
-          parent[name] = row;
-        }
-      }
-    }
-
-    return [...grouped.values()];
-  }
-
   #base_query(as: As, args: {
     fields?: string[];
     where: DataDict;
@@ -667,15 +632,16 @@ export default class SQLite implements DB {
     const WHERE = this.#where(as.types, args.where);
     const ORDER_BY = sql.orderBy(as.types, args.sort);
     const LIMIT = sql.limit(args.limit);
-    return `SELECT ${SELECT} FROM ${sql.table(as)} ${WHERE}${ORDER_BY}${LIMIT}`;
+    const table = sql.quote(as.table);
+    return `SELECT ${SELECT} FROM ${table} ${WHERE}${ORDER_BY}${LIMIT}`;
   }
 
   async #read_joined(as: As, args: ReadRelationsArgs): Promise<Dict[]> {
     if (as.pk === null) throw E.relation_requires_pk("parent");
 
-    const tables = [as.name, ...Object.values(args.with).map(r => r.as.name)];
+    const tables = [as.table, ...Object.values(args.with).map(r => r.as.table)];
     const aliases = sql.aliases(tables);
-    const alias = aliases[as.name];
+    const alias = aliases[as.table];
     const fields = sql.fields(args.fields, as.pk);
 
     // subquery for limited parents
@@ -699,9 +665,9 @@ export default class SQLite implements DB {
     const binds = await this.#bind_where(as.types, args.where);
     const rows = this.#sql(query).all(binds) as Dict[];
 
-    this.#capture(as.name, query, binds);
+    this.#capture(as.table, query, binds);
 
-    return this.#nest(as, { rows, aliases }, args);
+    return sql.nest(as, { rows, aliases }, args, unbind_value);
   }
 
   async update(as: As, args: { set: DataDict; where: DataDict }) {
@@ -712,7 +678,7 @@ export default class SQLite implements DB {
     const where_binds = await this.#bind_where(as.types, args.where);
     const SET = this.#set(args.set);
     const set_binds = await this.#bind_set(as.types, args.set);
-    const query = `UPDATE ${sql.table(as)} ${SET} ${WHERE}`;
+    const query = `UPDATE ${sql.quote(as.table)} ${SET} ${WHERE}`;
 
     return this.#query_run(query, { ...where_binds, ...set_binds });
   }
@@ -721,7 +687,7 @@ export default class SQLite implements DB {
     assert.nonempty(args.where);
 
     const WHERE = this.#where(as.types, args.where);
-    const query = `DELETE FROM ${sql.table(as)} ${WHERE}`;
+    const query = `DELETE FROM ${sql.quote(as.table)} ${WHERE}`;
     const binds = await this.#bind_where(as.types, args.where);
 
     return this.#query_run(query, binds);

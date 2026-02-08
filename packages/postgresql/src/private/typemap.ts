@@ -61,18 +61,6 @@ const typemap: TypeMap<ColumnTypes> = {
     },
   },
   i8: number("SMALLINT"),
-  primary: {
-    bind(value) {
-      if (typeof value === "string" && Number.isInteger(+value)) {
-        return Number(value);
-      }
-      throw new Error(`\`${value}\` is not a valid primary key value`);
-    },
-    column: "SERIAL PRIMARY KEY",
-    unbind(value) {
-      return String(value);
-    },
-  },
   string: identity("TEXT"),
   time: identity("TIME"),
   u128: {

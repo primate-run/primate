@@ -1,5 +1,4 @@
 import type As from "#db/As";
-import type PK from "#db/PK";
 import type Sort from "#db/Sort";
 import type With from "#db/With";
 import type { Dict, MaybePromise } from "@rcompat/type";
@@ -7,8 +6,7 @@ import type { StoreSchema } from "pema";
 
 export default interface DB {
   schema: {
-    create(name: string, schema: StoreSchema, pk: PK, generate_pk: boolean):
-      MaybePromise<void>;
+    create(as: As, schema: StoreSchema): MaybePromise<void>;
     delete(name: string): MaybePromise<void>;
   };
 
