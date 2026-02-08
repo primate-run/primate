@@ -81,12 +81,27 @@ type Projected<T, S extends Select<T> | undefined> =
   ? X<Pick<T, S[number]>>
   : T;
 
-type PrimaryKeyValue<T extends StoreInput> =
+const NUMBER_KEYS = [
+  "u8", "u16", "u32",
+  "i8", "i16", "i32",
+  "f32", "f64"] as const;
+const BIGINT_KEYS = ["u64", "u128", "i64", "i128"] as const;
+
+type NumberKey = typeof NUMBER_KEYS[number];
+type BigIntKey = typeof BIGINT_KEYS[number];
+
+const is_number_key = (d: string): d is NumberKey =>
+  (NUMBER_KEYS as readonly string[]).includes(d);
+
+const is_bigint_key = (d: string): d is BigIntKey =>
+  (BIGINT_KEYS as readonly string[]).includes(d);
+
+type PKV<T extends StoreInput> =
   T[PrimaryKeyField<T>] extends PrimaryKey<infer P>
   ? P extends Storable<infer D>
   ? D extends "string" ? string
-  : D extends "u16" | "u32" ? number
-  : D extends "u64" | "u128" ? bigint
+  : D extends NumberKey ? number
+  : D extends BigIntKey ? bigint
   : string | number | bigint
   : string | number | bigint
   : string | number | bigint;
@@ -158,16 +173,37 @@ function guard_options<
   }
 }
 
-function is_number_key(k: string) {
-  return k === "u8"
-    || k === "u16" || k === "u32"
-    || k === "i8" || k === "i16" || k === "i32"
-    || k === "f32" || k === "f64";
+const INT_LIMITS = {
+  u8: [0, 255],
+  u16: [0, 65535],
+  u32: [0, 4294967295],
+
+  i8: [-128, 127],
+  i16: [-32768, 32767],
+  i32: [-2147483648, 2147483647],
+} as const;
+
+const BIGINT_LIMITS = {
+  u64: [0n, (1n << 64n) - 1n],
+  i64: [-(1n << 63n), (1n << 63n) - 1n],
+
+  u128: [0n, (1n << 128n) - 1n],
+  i128: [-(1n << 127n), (1n << 127n) - 1n],
+} as const;
+
+function assert_number_value(key: string, datatype: NumberKey, value: number) {
+  if (!is.finite(value)) throw E.where_invalid_value(key, value);
+
+  if (datatype in INT_LIMITS) {
+    if (!is.safeint(value)) throw E.where_invalid_value(key, value);
+    const [min, max] = INT_LIMITS[datatype as keyof typeof INT_LIMITS];
+    if (value < min || value > max) throw E.where_invalid_value(key, value);
+  }
 }
 
-function is_bigint_key(k: string) {
-  return k === "u64" || k === "u128"
-    || k === "i64" || k === "i128";
+function assert_bigint_value(key: string, datatype: BigIntKey, value: bigint) {
+  const [min, max] = BIGINT_LIMITS[datatype];
+  if (value < min || value > max) throw E.where_invalid_value(key, value);
 }
 
 const registry = new Map<Dict, Store<any>>();
@@ -195,24 +231,26 @@ export default class Store<
   #db?: DB;
   #name?: string;
   #pk: PK;
+  #generate_pk: boolean;
   #fks: Map<string, ForeignKey<Storable<DataKey>>>;
   #relations: R;
 
   declare readonly Schema: Schema<T>;
 
   constructor(input: T, config: Config<R> = {}) {
-    const { pk, fks, schema } = parse(input);
+    const { pk, generate_pk, fks, schema } = parse(input);
 
     this.#schema = schema;
-    this.#type = new StoreType(schema as ExtractSchema<T>);
+    this.#type = new StoreType(schema as ExtractSchema<T>, pk);
     this.#types = Object.fromEntries(
       Object.entries(schema).map(([key, value]) => [key, value.datatype]),
     );
     this.#name = config.name;
     this.#db = config.db;
     this.#pk = pk;
+    this.#generate_pk = generate_pk;
     this.#fks = fks;
-    this.#relations = (config.relations ?? {}) as R;
+    this.#relations = config.relations ?? {} as R;
     this.#nullables = new Set(
       Object.entries(this.#type.properties as Dict<{ nullable: boolean }>)
         .filter(([, v]) => v.nullable)
@@ -233,6 +271,7 @@ export default class Store<
     return {
       name: this.name,
       pk: this.#pk,
+      generate_pk: this.#generate_pk,
       types: this.#types,
     };
   }
@@ -242,8 +281,9 @@ export default class Store<
     const name = this.name;
     const schema = this.#schema;
     const pk = this.#pk;
+    const generate_pk = this.#generate_pk;
     return {
-      create: () => db.schema.create(name, schema, pk),
+      create: () => db.schema.create(name, schema, pk, generate_pk),
       delete: () => db.schema.delete(name),
     };
   }
@@ -310,7 +350,11 @@ export default class Store<
       const target_types = store.types;
 
       const base = {
-        as: { name: store.name, pk: target_pk, types: target_types },
+        as: {
+          name: store.name,
+          pk: target_pk,
+          types: target_types,
+        },
         kind: relation.type,
         fk: relation.fk,
         reverse: "reverse" in relation && relation.reverse === true,
@@ -360,25 +404,27 @@ export default class Store<
 
           if (datatype === "string" || datatype === "time") {
             if (!STRING_OPS.includes(op)) throw E.operator_unknown(k, op);
-            if (!is.string(op_val)) throw E.operator_type_string(k, op, op_val);
+            if (!is.string(op_val)) throw E.wrong_type("string", k, op_val, op);
             continue;
           }
 
           if (is_number_key(datatype)) {
             if (!NUMBER_OPS.includes(op)) throw E.operator_unknown(k, op);
-            if (!is.number(op_val)) throw E.operator_type_number(k, op, op_val);
+            if (!is.number(op_val)) throw E.wrong_type("number", k, op_val, op);
+            assert_number_value(k, datatype, op_val);
             continue;
           }
 
           if (is_bigint_key(datatype)) {
             if (!BIGINT_OPS.includes(op)) throw E.operator_unknown(k, op);
-            if (!is.bigint(op_val)) throw E.operator_type_bigint(k, op, op_val);
+            if (!is.bigint(op_val)) throw E.wrong_type("bigint", k, op_val, op);
+            assert_bigint_value(k, datatype, op_val);
             continue;
           }
 
           if (datatype === "datetime") {
             if (!DATE_OPS.includes(op)) throw E.operator_unknown(k, op);
-            if (!is.date(op_val)) throw E.operator_type_date(k, op, op_val);
+            if (!is.date(op_val)) throw E.wrong_type("date", k, op_val, op);
             continue;
           }
 
@@ -392,27 +438,29 @@ export default class Store<
       switch (datatype) {
         case "string":
         case "time":
-          if (!is.string(value)) throw E.where_invalid_value(k, value);
+          if (!is.string(value)) throw E.wrong_type("string", k, value);
           continue;
         case "u8": case "u16": case "u32":
         case "i8": case "i16": case "i32":
         case "f32": case "f64":
-          if (!is.number(value)) throw E.where_invalid_value(k, value);
+          if (!is.number(value)) throw E.wrong_type("number", k, value);
+          assert_number_value(k, datatype, value);
           continue;
         case "u64": case "u128": case "i64": case "i128":
-          if (!is.bigint(value)) throw E.where_invalid_value(k, value);
+          if (!is.bigint(value)) throw E.wrong_type("bigint", k, value);
+          assert_bigint_value(k, datatype, value);
           continue;
         case "datetime":
-          if (!is.date(value)) throw E.where_invalid_value(k, value);
+          if (!is.date(value)) throw E.wrong_type("date", k, value);
           continue;
         case "boolean":
-          if (!is.boolean(value)) throw E.where_invalid_value(k, value);
+          if (!is.boolean(value)) throw E.wrong_type("boolean", k, value);
           continue;
         case "url":
-          if (!is.url(value)) throw E.where_invalid_value(k, value);
+          if (!is.url(value)) throw E.wrong_type("url", k, value);
           continue;
         case "blob":
-          if (!is.blob(value)) throw E.where_invalid_value(k, value);
+          if (!is.blob(value)) throw E.wrong_type("blob", k, value);
           continue;
         default:
           throw E.where_invalid_value(k, value);
@@ -472,7 +520,7 @@ export default class Store<
   /**
    * Check whether a record with the given primary key exists.
    */
-  async has(pkv: PrimaryKeyValue<T>) {
+  async has(pkv: PKV<T>) {
     if (this.#pk === null) throw E.pk_undefined(this.name);
     return (await this.count({ where: { [this.#pk]: pkv } as Where<T> })) === 1;
   }
@@ -484,19 +532,19 @@ export default class Store<
    * - With `select`: returns a projected record.
    * - With `with`: augments the record with relations.
    */
-  get(pkv: PrimaryKeyValue<T>): Promise<Schema<T>>;
+  get(pkv: PKV<T>): Promise<Schema<T>>;
   get<
     const S extends Select<Schema<T>> | undefined = undefined,
     const W extends With<R> | undefined = undefined,
   >(
-    pkv: PrimaryKeyValue<T>,
+    pkv: PKV<T>,
     options: {
       select?: S;
       with?: W;
     },
   ): Promise<WithRelations<Projected<Schema<T>, S>, R, W>>;
   async get(
-    pkv: PrimaryKeyValue<T>,
+    pkv: PKV<T>,
     options?: { select?: readonly string[]; with?: With<R> },
   ) {
     const pk = this.#pk;
@@ -541,19 +589,19 @@ export default class Store<
   /**
    * Try to get a record by primary key.
    */
-  try(pkv: PrimaryKeyValue<T>): Promise<Schema<T> | undefined>;
+  try(pkv: PKV<T>): Promise<Schema<T> | undefined>;
   try<
     const S extends Select<Schema<T>> | undefined = undefined,
     const W extends With<R> | undefined = undefined,
   >(
-    pkv: PrimaryKeyValue<T>,
+    pkv: PKV<T>,
     options: {
       select?: S;
       with?: W;
     },
   ): Promise<WithRelations<Projected<Schema<T>, S>, R, W> | undefined>;
   async try(
-    pkv: PrimaryKeyValue<T>,
+    pkv: PKV<T>,
     options?: { select?: readonly string[]; with?: With<R> },
   ) {
     try {
@@ -572,25 +620,7 @@ export default class Store<
 
     this.#parse_insert(record);
 
-    const types = this.#types;
-    const pk = this.#pk;
-    let to_insert = record;
-
-    if (pk !== null && !(pk in record)) {
-      const last_id = await this.db.lastId({ name: this.name, pk, types });
-      const type = types[pk];
-
-      const pk_value =
-        type === "string"
-          ? crypto.randomUUID()
-          : ["u128", "u64"].includes(type)
-            ? (BigInt(last_id) as bigint) + 1n
-            : (last_id as number) + 1;
-
-      to_insert = { ...record, [pk]: pk_value };
-    }
-
-    const entries = Object.entries(to_insert);
+    const entries = Object.entries(record);
     const to_parse = Object.fromEntries(
       entries.filter(([k, v]) => !(v === null && this.#nullables.has(k))),
     );
@@ -601,7 +631,7 @@ export default class Store<
   /**
    * Update a single record by primary key.
    */
-  update(pkv: PrimaryKeyValue<T>, options: { set: $Set<T> }): Promise<void>;
+  update(pkv: PKV<T>, options: { set: $Set<T> }): Promise<void>;
 
   /**
    * Update multiple records (requires non-empty where).
@@ -609,7 +639,7 @@ export default class Store<
   update(options: { where?: Where<T>; set: $Set<T> }): Promise<number>;
 
   async update(
-    arg0: PrimaryKeyValue<T> | { where?: Where<T>; set: $Set<T> },
+    arg0: PKV<T> | { where?: Where<T>; set: $Set<T> },
     options?: { set: $Set<T> },
   ) {
     const by_pk = options !== undefined;
@@ -639,7 +669,7 @@ export default class Store<
     } as $Set<T>;
 
     if (by_pk) {
-      return this.#update_1(arg0 as PrimaryKeyValue<T>, parsed);
+      return this.#update_1(arg0 as PKV<T>, parsed);
     }
 
     const where = (arg0 as { where?: Where<T>; set: $Set<T> }).where;
@@ -648,7 +678,7 @@ export default class Store<
     return this.#update_n((where ?? {}) as Where<T>, parsed);
   }
 
-  async #update_1(pkv: PrimaryKeyValue<T>, set: $Set<T>) {
+  async #update_1(pkv: PKV<T>, set: $Set<T>) {
     const pk = this.#pk;
     if (pk === null) throw E.pk_undefined(this.name);
 
@@ -670,14 +700,14 @@ export default class Store<
   /**
    * Delete a single record by primary key.
    */
-  delete(pkv: PrimaryKeyValue<T>): Promise<void>;
+  delete(pkv: PKV<T>): Promise<void>;
 
   /**
    * Delete multiple records (requires non-empty where).
    */
   delete(options: { where: Where<T> }): Promise<number>;
 
-  async delete(pkv_or_options: PrimaryKeyValue<T> | { where: Where<T> }) {
+  async delete(pkv_or_options: PKV<T> | { where: Where<T> }) {
     if (is.dict(pkv_or_options)) {
       const where = pkv_or_options.where as Where<T>;
       if (!is.dict(where) || is.empty(where)) throw E.where_required();
@@ -685,10 +715,10 @@ export default class Store<
       return this.#delete_n(where);
     }
 
-    return this.#delete_1(pkv_or_options as PrimaryKeyValue<T>);
+    return this.#delete_1(pkv_or_options as PKV<T>);
   }
 
-  async #delete_1(pkv: PrimaryKeyValue<T>) {
+  async #delete_1(pkv: PKV<T>) {
     const pk = this.#pk;
     if (pk === null) throw E.pk_undefined(this.name);
 

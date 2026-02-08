@@ -4,8 +4,10 @@ import type Sort from "#db/Sort";
 import type Types from "#db/Types";
 import type With from "#db/With";
 import E from "#db/error";
+import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
+import type { DataKey } from "pema";
 
 export interface ReadArgs {
   where: DataDict;
@@ -17,6 +19,10 @@ export interface ReadArgs {
 export interface ReadRelationsArgs extends ReadArgs {
   with: With;
 }
+
+const UNSIGNED_BIGINT_TYPES = ["u64", "u128"];
+const SIGNED_BIGINT_TYPES = ["i128"];
+const BIGINT_STRING_TYPES = [...UNSIGNED_BIGINT_TYPES, ...SIGNED_BIGINT_TYPES];
 
 function normalize_sort(key: string, direction: "asc" | "desc") {
   if (!is.string(direction)) throw E.sort_invalid();
@@ -111,10 +117,61 @@ const sql = {
     return out;
   },
 
-  hasWith(args: ReadArgs & { with?: With }): args is ReadRelationsArgs {
+  withed(args: ReadArgs & { with?: With }): args is ReadRelationsArgs {
     return args.with !== undefined;
   },
+
+  joinable(parent: As, relations: With): boolean {
+    const rels = Object.values(relations);
+    if (rels.length !== 1) return false;
+
+    const r = rels[0];
+    if (parent.pk === null) return false;
+
+    return (
+      !r.reverse &&
+      r.kind === "many" &&
+      r.limit === undefined &&
+      r.sort === undefined &&
+      Object.keys(r.where).length === 0 &&
+      r.as.pk !== null
+    );
+  },
+
+  unbind<R>(
+    types: Types,
+    row: Dict,
+    unbinder: (key: DataKey, value: unknown) => R,
+  ) {
+    const out: Dict<R> = {};
+
+    for (const [key, value] of Object.entries(row)) {
+      if (value === null) continue;
+
+      assert.true(key in types, `unexpected column: ${key}`);
+
+      out[key] = unbinder(types[key], value);
+    }
+
+    return out;
+  },
+
+  fields(base: string[] | undefined, ...add: (string | null)[]) {
+    if (base === undefined) return undefined;
+    const set = new Set(base);
+    for (const f of add) if (f !== null) set.add(f);
+    return [...set];
+  },
+
+  expandFields(as: As, fields: string[] | undefined, relations: With) {
+    const fks = Object.values(relations).flatMap(r => r.reverse ? [r.fk] : []);
+    return sql.fields(fields, as.pk, ...fks);
+  },
+
   OPS,
+
+  BIGINT_STRING_TYPES,
+  UNSIGNED_BIGINT_TYPES,
 };
 
 export default sql;

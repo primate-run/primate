@@ -32,6 +32,7 @@ import u8 from "#u8";
 import uint from "#uint";
 import union from "#union";
 import unknown from "#unknown";
+import url from "#url";
 
 /**
 * Create a schema.
@@ -71,5 +72,6 @@ schema.u8 = u8;
 schema.uint = uint;
 schema.union = union;
 schema.unknown = unknown;
+schema.url = url;
 
 export default schema;

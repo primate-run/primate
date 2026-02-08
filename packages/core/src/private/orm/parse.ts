@@ -10,21 +10,23 @@ const is_fk = (x: unknown): x is ForeignKey<any> => x instanceof ForeignKey;
 
 export default function parse(input: StoreInput) {
   let pk: string | null = null;
+  let generate_pk = true;
   const fks = new Map<string, ForeignKey<Storable<DataKey>>>();
   const schema: Dict<Storable<DataKey>> = {};
 
-  for (const [name, field] of Object.entries(input)) {
-    if (is_pk(field)) {
-      if (pk !== null) throw fail("multiple primary keys: {0}, {1}", pk, name);
-      pk = name;
-      schema[name] = field.type;
-    } else if (is_fk(field)) {
-      fks.set(name, field);
-      schema[name] = field.type;
+  for (const [key, value] of Object.entries(input)) {
+    if (is_pk(value)) {
+      if (pk !== null) throw fail("multiple primary keys: {0}, {1}", pk, key);
+      pk = key;
+      generate_pk = value.generate;
+      schema[key] = value.type;
+    } else if (is_fk(value)) {
+      fks.set(key, value);
+      schema[key] = value.type;
     } else {
-      schema[name] = field;
+      schema[key] = value;
     }
   }
 
-  return { pk, fks, schema };
+  return { pk, generate_pk, fks, schema };
 }

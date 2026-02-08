@@ -14,12 +14,21 @@ function coded<T extends Dict<(...args: any[]) => Error>>(fns: T): T {
   ) as T;
 }
 
-const db_missing = () => fail("database missing");
-const store_name_required = () => fail("store name required");
-const unregistered_schema = () => fail("no store registered for schema");
-const record_not_found = (field: string, value: string | number | bigint) =>
-  fail("no record with {0} = {1}", field, value);
-const key_duplicate = (key: string) => fail("key {0} already exists", key);
+function db_missing() {
+  return fail("database missing");
+}
+function store_name_required() {
+  return fail("store name required");
+}
+function unregistered_schema() {
+  return fail("no store registered for schema");
+}
+function record_not_found(field: string, x: string | number | bigint) {
+  return fail("no record with {0} = {1}", field, x);
+}
+function key_duplicate(key: string) {
+  return fail("key {0} already exists", key);
+}
 
 const STORE = coded({
   db_missing,
@@ -32,13 +41,20 @@ const STORE = coded({
 const pk_undefined = (store: string) => fail("{0}: store has no primary key", store);
 const pk_immutable = (pk: string) => fail("primary key {0} cannot be updated", pk);
 const pk_duplicate = (pk: string) => fail("primary key {0} already exists", pk);
-const pk_invalid = (pk: unknown) => fail("pk must be string, number or bigint, got {0}", typeof pk);
+function pk_invalid(pk: unknown) {
+  return fail("pk must be string, number or bigint, got {0}", kind_of(pk));
+}
+
+function pk_required(table: string) {
+  return fail("pk is required, table {0} has generate_pk=false", table);
+}
 
 const PK = coded({
   pk_undefined,
   pk_immutable,
   pk_duplicate,
   pk_invalid,
+  pk_required,
 });
 
 type Context = "select" | "where" | "sort" | "insert" | "set";
@@ -68,26 +84,28 @@ const NULL = coded({
   null_not_allowed,
 });
 
+function kind_of(x: unknown) {
+  if (x === null) return "null";
+  if (x instanceof Date) return "Date";
+  if (x instanceof URL) return "URL";
+  if (x instanceof Blob) return "Blob";
+  return typeof x;
+}
+
+function wrong_type(
+  type: "string" | "number" | "bigint" | "boolean" | "url" | "date" | "blob",
+  field: string,
+  got: unknown,
+  op = "value",
+) {
+  return fail("{0}: {1} requires {2}, got {3}", field, op, type, kind_of(got));
+}
+
 function operator_unknown(field: string, operator: string) {
   return fail("{0}: unknown operator {1}", field, operator);
 }
 function operator_empty(field: string) {
   return fail("{0}: empty operator", field);
-}
-function operator_type(type: "string" | "number" | "bigint" | "date") {
-  return `{0}: {1} requires ${type}, got {2}`;
-}
-function operator_type_string(field: string, op: string, got: unknown) {
-  return fail(operator_type("string"), field, op, typeof got);
-}
-function operator_type_number(field: string, op: string, got: unknown) {
-  return fail(operator_type("number"), field, op, typeof got);
-}
-function operator_type_bigint(field: string, op: string, got: unknown) {
-  return fail(operator_type("bigint"), field, op, typeof got);
-}
-function operator_type_date(field: string, op: string, got: unknown) {
-  return fail(operator_type("date"), field, op, typeof got);
 }
 function operator_scalar(field: string) {
   return fail("{0}: operator requires scalar value", field);
@@ -96,26 +114,26 @@ function operator_scalar(field: string) {
 const OPERATOR = coded({
   operator_unknown,
   operator_empty,
-  operator_type_string,
-  operator_type_number,
-  operator_type_bigint,
-  operator_type_date,
+  wrong_type,
   operator_scalar,
 });
 
 const sort_empty = () => fail("empty sort");
 const sort_invalid = () => fail("sort invalid");
-const sort_invalid_value = (field: string, value: unknown) =>
-  fail("{0}: invalid sort value, received {1}", field, typeof value);
+function sort_invalid_value(field: string, x: unknown) {
+  return fail("{0}: invalid sort value, received {1}", field, kind_of(x));
+}
 const select_empty = () => fail("empty select");
 const select_invalid = () => fail("invalid select");
 const limit_invalid = () => fail("invalid limit");
-const select_invalid_value = (index: number, value: unknown) =>
-  fail("select[{0}]: must be string, received {1}", index, typeof value);
+function select_invalid_value(index: number, x: unknown) {
+  return fail("select[{0}]: must be string, received {1}", index, kind_of(x));
+}
 const where_required = () => fail("empty where");
 const where_invalid = () => fail("where invalid");
-const where_invalid_value = (field: string, value: unknown) =>
-  fail("{0}: invalid where value, received {1}", field, typeof value);
+function where_invalid_value(field: string, x: unknown) {
+  return fail("{0}: invalid where value, received {1}", field, kind_of(x));
+}
 const set_empty = () => fail("empty set on update");
 
 const QUERY = coded({
@@ -145,10 +163,16 @@ const option_unknown = (opt: string) => fail("unknown option {0}", opt);
 const identifier_invalid = (name: string) => fail("invalid identifier {0}", name);
 const count_with_invalid = () => fail("count and with are mutually exclusive");
 
+function count_overflow(table: string, count: unknown) {
+  return fail("{0}: count overflow, received {1} (max {2})",
+    table, count, Number.MAX_SAFE_INTEGER);
+}
+
 const MISC = coded({
   option_unknown,
   identifier_invalid,
   count_with_invalid,
+  count_overflow,
 });
 
 const errors = {

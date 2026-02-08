@@ -217,6 +217,7 @@ export default <D extends DB>(db: D) => {
   const ProfileSchema = {
     id: key.primary(p.string),
     bio: p.string,
+    url: p.url.optional(),
     author_id: key.foreign(p.string),
   };
 
@@ -297,7 +298,11 @@ export default <D extends DB>(db: D) => {
         await Article.insert({ title: "John Second Post", author_id: jid });
         await Article.insert({ title: "Bob Only Post", author_id: bid });
 
-        await Profile.insert({ bio: "John is a writer", author_id: jid });
+        await Profile.insert({
+          bio: "John is a writer",
+          url: new URL("https://example.com/john"),
+          author_id: jid,
+        });
 
         const ts = ["foo a", "foo c", "foo d", "foo e", "foo f", "foo g"];
         for (const title of ts) await Article.insert({ title, author_id: jid });
@@ -417,6 +422,23 @@ export default <D extends DB>(db: D) => {
     const user = await UserB.insert({ name: "Test" });
     assert(user.id).type<bigint>();
     assert(await UserB.has(user.id)).true();
+  });
+
+  const ManualUser = new Store({
+    id: key.primary(p.string, { generate: false }),
+    name: p.string,
+  }, { db, name: "manual_user" });
+
+  $store("insert: generate=false requires PK", ManualUser, async assert => {
+    await throws(assert, Code.pk_required, () => {
+      return ManualUser.insert({ name: "Test" });
+    });
+  });
+
+  $store("insert: generate=false accepts provided PK", ManualUser, async assert => {
+    const user = await ManualUser.insert({ id: "manual-id", name: "Test" });
+    assert(user.id).equals("manual-id");
+    assert(await ManualUser.has("manual-id")).true();
   });
 
   $store("insert: defaults apply", User, async assert => {
@@ -1151,7 +1173,7 @@ export default <D extends DB>(db: D) => {
       id: string;
       name: string;
       articles: { id: string; title: string }[];
-      profile: null | { id: string; bio: string; author_id: string };
+      profile: null | { id: string; bio: string; url?: URL; author_id: string };
     }[]>();
 
     // parents must *not* be filtered by relation where
@@ -1200,7 +1222,7 @@ export default <D extends DB>(db: D) => {
       // profile: one => null or full record, FK must point back
       if (author.profile !== null) {
         assert(Object.keys(author.profile).toSorted()).equals(
-          ["author_id", "bio", "id"].toSorted(),
+          ["author_id", "bio", "id", "url"].toSorted(),
         );
         assert(author.profile.author_id).equals(author.id);
       }
@@ -1408,11 +1430,11 @@ export default <D extends DB>(db: D) => {
       return Type.find({ where: { date: { $gt: new Date() } as any } });
     });
 
-    await throws(assert, Code.operator_type_number, () => {
+    await throws(assert, Code.wrong_type, () => {
       return Type.find({ where: { u8: { $gt: "nope" } as any } });
     });
 
-    await throws(assert, Code.operator_type_date, () => {
+    await throws(assert, Code.wrong_type, () => {
       return Type.find({ where: { date: { $before: "nope" } as any } });
     });
   });
@@ -1587,6 +1609,32 @@ export default <D extends DB>(db: D) => {
     });
   });
 
+  $user("find: $like: literal percent sign", async assert => {
+    await User.insert({ name: "100% complete" });
+    await User.insert({ name: "100 complete" });
+
+    const got = await User.find({
+      where: { name: { $like: "100\\% complete" } },
+      select: ["name"],
+    });
+
+    assert(got.length).equals(1);
+    assert(got[0].name).equals("100% complete");
+  });
+
+  $user("find: $like: literal underscore", async assert => {
+    await User.insert({ name: "file_name" });
+    await User.insert({ name: "file1name" });
+
+    const got = await User.find({
+      where: { name: { $like: "file\\_name" } },
+      select: ["name"],
+    });
+
+    assert(got.length).equals(1);
+    assert(got[0].name).equals("file_name");
+  });
+
   $rel("with + select (no id)", async assert => {
     const rows = await Author.find({
       select: ["name"],
@@ -1603,6 +1651,21 @@ export default <D extends DB>(db: D) => {
     assert(john.articles.length > 0).true();
   });
 
+  $rel("with: relation fields are decoded (URL)", async assert => {
+    const [first] = await Author.find({ where: { name: "John" } });
+
+    const john = await Author.get(first.id, {
+      with: { profile: true },
+    });
+
+    assert(john.profile).not.null();
+
+    // this is the whole point: driver must unbind it
+    assert(john.profile!.url).type<URL>();
+    assert(john.profile!.url instanceof URL).true();
+    assert(john.profile!.url?.href).equals("https://example.com/john");
+  });
+
   $rel("reverse one: with + select (no author_id) still loads relation",
     async assert => {
       const [row] = await Article.find({ select: ["id"] });
@@ -1615,6 +1678,90 @@ export default <D extends DB>(db: D) => {
       assert("author_id" in got).false(); // stripped
       assert(got.author).not.null();
     });
+
+  $rel("with: joined relations decode URL fields (base + rel)", async assert => {
+    const ParentSchema = {
+      id: key.primary(p.string),
+      name: p.string,
+      url: p.url.optional(),
+    };
+
+    const ChildSchema = {
+      id: key.primary(p.string),
+      parent_id: key.foreign(p.string),
+      url: p.url.optional(),
+    };
+
+    const Parent = new Store(ParentSchema, {
+      db,
+      name: "j_parent",
+      relations: {
+        children: relation.many(ChildSchema, "parent_id"),
+      },
+    });
+
+    const Child = new Store(ChildSchema, {
+      db,
+      name: "j_child",
+      relations: {
+        parent: relation.one(ParentSchema, "parent_id", { reverse: true }),
+      },
+    });
+
+    await Parent.collection.create();
+    await Child.collection.create();
+
+    try {
+      const p0 = await Parent.insert({
+        name: "P0",
+        url: new URL("https://example.com/parent"),
+      });
+
+      await Child.insert({
+        parent_id: p0.id,
+        url: new URL("https://example.com/joined"),
+      });
+
+      // IMPORTANT: force joined path + projection that omits pk, but still must join.
+      const [got] = await Parent.find({
+        where: { id: p0.id },
+        select: ["url"],
+        with: { children: true },
+      });
+
+      assert(got).defined();
+
+      // pk must not leak
+      assert("id" in got).false();
+
+      // ---- base assertion (should fail if joined base isn't unbound/decoded)
+      assert(got.url).type<URL>();
+      assert(got.url instanceof URL).true();
+      assert(got.url!.href).equals("https://example.com/parent");
+
+      // ---- relation assertion (should fail if joined relation isn't unbound/decoded)
+      assert(Array.isArray(got.children)).true();
+      assert(got.children.length).equals(1);
+
+      const c0 = got.children[0];
+      assert(c0.url).type<URL>();
+      assert(c0.url instanceof URL).true();
+      assert(c0.url!.href).equals("https://example.com/joined");
+    } finally {
+      await Child.collection.delete();
+      await Parent.collection.delete();
+    }
+  });
+
+  $rel("find: limit applies to parent rows, not joined rows", async assert => {
+    const authors = await Author.find({
+      limit: 2,
+      sort: { name: "asc" },
+      with: { articles: true },
+    });
+
+    assert(authors.length).equals(2);
+  });
 
   for (const c of BAD_WHERE) {
     bad_where(c.label, () => ({ base: c.base, with: c.with }), c.expected);

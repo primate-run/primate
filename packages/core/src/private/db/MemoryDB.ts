@@ -1,5 +1,4 @@
 import type As from "#db/As";
-import type AsPK from "#db/AsPK";
 import type DB from "#db/DB";
 import type DataDict from "#db/DataDict";
 import type Sort from "#db/Sort";
@@ -23,11 +22,14 @@ function comparable(x: unknown) {
 };
 
 function like_re(pattern: string, flags = "") {
-  // SQL LIKE: % = any chars (incl newline), _ = single char (incl newline)
   return new RegExp(
     "^" + escape_re(pattern)
+      .replace(/\\%/g, "<<PERCENT>>")
+      .replace(/\\_/g, "<<UNDERSCORE>>")
       .replace(/%/g, "[\\s\\S]*")
-      .replace(/_/g, "[\\s\\S]") +
+      .replace(/_/g, "[\\s\\S]")
+      .replace(/<<PERCENT>>/g, "%")
+      .replace(/<<UNDERSCORE>>/g, "_") +
     "$", flags);
 }
 
@@ -162,21 +164,41 @@ export default class MemoryDB implements DB {
   // noop
   close() { }
 
+  #next_id(as: As) {
+    const table = this.#use(as.name);
+    const size = table.length;
+    const pk = assert.defined(as.pk);
+    const type = as.types[pk];
+
+    if (type === "string") {
+      return crypto.randomUUID();
+    } else if (["u64", "u128", "i64", "i128"].includes(type)) {
+      return size === 0 ? 0n : table[size - 1][pk] as bigint + 1n;
+    } else {
+      return size === 0 ? 0 : table[size - 1][pk] as number + 1;
+    }
+  }
+
   create<O extends Dict>(as: As, record: Dict) {
     assert.nonempty(record, "empty record");
-
     const table = this.#use(as.name);
     const pk = as.pk;
 
-    if (pk !== null) {
-      const type = record[pk];
-      if (!PK_TYPES.includes(typeof type)) throw E.pk_invalid(type);
-      if (table.find(stored => stored[pk] === type)) throw E.pk_duplicate(pk);
+    let to_insert = record;
+
+    if (pk !== null && !(pk in record)) {
+      if (as.generate_pk === false) throw E.pk_required(pk);
+      to_insert = { ...record, [pk]: this.#next_id(as) };
     }
 
-    table.push({ ...record });
+    if (pk !== null) {
+      const pkv = to_insert[pk];
+      if (!PK_TYPES.includes(typeof pkv)) throw E.pk_invalid(pkv);
+      if (table.find(stored => stored[pk] === pkv)) throw E.pk_duplicate(pk);
+    }
 
-    return record as MaybePromise<O>;
+    table.push({ ...to_insert });
+    return to_insert as MaybePromise<O>;
   }
 
   read(as: As, args: {
@@ -355,12 +377,5 @@ export default class MemoryDB implements DB {
     this.#tables[as.name] = table.filter(record => !match(record, args.where));
 
     return size_before - this.#use(as.name).length;
-  }
-
-  lastId(as: AsPK): number | bigint {
-    const table = this.#use(as.name);
-    if (table.length === 0) return 0;
-
-    return table[table.length - 1][as.pk] as number | bigint;
   }
 }

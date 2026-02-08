@@ -23,13 +23,13 @@ test.ended(() => db.close());
 async function $(body: () => Promise<void>) {
   db.schema.create("users", {
     id: p.u32, name: p.string, age: p.u8,
-  }, "id");
+  }, "id", false);
   db.schema.create("posts", {
     id: p.u32, user_id: p.u32, title: p.string,
-  }, "id");
+  }, "id", false);
   db.schema.create("transactions", {
     id: p.u64, amount: p.u128, memo: p.string,
-  }, "id");
+  }, "id", false);
   await body();
   db.schema.delete("users");
   db.schema.delete("posts");

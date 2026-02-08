@@ -1,5 +1,4 @@
 import type As from "#db/As";
-import type AsPK from "#db/AsPK";
 import type PK from "#db/PK";
 import type Sort from "#db/Sort";
 import type With from "#db/With";
@@ -8,7 +7,8 @@ import type { StoreSchema } from "pema";
 
 export default interface DB {
   schema: {
-    create(name: string, description: StoreSchema, pk: PK): MaybePromise<void>;
+    create(name: string, schema: StoreSchema, pk: PK, generate_pk: boolean):
+      MaybePromise<void>;
     delete(name: string): MaybePromise<void>;
   };
 
@@ -36,6 +36,4 @@ export default interface DB {
   }): MaybePromise<number>;
 
   delete(as: As, args: { where: Dict }): MaybePromise<number>;
-
-  lastId(as: AsPK): MaybePromise<number | bigint>;
 }
