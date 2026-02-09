@@ -8,6 +8,7 @@ import log from "#log";
 import dict from "@rcompat/dict";
 import type { FileRef } from "@rcompat/fs";
 import fs from "@rcompat/fs";
+import { s_config } from "#app/Facade";
 
 const no_config = (config?: Config) =>
   config === undefined || dict.empty(config);
@@ -23,7 +24,7 @@ const get_config = async (root: FileRef) => {
   const config = await find_config(root);
   if (config !== undefined) {
     try {
-      const imported = await config.import("default");
+      const imported = (await config.import("default"))[s_config];
 
       if (no_config(imported)) throw fail("empty config file at {0}", config);
 

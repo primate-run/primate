@@ -1,4 +1,5 @@
 import App from "#App";
+import { s_config } from "#app/Facade";
 import type Asset from "#asset/Asset";
 import type Font from "#asset/Font";
 import type Script from "#asset/Script";
@@ -123,7 +124,7 @@ export default class ServeApp extends App {
   #i18n_config?: I18NConfig;
   constructor(rootfile: string, init: ServeInit) {
     const dir = fs.ref(rootfile).directory;
-    super(dir, init.config, {
+    super(dir, init.facade[s_config], {
       mode: init.mode,
       target: init.target,
       dir: dir.path,
@@ -136,7 +137,7 @@ export default class ServeApp extends App {
     this.#serve_assets = init.assets;
     this.#pages = init.pages;
 
-    const http = this.#init.config.http;
+    const http = this.#init.facade[s_config].http;
     this.#i18n_config = init.i18n_config;
 
     this.set(s_http, {
@@ -285,7 +286,7 @@ export default class ServeApp extends App {
         code: inline ? code : "",
         inline,
         integrity: await hash(code),
-        src: fs.join(this.#init.config.http.static.root, src ?? "").path,
+        src: fs.join(this.config("http.static.root"), src ?? "").path,
         type,
       });
     }

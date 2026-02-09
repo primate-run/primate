@@ -1,4 +1,4 @@
-import type Config from "#config/Config";
+import type AppFacade from "#app/Facade";
 import type I18NConfig from "#i18n/Config";
 import type Mode from "#Mode";
 import type SessionConfig from "#session/Config";
@@ -15,7 +15,7 @@ type ServeInit = {
   };
   views?: [string, Import][];
   stores?: [string, Import][];
-  config: Config;
+  facade: AppFacade;
   routes: [string, { default: any }][];
   mode: Mode;
   target: string;

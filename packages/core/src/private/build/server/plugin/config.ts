@@ -5,7 +5,7 @@ export default function plugin_server_config(app: BuildApp): Plugin {
   return {
     name: "primate/server/config",
     setup(build) {
-      build.onResolve({ filter: /^app:config$/ }, async () => {
+      build.onResolve({ filter: /^(\$:app)$/ }, async () => {
         const ts = app.path.config.join("app.ts");
         if (await ts.exists()) return { path: ts.path };
 

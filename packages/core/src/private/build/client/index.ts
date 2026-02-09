@@ -20,7 +20,7 @@ const write_bootstrap = async (app: BuildApp, mode: string) => {
     ` : `
     const session_config = undefined;
     `}
-    import config from "app:config";
+    import facade from "$:app";
 
     ${app.i18n_active ? `
     import i18n from "app:config:i18n";
@@ -31,7 +31,7 @@ const write_bootstrap = async (app: BuildApp, mode: string) => {
 
     const app = await serve(import.meta.url, {
       assets,
-      config,
+      facade,
       routes,
       views,
       pages,

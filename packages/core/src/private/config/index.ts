@@ -1,3 +1,6 @@
+import AppFacade from "#app/Facade";
 import schema from "#config/schema";
 
-export default (config: typeof schema.input = {}) => schema.parse(config);
+export default (input: typeof schema.input = {}) =>
+  new AppFacade(schema.parse(input));
+;

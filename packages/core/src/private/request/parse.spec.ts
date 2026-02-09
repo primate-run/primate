@@ -1,9 +1,10 @@
 import config from "#config/index";
 import parse from "#request/parse";
 import dict from "@rcompat/dict";
+import { s_config } from "#app/Facade";
 
 const app = {
-  get: (config_key: string) => dict.get(config(), config_key),
+  get: (config_key: string) => dict.get(config()[s_config], config_key),
 };
 const verbs = ["get", "post", "put", "delete"];
 const _r = await (async () => {

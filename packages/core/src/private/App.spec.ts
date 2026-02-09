@@ -1,10 +1,11 @@
+import { s_config } from "#app/Facade";
 import BuildApp from "#build/App";
 import config from "#config/index";
 import fs from "@rcompat/fs";
 import test from "@rcompat/test";
 
 const root = fs.ref("/test/project");
-const test_config = config({ modules: [] });
+const test_config = config({ modules: [] })[s_config];
 
 class TestApp extends BuildApp {
   constructor() {
