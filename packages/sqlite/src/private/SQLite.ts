@@ -15,26 +15,7 @@ type Binds = Dict<PrimitiveParam>;
 type CMP_OPERATOR = ">" | ">=" | "<" | "<=";
 
 const BIND_BY = "$";
-
-function Q(strings: TemplateStringsArray, ...values: (string | unknown[])[]) {
-  return strings.reduce((result, string, i) => {
-    if (i === values.length) return result + string;
-
-    const value = values[i];
-    let processed: string;
-
-    if (Array.isArray(value)) {
-      processed = value.join(", ");
-    } else if (typeof value === "string") {
-
-      processed = sql.quote(value);
-    } else {
-      throw "Q: use only strings or arrays";
-    }
-
-    return result + string + processed;
-  }, "");
-};
+const Q = sql.Q;
 
 const schema = p({ database: p.string.default(":memory:") });
 
@@ -322,9 +303,7 @@ export default class SQLite implements DB {
 
     if (columns.length === 0) throw E.field_required("set");
 
-    const SET = columns.map(c => `${sql.quote(c)}=${BIND_BY}s_${c}`).join(", ");
-
-    return `SET ${SET}`;
+    return Q`SET ${columns.map(c => `${sql.quote(c)}=${BIND_BY}s_${c}`)}`;
   }
 
   async #bind_set(types: Types, set: DataDict) {
@@ -545,7 +524,7 @@ export default class SQLite implements DB {
     }
     const where = this.#where(args.as.types, args.where);
     const where_part = where ? where.slice("WHERE ".length) : "";
-    const in_part = `${sql.quote(args.by)} IN (${placeholders.join(", ")})`;
+    const in_part = Q`${args.by} IN (${placeholders})`;
 
     const where_parts = where_part
       ? [`(${where_part})`, `(${in_part})`]

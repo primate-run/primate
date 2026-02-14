@@ -1,4 +1,7 @@
 import MySQL from "#MySQL";
-import test from "@primate/core/db/test";
 
-test(new MySQL({ database: "primate", username: "primate" }));
+import core_test from "@primate/core/db/test";
+
+type Work = () => Promise<unknown>;
+
+core_test(new MySQL({ database: "primate", username: "primate" }));

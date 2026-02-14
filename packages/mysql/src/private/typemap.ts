@@ -69,7 +69,7 @@ const typemap: TypeMap<ColumnTypes> = {
     },
   },
   i8: number("TINYINT"),
-  primary: {
+  /*primary: {
     bind(value) {
       if (is.numeric(value)) return Number(value);
       throw new Error(`\`${value}\` is not a valid primary key value`);
@@ -78,7 +78,7 @@ const typemap: TypeMap<ColumnTypes> = {
     unbind(value) {
       return String(value);
     },
-  },
+  },*/
   string: identity("TEXT"),
   time: identity("TEXT"),
   u128: {

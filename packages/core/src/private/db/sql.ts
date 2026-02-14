@@ -23,6 +23,7 @@ export interface ReadRelationsArgs extends ReadArgs {
 const UNSIGNED_BIGINT_TYPES = ["u64", "u128"];
 const SIGNED_BIGINT_TYPES = ["i128"];
 const BIGINT_STRING_TYPES = [...UNSIGNED_BIGINT_TYPES, ...SIGNED_BIGINT_TYPES];
+const INT_TYPES = ["u8", "u16", "u32", "i8", "i16", "i32"];
 
 function normalize_sort(key: string, direction: "asc" | "desc") {
   if (!is.string(direction)) throw E.sort_invalid();
@@ -41,6 +42,26 @@ function quote(name: string) {
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) throw E.identifier_invalid(name);
   return `\`${name}\``;
 }
+
+function Q(strings: TemplateStringsArray, ...values: (string | unknown[])[]) {
+  return strings.reduce((result, string, i) => {
+    if (i === values.length) return result + string;
+
+    const value = values[i];
+    let processed: string;
+
+    if (Array.isArray(value)) {
+      processed = value.join(", ");
+    } else if (typeof value === "string") {
+
+      processed = sql.quote(value);
+    } else {
+      throw "Q: use only strings or arrays";
+    }
+
+    return result + string + processed;
+  }, "");
+};
 
 const OPS: Dict<">" | ">=" | "<" | "<="> = {
   $gt: ">",
@@ -223,10 +244,13 @@ const sql = {
     return [...grouped.values()];
   },
 
+  Q,
+
   OPS,
 
   BIGINT_STRING_TYPES,
   UNSIGNED_BIGINT_TYPES,
+  INT_TYPES,
 };
 
 export default sql;

@@ -262,8 +262,7 @@ export default class PostgreSQL implements DB {
           }
         }
 
-        const q = Q`CREATE TABLE IF NOT EXISTS ${as.table} (${columns})`;
-        await this.#sql(q);
+        await this.#sql(Q`CREATE TABLE IF NOT EXISTS ${as.table} (${columns})`);
       },
 
       delete: async (name: string) => {
