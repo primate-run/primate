@@ -113,7 +113,10 @@ import Article from "#store/Article";
 export default store({
   id: key.primary(p.string),
   name: p.string,
-  articles: relation.many(Article, "author_id"),
+}, {
+  relations: {
+    articles: relation.many(Article, "author_id"),
+  },
 });
 ```
 
@@ -126,8 +129,11 @@ import Profile from "#store/Profile";
 export default store({
   id: key.primary(p.string),
   name: p.string,
-  profile: relation.one(Profile, "user_id"),
-});
+}, {
+  relations: {
+    profile: relation.one(Profile, "user_id"),
+  },
+));
 ```
 
 ### Reverse relations
@@ -141,7 +147,10 @@ export default store({
   id: key.primary(p.u32),
   title: p.string,
   author_id: key.foreign(User),
-  author: relation.one(User, "author_id", { reverse: true }),
+}, {
+  relations: {
+    author: relation.one(User, "author_id", { reverse: true }),
+  },
 });
 ```
 

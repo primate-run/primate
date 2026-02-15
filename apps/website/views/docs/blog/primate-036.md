@@ -49,12 +49,16 @@ Define relations using the `orm/relation` export:
 
 ```ts
 import relation from "primate/orm/relation";
+import store from "primate/orm/store";
 
-const User = new Store({
+const User = store({
   id: key.primary(p.string),
   name: p.string,
-  articles: relation.many(Article, "author_id"),
-  profile: relation.one(Profile, "user_id"),
+}, {
+  relations: {
+    articles: relation.many(Article, "author_id"),
+    profile: relation.one(Profile, "user_id"),
+  },
 });
 ```
 
@@ -66,11 +70,16 @@ while `relation.one` defines a one-to-one relationship.
 For reverse relations (querying from the *many* side back to the *one* side):
 
 ```ts
-const Article = new Store({
+import store from "primate/orm/store";
+
+const Article = store({
   id: key.primary(p.u32),
   title: p.string,
   author_id: key.foreign(User),
-  author: relation.one(User, "author_id", { reverse: true }),
+}, {
+  relations: {
+    author: relation.one(User, "author_id", { reverse: true }),
+  },
 });
 ```
 
