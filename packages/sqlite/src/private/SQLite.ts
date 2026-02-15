@@ -1,7 +1,9 @@
 import typemap from "#typemap";
-import type { As, DataDict, DB, Sort, Types, With } from "@primate/core/db";
+import type {
+  As, DataDict, DB, PK, ReadArgs, ReadRelationsArgs, Sort, Types, With,
+} from "@primate/core/db";
+import common from "@primate/core/db";
 import E from "@primate/core/db/error";
-import type { ReadArgs, ReadRelationsArgs } from "@primate/core/db/sql";
 import sql from "@primate/core/db/sql";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
@@ -85,8 +87,8 @@ function cmp_expr(field: string, key: string, op: string, datatype: string) {
   const sql_op = sql.OPS[op];
   assert.defined(sql_op, E.operator_unknown(field, op));
 
-  if (sql.BIGINT_STRING_TYPES.includes(datatype)) {
-    const cmp = sql.UNSIGNED_BIGINT_TYPES.includes(datatype)
+  if (common.BIGINT_STRING_TYPES.includes(datatype)) {
+    const cmp = common.UNSIGNED_BIGINT_TYPES.includes(datatype)
       ? u_cmp(field, `CAST(${field} AS TEXT)`, `CAST(${rhs} AS TEXT)`, sql_op)
       : i_cmp(field, rhs, sql_op);
     return `(${cmp})`;
@@ -107,11 +109,11 @@ function get_column(key: DataKey) {
   return typemap[key].column;
 }
 
-function bind_value(key: DataKey, value: unknown) {
+function bind_one(key: DataKey, value: unknown) {
   return value === null ? null : typemap[key].bind(value as never);
 }
 
-function unbind_value(key: DataKey, value: unknown) {
+function unbind_one(key: DataKey, value: unknown) {
   return typemap[key].unbind(value as never);
 }
 
@@ -122,16 +124,15 @@ async function bind(types: Types, fields: Dict) {
     if (is.dict(value)) throw E.operator_scalar(key);
 
     const raw = key.startsWith("s_") ? key.slice(2) : key;
-    const base = raw.split("__")[0];
 
-    out[`${BIND_BY}${key}`] = await bind_value(types[base], value);
+    out[`${BIND_BY}${key}`] = await bind_one(types[raw.split("__")[0]], value);
   }
 
   return out;
 }
 
 function unbind(types: Types, row: Dict) {
-  return sql.unbind<ReturnType<typeof unbind_value>>(types, row, unbind_value);
+  return sql.unbind<ReturnType<typeof unbind_one>>(types, row, unbind_one);
 }
 
 export default class SQLite implements DB {
@@ -322,10 +323,10 @@ export default class SQLite implements DB {
 
     if (type === "string") return crypto.randomUUID();
 
-    if (sql.BIGINT_STRING_TYPES.includes(type)) {
+    if (common.BIGINT_STRING_TYPES.includes(type)) {
       const query = Q`SELECT ${pk} AS v
         FROM ${as.table} ORDER BY LENGTH(${pk}) DESC, ${pk} DESC LIMIT 1`;
-      const rows = this.#sql(query).all() as { v: string | null }[];
+      const rows = this.#sql(query).all() as { v: PK }[];
       return rows[0]?.v ? BigInt(rows[0].v) + 1n : 1n;
     }
 
@@ -361,13 +362,13 @@ export default class SQLite implements DB {
     const type = as.types[pk];
 
     // integer types, use RETURNING
-    if (!sql.BIGINT_STRING_TYPES.includes(type) && type !== "string") {
+    if (!common.BIGINT_STRING_TYPES.includes(type) && type !== "string") {
       const [keys, values] = this.#create(record);
       const query = keys.length > 0
         ? Q`INSERT INTO ${table} (${keys}) VALUES (${values}) RETURNING ${pk}`
         : Q`INSERT INTO ${table} DEFAULT VALUES RETURNING ${pk}`;
       const rows = this.#sql(query).all(await bind(as.types, record)) as Dict[];
-      const pk_value = unbind_value(type, rows[0][pk]);
+      const pk_value = unbind_one(type, rows[0][pk]);
       return { ...record, [pk]: pk_value } as O;
     }
 
@@ -406,7 +407,7 @@ export default class SQLite implements DB {
 
     if (args.count === true) return this.#count(as, args.where);
 
-    if (sql.withed(args)) {
+    if (common.withed(args)) {
       return sql.joinable(as, args.with)
         ? this.#read_joined(as, args)
         : this.#read_phased(as, args);
@@ -443,9 +444,9 @@ export default class SQLite implements DB {
   }
 
   async #read_phased(as: As, args: ReadRelationsArgs) {
-    const fields = sql.expandFields(as, args.fields, args.with);
+    const fields = common.expand(as, args.fields, args.with);
     const rows = await this.#read_base(as, { ...args, fields });
-    const out = rows.map(row => sql.project(row, args.fields));
+    const out = rows.map(row => common.project(row, args.fields));
 
     for (const [table, relation] of Object.entries(args.with)) {
       await this.#attach_relation(as, { rows, out, table, relation });
@@ -499,8 +500,8 @@ export default class SQLite implements DB {
 
       const rows = grouped.get(join_value) ?? [];
       args.out[i][args.table] = is_many
-        ? rows.map(r => sql.project(r, relation.fields))
-        : rows[0] ? sql.project(rows[0], relation.fields) : null;
+        ? rows.map(r => common.project(r, relation.fields))
+        : rows[0] ? common.project(rows[0], relation.fields) : null;
     }
   }
 
@@ -535,7 +536,7 @@ export default class SQLite implements DB {
     const fields = args.fields !== undefined && args.fields.length > 0
       ? args.fields
       : all_columns;
-    const SELECT = sql.selectList(args.as.types, sql.fields(fields, args.by));
+    const SELECT = sql.columns(args.as.types, common.fields(fields, args.by));
 
     const base_order = `${sql.quote(args.by)} ASC`;
     const user_order = sql.orderBy(args.as.types, args.sort)
@@ -607,7 +608,7 @@ export default class SQLite implements DB {
     sort?: Sort;
     limit?: number;
   }) {
-    const SELECT = sql.selectList(as.types, args.fields);
+    const SELECT = sql.columns(as.types, args.fields);
     const WHERE = this.#where(as.types, args.where);
     const ORDER_BY = sql.orderBy(as.types, args.sort);
     const LIMIT = sql.limit(args.limit);
@@ -621,14 +622,14 @@ export default class SQLite implements DB {
     const tables = [as.table, ...Object.values(args.with).map(r => r.as.table)];
     const aliases = sql.aliases(tables);
     const alias = aliases[as.table];
-    const fields = sql.fields(args.fields, as.pk);
+    const fields = common.fields(args.fields, as.pk);
 
     // subquery for limited parents
     const SELECT = [
-      sql.select(aliases, as, fields),
+      sql.aliased(aliases, as, fields),
       ...Object.values(args.with).map(relation => {
-        return sql.select(aliases, relation.as, relation.as.pk !== null
-          ? sql.fields(relation.fields, relation.as.pk)
+        return sql.aliased(aliases, relation.as, relation.as.pk !== null
+          ? common.fields(relation.fields, relation.as.pk)
           : relation.fields);
 
       }),
@@ -646,7 +647,7 @@ export default class SQLite implements DB {
 
     this.#capture(as.table, query, binds);
 
-    return sql.nest(as, { rows, aliases }, args, unbind_value);
+    return sql.nest(as, { rows, aliases }, args, unbind_one);
   }
 
   async update(as: As, args: { set: DataDict; where: DataDict }) {

@@ -1,5 +1,5 @@
 import type As from "#db/As";
-import type DataDict from "#db/DataDict";
+import type ReadRelationsArgs from "#db/ReadRelationsArgs";
 import type Sort from "#db/Sort";
 import type Types from "#db/Types";
 import type With from "#db/With";
@@ -8,22 +8,6 @@ import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
 import type { DataKey } from "pema";
-
-export interface ReadArgs {
-  where: DataDict;
-  fields?: string[];
-  sort?: Sort;
-  limit?: number;
-}
-
-export interface ReadRelationsArgs extends ReadArgs {
-  with: With;
-}
-
-const UNSIGNED_BIGINT_TYPES = ["u64", "u128"];
-const SIGNED_BIGINT_TYPES = ["i128"];
-const BIGINT_STRING_TYPES = [...UNSIGNED_BIGINT_TYPES, ...SIGNED_BIGINT_TYPES];
-const INT_TYPES = ["u8", "u16", "u32", "i8", "i16", "i32"];
 
 function normalize_sort(key: string, direction: "asc" | "desc") {
   if (!is.string(direction)) throw E.sort_invalid();
@@ -75,13 +59,6 @@ const OPS: Dict<">" | ">=" | "<" | "<="> = {
 const sql = {
   quote,
 
-  selectList(types: Types, columns?: string[]) {
-    if (columns === undefined) return "*";
-    if (columns.length === 0) throw E.field_required("select");
-    assert_columns(types, columns);
-    return columns.map(quote).join(", ");
-  },
-
   orderBy(types: Types, sort?: Sort, alias?: string) {
     if (sort === undefined) return "";
     const columns = Object.entries(sort);
@@ -115,27 +92,23 @@ const sql = {
     return result;
   },
 
-  select(aliases: Dict<string>, as: As, fields?: string[]) {
+  aliased(aliases: Dict<string>, as: As, fields?: string[]) {
     const alias = aliases[as.table];
     return (fields ?? Object.keys(as.types))
       .map(f => `${alias}.${quote(f)} AS ${alias}_${f}`)
       .join(", ");
   },
 
+  columns(types: Types, columns?: string[]) {
+    if (columns === undefined) return "*";
+    if (columns.length === 0) throw E.field_required("select");
+    assert_columns(types, columns);
+    return columns.map(quote).join(", ");
+  },
+
   bindKey(column: string, op: string) {
     const suffix = op.startsWith("$") ? op.slice(1) : op;
     return `${column}__${suffix}`;
-  },
-
-  project(row: Dict, fields?: string[]) {
-    if (fields === undefined || fields.length === 0) return { ...row };
-    const out: Dict = {};
-    for (const k of fields) if (k in row) out[k] = row[k];
-    return out;
-  },
-
-  withed(args: ReadArgs & { with?: With }): args is ReadRelationsArgs {
-    return args.with !== undefined;
   },
 
   joinable(parent: As, relations: With): boolean {
@@ -171,18 +144,6 @@ const sql = {
     }
 
     return out;
-  },
-
-  fields(base: string[] | undefined, ...add: (string | null)[]) {
-    if (base === undefined) return undefined;
-    const set = new Set(base);
-    for (const f of add) if (f !== null) set.add(f);
-    return [...set];
-  },
-
-  expandFields(as: As, fields: string[] | undefined, relations: With) {
-    const fks = Object.values(relations).flatMap(r => r.reverse ? [r.fk] : []);
-    return sql.fields(fields, as.pk, ...fks);
   },
 
   nest<T>(
@@ -243,14 +204,9 @@ const sql = {
 
     return [...grouped.values()];
   },
-
   Q,
 
   OPS,
-
-  BIGINT_STRING_TYPES,
-  UNSIGNED_BIGINT_TYPES,
-  INT_TYPES,
 };
 
 export default sql;

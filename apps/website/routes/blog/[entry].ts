@@ -10,4 +10,4 @@ route.get(async request => {
   return response.view(BlogEntry, { content: html, meta }, {
     placeholders: request.get("placeholders"),
   });
-});;
+});

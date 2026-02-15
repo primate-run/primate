@@ -23,8 +23,8 @@ function store_name_required() {
 function unregistered_schema() {
   return fail("no store registered for schema");
 }
-function record_not_found(field: string, x: string | number | bigint) {
-  return fail("no record with {0} = {1}", field, x);
+function record_not_found(field: string, value: string | number | bigint) {
+  return fail("no record with {0} = {1}", field, value);
 }
 function key_duplicate(key: string) {
   return fail("key {0} already exists", key);
@@ -38,15 +38,20 @@ const STORE = coded({
   key_duplicate,
 });
 
-const pk_undefined = (store: string) => fail("{0}: store has no primary key", store);
-const pk_immutable = (pk: string) => fail("primary key {0} cannot be updated", pk);
-const pk_duplicate = (pk: string) => fail("primary key {0} already exists", pk);
+function pk_undefined(store: string) {
+  return fail("{0}: store has no primary key", store);
+}
+function pk_immutable(pk: string) {
+  return fail("primary key {0} cannot be updated", pk);
+}
+function pk_duplicate(pk: string) {
+  return fail("primary key {0} already exists", pk);
+}
 function pk_invalid(pk: unknown) {
   return fail("pk must be string, number or bigint, got {0}", kind_of(pk));
 }
-
 function pk_required(table: string) {
-  return fail("pk is required, table {0} has generate_pk=false", table);
+  return fail("pk is required but has generate={0} in table {1}", false, table);
 }
 
 const PK = coded({
@@ -59,14 +64,21 @@ const PK = coded({
 
 type Context = "select" | "where" | "sort" | "insert" | "set";
 
-const field_unknown = (field: string, context: Context) =>
-  fail("{0}: unknown field on {1}", field, context);
-const field_duplicate = (field: string, context: Context) =>
-  fail("{0}: duplicate field on {1}", field, context);
-const field_required = (op: string) => fail("{0}: at least one field required", op);
-const field_undefined = (field: string, context: Context) => fail("{0}: undefined value on {1}", field, context);
-const fields_unknown = (fields: string[]) =>
-  fail("unknown fields {0}", fields.join(", "));
+function field_unknown(field: string, context: Context) {
+  return fail("{0}: unknown field on {1}", field, context);
+}
+function field_duplicate(field: string, context: Context) {
+  return fail("{0}: duplicate field on {1}", field, context);
+}
+function field_required(operator: string) {
+  return fail("{0}: at least one field required", operator);
+}
+function field_undefined(field: string, context: Context) {
+  return fail("{0}: undefined value on {1}", field, context);
+}
+function fields_unknown(fields: string[]) {
+  return fail("unknown fields {0}", fields.join(", "));
+}
 
 const FIELD = coded({
   field_unknown,
@@ -118,23 +130,39 @@ const OPERATOR = coded({
   operator_scalar,
 });
 
-const sort_empty = () => fail("empty sort");
-const sort_invalid = () => fail("sort invalid");
-function sort_invalid_value(field: string, x: unknown) {
-  return fail("{0}: invalid sort value, received {1}", field, kind_of(x));
+function sort_empty() {
+  return fail("empty sort");
 }
-const select_empty = () => fail("empty select");
-const select_invalid = () => fail("invalid select");
-const limit_invalid = () => fail("invalid limit");
+function sort_invalid() {
+  return fail("sort invalid");
+}
+function sort_invalid_value(field: string, value: unknown) {
+  return fail("{0}: invalid sort value, received {1}", field, kind_of(value));
+}
+function select_empty() {
+  return fail("empty select");
+}
+function select_invalid() {
+  return fail("invalid select");
+}
+function limit_invalid() {
+  return fail("invalid limit");
+}
 function select_invalid_value(index: number, x: unknown) {
   return fail("select[{0}]: must be string, received {1}", index, kind_of(x));
 }
-const where_required = () => fail("empty where");
-const where_invalid = () => fail("where invalid");
-function where_invalid_value(field: string, x: unknown) {
-  return fail("{0}: invalid where value, received {1}", field, kind_of(x));
+function where_required() {
+  return fail("where required");
 }
-const set_empty = () => fail("empty set on update");
+function where_invalid() {
+  return fail("where invalid");
+}
+function where_invalid_value(field: string, value: unknown) {
+  return fail("{0}: invalid where value, received {1}", field, kind_of(value));
+}
+function set_empty() {
+  return fail("empty set on update");
+}
 
 const QUERY = coded({
   sort_empty,
@@ -150,19 +178,27 @@ const QUERY = coded({
   limit_invalid,
 });
 
-const relation_unknown = (rel: string) => fail("unknown relation {0}", rel);
-const relation_requires_pk = (type: "target" | "parent") =>
-  fail("relation loading requires {0} primary key", type);
+function relation_unknown(relation: string) {
+  return fail("unknown relation {0}", relation);
+}
+function relation_requires_pk(type: "target" | "parent") {
+  return fail("relation loading requires {0} primary key", type);
+}
 
 const RELATION = coded({
   relation_unknown,
   relation_requires_pk,
 });
 
-const option_unknown = (opt: string) => fail("unknown option {0}", opt);
-const identifier_invalid = (name: string) => fail("invalid identifier {0}", name);
-const count_with_invalid = () => fail("count and with are mutually exclusive");
-
+function option_unknown(option: string) {
+  return fail("unknown option {0}", option);
+}
+function identifier_invalid(identifier: string) {
+  return fail("invalid identifier {0}", identifier);
+}
+function count_with_invalid() {
+  return fail("count and with are mutually exclusive");
+}
 function count_overflow(table: string, count: unknown) {
   return fail("{0}: count overflow, received {1} (max {2})",
     table, count, Number.MAX_SAFE_INTEGER);

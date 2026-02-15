@@ -4,12 +4,13 @@ import PrimaryKey from "#orm/PrimaryKey";
 import type { StoreInput } from "#orm/types";
 import type { Dict } from "@rcompat/type";
 import type { DataKey, Storable } from "pema";
+import type PK from "#db/PK";
 
 const is_pk = (x: unknown): x is PrimaryKey<any> => x instanceof PrimaryKey;
 const is_fk = (x: unknown): x is ForeignKey<any> => x instanceof ForeignKey;
 
 export default function parse(input: StoreInput) {
-  let pk: string | null = null;
+  let pk: PK = null;
   let generate_pk = true;
   const fks = new Map<string, ForeignKey<Storable<DataKey>>>();
   const schema: Dict<Storable<DataKey>> = {};

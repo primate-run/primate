@@ -56,18 +56,6 @@ const typemap: TypeMap<ColumnTypes> = {
   i32: identity("INT"),
   i64: identity("LONG"),
   i8: identity("INT"),
-  primary: {
-    bind(value) {
-      if (typeof value === "string") {
-        return new ObjectId(value);
-      }
-      throw new Error(`\`${value}\` is not a valid primary key value`);
-    },
-    column: "PRIMARY",
-    unbind(value) {
-      return String(value);
-    },
-  },
   string: identity("STRING"),
   time: identity("TIME"),
   u128: {

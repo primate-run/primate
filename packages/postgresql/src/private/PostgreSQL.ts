@@ -1,7 +1,9 @@
 import typemap from "#typemap";
-import type { As, DataDict, DB, Sort, Types, With } from "@primate/core/db";
+import type {
+  As, DataDict, DB, PK, ReadArgs, ReadRelationsArgs, Sort, Types, With,
+} from "@primate/core/db";
+import common from "@primate/core/db";
 import E from "@primate/core/db/error";
-import type { ReadArgs, ReadRelationsArgs } from "@primate/core/db/sql";
 import sql from "@primate/core/db/sql";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
@@ -277,9 +279,9 @@ export default class PostgreSQL implements DB {
 
     if (type === "string") return crypto.randomUUID();
 
-    if (sql.BIGINT_STRING_TYPES.includes(type)) {
+    if (common.BIGINT_STRING_TYPES.includes(type)) {
       const q = Q`SELECT MAX((${pk})::numeric)::text AS v FROM ${as.table}`;
-      const rows = await this.#sql(q) as { v: string | null }[];
+      const rows = await this.#sql(q) as { v: PK }[];
       return rows[0]?.v ? BigInt(rows[0].v) + 1n : 1n;
     }
 
@@ -380,7 +382,7 @@ export default class PostgreSQL implements DB {
 
     if (args.count === true) return this.#count(as, args.where);
 
-    if (sql.withed(args)) {
+    if (common.withed(args)) {
       return sql.joinable(as, args.with)
         ? this.#read_joined(as, args)
         : this.#read_phased(as, args);
@@ -427,9 +429,9 @@ export default class PostgreSQL implements DB {
     const alias = aliases[as.table];
     const r_alias = aliases[relation.as.table];
 
-    const fields = sql.fields(args.fields, as.pk) ?? Object.keys(as.types);
-    const r_fields = sql.fields(relation.fields, relation.fk, relation.as.pk) ??
-      Object.keys(relation.as.types);
+    const fields = common.fields(args.fields, as.pk) ?? Object.keys(as.types);
+    const r_fields = common.fields(relation.fields, relation.fk, relation.as.pk)
+      ?? Object.keys(relation.as.types);
 
     const SELECT = [
       ...fields.map(f => `${alias}.${quote(f)} AS ${alias}_${f}`),
@@ -456,9 +458,9 @@ export default class PostgreSQL implements DB {
   }
 
   async #read_phased(as: As, args: ReadRelationsArgs) {
-    const fields = sql.expandFields(as, args.fields, args.with);
+    const fields = common.expand(as, args.fields, args.with);
     const rows = await this.#read(as, { ...args, fields });
-    const out = rows.map(row => sql.project(row, args.fields));
+    const out = rows.map(row => common.project(row, args.fields));
 
     for (const [table, relation] of Object.entries(args.with)) {
       await this.#attach_relation(as, { rows, out, table, relation });
@@ -516,8 +518,8 @@ export default class PostgreSQL implements DB {
 
       const rows = grouped.get(join_value) ?? [];
       args.out[i][args.table] = is_many
-        ? rows.map(r => sql.project(r, relation.fields))
-        : rows[0] ? sql.project(rows[0], relation.fields) : null;
+        ? rows.map(r => common.project(r, relation.fields))
+        : rows[0] ? common.project(rows[0], relation.fields) : null;
     }
   }
 

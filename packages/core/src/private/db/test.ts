@@ -1439,6 +1439,21 @@ export default <D extends DB>(db: D) => {
     });
   });
 
+  $type("where: combined operators on same field", async assert => {
+    await Type.insert({ string: "combo", u8: 100 });
+    await Type.insert({ string: "combo", u8: 150 });
+    await Type.insert({ string: "combo", u8: 200 });
+
+    const results = await Type.find({
+      where: {
+        string: "combo",
+        u8: { $gte: 150, $ne: 200 }
+      },
+      sort: { u8: "asc" },
+    });
+    assert(results.map(r => (r as any).u8)).equals([150]);
+  });
+
   $store("where: null matches omitted optional field", User, async assert => {
     const u = await User.insert({ name: "NoLast" });
 
@@ -1648,7 +1663,7 @@ export default <D extends DB>(db: D) => {
     // but relations are loaded
     const john = rows.find(r => r.name === "John")!;
     assert(Array.isArray(john.articles)).true();
-    assert(john.articles.length > 0).true();
+    assert(john.articles.length).nequals(0);
   });
 
   $rel("with: relation fields are decoded (URL)", async assert => {

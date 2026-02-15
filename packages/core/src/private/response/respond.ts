@@ -38,6 +38,7 @@ const guesses = match([
   [Streamable.is, value => binary(value)],
   [is.response, value => _ => value],
   [is.dict, json],
+  [is.array, json],
   [is.string, text],
 ]);
 

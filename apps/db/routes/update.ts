@@ -7,7 +7,7 @@ route.get(async () => {
 
   const { id } = await User.insert({ age: 30, name: "Donald" });
 
-  await User.update(id, { age: 35 });
+  await User.update(id, { set: { age: 35 } });
 
   const { id: _id, ...updated } = await User.get(id);
 

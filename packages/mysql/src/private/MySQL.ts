@@ -1,7 +1,11 @@
 import typemap from "#typemap";
-import type { As, DataDict, DB, Sort, Types, With } from "@primate/core/db";
+import type {
+  As, DataDict, DB,
+  ReadArgs, ReadRelationsArgs,
+  Sort, Types, With,
+} from "@primate/core/db";
+import common from "@primate/core/db";
 import E from "@primate/core/db/error";
-import type { ReadArgs, ReadRelationsArgs } from "@primate/core/db/sql";
 import sql from "@primate/core/db/sql";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
@@ -121,7 +125,7 @@ export default class MySQL implements DB {
         for (const [key, value] of Object.entries(store)) {
           const type = get_column(value.datatype);
           if (key === as.pk) {
-            const is_int = sql.INT_TYPES.includes(value.datatype);
+            const is_int = common.INT_TYPES.includes(value.datatype);
             const auto = as.generate_pk && is_int ? " AUTO_INCREMENT" : "";
             // 36 is UUID length
             const pk_type = value.datatype === "string" ? "VARCHAR(36)" : type;
@@ -227,7 +231,7 @@ export default class MySQL implements DB {
 
     if (type === "string") return crypto.randomUUID();
 
-    if (sql.BIGINT_STRING_TYPES.includes(type)) {
+    if (common.BIGINT_STRING_TYPES.includes(type)) {
       const cast = bigint_cast(sql.quote(pk));
       const q = `SELECT MAX(${cast}) AS v FROM ${sql.quote(table)}`;
       const rows = await this.#sql<RowDataPacket[]>(q);
@@ -275,7 +279,7 @@ export default class MySQL implements DB {
     const type = as.types[pk];
 
     // integer types, use AUTO_INCREMENT
-    if (!sql.BIGINT_STRING_TYPES.includes(type) && type !== "string") {
+    if (!common.BIGINT_STRING_TYPES.includes(type) && type !== "string") {
       const [keys, values] = this.#create(record);
       const query = keys.length > 0
         ? Q`INSERT INTO ${table} (${keys}) VALUES (${values})`
@@ -320,7 +324,7 @@ export default class MySQL implements DB {
 
     if (args.count === true) return this.#count(as, args.where);
 
-    if (sql.withed(args)) {
+    if (common.withed(args)) {
       return sql.joinable(as, args.with)
         ? this.#read_joined(as, args)
         : this.#read_phased(as, args);
@@ -365,9 +369,9 @@ export default class MySQL implements DB {
   }
 
   async #read_phased(as: As, args: ReadRelationsArgs) {
-    const fields = sql.expandFields(as, args.fields, args.with);
+    const fields = common.expand(as, args.fields, args.with);
     const rows = await this.#read(as, { ...args, fields });
-    const out = rows.map(row => sql.project(row, args.fields));
+    const out = rows.map(row => common.project(row, args.fields));
 
     for (const [table, relation] of Object.entries(args.with)) {
       await this.#attach_relation(as, { rows, out, table, relation });
@@ -419,8 +423,8 @@ export default class MySQL implements DB {
 
       const rows = grouped.get(join_value) ?? [];
       args.out[i][args.table] = is_many
-        ? rows.map(r => sql.project(r, relation.fields))
-        : rows[0] ? sql.project(rows[0], relation.fields) : null;
+        ? rows.map(r => common.project(r, relation.fields))
+        : rows[0] ? common.project(rows[0], relation.fields) : null;
     }
   }
 
@@ -529,14 +533,14 @@ export default class MySQL implements DB {
     const tables = [as.table, ...Object.values(args.with).map(r => r.as.table)];
     const aliases = sql.aliases(tables);
     const alias = aliases[as.table];
-    const fields = sql.fields(args.fields, as.pk) ?? Object.keys(as.types);
+    const fields = common.fields(args.fields, as.pk) ?? Object.keys(as.types);
 
     const SELECT = [
       ...fields.map(f => `${alias}.${sql.quote(f)} AS ${alias}_${f}`),
       ...Object.values(args.with).flatMap(relation => {
         const r_alias = aliases[relation.as.table];
         const r_fields = relation.as.pk !== null
-          ? sql.fields(relation.fields, relation.as.pk)
+          ? common.fields(relation.fields, relation.as.pk)
           : relation.fields;
         return (r_fields ?? Object.keys(relation.as.types))
           .map(f => `${r_alias}.${sql.quote(f)} AS ${r_alias}_${f}`);

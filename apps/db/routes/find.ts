@@ -7,7 +7,8 @@ route.get(async () => {
 
   await User.insert({ age: 30, name: "Donald" });
 
-  return await User.find({ age: 30 }, {
-    select: { age: true, name: true },
+  return User.find({
+    where: { age: 30 },
+    select: ["age", "name"],
   });
 });
