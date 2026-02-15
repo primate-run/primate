@@ -35,7 +35,7 @@ for (const app of await apps.dirs()) {
     monoroot.join(filename).copy(target.join(filename)),
   ));
   //
-  for (const file of await app.files({ recursive: true })) {
+  for (const file of await app.files()) {
     if (ignore.includes(file.name)) continue;
     if (file.name === "package.json") {
       const pkg_json = await file.json() as any;
@@ -50,6 +50,10 @@ for (const app of await apps.dirs()) {
     } else {
       await file.copy(target.join(file.name));
     }
+  }
+  for (const file of await app.dirs()) {
+    if (ignore.includes(file.name)) continue;
+    await file.copy(target.join(file.name));
   }
   await io.run("git add -A", { cwd: target.path });
   if (await has_changes(target.path)) {
