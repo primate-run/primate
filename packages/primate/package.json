@@ -20,7 +20,7 @@
   "bin": "lib/bin.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "build": "npm run clean && tsc && cp src/{app.tsconfig.json,index.d.ts} lib",
+    "build": "npm run clean && tsc && cp src/app.tsconfig.json lib && cp src/index.d.ts lib",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
