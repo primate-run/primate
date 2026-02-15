@@ -1,6 +1,7 @@
 import { NgIf } from "@angular/common";
 import { Component, Input } from "@angular/core";
-import client, { type Validated } from "@primate/angular/client";
+import client from "@primate/angular/client";
+import type { Validated } from "@primate/angular/client";
 
 @Component({
   imports: [NgIf],

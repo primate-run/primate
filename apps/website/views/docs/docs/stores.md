@@ -28,7 +28,7 @@ Stores have:
 
 Create a file under `stores` and export a store.
 
-```ts title="#store/Post.ts"
+```ts
 import p from "pema";
 import store from "primate/orm/store";
 import key from "primate/orm/key";
@@ -41,20 +41,154 @@ export default store({
 });
 ```
 
-Database stores require an `id: primary` field. Pema types (`string`, `number`,
+Database stores require a primary key field. Pema types (`string`, `number`,
 `boolean`, `date`, etc.) enforce validation and map to database columns.
 
+### Primary keys
+
+Define primary keys with `key.primary()`:
+```ts
+import key from "primate/orm/key";
+import p from "pema";
+
+// auto-generated integer PK (default)
+id: key.primary(p.u32)
+
+// auto-generated string PK (UUID)
+id: key.primary(p.string)
+
+// bigint PK
+id: key.primary(p.u64)
+
+// manual PK (no auto-generation)
+id: key.primary(p.u32, { generate: false })
+```
+
+Supported PK types:
+- **Integers**: `u8`, `u16`, `u32`, `i8`, `i16`, `i32` — auto-increment
+- **Bigints**: `u64`, `u128`, `i64`, `i128` — manual generation via MAX+1
+- **Strings**: `string` — UUID generation
+
 !!!
+MongoDB only supports `string` primary keys for auto-generation due to its
+native ObjectId system.
+!!!
+
+### Foreign keys
+
+Define foreign keys with `key.foreign()` to reference other stores:
+```ts
+import key from "primate/orm/key";
+import User from "#store/User";
+import p from "pema";
+
+export default store({
+  id: key.primary(p.u32),
+  title: p.string,
+  author_id: key.foreign(User),  // references User.id
+});
+```
+
 Store filenames map to table or collection names:
+
 * `stores/User.ts` -> `user`
 * `stores/login/User.ts` -> `login_user`
 
 Override with a [custom name](#custom-name).
-!!!
+
+## Relations
+
+Define relationships between stores using the `relation` module.
+
+### One-to-many
+
+A user has many articles:
+```ts
+import store from "primate/orm/store";
+import key from "primate/orm/key";
+import relation from "primate/orm/relation";
+import p from "pema";
+import Article from "#store/Article";
+
+export default store({
+  id: key.primary(p.string),
+  name: p.string,
+  articles: relation.many(Article, "author_id"),
+});
+```
+
+### One-to-one
+
+A user has one profile:
+```ts
+import Profile from "#store/Profile";
+
+export default store({
+  id: key.primary(p.string),
+  name: p.string,
+  profile: relation.one(Profile, "user_id"),
+});
+```
+
+### Reverse relations
+
+Query from the *many* side back to the *one* side:
+```ts
+// Article store
+import User from "#store/User";
+
+export default store({
+  id: key.primary(p.u32),
+  title: p.string,
+  author_id: key.foreign(User),
+  author: relation.one(User, "author_id", { reverse: true }),
+});
+```
+
+### Loading relations
+
+Use the `with` option to load related records:
+```ts
+const users = await User.find({
+  where: { active: true },
+  with: {
+    articles: {
+      select: ["title", "created"],
+      sort: { created: "desc" },
+      limit: 5,
+    },
+  },
+});
+
+// result:
+// [
+//   {
+//     id: "...",
+//     name: "John",
+//     articles: [
+//       { title: "First Post", created: ... },
+//       { title: "Second Post", created: ... },
+//     ]
+//   }
+// ]
+```
+
+Each relation can specify:
+- `select` — fields to include
+- `sort` — ordering
+- `where` — filter criteria
+- `limit` — max records per parent
+
+Use `true` to load a relation with defaults:
+```ts
+const users = await User.find({
+  where: { active: true },
+  with: { articles: true, profile: true },
+});
 
 ## Configure a database
 
-If you don't configure a database, the default one is in‑memory, great for
+If you don't configure a database, the default one is in memory, great for
 prototyping and tests. To add a database, install a Primate driver.
 
 [s=stores/db/install]
@@ -65,32 +199,26 @@ Create `config/db` and place your database file there.
 
 [s=stores/db/config]
 
-!!!
 Name the file freely. For the main driver, use `index.ts` or `default.ts`.
-!!!
 
 ## Lifecycle
 
 Create tables or collections at app startup, e.g. in a route file.
-
 ```ts
 import Post from "#store/Post";
 
 await Post.schema.create();
+
 // ... later (e.g., tests/teardown)
 // await Post.schema.delete();
 ```
 
 You can safely call `create()` multiple times; drivers treat it as idempotent.
-
-!!!
 Good for prototyping. In production, create them ahead of time.
-!!!
 
 ## Usage in routes
 
 A typical route that reads (or creates) a record, then renders a view:
-
 ```ts title="routes/posts/index.ts"
 import Post from "#store/Post";
 import p from "pema";
@@ -98,10 +226,10 @@ import response from "primate/response";
 import route from "primate/route";
 
 route.get(async () => {
-  // fetch the most recent posts
-  const posts = await Post.find({}, {
+  const posts = await Post.find({
+    where: {},
     sort: { created: "desc" },
-    select: { id: true, title: true, created: true },
+    select: ["id", "title", "created"],
     limit: 20,
   });
 
@@ -120,19 +248,10 @@ route.post(async request => {
 });
 ```
 
-!!!
-In the `post` route handler, two types of validations take place: the shape of
-the `body` is validated against an ad-hoc Pema schema — it must contain a title
-(≤100 chars) and a body. Later, before insertion, the entire record to be
-inserted is validated. This distinction is important: not all backend
-validation needs to repeat at the store layer.
-!!!
-
 ## Extending stores
 
 Add custom methods to stores with `.extend()`. Extensions can be defined
 inline or in separate files for modularity.
-
 ```ts
 // stores/User.ts
 import p from "pema";
@@ -146,11 +265,10 @@ export default store({
   lastname: p.string.optional(),
 }).extend(User => ({
   findByAge(age: typeof User.Schema.age) {
-    return User.find({ age });
+    return User.find({ where: { age } });
   },
-
   async getAverageAge() {
-    const users = await User.find({});
+    const users = await User.find({ where: {} });
     return users.reduce((sum, u) => sum + u.age, 0) / users.length;
   },
 }));
@@ -159,7 +277,6 @@ export default store({
 ### Modular extensions
 
 Create a base store:
-
 ```ts
 // stores/User.ts
 import p from "pema";
@@ -175,7 +292,6 @@ export default store({
 ```
 
 Create an extended version:
-
 ```ts
 import Base from "#store/User";
 
@@ -184,19 +300,16 @@ export default Base.extend(User => {
 
   return {
     findByAge(age: typeof Schema.age) {
-      return User.find({ age });
+      return User.find({ where: { age } });
     },
-
     findByNamePrefix(prefix: typeof Schema.name) {
-      return User.find({ name: { $like: `${prefix}%` } });
+      return User.find({ where: { name: { $like: `${prefix}%` } } });
     },
-
     async updateAge(id: typeof Schema.id, age: typeof Schema.age) {
-      return User.update(id, { age });
+      return User.update({ where: { id }, set: { age } });
     },
-
     async getAverageAge() {
-      const users = await User.find({});
+      const users = await User.find({ where: {} });
       return users.reduce((sum, u) => sum + u.age, 0) / users.length;
     },
   };
@@ -204,7 +317,6 @@ export default Base.extend(User => {
 ```
 
 Use in routes:
-
 ```ts
 import User from "#store/UserExtended";
 import route from "primate/route";
@@ -218,216 +330,204 @@ route.get(async () => {
 });
 ```
 
-### Extension types
-
-Access field types with `typeof <param>.Schema.<fieldName>`.
-
-```ts
-User => {
-  const Schema = User.Schema;
-
-  return {
-    // id: string (primary key)
-    findById(id: typeof Schema.id) {
-      return User.get(id);
-    },
-    // name: string
-    updateName(id: typeof Schema.id, name: typeof Schema.name) {
-      return User.update(id, { name });
-    },
-  };
-}
-```
-
-!!!
-Naming the parameter: The identifier inside `.extend(param => { ... })` is up
-to you. We use `User` for clarity, but `This` (or any name) works the same.
-Access types via `typeof <param>.R.<field>`.
-!!!
-
-!!!
 Extensions have access to all base store methods (`find`, `insert`, `update`,
 etc.) and can combine them to create higher-level operations.
-!!!
 
 ## API
 
-| method                      | returns          | description                    |
-| --------------------------- | ---------------- | ------------------------------ |
-| [insert(record)]            | `T`              | insert a record                |
-| [get(id)]                   | `T`              | fetch a record or throw        |
-| [try(id)]                   | `T \| undefined` | return a record or `undefined` |
-| [has(id)]                   | `boolean`        | check if a record exists       |
-| [find(criteria, options?)]  | `T[]`            | find records by criteria       |
-| [count(criteria)]           | `number`         | count records by criteria      |
-| [update(id, changes)]       | `void`           | update a single record         |
-| [update(criteria, changes)] | `number`         | update multiple records        |
-| [delete(id)]                | `void`           | delete a single record         |
-| [delete(criteria)]          | `number`         | delete multiple records        |
+| method                       | returns          | description                    |
+| ---------------------------- | ---------------- | ------------------------------ |
+| [insert(record)]             | `T`              | insert a record                |
+| [get(pk)]                    | `T`              | fetch a record or throw        |
+| [try(pk)]                    | `T \| undefined` | return a record or `undefined` |
+| [has(pk)]                    | `boolean`        | check if a record exists       |
+| [find(options)]              | `T[]`            | find records by criteria       |
+| [count(criteria)]            | `number`         | count records by criteria      |
+| [update(options)]            | `number`         | update records                 |
+| [delete(options)]            | `number`         | delete records                 |
 
 [insert(record)]: #insert-record
-[get(id)]: #get-id
-[try(id)]: #try-id
-[has(id)]: #has-id
-[find(criteria, options?)]: #find-criteria-options
+[get(pk)]: #get-pk
+[try(pk)]: #try-pk
+[has(pk)]: #has-pk
+[find(options)]: #find-options
 [count(criteria)]: #count-criteria
-[update(id, changes)]: #update-id-changes
-[update(criteria, changes)]: #update-criteria-changes
-[delete(id)]: #delete-id
-[delete(criteria)]: #delete-criteria
+[update(options)]: #update-options
+[delete(options)]: #delete-options
 
 ### `insert(record)`
 
-Insert a record and return it. `id` is optional on input and is generated if
-not supplied — the output record is guaranteed to contain an id.
+Insert a record and return it. The primary key is optional on input and is
+generated if not supplied —  the output record is guaranteed to contain a
+primary key.
 
 The `insert` operation validates the input before passing it to the driver and,
 if it fails, throws a Pema `ParseError`.
-
 ```ts
 const post = await Post.insert({ title: "Hello", body: "..." });
-post.id; // string
+post.id; // number
 ```
 
-!!!
-In Primate, ids are **always** strings, regardless of database storage. Drivers
-map ids and other fields to and from their native types.
-!!!
+### `get(pk)`
 
-### `get(id)`
-
-Fetch the record associated with the given `id`. Throws if the record doesn't
-exist in the database.
-
+Fetch the record associated with the given primary key. Throws if the record
+doesn't exist in the database.
 ```ts
-const post = await Post.get(id);
+const post = await Post.get(1);
 ```
 
-### `try(id)`
+Optionally pass `select` and `with` to project fields and load relations:
+```ts
+const post = await Post.get(1, {
+  select: ["title"],
+  with: { author: true },
+});
+```
 
-Like `get(id)`, but instead of throwing if no record is found, it returns
+### `try(pk)`
+
+Like `get(pk)`, but instead of throwing if no record is found, it returns
 `undefined`.
 
 ```ts
-const post = await Post.try(id);
+const post = await Post.try(1);
 if (post === undefined) {
   // not found
 }
 ```
 
-### `has(id)`
-
-Check existence by id.
-
+Also supports `select` and `with` options:
 ```ts
-if (await Post.has(id)) { /* ... */ }
+const post = await Post.try(1, { select: ["title"], with: { author: true } });
 ```
 
-### `find(criteria, options?)`
+### `has(pk)`
 
-Query by field criteria with optional projection, sort, and limit.
+Check existence by primary key.
+```ts
+if (await Post.has(pk)) { /* ... */ }
+```
 
+### `find(options)`
+
+Query records with criteria, projection, sort, limit, and relations.
 ```ts
 // all posts by title
-await Post.find({ title: "Hello" });
+await Post.find({ where: { title: "Hello" } });
 
 // projection: only return certain fields
-await Post.find({}, { select: { id: true, title: true } });
+await Post.find({ where: {}, select: ["id", "title"] });
 
 // sorting and limiting
-await Post.find({}, {
+await Post.find({
+  where: {},
   sort: { created: "desc", title: "asc" },
   limit: 10,
+});
+
+// with relations
+await Post.find({
+  where: {},
+  with: {
+    author: { select: ["name"] },
+  },
 });
 ```
 
 ### `count(criteria)`
 
 Count matching records.
-
 ```ts
-await Post.count({ title: "Hello" });
+await Post.count({ where: { title: "Hello" } });
 ```
 
-### `update(id, changes)`
+### `update(options)`
 
-Update a single record by id. Throws if the record is not found.
-
+Update records matching criteria. Returns the number of records updated.
 ```ts
-await Post.update(id, { title: "Updated" });
-```
-
-### `update(criteria, changes)`
-
-Update all records matching criteria. Returns the number of records updated
-(may be 0).
-
-```ts
-// multiple records -> returns count
-const n = await Post.update({ title: "Draft" }, { title: "Published" });
+// update by criteria
+const n = await Post.update({
+  where: { status: "draft" },
+  set: { status: "published" },
+});
 ```
 
 **Unsetting fields**
 
-If a field is **optional** in your schema, passing `null` in `changes`
+If a field is **optional** in your schema, passing `null` in `set`
 **unsets** it (removes it).
-
 ```ts
 // given: body?: string (optional)
-await Post.update(id, { body: null });
-const fresh = await Post.get(id);
+await Post.update({ where: { id: 1 }, set: { body: null } });
+const fresh = await Post.get(1);
 // fresh.body is now undefined
 ```
 
-### `delete(id)`
+### `delete(options)`
 
-Delete a single record by id. Throws if the record is not found.
-
+Delete records matching criteria. Returns the number of records deleted.
 ```ts
-// throws if not found
-await Post.delete(id);
+// delete by criteria
+const n = await Post.delete({ where: { status: "archived" } });
 ```
 
-### `delete(criteria)`
+## Query operators
 
-Delete all records matching criteria. Returns the number of records deleted
-(may be 0).
-
+### Comparison operators
 ```ts
-// returns count of deleted records
-await Post.delete({ title: "..." });
+// greater than / less than
+await User.find({ where: { age: { $gt: 18 } } });
+await User.find({ where: { age: { $gte: 18 } } });
+await User.find({ where: { age: { $lt: 65 } } });
+await User.find({ where: { age: { $lte: 65 } } });
+
+// not equal
+await User.find({ where: { status: { $ne: "inactive" } } });
+
+// combine operators on same field
+await User.find({ where: { age: { $gte: 18, $lte: 65, $ne: 30 } } });
 ```
 
-## Criteria
-
-Criteria are equality checks:
-
+### Date/time operators
 ```ts
-await Post.find({ title: "Hello" });
+// after / before for datetime fields
+await Event.find({ where: { starts_at: { $after: new Date("2025-01-01") } } });
+await Event.find({ where: { ends_at: { $before: new Date("2025-12-31") } } });
 ```
 
-!!!
-**Operators:** String fields also support `$like` (e.g.,
-`{ name: { $like: "Jo%" } }`). Drivers translate this appropriately
-(SQL -> `LIKE`, MongoDB -> `$regex`).
-!!!
+### Pattern matching
+```ts
+// case-sensitive LIKE (SQL wildcards: % for any chars, _ for single char)
+await User.find({ where: { name: { $like: "John%" } } });
+
+// case-insensitive LIKE
+await User.find({ where: { email: { $ilike: "%@gmail.com" } } });
+
+// escape literal % or _ with backslash
+await Task.find({ where: { name: { $like: "100\\% complete" } } });
+```
+
+Pattern matching is implemented natively on each driver: `GLOB` for SQLite,
+`LIKE`/`ILIKE` for PostgreSQL, `LIKE BINARY`/`LIKE` for MySQL, and `$regex`
+for MongoDB.
 
 ## Types for stores
 
 Any Pema type can be a field. Common ones:
 
-* `primary` — primary key
-* `string`, `number`, `boolean`, `date`
-* `optional(T)` — nullable; can be unset with `null`
+* `key.primary(type)` — primary key
+* `key.foreign(Store)` — foreign key reference
+* `p.string`, `p.u32`, `p.boolean`, `p.date`
+* `T.optional()` — nullable; can be unset with `null`
 
 Example:
-
 ```ts
-import p from "p";
+import p from "pema";
+import key from "primate/orm/key";
 
 export default store({
-  id: p.primary,
-  subtitle: string.max(120).optional(),
+  id: key.primary(p.u32),
+  subtitle: p.string.max(120).optional(),
   likes: p.i32.range(0, 1_000_000),
 });
 ```
@@ -436,14 +536,11 @@ export default store({
 
 By default, stores use the app's default database. If you have multiple
 databases in your app, you can **pin** a store to a specific one.
-
 ```ts
 import p from "pema";
 import store from "primate/orm/store";
 import key from "primate/orm/key";
-// config/db/postgresql.ts
 import postgresql from "#db/postgresql";
-import p from "p";
 
 export default store(
   {
@@ -452,7 +549,6 @@ export default store(
     created: p.date.default(() => new Date()),
   },
   {
-    // pin to a specific database
     database: postgresql,
   },
 );
@@ -464,11 +560,10 @@ If you omit `database`, the default database is used.
 
 Override the default table or collection name with `name`. Useful for exposing
 part of a table as a store.
-
 ```ts
 import store from "primate/orm/store";
 import key from "primate/orm/key";
-import p from "p";
+import p from "pema";
 
 export default store(
   {

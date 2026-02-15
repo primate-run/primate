@@ -134,11 +134,9 @@ Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```svelte
 <script lang="ts">
-  import validate from "@primate/svelte/validate";
-  export let id: string;
-  export let value: number;
-
-  const counter = validate<number>(value).post(`/counter?id=${id}`);
+  import client from "@primate/svelte/client";
+  const props: { id: string; counter: number } = $props();
+  const counter = client.field(props.counter).post(`/counter?id=${props.id}`);
 </script>
 
 <div style="margin-top: 2rem; text-align: center;">

@@ -99,7 +99,7 @@ Static routes have the highest priority in route resolution.
 You can also represent a route with an `index.ts` file inside a directory
 (e.g., `routes/user/index.ts` for `/user`). This is equivalent to `user.ts` —
 pick one style per route. Using directories with `index.ts` is handy for
-grouping routes to add [special files](#special-files) like layouts or guards.
+grouping routes to add [special files](#special-files) like layouts or hooks.
 !!!
 
 ## Dynamic routes
@@ -188,7 +188,7 @@ paths. Instead, they influence how routes in their directory (and below) behave.
 | Special file              | Purpose                              | Recursive |
 |---------------------------|--------------------------------------|-----------|
 | [+layout.ts](#layouts)    | Wrap route output in a layout        | ✓         |
-| [+guard.ts](#guards)      | Enforce a condition before running the route | ✓ |
+| [+hook.ts](#hooks)        | Intercept and transform requests     | ✓         |
 | [+error.ts](#error-files) | Handle errors thrown by routes       | ✗         |
 
 !!!
@@ -215,22 +215,74 @@ depending on your frontend.
 first; each parent layout wraps it.
 !!!
 
-### Guards
-Guards live in `+guard.ts`. A guard protects **all routes in its directory and
-below**. Guards execute **top-down**: the highest parent guard runs first; if
-it **passes**, the next guard down runs; finally the route runs.
+### Hooks
+Hooks live in `+hook.ts`. A hook intercepts **all routes in its directory and
+below**. Hooks execute **top-down**: the highest parent hook runs first; it
+calls `next(request)` to pass control to the next hook; finally the route runs.
 
-* A guard **passes** only when it **explicitly returns** `null`.
-* Any **non-null** return short-circuits the route and is used as the response
-(e.g., redirect, error page, rendered view).
-* Returning **undefined** or nothing at all is **not** a pass and results in an
-error.
+```ts
+// routes/admin/+hook.ts
+import hook from "primate/route/hook";
 
-[s=routing/guards]
+hook((request, next) => {
+  if (request.query.try("password") === "opensesame") {
+    return next(request);
+  }
+  return "wrong";
+});
+```
+
+* Return `next(request)` to **continue** to the next hook or route handler.
+* Return any other response to **short-circuit** (e.g., redirect, error page).
+* You **must** return something — returning `undefined` is an error.
+
+#### Context propagation
+
+Hooks can pass data to downstream hooks and route handlers using `request.set()`:
+```ts
+// routes/+hook.ts
+import hook from "primate/route/hook";
+
+hook((request, next) => next(request.set("user", { id: 1, name: "John" })));
+```
+
+Access the data in nested hooks or route handlers with `request.get()`:
+```ts
+// routes/dashboard/index.ts
+import route from "primate/route";
+
+route.get(request => {
+  const user = request.get<{ id: number; name: string }>("user");
+  return { greeting: `Hello, ${user.name}` };
+});
+```
+
+The `request.set()` method also accepts a function to update an existing value:
+```ts
+// routes/outer/+hook.ts
+hook((request, next) => next(request.set("foo", "outer")));
+
+// routes/outer/inner/+hook.ts
+hook((request, next) => next(request.set<string>("foo", prev => prev + "inner")));
+
+// routes/outer/inner/index.ts
+route.get(request => request.get("foo")); // "outerinner"
+```
+
+#### Request context API
+
+| Method | Description |
+|--------|-------------|
+| `request.set(key, value)` | Set a context value |
+| `request.set<T>(key, fn)` | Update a context value with a function |
+| `request.get<T>(key)` | Get a context value (throws if missing) |
+| `request.try<T>(key)` | Get a context value or `undefined` |
+| `request.has(key)` | Check if a context key exists |
+| `request.delete(key)` | Remove a context key |
 
 !!!
-**Execution order**: parent guards run before child guards. The route runs only
-if **every** applicable guard passes.
+**Execution order**: parent hooks run before child hooks. The route runs only
+after all applicable hooks have called `next(request)`.
 !!!
 
 ### Error files
@@ -243,5 +295,5 @@ error handler runs.
 
 !!!
 **Precedence**: the closest `+error.ts` (same directory, then parent, etc.)
-takes precedence. Unlike layouts and guards, error handlers aren't layered.
+takes precedence. Unlike layouts and hooks, error handlers aren't layered.
 !!!

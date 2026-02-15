@@ -150,16 +150,15 @@ export default function Counter() {
 Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```tsx
-import validate from "@primate/react/validate";
+import client from "@primate/react/client";
 
 interface Props {
   id: string;
   counter: number;
 }
 
-export default function Counter({ id, counter: initial }: Props) {
-  const counter = validate<number>(initial)
-    .post(`/counter?id=${id}`);
+export default function Counter(props: initial }: Props) {
+  const counter = client.field(props.counter).post(`/counter?id=${props.id}`);
 
   return (
     <div style={{ marginTop: "2rem", textAlign: "center" }}>
