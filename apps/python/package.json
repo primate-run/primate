@@ -15,6 +15,6 @@
     "@primate/python": "workspace:^",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "pyodide": "0.29.1"
+    "pyodide": "0.29.3"
   }
 }

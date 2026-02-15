@@ -17,6 +17,6 @@
     "@ruby/head-wasm-wasi": "^2.7.2",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "svelte": "^5.46.3"
+    "svelte": "^5.51.2"
   }
 }

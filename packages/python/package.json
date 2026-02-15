@@ -28,7 +28,7 @@
     "@rcompat/fs": "^0.25.2",
     "@rcompat/io": "^0.3.0",
     "pema": "workspace:^",
-    "pyodide": "^0.29.1"
+    "pyodide": "^0.29.3"
   },
   "devDependencies": {
     "@rcompat/type": "^0.9.0"

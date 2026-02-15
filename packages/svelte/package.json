@@ -25,7 +25,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/fs": "^0.25.2",
-    "esbuild": "^0.27.2"
+    "esbuild": "^0.27.3"
   },
   "devDependencies": {
     "@rcompat/type": "^0.9.0"

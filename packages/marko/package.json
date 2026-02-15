@@ -23,10 +23,10 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@marko/compiler": "^5.39.46",
+    "@marko/compiler": "^5.39.55",
     "@marko/translator-default": "^6.1.3",
     "@primate/core": "workspace:^",
-    "marko": "^5.38.10"
+    "marko": "^5.38.24"
   },
   "devDependencies": {
     "@types/marko": "^4.6.9"

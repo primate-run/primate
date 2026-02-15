@@ -23,11 +23,11 @@
     "@rcompat/io": "^0.3.0",
     "@rcompat/test": "^0.8.3",
     "@types/deno": "^2.5.0",
-    "@types/node": "^25.0.8",
+    "@types/node": "^25.2.3",
     "apekit": "^0.0.42",
-    "esbuild": "^0.27.2",
+    "esbuild": "^0.27.3",
     "eslint": "^9.39.2",
-    "knip": "^5.80.2",
+    "knip": "^5.83.1",
     "proby": "^0.7.0",
     "typescript": "^5.9.3"
   }
