@@ -1,6 +1,6 @@
 {
   "name": "@primate/markdown",
-  "version": "0.8.0-pre",
+  "version": "0.8.0",
   "description": "Markdown for Primate",
   "homepage": "https://primate.run/docs/frontend/markdown",
   "bugs": "https://github.com/primate-run/primate/issues",

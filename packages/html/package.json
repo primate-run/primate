@@ -1,6 +1,6 @@
 {
   "name": "@primate/html",
-  "version": "0.16.0-pre",
+  "version": "0.16.0",
   "description": "HTML for Primate",
   "homepage": "https://primate.run/docs/frontend/html",
   "bugs": "https://github.com/primate-run/primate/issues",

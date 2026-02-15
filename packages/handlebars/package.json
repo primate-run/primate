@@ -1,6 +1,6 @@
 {
   "name": "@primate/handlebars",
-  "version": "0.5.0-pre",
+  "version": "0.5.0",
   "description": "Handlebars for Primate",
   "homepage": "https://primate.run/docs/frontend/handlebars",
   "bugs": "https://github.com/primate-run/primate/issues",

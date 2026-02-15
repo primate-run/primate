@@ -9,7 +9,7 @@
     "build:apps": "pnpm -r --filter='./apps/**' build",
     "eject": "node scripts/eject.js",
     "clean": "pnpm -r clean",
-    "publish": "pnpm -r --access=public --otp=$(bw get totp npmjs.com) publish",
+    "publish": "pnpm -r --access=public publish",
     "upgrade": "pnpm -r update -i -L",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

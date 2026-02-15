@@ -1,6 +1,6 @@
 {
   "name": "@primate/svelte",
-  "version": "0.22.0-pre",
+  "version": "0.22.0",
   "description": "Svelte for Primate",
   "homepage": "https://primate.run/docs/frontend/svelte",
   "bugs": "https://github.com/primate-run/primate/issues",

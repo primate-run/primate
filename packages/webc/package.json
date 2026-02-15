@@ -1,6 +1,6 @@
 {
   "name": "@primate/webc",
-  "version": "0.5.0-pre",
+  "version": "0.5.0",
   "description": "Web Components for Primate",
   "homepage": "https://primate.run/docs/frontend/web-components",
   "bugs": "https://github.com/primate-run/primate/issues",
