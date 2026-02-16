@@ -49,8 +49,9 @@ explicit values.
 Define relations using the `orm/relation` export:
 
 ```ts
-import relation from "primate/orm/relation";
 import store from "primate/orm/store";
+import key from "primate/orm/key";
+import relation from "primate/orm/relation";
 
 const User = store({
   id: key.primary(p.u32),
@@ -73,6 +74,7 @@ For reverse relations (querying from the *many* side back to the *one* side):
 ```ts
 import store from "primate/orm/store";
 import key from "primate/orm/key";
+import relation from "primate/orm/relation";
 
 const Article = store({
   id: key.primary(p.u32),
