@@ -23,18 +23,19 @@ database drivers (SQLite, PostgreSQL, MySQL, MongoDB).
 Primary and foreign keys are now defined explicitly using the `orm/key` export:
 
 ```ts
+import store from "primate/orm/store";
 import key from "primate/orm/key";
 import p from "pema";
 
-const User = new Store({
-  id: key.primary(p.string),
+const User = store({
+  id: key.primary(p.u32),
   name: p.string,
 });
 
-const Article = new Store({
+const Article = store({
   id: key.primary(p.u32),
   title: p.string,
-  author_id: key.foreign(User),
+  author_id: key.foreign(p.u32),
 });
 ```
 
@@ -52,7 +53,7 @@ import relation from "primate/orm/relation";
 import store from "primate/orm/store";
 
 const User = store({
-  id: key.primary(p.string),
+  id: key.primary(p.u32),
   name: p.string,
 }, {
   relations: {
@@ -71,11 +72,12 @@ For reverse relations (querying from the *many* side back to the *one* side):
 
 ```ts
 import store from "primate/orm/store";
+import key from "primate/orm/key";
 
 const Article = store({
   id: key.primary(p.u32),
   title: p.string,
-  author_id: key.foreign(User),
+  author_id: key.foreign(p.u32),
 }, {
   relations: {
     author: relation.one(User, "author_id", { reverse: true }),
