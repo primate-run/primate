@@ -4,25 +4,23 @@ import type PK from "#db/PK";
 import wrap from "#db/symbol/wrap";
 import type Types from "#db/Types";
 import type DBWith from "#db/With";
+import type ExtractSchema from "#orm/ExtractSchema";
 import type ForeignKey from "#orm/ForeignKey";
 import parse from "#orm/parse";
 import type PrimaryKey from "#orm/PrimaryKey";
 import type { ManyRelation, OneRelation, Relation } from "#orm/relation";
-import type $Set from "#orm/Set";
-import type {
-  ExtractSchema,
-  InferRecord,
-  Insertable,
-  PrimaryKeyField,
-  StoreInput,
-} from "#orm/types";
+import type StoreInput from "#orm/StoreInput";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { Dict, EmptyObject, Serializable } from "@rcompat/type";
-import type { DataKey, Storable } from "pema";
+import type { DataKey, InferStore, Storable } from "pema";
 import StoreType from "pema/StoreType";
 
 type X<T> = { [K in keyof T]: T[K] } & {};
+
+type OrNull<T> = {
+  [P in keyof T]?: null | T[P];
+};
 
 type Query = {
   where?: unknown;
@@ -65,11 +63,15 @@ type QueryOperators<T> =
   T extends Date ? (T | DateOperators | null) :
   (T | null);
 
+type InferRecord<T extends StoreInput> = InferStore<ExtractSchema<T>>;
+
 type Schema<T extends StoreInput> = X<InferRecord<T>>;
 
 type Where<T extends StoreInput> = X<{
   [K in keyof Schema<T>]?: QueryOperators<Schema<T>[K]>;
 }>;
+
+type $Set<T extends StoreInput> = X<OrNull<InferStore<ExtractSchema<T>>>>;
 
 type SelectKey<T> = Extract<keyof T, string>;
 type Select<T> = readonly SelectKey<T>[];
@@ -80,6 +82,14 @@ type Projected<T, S extends Select<T> | undefined> =
   S extends readonly (keyof T)[]
   ? X<Pick<T, S[number]>>
   : T;
+
+type Insertable<T extends StoreInput> =
+  Omit<InferRecord<T>, PrimaryKeyField<T>> &
+  Partial<Pick<InferRecord<T>, PrimaryKeyField<T>>>;
+
+type PrimaryKeyField<T extends StoreInput> = {
+  [K in keyof T]: T[K] extends PrimaryKey<any> ? K : never
+}[keyof T] & keyof InferRecord<T>;
 
 const NUMBER_KEYS = [
   "u8", "u16", "u32",
@@ -667,9 +677,7 @@ export default class Store<
       ...nulls,
     } as $Set<T>;
 
-    if (by_pk) {
-      return this.#update_1(arg0 as PKV<T>, parsed);
-    }
+    if (by_pk) return this.#update_1(arg0 as PKV<T>, parsed);
 
     const where = (arg0 as { where?: Where<T>; set: $Set<T> }).where;
     if (where !== undefined) this.#parse_where(where, this.#types);
@@ -681,19 +689,13 @@ export default class Store<
     const pk = this.#pk;
     if (pk === null) throw E.pk_undefined(this.name);
 
-    const n = await this.db.update(this.#as, {
-      set: set,
-      where: { [pk]: pkv },
-    });
+    const n = await this.db.update(this.#as, { set, where: { [pk]: pkv } });
 
     assert.true(n === 1, `${n} records updated instead of 1`);
   }
 
   async #update_n(where: Where<T>, set: $Set<T>) {
-    return await this.db.update(this.#as, {
-      set: set,
-      where: where,
-    });
+    return await this.db.update(this.#as, { set, where });
   }
 
   /**

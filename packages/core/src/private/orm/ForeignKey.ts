@@ -7,6 +7,10 @@ export default class ForeignKey<T extends Storable<DataKey>> {
     this.#type = type;
   }
 
+  static new<T extends Storable<DataKey>>(type: T) {
+    return new ForeignKey(type);
+  }
+
   get type() {
     return this.#type;
   }

@@ -124,6 +124,10 @@ export default store({
 
 A user has one profile:
 ```ts
+import store from "primate/orm/store";
+import key from "primate/orm/key";
+import relation from "primate/orm/relation";
+import p from "pema";
 import Profile from "#store/Profile";
 
 export default store({
@@ -141,12 +145,16 @@ export default store({
 Query from the *many* side back to the *one* side:
 ```ts
 // Article store
+import store from "primate/orm/store";
+import key from "primate/orm/key";
+import relation from "primate/orm/relation";
+import p from "pema";
 import User from "#store/User";
 
 export default store({
   id: key.primary(p.u32),
   title: p.string,
-  author_id: key.foreign(User),
+  author_id: key.foreign(p.u32),
 }, {
   relations: {
     author: relation.one(User, "author_id", { reverse: true }),

@@ -1,10 +1,10 @@
+import type PK from "#db/PK";
 import fail from "#fail";
 import ForeignKey from "#orm/ForeignKey";
 import PrimaryKey from "#orm/PrimaryKey";
-import type { StoreInput } from "#orm/types";
+import type StoreInput from "#orm/StoreInput";
 import type { Dict } from "@rcompat/type";
 import type { DataKey, Storable } from "pema";
-import type PK from "#db/PK";
 
 const is_pk = (x: unknown): x is PrimaryKey<any> => x instanceof PrimaryKey;
 const is_fk = (x: unknown): x is ForeignKey<any> => x instanceof ForeignKey;

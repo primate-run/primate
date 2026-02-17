@@ -1,4 +1,9 @@
-import foreign from "#orm/foreign";
-import primary from "#orm/primary";
+import ForeignKey from "#orm/ForeignKey";
+import PrimaryKey from "#orm/PrimaryKey";
 
-export default { primary, foreign };
+const key = {
+  foreign: ForeignKey.new,
+  primary: PrimaryKey.new,
+};
+
+export default key;

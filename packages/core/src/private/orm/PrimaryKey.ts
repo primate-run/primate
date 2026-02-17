@@ -23,6 +23,10 @@ export default class PrimaryKey<T extends Storable<DataKey>> {
     }
   }
 
+  static new<T extends Storable<DataKey>>(type: T, options?: Options) {
+    return new PrimaryKey(type, options);
+  }
+
   get type() {
     return this.#type;
   }
