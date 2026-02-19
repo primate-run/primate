@@ -23,7 +23,7 @@
     "@rcompat/io": "^0.3.0",
     "@rcompat/test": "^0.8.3",
     "@types/node": "^25.2.3",
-    "apekit": "^0.0.42",
+    "apekit": "^0.0.44",
     "esbuild": "^0.27.3",
     "eslint": "^9.39.2",
     "knip": "^5.83.1",
