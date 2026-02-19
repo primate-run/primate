@@ -65,8 +65,8 @@ Use the explicit `redirect` handler to vary the status or for local redirects.
 [s=responses/redirect/explicit]
 
 ## View
-Render and serve [components](/docs/components) from the `components` directory
-as `text/html`.
+Render and serve [components](/docs/components) from the `views` directory as
+`text/html`.
 
 [s=responses/view/simple]
 

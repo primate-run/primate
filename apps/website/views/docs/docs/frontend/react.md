@@ -28,10 +28,10 @@ export default config({
 
 ## Components
 
-Create React components in `components` using TypeScript or JavaScript.
+Create React JSX components in `views` using TypeScript or JavaScript.
 
 ```tsx
-// components/PostIndex.tsx
+// views/PostIndex.tsx
 import { useState } from "react";
 
 interface Post {
@@ -373,7 +373,7 @@ Create layout components that wrap your components using `children`.
 Create a layout component:
 
 ```tsx
-// components/Layout.tsx
+// views/Layout.tsx
 import { ReactNode } from "react";
 
 interface Props {

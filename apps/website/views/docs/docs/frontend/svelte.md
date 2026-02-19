@@ -28,10 +28,10 @@ export default config({
 
 ## Components
 
-Create Svelte components in `components` using Svelte's template syntax.
+Create Svelte components in `views`.
 
 ```svelte
-<!-- components/PostIndex.svelte -->
+<!-- views/PostIndex.svelte -->
 <script lang="ts">
   export let title: string;
   export let posts: Array<{title: string; excerpt?: string}> = [];
@@ -88,7 +88,7 @@ route.get(() => response.view("User.svelte", {
 Access the props in the component:
 
 ```svelte
-<!-- components/User.svelte -->
+<!-- views/User.svelte -->
 <script lang="ts">
   export let user: {name: string; role: string};
   export let permissions: string[] = [];
@@ -304,7 +304,7 @@ Create layout components that wrap your pages using `<slot>`.
 Create a layout component:
 
 ```svelte
-<!-- components/Layout.svelte -->
+<!-- views/Layout.svelte -->
 <script lang="ts">
   export let brand = "My App";
 </script>

@@ -27,10 +27,10 @@ export default config({
 
 ## Components
 
-Create Web Components in `components` using Primate's Component class.
+Create Web Components in `views` with Primate's Component class.
 
 ```html
-<!-- components/post-index.webc -->
+<!-- views/post-index.webc -->
 <script>
 import Component from "@primate/webc/Component";
 
@@ -71,8 +71,7 @@ route.get(() => {
 
 ## Props
 
-Props passed to `response.view` are available as `this.props` in the component.
-
+Props passed to `response.view` are available as `this.props` in the view.
 Pass props from a route:
 
 ```ts
@@ -87,10 +86,10 @@ route.get(() => {
 });
 ```
 
-Access the props in the component:
+Access the props in the view:
 
 ```html
-<!-- components/user.webc -->
+<!-- views/user.webc -->
 <script>
 import Component from "@primate/webc/Component";
 
@@ -117,7 +116,7 @@ Web Components support lifecycle methods for managing component state and
 behavior.
 
 ```html
-<!-- components/counter.webc -->
+<!-- views/counter.webc -->
 <script>
 import Component from "@primate/webc/Component";
 

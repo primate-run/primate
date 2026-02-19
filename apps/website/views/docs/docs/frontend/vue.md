@@ -28,10 +28,10 @@ export default config({
 
 ## Components
 
-Create Vue components in `components` using Single File Component syntax.
+Create Vue SFC components in `views`.
 
 ```vue
-<!-- components/PostIndex.vue -->
+<!-- views/PostIndex.vue -->
 <script lang="ts" setup>
 interface Post {
   title: string;
@@ -95,7 +95,7 @@ route.get(() => response.view("User.vue", {
 Access the props in the component:
 
 ```vue
-<!-- components/User.vue -->
+<!-- views/User.vue -->
 <script lang="ts" setup>
 interface User {
   name: string;
@@ -330,7 +330,7 @@ Create layout components that wrap your pages using `<slot>`.
 Create a layout component:
 
 ```vue
-<!-- components/Layout.vue -->
+<!-- views/Layout.vue -->
 <script lang="ts" setup>
 interface Props {
   brand?: string;

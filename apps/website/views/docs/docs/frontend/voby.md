@@ -27,10 +27,10 @@ export default config({
 
 ## Components
 
-Create Voby components in `components` using JSX syntax.
+Create Voby JSX components in `views`.
 
 ```jsx
-// components/post-index.jsx
+// views/post-index.jsx
 export default ({ posts, title }) => {
   return (
     <>
@@ -83,7 +83,7 @@ route.get(() => {
 Access the props in the component:
 
 ```jsx
-// components/user.jsx
+// views/user.jsx
 export default ({ user, permissions }) => {
   return (
     <div>

@@ -36,10 +36,10 @@ export default config({
 
 ## Components
 
-Create Angular components in `components`.
+Create Angular components in `views`.
 
 ```ts
-// components/PostIndex.component.ts
+// views/PostIndex.component.ts
 import { Component, Input } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
@@ -250,7 +250,7 @@ Install the Angular Forms package:
 npm install @angular/forms
 ```
 
-Create the form component:
+Create the form view:
 
 ```ts
 import { CommonModule } from "@angular/common";
@@ -326,10 +326,10 @@ route.post(async request => {
 For SSR with hydration, layouts accept a `slot: TemplateRef` and render it
 using `*ngTemplateOutlet`.
 
-Create a layout component:
+Create a layout view:
 
 ```ts
-// components/Layout.component.ts
+// views/Layout.component.ts
 import { Component, Input, TemplateRef } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
@@ -370,10 +370,10 @@ inside the layout's slot.
 
 ### Passing Props to Layouts
 
-Pass props from `+layout.ts` to the layout component as standard inputs:
+Pass props from `+layout.ts` to the layout view as standard inputs:
 
 ```ts
-// components/Layout.component.ts
+// views/Layout.component.ts
 import { Component, Input, TemplateRef } from "@angular/core";
 
 @Component({

@@ -30,10 +30,10 @@ export default config({
 
 ## Templates
 
-Create Markdown templates in `components` using standard Markdown syntax.
+Create Markdown templates in `views`.
 
 ```md
-<!-- components/post-index.md -->
+<!-- views/post-index.md -->
 # All Posts
 
 Here are all the posts:
@@ -90,7 +90,7 @@ Markdown automatically generates a table of contents from headings within the
 document.
 
 ```md
-<!-- components/article.md -->
+<!-- views/article.md -->
 # Article Title
 
 ## Introduction
@@ -116,8 +116,8 @@ import route from "primate/route";
 route.get(() => response.view("article.md"));
 ```
 
-The rendered component includes `toc` data with heading information that can
-be used to generate navigation.
+The rendered view includes `toc` data with heading information that can be used
+to generate navigation.
 
 ### Using the Table of Contents
 
@@ -128,27 +128,25 @@ Access the `toc` data and frontmatter `meta` in your route to build navigation:
 import type Component from "@primate/markdown/Component";
 import respone from "primate/response";
 import route from "primate/route";
+import app from "#app";
 
 route.get(request => {
   const page = request.path.get("page");
+  const { html, toc, meta } = app.view<Component>(`docs/${page}.md`);
 
-  return app => {
-    const { html, toc, meta } = app.component<Component>(`docs/${page}.md`);
-
-    return response.view("DocPage.html", {
-      content: html,
-      toc,
-      meta,
-      title: meta.title || page,
-    })(app, {}, request);
-  };
+  return response.view("DocPage.html", {
+    content: html,
+    toc,
+    meta,
+    title: meta.title || page,
+  });
 });
 ```
 
-Create an HTML component that uses the table of contents and metadata:
+Create an HTML view that uses the table of contents and metadata:
 
 ```html
-<!-- components/DocPage.html -->
+<!-- views/DocPage.html -->
 <div class="doc-layout">
   <header>
     <h1>${meta.title || title}</h1>

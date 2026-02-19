@@ -28,10 +28,10 @@ export default config({
 
 ## Components
 
-Create Solid components in `components` using JSX syntax.
+Create Solid JSX components in `views`.
 
 ```tsx
-// components/PostIndex.tsx
+// views/PostIndex.tsx
 import { For } from "solid-js";
 
 interface Post {
@@ -379,7 +379,7 @@ Create layout components that wrap your pages using `children`.
 Create a layout component:
 
 ```tsx
-// components/Layout.tsx
+// views/Layout.tsx
 import { JSX } from "solid-js";
 
 interface Props {

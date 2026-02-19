@@ -285,7 +285,7 @@ end
 
 ### Views
 
-Render components with props:
+Render views with props:
 
 ```ruby
 # routes/view.rb

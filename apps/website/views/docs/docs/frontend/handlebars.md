@@ -28,10 +28,10 @@ export default config({
 
 ## Templates
 
-Create Handlebars templates in `components` using Handlebars syntax.
+Create Handlebars templates in `views`.
 
 ```html
-<!-- components/post-index.hbs -->
+<!-- views/post-index.hbs -->
 <h1>All posts</h1>
 <div>
 {{#each posts}}
@@ -79,7 +79,7 @@ route.get(() => {
 Access the props in the template:
 
 ```html
-<!-- components/user.hbs -->
+<!-- views/user.hbs -->
 <div>
   <h2>{{user.name}}</h2>
   <p>Role: {{user.role}}</p>

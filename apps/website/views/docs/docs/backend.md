@@ -145,10 +145,10 @@ return map[string]any{"message": "Hello"}
 
 ### Views
 
-Render frontend components:
+Render views:
 
 ```go
-return response.View("component.html", data)
+return response.View("view.html", data)
 ```
 
 ### Redirects

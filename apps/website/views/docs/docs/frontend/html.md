@@ -28,10 +28,10 @@ export default config({
 
 ## Templates
 
-Create HTML templates in `components` using template literal syntax.
+Create HTML templates in `views` using template literal syntax.
 
 ```html
-<!-- components/post-index.html -->
+<!-- views/post-index.html -->
 <h1>All posts</h1>
 ${posts.map(post => `
   <h2>
@@ -81,7 +81,7 @@ route.get(() => {
 Access the props in the template:
 
 ```html
-<!-- components/user.html -->
+<!-- views/user.html -->
 <div>
   <h2>${user.name}</h2>
   <p>Role: ${user.role}</p>
@@ -97,7 +97,7 @@ HTML templates support `<style>` and `<script>` tags that are automatically
 extracted and bundled into Primate's global `app.css` and `app.js` files.
 
 ```html
-<!-- components/counter.html -->
+<!-- views/counter.html -->
 <style>
   .counter {
     display: flex;

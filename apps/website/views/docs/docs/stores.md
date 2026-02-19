@@ -85,7 +85,7 @@ import p from "pema";
 export default store({
   id: key.primary(p.u32),
   title: p.string,
-  author_id: key.foreign(User),  // references User.id
+  author_id: key.foreign(p.u32),  // references User.id
 });
 ```
 

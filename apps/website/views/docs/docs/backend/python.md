@@ -260,7 +260,7 @@ def get(request):
 
 ### Views
 
-Render components with props:
+Render views with props:
 
 ```python
 # routes/view.py

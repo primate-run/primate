@@ -315,7 +315,7 @@ var _ = route.Get(func(request route.Request) any {
 
 ### Views
 
-Render components with props:
+Render views with props:
 
 ```go
 // routes/view.go

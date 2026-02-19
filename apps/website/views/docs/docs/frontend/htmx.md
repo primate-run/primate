@@ -28,11 +28,11 @@ export default config({
 
 ## Templates
 
-Create HTMX templates in `components` using template literal syntax with HTMX
+Create HTMX templates in `views` using template literal syntax with HTMX
 attributes.
 
 ```html
-<!-- components/post-index.htmx -->
+<!-- views/post-index.htmx -->
 <h1>All posts</h1>
 ${posts.map(post => `
   <h2>
@@ -89,7 +89,7 @@ route.get(() => {
 Access the props in the template:
 
 ```html
-<!-- components/user.htmx -->
+<!-- views/user.htmx -->
 <div>
   <h2>${user.name}</h2>
   <p>Role: ${user.role}</p>
@@ -105,7 +105,7 @@ HTMX templates support `<style>` and `<script>` tags that are automatically
 extracted and bundled into Primate's global `app.css` and `app.js` files.
 
 ```html
-<!-- components/interactive-form.htmx -->
+<!-- views/interactive-form.htmx -->
 <style>
   .form-container {
     max-width: 400px;

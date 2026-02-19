@@ -28,10 +28,10 @@ export default config({
 
 ## Templates
 
-Create Eta templates in `components`.
+Create Eta templates in `views`.
 
 ```html
-<!-- components/post-index.eta -->
+<!-- views/post-index.eta -->
 <h1>All posts</h1>
 <div>
 <% it.posts.forEach(function(post){ %>
@@ -78,7 +78,7 @@ route.get(() => {
 Access the props in the template:
 
 ```html
-<!-- components/user.eta -->
+<!-- views/user.eta -->
 <div>
   <h2><%= it.user.name %></h2>
   <p>Role: <%= it.user.role %></p>

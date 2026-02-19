@@ -96,7 +96,7 @@ export default config({
 Create a component:
 
 ```tsx
-// components/Welcome.tsx
+// views/Welcome.tsx
 export default function Welcome({ name }: { name: string }) {
   return <h1>Hello, {name}!</h1>;
 }

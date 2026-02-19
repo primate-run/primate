@@ -28,10 +28,10 @@ export default config({
 
 ## Components
 
-Create Marko components in `components` using Marko's template syntax.
+Create Marko components in `views`.
 
 ```marko
-<!-- components/post-index.marko -->
+<!-- views/post-index.marko -->
 <h1>All posts</h1>
 <for|post| of=input.posts>
   <h2>
@@ -61,7 +61,7 @@ route.get(() => {
 
 ## Props
 
-Props passed to `response.view` are available as `input` in Marko components.
+Props passed to `response.view` are available as `input` in Marko views.
 
 Pass props from a route:
 
@@ -77,10 +77,10 @@ route.get(() => {
 });
 ```
 
-Access the props in the component:
+Access the props in the view:
 
 ```marko
-<!-- components/user.marko -->
+<!-- views/user.marko -->
 <div>
   <h2>${input.user.name}</h2>
   <p>Role: ${input.user.role}</p>
