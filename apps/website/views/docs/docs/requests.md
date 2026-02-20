@@ -10,17 +10,54 @@ parameters, `query` parameters, `cookies`, `headers`, the original WHATWG
 `Request`, and a `URL` helper. This page walks through each part and shows how
 to access and validate it.
 
-|property|type|description|
+|Property|Type|Description|
 |-|-|-|
 |[body](#body)|[RequestBody](#requestbody-reference)|parsed request body|
 |[path](#path)|[RequestBag](#requestbag-reference)|path parameters|
 |[query](#query)|[RequestBag](#requestbag-reference)|query parameters|
 |[headers](#headers)|[RequestBag](#requestbag-reference)|request headers|
 |[cookies](#cookies)|[RequestBag](#requestbag-reference)|request cookies (case-sensitive)|
-|[context](#context)|`Record<string, unknown>`|initial context for the client|
 |[original](#original)|`Request`|original WHATWG `Request` object|
 |[url](#url)|`URL`|original request URL|
 |[forward](#forward)|`(to: string) => Promise<Response>`|forward the request|
+
+## Request context
+
+`RequestFacade` includes a **request context** store: request-scoped values that
+hooks can attach for downstream hooks and route handlers to read.
+
+Use request context for **derived server values** (e.g. authenticated user,
+locale, feature flags, request IDs). For client input, use `body`, `path`,
+`query`, `headers`, or `cookies`.
+
+Context is most commonly set in [hooks](/docs/routing#hooks).
+
+### API
+
+|Method|Description|
+|--------|-------------|
+|`request.set(key, value)`| Set a context value |
+|`request.set<T>(key, fn)`| Update a context value with a function |
+|`request.get<T>(key)`| Get a context value (throws if missing) |
+|`request.try<T>(key)`| Get a context value or `undefined` |
+|`request.has(key)` | Check if a context key exists |
+|`request.delete(key)`| Remove a context key |
+
+!!!
+Context is **not** part of the underlying WHATWG `Request`. `request.forward()`
+forwards the original request, not your attached context.
+!!!
+
+### Golden path: authenticate in a hook, use in a route
+
+```ts
+// routes/+hook.ts
+import hook from "primate/route/hook";
+
+hook(async (request, next) => {
+  const user = await authenticate(request);
+  return next(request.set("auth.user", user));
+});
 
 ## Body
 
@@ -109,21 +146,6 @@ As with other bags, you can parse/validate the whole set.
 
 ## `RequestBag` reference
 [s=request/reference/RequestBag]
-
-## Context
-Initial context for the client. This is a plain dictionary available during
-route execution and intended for values you want to expose to the client on
-initial load.
-
-[s=request/context]
-
-Use `context` as a small, serializable key–value store for data you want on
-initial render.
-
-!!!
-The client sees the context under `props.request.context`. To avoid polluting
-the props object, this API may change in the future.
-!!!
 
 ## Original
 The original WHATWG `Request` object as received from the runtime. Use this for

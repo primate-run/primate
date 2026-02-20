@@ -236,17 +236,26 @@ hook((request, next) => {
 * Return any other response to **short-circuit** (e.g., redirect, error page).
 * You **must** return something — returning `undefined` is an error.
 
-#### Context propagation
+### Request context
 
-Hooks can pass data to downstream hooks and route handlers using `request.set()`:
+Hooks often compute values that downstream hooks and route handlers need (auth
+user, locale, feature flags, request IDs, etc.). Use **request context** to
+attach those derived values to the request as it flows through the hook chain.
+
+Set context in a hook with `request.set()`:
+
 ```ts
 // routes/+hook.ts
 import hook from "primate/route/hook";
 
-hook((request, next) => next(request.set("user", { id: 1, name: "John" })));
+hook((request, next) => {
+  request.set("user", { id: 1, name: "John" });
+  return next(request);
+});
 ```
 
-Access the data in nested hooks or route handlers with `request.get()`:
+Read it in nested hooks or route handlers with `request.get()` or `request.try()`:
+
 ```ts
 // routes/dashboard/index.ts
 import route from "primate/route";
@@ -257,28 +266,13 @@ route.get(request => {
 });
 ```
 
-The `request.set()` method also accepts a function to update an existing value:
-```ts
-// routes/outer/+hook.ts
-hook((request, next) => next(request.set("foo", "outer")));
+!!!
+`RequestFacade` context is **mutable**. `request.set(...)` updates the current
+request's context for downstream hooks and the route handler.
+!!!
 
-// routes/outer/inner/+hook.ts
-hook((request, next) => next(request.set<string>("foo", prev => prev + "inner")));
-
-// routes/outer/inner/index.ts
-route.get(request => request.get("foo")); // "outerinner"
-```
-
-#### Request context API
-
-| Method | Description |
-|--------|-------------|
-| `request.set(key, value)` | Set a context value |
-| `request.set<T>(key, fn)` | Update a context value with a function |
-| `request.get<T>(key)` | Get a context value (throws if missing) |
-| `request.try<T>(key)` | Get a context value or `undefined` |
-| `request.has(key)` | Check if a context key exists |
-| `request.delete(key)` | Remove a context key |
+For the full API and semantics, see
+[Handling requests → Request context](/docs/requests#request-context).
 
 !!!
 **Execution order**: parent hooks run before child hooks. The route runs only
