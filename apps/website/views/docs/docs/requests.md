@@ -21,43 +21,10 @@ to access and validate it.
 |[url](#url)|`URL`|original request URL|
 |[forward](#forward)|`(to: string) => Promise<Response>`|forward the request|
 
-## Request context
-
-`RequestFacade` includes a **request context** store: request-scoped values that
-hooks can attach for downstream hooks and route handlers to read.
-
-Use request context for **derived server values** (e.g. authenticated user,
-locale, feature flags, request IDs). For client input, use `body`, `path`,
-`query`, `headers`, or `cookies`.
-
-Context is most commonly set in [hooks](/docs/routing#hooks).
-
-### API
-
-|Method|Description|
-|--------|-------------|
-|`request.set(key, value)`| Set a context value |
-|`request.set<T>(key, fn)`| Update a context value with a function |
-|`request.get<T>(key)`| Get a context value (throws if missing) |
-|`request.try<T>(key)`| Get a context value or `undefined` |
-|`request.has(key)` | Check if a context key exists |
-|`request.delete(key)`| Remove a context key |
-
 !!!
-Context is **not** part of the underlying WHATWG `Request`. `request.forward()`
-forwards the original request, not your attached context.
-!!!
-
-### Golden path: authenticate in a hook, use in a route
-
-```ts
-// routes/+hook.ts
-import hook from "primate/route/hook";
-
-hook(async (request, next) => {
-  const user = await authenticate(request);
-  return next(request.set("auth.user", user));
-});
+`RequestFacade` also supports a request context store for sharing derived
+values between hooks and route handlers (see
+[Request context](#request-context)).
 
 ## Body
 
@@ -177,6 +144,46 @@ additional headers to forward.
 
 Use this to implement simple reverse proxies, edge routing, or fan-out/fan-in
 patterns.
+
+
+## Request context
+
+`RequestFacade` includes a **request context** store: request-scoped values that
+hooks can attach for downstream hooks and route handlers to read.
+
+Use request context for **derived server values** (e.g. authenticated user,
+locale, feature flags, request IDs). For client input, use `body`, `path`,
+`query`, `headers`, or `cookies`.
+
+Context is most commonly set in [hooks](/docs/routing#hooks).
+
+### API
+
+|Method|Description|
+|--------|-------------|
+|`request.set(key, value)`| Set a context value |
+|`request.set<T>(key, fn)`| Update a context value with a function |
+|`request.get<T>(key)`| Get a context value (throws if missing) |
+|`request.try<T>(key)`| Get a context value or `undefined` |
+|`request.has(key)` | Check if a context key exists |
+|`request.delete(key)`| Remove a context key |
+
+!!!
+Context is **not** part of the underlying WHATWG `Request`. `request.forward()`
+forwards the original request, not your attached context.
+!!!
+
+You can use hooks to authenticate in a hook, and then use in a route.
+
+```ts
+// routes/+hook.ts
+import hook from "primate/route/hook";
+
+hook(async (request, next) => {
+  const user = await authenticate(request);
+  return next(request.set("auth.user", user));
+});
+```
 
 ## `RequestFacade` reference
 [s=request/reference/RequestFacade]
