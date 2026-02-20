@@ -1,6 +1,6 @@
 import app from "#app";
 import BlogEntry from "#view/BlogEntry";
-import type Component from "@primate/markdown/Component";
+import type { Component } from "@primate/markdown";
 import response from "primate/response";
 import route from "primate/route";
 
