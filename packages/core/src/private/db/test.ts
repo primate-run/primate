@@ -193,6 +193,7 @@ export default <D extends DB>(db: D) => {
     u32: p.u32.optional(),
     u64: p.u64.optional(),
     u8: p.u8.optional(),
+    json: p.json().optional(),
   }, { db: db, name: "type" });
 
   // this stresses identifier quoting in CREATE/INSERT/SELECT/UPDATE/DELETE
@@ -1447,11 +1448,89 @@ export default <D extends DB>(db: D) => {
     const results = await Type.find({
       where: {
         string: "combo",
-        u8: { $gte: 150, $ne: 200 }
+        u8: { $gte: 150, $ne: 200 },
       },
       sort: { u8: "asc" },
     });
     assert(results.map(r => (r as any).u8)).equals([150]);
+  });
+
+  $type("json: opaque roundtrip", async assert => {
+    const json = { a: 1, b: [true, "x"], c: null };
+    const t = await Type.insert({ json });
+    assert(t.json).equals(json);
+    assert((await Type.get(t.id)).json).equals(json);
+  });
+
+  $type("json: update", async assert => {
+    const t = await Type.insert({ json: { x: 1 } });
+    await Type.update(t.id, { set: { json: { x: 2, y: "hello" } } });
+    assert((await Type.get(t.id)).json).equals({ x: 2, y: "hello" });
+  });
+
+  $type("json: nested object", async assert => {
+    const value = { outer: { inner: { deep: true } } };
+    const t = await Type.insert({ json: value });
+    assert((await Type.get(t.id)).json).equals(value);
+  });
+
+  $type("json: array at root", async assert => {
+    const value = [1, "two", false, null];
+    const t = await Type.insert({ json: value });
+    assert((await Type.get(t.id)).json).equals(value);
+  });
+
+  $type("json: null value unsets field", async assert => {
+    const t = await Type.insert({ json: { x: 1 } });
+    await Type.update(t.id, { set: { json: null } });
+    assert((await Type.get(t.id)).json).undefined();
+  });
+
+  $type("json: empty object", async assert => {
+    const t = await Type.insert({ json: {} });
+    assert((await Type.get(t.id)).json).equals({});
+  });
+
+  $type("json: empty array", async assert => {
+    const t = await Type.insert({ json: [] });
+    assert((await Type.get(t.id)).json).equals([]);
+  });
+
+  $type("json: primitive string", async assert => {
+    const t = await Type.insert({ json: "hello" });
+    assert((await Type.get(t.id)).json).equals("hello");
+  });
+
+  $type("json: primitive number", async assert => {
+    const t = await Type.insert({ json: 42 });
+    assert((await Type.get(t.id)).json).equals(42);
+  });
+
+  $type("json: primitive float", async assert => {
+    const t = await Type.insert({ json: 3.14 });
+    assert((await Type.get(t.id)).json).equals(3.14);
+  });
+
+  $type("json: primitive boolean true", async assert => {
+    const t = await Type.insert({ json: true });
+    assert((await Type.get(t.id)).json).equals(true);
+  });
+
+  $type("json: primitive boolean false", async assert => {
+    const t = await Type.insert({ json: false });
+    assert((await Type.get(t.id)).json).equals(false);
+  });
+
+  $type("json: null inside object survives roundtrip", async assert => {
+    const value = { a: 1, b: null };
+    const t = await Type.insert({ json: value });
+    assert((await Type.get(t.id)).json).equals({ a: 1, b: null });
+  });
+
+  $type("json: null inside array survives roundtrip", async assert => {
+    const value = [1, null, "three"];
+    const t = await Type.insert({ json: value });
+    assert((await Type.get(t.id)).json).equals([1, null, "three"]);
   });
 
   $store("where: null matches omitted optional field", User, async assert => {

@@ -1,16 +1,17 @@
-import type { TypedArray } from "@rcompat/type";
+import type { JSONValue, TypedArray } from "@rcompat/type";
 import type { Binary, Decimal128, ObjectId } from "mongodb";
 
 type Param =
-  bigint |
-  Binary |
-  boolean |
-  Date |
-  Decimal128 |
-  number |
-  ObjectId |
-  string |
-  TypedArray
+  | bigint
+  | Binary
+  | boolean
+  | Date
+  | Decimal128
+  | number
+  | ObjectId
+  | string
+  | TypedArray
+  | JSONValue
   ;
 
 type Validate<T extends { [K in keyof T]: Param }> = T;
@@ -27,6 +28,7 @@ type ColumnTypes = Validate<{
   STRING: string;
   TIME: string;
   UUID: string;
+  JSON: JSONValue;
 }>;
 
 export type { ColumnTypes as default };

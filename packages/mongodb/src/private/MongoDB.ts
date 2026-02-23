@@ -63,6 +63,77 @@ function unbind_value(key: DataKey, value: unknown) {
   return typemap[key].unbind(value as never);
 }
 
+function to_mongo_pk(field: string, pk: PK) {
+  return field === pk ? "_id" : field;
+}
+
+async function bind(as: As, object: DataDict): Promise<Dict> {
+  const pk = as.pk;
+  const out: Dict = {};
+
+  for (const [field, value] of Object.entries(object)) {
+    const mongo_field = to_mongo_pk(field, pk);
+    const datatype = as.types[field];
+
+    if (value === null) {
+      out[mongo_field] = null;
+      continue;
+    }
+
+    if (is.dict(value) && datatype !== "json") {
+      const ops = Object.entries(value);
+      if (ops.length === 0) throw E.operator_empty(field);
+
+      for (const [op, op_value] of ops) {
+        const existing = (out[mongo_field] ?? {}) as Dict;
+        let next;
+
+        switch (op) {
+          case "$like":
+            next = { $regex: like_to_regex(String(op_value)) };
+            break;
+          case "$ilike":
+            next = { $regex: like_to_regex(String(op_value)), $options: "i" };
+            break;
+          case "$ne":
+          case "$gt":
+          case "$gte":
+          case "$lt":
+          case "$lte":
+            next = { [op]: await bind_value(datatype, op_value) };
+            break;
+          case "$after":
+            next = { $gt: await bind_value(datatype, op_value) };
+            break;
+          case "$before":
+            next = { $lt: await bind_value(datatype, op_value) };
+            break;
+          default:
+            throw E.operator_unknown(field, op);
+        }
+
+        out[mongo_field] = { ...existing, ...next };
+      }
+
+      continue;
+    }
+
+    if (field === pk) {
+      const type = as.types[pk];
+      if (type === "string" && ObjectId.isValid(value as string)) {
+        out._id = new ObjectId(value as string);
+      } else {
+        out._id = value;
+      }
+      continue;
+    }
+
+    out[mongo_field] = await bind_value(datatype, value);
+  }
+
+  return out;
+}
+
 function like_to_regex(pattern: string) {
   return "^" + pattern
     .replace(/\\%/g, "<<PERCENT>>")
@@ -120,73 +191,6 @@ export default class MongoDB implements DB {
 
   #from_mongo_pk(field: string, pk: PK) {
     return field === "_id" && pk !== null ? pk : field;
-  }
-
-  async #bind(as: As, object: DataDict): Promise<Dict> {
-    const pk = as.pk;
-    const out: Dict = {};
-
-    for (const [field, value] of Object.entries(object)) {
-      const mongo_field = this.#to_mongo_pk(field, pk);
-      const datatype = as.types[field];
-
-      if (value === null) {
-        out[mongo_field] = null;
-        continue;
-      }
-
-      if (is.dict(value)) {
-        const ops = Object.entries(value);
-        if (ops.length === 0) throw E.operator_empty(field);
-
-        for (const [op, op_value] of ops) {
-          const existing = (out[mongo_field] ?? {}) as Dict;
-          let next;
-
-          switch (op) {
-            case "$like":
-              next = { $regex: like_to_regex(String(op_value)) };
-              break;
-            case "$ilike":
-              next = { $regex: like_to_regex(String(op_value)), $options: "i" };
-              break;
-            case "$ne":
-            case "$gt":
-            case "$gte":
-            case "$lt":
-            case "$lte":
-              next = { [op]: await bind_value(datatype, op_value) };
-              break;
-            case "$after":
-              next = { $gt: await bind_value(datatype, op_value) };
-              break;
-            case "$before":
-              next = { $lt: await bind_value(datatype, op_value) };
-              break;
-            default:
-              throw E.operator_unknown(field, op);
-          }
-
-          out[mongo_field] = { ...existing, ...next };
-        }
-
-        continue;
-      }
-
-      if (field === pk) {
-        const type = as.types[pk];
-        if (type === "string" && ObjectId.isValid(value as string)) {
-          out._id = new ObjectId(value as string);
-        } else {
-          out._id = value;
-        }
-        continue;
-      }
-
-      out[mongo_field] = await bind_value(datatype, value);
-    }
-
-    return out;
   }
 
   #unbind(as: As, doc: Dict): Dict {
@@ -303,7 +307,7 @@ export default class MongoDB implements DB {
   }
 
   async #count(as: As, where: DataDict) {
-    const filter = await this.#bind(as, where);
+    const filter = await bind(as, where);
     const collection = await this.#collection(as.table);
     const count = await collection.countDocuments(filter);
     return count;
@@ -315,7 +319,7 @@ export default class MongoDB implements DB {
     limit?: number;
     sort?: Sort;
   }) {
-    const filter = await this.#bind(as, args.where);
+    const filter = await bind(as, args.where);
     const collection = await this.#collection(as.table);
 
     const projection = get_projection(as.pk, args.fields);
@@ -412,7 +416,7 @@ export default class MongoDB implements DB {
     limit?: number;
   }) {
     // build filter with $in for join values
-    const filter = await this.#bind(args.as, args.where);
+    const filter = await bind(args.as, args.where);
     const by_field = this.#to_mongo_pk(args.by, args.as.pk);
     // convert join values to ObjectId if needed
     const pk_type = args.as.types[args.as.pk!];
@@ -460,7 +464,7 @@ export default class MongoDB implements DB {
     assert.nonempty(args.set);
     assert.dict(args.where);
 
-    const filter = await this.#bind(as, args.where);
+    const filter = await bind(as, args.where);
     const collection = await this.#collection(as.table);
 
     const $set: Dict = {};
@@ -486,7 +490,7 @@ export default class MongoDB implements DB {
   async delete(as: As, args: { where: DataDict }) {
     assert.nonempty(args.where);
 
-    const filter = await this.#bind(as, args.where);
+    const filter = await bind(as, args.where);
     const collection = await this.#collection(as.table);
 
     const result = await collection.deleteMany(filter);

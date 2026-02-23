@@ -50,6 +50,11 @@ function quote(name: string) {
   return `"${name}"`;
 }
 
+function ph(index: number, datakey: DataKey) {
+  const cast = datakey === "json" ? "::jsonb" : "";
+  return `$${index}${cast}`;
+}
+
 function order_by(types: Types, sort?: Sort, alias?: string) {
   if (sort === undefined) return "";
   const entries = Object.entries(sort);
@@ -75,10 +80,10 @@ function get_column(key: DataKey) {
   return typemap[key].column;
 }
 
-async function bind_value(key: DataKey, value: unknown) {
+function bind_value(key: DataKey, value: unknown) {
   if (value === null) return null;
   // typemap.bind may be sync or async; allow both
-  return await typemap[key].bind(value as never);
+  return typemap[key].bind(value as never);
 }
 
 function unbind_value(key: DataKey, value: unknown) {
@@ -232,8 +237,8 @@ export default class PostgreSQL implements DB {
       }
 
       // scalar equality
-      const ph = `$${i++}`;
-      parts.push(`${base} = ${ph}`);
+      const placeholder = ph(i++, datatype);
+      parts.push(`${base} = ${placeholder}`);
       params.push(await bind_value(datatype, raw));
     }
 
@@ -253,7 +258,7 @@ export default class PostgreSQL implements DB {
           const column = quote(key);
           if (key === as.pk) {
             const is_int = ["INTEGER", "BIGINT"].includes(column_type);
-            if (as.generate_pk && is_int) {
+            if (as.generate_pk === true && is_int) {
               const serial = column_type === "BIGINT" ? "BIGSERIAL" : "SERIAL";
               columns.push(`${column} ${serial} PRIMARY KEY`);
             } else {
@@ -282,17 +287,17 @@ export default class PostgreSQL implements DB {
     if (common.BIGINT_STRING_TYPES.includes(type)) {
       const q = Q`SELECT MAX((${pk})::numeric)::text AS v FROM ${as.table}`;
       const rows = await this.#sql(q) as { v: PK }[];
-      return rows[0]?.v ? BigInt(rows[0].v) + 1n : 1n;
+      return rows[0]?.v !== null ? BigInt(rows[0].v) + 1n : 1n;
     }
 
     throw "unreachable";
   }
 
-  #create(record: Dict) {
+  #create(as: As, record: Dict) {
     const fields = Object.keys(record);
     return [
       fields.map(quote),
-      fields.map((_, i) => `${BIND_BY}${i + 1}`),
+      fields.map((field, i) => ph(i + 1, as.types[field])),
     ];
   }
 
@@ -319,7 +324,7 @@ export default class PostgreSQL implements DB {
         return record as O;
       }
 
-      const [keys, values] = this.#create(record);
+      const [keys, values] = this.#create(as, record);
       const params = await this.#create_params(as, record);
       const q = Q`INSERT INTO ${table} (${keys}) VALUES (${values})`;
       await this.#sql(q, params);
@@ -333,7 +338,7 @@ export default class PostgreSQL implements DB {
 
     // integer types, use RETURNING
     if (!is_bigint_key(type) && type !== "string") {
-      const [keys, values] = this.#create(record);
+      const [keys, values] = this.#create(as, record);
       const params = await this.#create_params(as, record);
       const q = has_values
         ? Q`INSERT INTO ${table} (${keys}) VALUES (${values}) RETURNING ${pk}`
@@ -346,7 +351,7 @@ export default class PostgreSQL implements DB {
     // string or bigint, generate manually
     const pk_value = await this.#generate_pk(as);
     const to_insert = { ...record, [pk]: pk_value };
-    const [keys, values] = this.#create(to_insert);
+    const [keys, values] = this.#create(as, to_insert);
     const params = await this.#create_params(as, to_insert);
     const q = Q`INSERT INTO ${table} (${keys}) VALUES (${values})`;
     await this.#sql(q, params);
@@ -480,10 +485,10 @@ export default class PostgreSQL implements DB {
   ) {
     const relation = args.relation;
 
-    const by = relation.reverse ? relation.as.pk : relation.fk;
+    const by = relation.reverse === true ? relation.as.pk : relation.fk;
     if (by === null) throw E.relation_requires_pk("target");
 
-    const parent_by = relation.reverse ? relation.fk : as.pk;
+    const parent_by = relation.reverse === true ? relation.fk : as.pk;
     if (parent_by === null) throw E.relation_requires_pk("parent");
 
     const join_values = [...new Set(
@@ -622,8 +627,8 @@ export default class PostgreSQL implements DB {
     let i = 1;
 
     for (const k of set_keys) {
-      const ph = `$${i++}`;
-      set_parts.push(`${quote(k)} = ${ph}`);
+      const placeholder = ph(i++, as.types[k]);
+      set_parts.push(`${quote(k)} = ${placeholder}`);
       set_params.push(await bind_value(as.types[k], args.set[k]));
     }
 

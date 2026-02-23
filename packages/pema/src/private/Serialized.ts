@@ -29,6 +29,7 @@ type StructuralSerialized =
   | { type: "default"; of: Serialized }
   | { type: "partial"; of: Serialized }
   | { type: "schema"; of: Serialized }
+  | { type: "json"; datatype: "json"; of?: Serialized }
   | { type: "omit"; properties: Dict<Serialized> }
   | { type: "pure" }
   ;

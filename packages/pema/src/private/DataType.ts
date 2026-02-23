@@ -1,3 +1,5 @@
+import type { JSONValue } from "@rcompat/type";
+
 type DataType = {
   blob: Blob;
   boolean: boolean;
@@ -17,6 +19,7 @@ type DataType = {
   u64: bigint;
   u8: number;
   url: URL;
+  json: JSONValue;
 };
 
 export type { DataType as default };

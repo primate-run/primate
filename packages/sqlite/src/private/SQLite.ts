@@ -121,11 +121,12 @@ async function bind(types: Types, fields: Dict) {
   const out: Binds = {};
 
   for (const [key, value] of Object.entries(fields)) {
-    if (is.dict(value)) throw E.operator_scalar(key);
-
     const raw = key.startsWith("s_") ? key.slice(2) : key;
+    const type = types[raw.split("__")[0]];
 
-    out[`${BIND_BY}${key}`] = await bind_one(types[raw.split("__")[0]], value);
+    if (is.dict(value) && type !== "json") throw E.operator_scalar(key);
+
+    out[`${BIND_BY}${key}`] = await bind_one(type, value);
   }
 
   return out;

@@ -1,7 +1,7 @@
 import type ColumnTypes from "#ColumnTypes";
 import type { TypeMap } from "@primate/core/db";
 import type { TypedArray } from "@rcompat/type";
-import { Binary, Decimal128, ObjectId } from "mongodb";
+import { Binary, Decimal128 } from "mongodb";
 
 function identity<C extends keyof ColumnTypes>(column: C): {
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];
@@ -56,6 +56,7 @@ const typemap: TypeMap<ColumnTypes> = {
   i32: identity("INT"),
   i64: identity("LONG"),
   i8: identity("INT"),
+  json: identity("JSON"),
   string: identity("STRING"),
   time: identity("TIME"),
   u128: {

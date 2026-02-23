@@ -61,6 +61,15 @@ const typemap: TypeMap<ColumnTypes> = {
     },
   },
   i8: number("SMALLINT"),
+  json: {
+    bind(value) {
+      return JSON.stringify(value);
+    },
+    column: "JSONB",
+    unbind(value) {
+      return JSON.parse(value as unknown as string);
+    },
+  },
   string: identity("TEXT"),
   time: identity("TIME"),
   u128: {

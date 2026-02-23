@@ -1,6 +1,5 @@
 import type ColumnTypes from "#ColumnTypes";
 import type { TypeMap } from "@primate/core/db";
-import is from "@rcompat/is";
 
 function identity<C extends keyof ColumnTypes>(column: C): {
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];
@@ -69,16 +68,15 @@ const typemap: TypeMap<ColumnTypes> = {
     },
   },
   i8: number("TINYINT"),
-  /*primary: {
+  json: {
     bind(value) {
-      if (is.numeric(value)) return Number(value);
-      throw new Error(`\`${value}\` is not a valid primary key value`);
+      return JSON.stringify(value);
     },
-    column: "INT NOT NULL AUTO_INCREMENT PRIMARY KEY",
+    column: "JSON",
     unbind(value) {
-      return String(value);
+      return JSON.parse(value as unknown as string);
     },
-  },*/
+  },
   string: identity("TEXT"),
   time: identity("TEXT"),
   u128: {

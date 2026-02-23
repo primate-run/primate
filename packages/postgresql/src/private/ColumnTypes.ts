@@ -1,4 +1,4 @@
-import type { TypedArray } from "@rcompat/type";
+import type { JSONValue, TypedArray } from "@rcompat/type";
 
 type Param =
   | Array<unknown> // ANYARRAY
@@ -29,5 +29,6 @@ type ColumnTypes = Validate<{
   TIME: string;
   TIMESTAMP: Date;
   UUID: string;
+  JSONB: JSONValue;
 }>;
 export type { ColumnTypes as default };

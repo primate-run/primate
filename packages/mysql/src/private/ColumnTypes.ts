@@ -1,4 +1,4 @@
-import type { TypedArray } from "@rcompat/type";
+import type { JSONValue, TypedArray } from "@rcompat/type";
 
 type Param =
   | bigint
@@ -7,7 +7,8 @@ type Param =
   | null
   | number
   | string
-  | TypedArray;
+  | TypedArray
+  ;
 
 type Validate<T extends { [K in keyof T]: Param }> = T;
 
@@ -28,6 +29,7 @@ type ColumnTypes = Validate<{
   "TIME": string;
   TINYINT: number;
   "TINYINT UNSIGNED": number;
+  JSON: string;
 }>;
 
 export type { ColumnTypes as default };
