@@ -1,4 +1,4 @@
-import fail from "#fail";
+import E from "#error";
 import type ViewOptions from "#frontend/ViewOptions";
 import type ResponseFunction from "#response/ResponseFunction";
 import fs from "@rcompat/fs";
@@ -23,16 +23,6 @@ const backmap: Dict<string> = {
   jsx: "react",
 };
 
-function no_frontend(view: string) {
-  const extension = fs.ref(view).fullExtension.slice(1);
-  const hasPkg = extension in backmap;
-  const error = "No frontend for {0}";
-  const fix = hasPkg ? ", did you configure {1}?" : "";
-  const pkgname = hasPkg ? `@primate/${backmap[extension]}` : "";
-
-  return fail(`${error}${fix}`, view, pkgname);
-}
-
 function view<Props>(
   component: (props: Props) => any,
   props: Props,
@@ -56,14 +46,16 @@ function view(
  * @return Response rendering function
  */
 function view(name: any, props?: Dict, options?: ViewOptions): ResponseFunction {
-  const _name: string = name;
+  const view_name: string = name;
   return async (app, transfer, request) => {
     const found_view = extensions
-      .map(extension => app.frontends[fs.ref(_name)[extension]])
+      .map(extension => app.frontends[fs.ref(view_name)[extension]])
       .find(extension => extension !== undefined)
-      ?.(_name, props, options)(app, transfer, request);
+      ?.(view_name, props, options)(app, transfer, request);
     if (found_view !== undefined) return found_view;
-    throw no_frontend(_name);
+
+    const extension = fs.ref(view_name).fullExtension.slice(1);
+    throw E.frontend_missing(view_name, backmap[extension]);
   };
 }
 

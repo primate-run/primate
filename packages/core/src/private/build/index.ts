@@ -1,14 +1,14 @@
+import { s_config } from "#app/Facade";
 import BuildApp from "#build/App";
 import bye from "#bye";
 import type Config from "#config/Config";
 import default_config from "#config/index";
-import fail from "#fail";
+import E from "#error";
 import Flags from "#Flags";
 import log from "#log";
 import dict from "@rcompat/dict";
 import type { FileRef } from "@rcompat/fs";
 import fs from "@rcompat/fs";
-import { s_config } from "#app/Facade";
 
 const no_config = (config?: Config) =>
   config === undefined || dict.empty(config);
@@ -21,19 +21,18 @@ const find_config = async (root: FileRef) => {
 };
 
 const get_config = async (root: FileRef) => {
-  const config = await find_config(root);
-  if (config !== undefined) {
-    try {
-      const imported = (await config.import("default"))[s_config];
+  const config_file = await find_config(root);
+  if (config_file === undefined) return default_config();
 
-      if (no_config(imported)) throw fail("empty config file at {0}", config);
+  try {
+    const imported = (await config_file.import("default"))[s_config];
 
-      return imported;
-    } catch (error) {
-      throw fail("error in config file {0}", error);
-    }
+    if (no_config(imported)) throw E.config_file_empty(config_file);
+
+    return imported;
+  } catch (error) {
+    throw E.config_file_error(config_file, error as Error);
   }
-  return default_config();
 };
 
 export default async (input: typeof Flags.input) => {

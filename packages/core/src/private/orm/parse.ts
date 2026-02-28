@@ -1,5 +1,5 @@
+import E from "#db/error";
 import type PK from "#db/PK";
-import fail from "#fail";
 import ForeignKey from "#orm/ForeignKey";
 import PrimaryKey from "#orm/PrimaryKey";
 import type StoreInput from "#orm/StoreInput";
@@ -17,7 +17,7 @@ export default function parse(input: StoreInput) {
 
   for (const [key, value] of Object.entries(input)) {
     if (is_pk(value)) {
-      if (pk !== null) throw fail("multiple primary keys: {0}, {1}", pk, key);
+      if (pk !== null) throw E.pk_multiple_pks(pk, key);
       pk = key;
       generate_pk = value.generate;
       schema[key] = value.type;

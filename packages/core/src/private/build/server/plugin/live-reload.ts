@@ -1,5 +1,5 @@
 import type BuildApp from "#build/App";
-import fail from "#fail";
+import E from "#error";
 import type ServeApp from "#serve/App";
 import type { Plugin } from "esbuild";
 
@@ -14,12 +14,12 @@ export default function plugin_server_live_reload(app: BuildApp): Plugin {
         // don't do anything on errors
         if (result.errors.length) return;
         // we expect a single bundled file
-        const outFile = result.outputFiles?.[0];
-        if (!outFile) return;
+        const out_file = result.outputFiles?.[0];
+        if (!out_file) return;
 
         const filename = `server.${build_n}.js`;
         const s = app.path.build.join(filename);
-        await s.write(outFile.text);
+        await s.write(out_file.text);
 
         try {
           // stop old app
@@ -30,9 +30,8 @@ export default function plugin_server_live_reload(app: BuildApp): Plugin {
           await stamp.write(`export default ${build_n};\n`);
 
           build_n++;
-        } catch (err) {
-          fail("[primate/server/live-reload] failed to import {0}", filename);
-          console.error(err);
+        } catch (error) {
+          throw E.build_live_reload_failed(filename, error as Error);
         }
       });
     },

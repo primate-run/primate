@@ -13,7 +13,7 @@ export default class Default extends Runtime {
       const { name } = script.match(webc_class_name_re)?.groups
         ?? { name: undefined };
 
-      if (name === undefined) throw fail("view at {0} has no class name", view);
+      if (name === undefined) throw fail`view at ${view} has no class name`;
 
       const tag = (await this.normalize(view
         .debase(view.directory, "/").path)).replace("_", "-");

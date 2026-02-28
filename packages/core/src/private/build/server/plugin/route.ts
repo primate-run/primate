@@ -1,8 +1,8 @@
 import type BuildApp from "#build/App";
-import fail from "#fail";
+import E from "#error";
 import wrap from "#route/wrap";
-import fs from "@rcompat/fs";
 import type { FileRef } from "@rcompat/fs";
+import fs from "@rcompat/fs";
 import type { Plugin } from "esbuild";
 
 const contents = "export default {};";
@@ -36,9 +36,7 @@ export default function plugin_server_route(app: BuildApp): Plugin {
         }
 
         if (!file || !extension) {
-          throw fail(
-            `cannot find route source for "${relative}" under ${path_routes.path}`,
-          );
+          throw E.build_missing_route(relative, path_routes);
         }
 
         // normalise "routes/foo.ext" -> "foo" for router

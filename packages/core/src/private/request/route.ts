@@ -1,4 +1,4 @@
-import fail from "#fail";
+import E from "#error";
 import log from "#log";
 import type RequestHook from "#module/RequestHook";
 import type RequestFacade from "#request/RequestFacade";
@@ -30,7 +30,7 @@ function wrap_hook(h: RequestHook): InternalHook {
     let called_next = false;
 
     const response = await h(request, async r => {
-      if (called_next) throw fail("hook called next() more than once");
+      if (called_next) throw E.hook_reused_next();
       called_next = true;
       downstream = await next(r);
       return downstream.response;
@@ -38,14 +38,8 @@ function wrap_hook(h: RequestHook): InternalHook {
 
     // hook returned nothing
     if (response === undefined) {
-      if (called_next) {
-        throw fail(
-          "hook called next() but did not return a result; did you forget `return next(request)`?",
-        );
-      }
-      throw fail(
-        "hook must return a response-like value or return next(request)",
-      );
+      if (called_next) throw E.hook_no_return();
+      throw E.hook_bad_return();
     }
 
     // if the hook called next(), we preserve the downstream request (mutations) but

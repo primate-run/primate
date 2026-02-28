@@ -5,7 +5,7 @@ import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
 import type CSP from "#CSP";
-import fail from "#fail";
+import E from "#error";
 import type ServerView from "#frontend/ServerView";
 import type ViewOptions from "#frontend/ViewOptions";
 import type ViewResponse from "#frontend/ViewResponse";
@@ -113,7 +113,7 @@ export default class ServeApp extends App {
 
   #pages: Dict<string>;
   #stores: Dict;
-  #frontends: PartialDict<ViewResponse> = {};
+  #frontends: Map<string, ViewResponse> = new Map();
   #router: FileRouter;
   #builtins: {
     dev?: DevModule;
@@ -193,7 +193,7 @@ export default class ServeApp extends App {
   }
 
   get frontends() {
-    return { ...this.#frontends };
+    return Object.fromEntries(this.#frontends);
   }
 
   get stores() {
@@ -210,10 +210,8 @@ export default class ServeApp extends App {
     const extension = frontends.find(frontend => f.endsWith(frontend));
     const base = extension === undefined ? name : f.slice(0, -extension.length);
     const view = this.#views[base];
-    if (view === undefined) throw fail("no view {0}", name);
-    if (view.default === undefined) {
-      throw fail("view {0} must export a default component", name);
-    }
+    if (view === undefined) throw E.view_missing(name);
+    if (view.default === undefined) throw E.view_missing_default_export(name);
     return view.default as T;
   };
 
@@ -307,11 +305,11 @@ export default class ServeApp extends App {
       );
   };
 
-  register(extension: string, viewFunction: ViewResponse) {
-    if (this.#frontends[extension] !== undefined) {
-      throw fail("double file extension {0}", extension);
+  register(extension: string, view_response: ViewResponse) {
+    if (this.#frontends.has(extension)) {
+      throw E.view_duplicate_extension(extension);
     }
-    this.#frontends[extension] = viewFunction;
+    this.#frontends.set(extension, view_response);
   };
 
   page(name?: string) {
@@ -474,9 +472,7 @@ export default class ServeApp extends App {
     const verbs = router.get(route.path)!;
     const route_path = verbs[verb];
 
-    if (route_path === undefined) {
-      throw fail("route {0} has no {1} verb", route.path, verb);
-    }
+    if (route_path === undefined) throw E.route_missing_verb(route.path, verb);
 
     const handler = route_path.handler;
     const parse_body = route_path.options.parseBody;

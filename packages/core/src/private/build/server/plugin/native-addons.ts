@@ -1,5 +1,5 @@
 import type BuildApp from "#build/App";
-import fail from "#fail";
+import E from "#error";
 import log from "#log";
 import fs from "@rcompat/fs";
 import type { Plugin } from "esbuild";
@@ -38,12 +38,8 @@ export default function plugin_server_store(app: BuildApp): Plugin {
               let node_file = node_files.find(f =>
                 f.path.includes(`${platform}-${arch}`),
               );
-              if (!node_file) {
-                node_file = node_files.find(f => f.path.includes(platform));
-              }
-              if (!node_file) {
-                throw fail("could not find matching binary addon");
-              }
+              node_file ??= node_files.find(f => f.path.includes(platform));
+              if (node_file === undefined) throw E.build_missing_binary_addon();
 
               const addon_name = node_files[0].name;
               const dest = app.path.build.join("native", addon_name);

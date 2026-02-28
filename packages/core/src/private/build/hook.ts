@@ -1,7 +1,7 @@
 import type BuildApp from "#build/App";
 import build_client from "#build/client/index";
 import build_server from "#build/server/index";
-import fail from "#fail";
+import E from "#error";
 import location from "#location";
 import log from "#log";
 import reducer from "#reducer";
@@ -15,9 +15,10 @@ const { version } = await core_pkg.json() as { version: string };
 
 async function pre(app: BuildApp) {
   const dot_primate = app.path.build.join(".primate");
-  if (await app.path.build.exists() && !await dot_primate.exists()) {
-    const message = "{0} exists but does not contain a previous build";
-    throw fail(message, app.path.build.path);
+  const build_path = app.path.build;
+
+  if (await build_path.exists() && !await dot_primate.exists()) {
+    throw E.build_previous_build_exists(build_path);
   }
   // remove build directory if exists
   await app.path.build.remove();

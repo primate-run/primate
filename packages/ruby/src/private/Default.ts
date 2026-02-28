@@ -1,5 +1,4 @@
 import Runtime from "#Runtime";
-import type AppError from "@primate/core/AppError";
 import TAG from "@primate/core/backend/TAG";
 import type BuildApp from "@primate/core/BuildApp";
 import fail from "@primate/core/fail";
@@ -22,17 +21,21 @@ function detect_routes(code: string): string[] {
   return found;
 }
 
-function gem_not_found(): AppError {
-  return fail("missing {0}, run 'gem install {0} -v \"~> {1}.0\"'", GEM, TAG);
+function gem_not_found() {
+  const command = `gem install ${GEM} -v "~> ${TAG}.0"`;
+  return fail`missing ${GEM}, run ${command}`;
 }
 
-function pkg_mismatch(major: number, minor: number): AppError {
-  return fail("installed {0} gem version {1}.{2}.x not in range {3}.x",
-    GEM, major, minor, `~> ${TAG}`);
+function pkg_mismatch(major: number, minor: number) {
+  const range = `~> ${TAG}.x`;
+  const version = `${major}.${minor}.x`;
+  return fail`installed ${GEM} gem version ${version} not in range ${range}`;
 }
 
-function pkg_not_found(): AppError {
-  return fail(`gem not found in bundle - run 'bundle add ${GEM} -v "~> ${TAG}.0"' and bundle install`);
+function pkg_not_found() {
+  const add = `bundle add ${GEM} -v "~> ${TAG}.0`;
+  const install = "bundle install";
+  return fail`gem not found in bundle - run ${add} and ${install}`;
 }
 
 async function gem_version(root: FileRef): Promise<string | void> {
@@ -65,7 +68,7 @@ export default class Default extends Runtime {
 
       const source = await file.text();
       const routes = detect_routes(source);
-      if (routes.length === 0) throw fail("no routes detected in {0}", file);
+      if (routes.length === 0) throw fail`no routes detected in ${file}`;
       log.info("found routes in {0}: {1}", file, routes.join(", "));
 
       const id = file.debase(app.path.routes).path

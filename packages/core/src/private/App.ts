@@ -1,5 +1,5 @@
 import type Config from "#config/Config";
-import fail from "#fail";
+import E from "#error";
 import type Flags from "#Flags";
 import location from "#location";
 import type Mode from "#Mode";
@@ -10,10 +10,6 @@ import dict from "@rcompat/dict";
 import entries from "@rcompat/dict/entries";
 import type { FileRef } from "@rcompat/fs";
 import p from "pema";
-
-const doubled = (set: string[]) =>
-  set.find((part: string, i: number, array: string[]) =>
-    array.filter((_, j) => i !== j).includes(part)) ?? "";
 
 export default class App {
   #path: { [K in keyof typeof location]: FileRef } & { build: FileRef };
@@ -27,7 +23,7 @@ export default class App {
 
   constructor(root: FileRef, config: Config, flags: typeof Flags.infer) {
     if (Object.values(location).includes(flags.dir as any)) {
-      throw fail("cannot build to {0} - reserved directory", flags.dir);
+      throw E.app_reserved_directory(flags.dir);
     }
     this.#root = root;
     this.#config = config;
@@ -44,7 +40,7 @@ export default class App {
   async init() {
     const names = this.#modules.map(({ name }) => name);
     if (new Set(names).size !== this.#modules.length) {
-      throw fail("module {0} loaded twice", doubled(names));
+      throw E.app_duplicate_module(names);
     }
 
     const app = await reducer(this.#modules, this, "init");

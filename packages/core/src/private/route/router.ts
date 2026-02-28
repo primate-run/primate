@@ -1,4 +1,4 @@
-import fail from "#fail";
+import E from "#error";
 import type RequestHook from "#module/RequestHook";
 import type Verb from "#request/Verb";
 import type RouteHandler from "#route/Handler";
@@ -31,10 +31,7 @@ class Router {
     assert.maybe.boolean(options?.parseBody);
 
     const active = assert.defined(this.active);
-    if (is_hook_file(active)) {
-      throw fail("route.{0} may not be used inside {1}; use hook(...) instead",
-        verb, active);
-    }
+    if (is_hook_file(active)) throw E.hook_route_functions_not_allowed(active);
 
     const _routes = this.#routes;
     if (!(active in _routes)) _routes[active] = {};
@@ -45,10 +42,7 @@ class Router {
     assert.function(fn);
 
     const active = assert.defined(this.active);
-    if (!is_hook_file(active)) {
-      throw fail("hook(...) may only be used inside +hook files, got {0}",
-        active);
-    }
+    if (!is_hook_file(active)) throw E.hook_not_allowed(active);
 
     (this.#hooks[active] ??= []).push(fn);
   }
@@ -58,10 +52,7 @@ class Router {
   }
 
   verifyHook(path: string) {
-    if ((this.#hooks[path] ?? []).length === 0) {
-      throw fail("hook file {0} did not register any hooks (call hook(...))",
-        path);
-    }
+    if ((this.#hooks[path] ?? []).length === 0) throw E.hook_unused(path);
   }
 
   get(path: string) {

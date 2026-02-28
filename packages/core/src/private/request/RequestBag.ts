@@ -1,4 +1,4 @@
-import fail from "#fail";
+import E from "#error";
 import assert from "@rcompat/assert";
 import fn from "@rcompat/fn";
 import type { PartialDict } from "@rcompat/type";
@@ -94,7 +94,7 @@ export default class RequestBag {
       if (v !== undefined) return v;
     }
 
-    throw fail("{0} has no key {1}", this.#name, key);
+    throw E.request_bag_missing_key(this.#name, key);
   }
 
   /**

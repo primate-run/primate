@@ -261,6 +261,11 @@ export default class Store<
     this.#generate_pk = generate_pk;
     this.#fks = fks;
     this.#relations = config.relations ?? {} as R;
+
+    for (const name of Object.keys(this.#relations)) {
+      if (name in schema) throw E.relation_conflicts_with_field(name);
+    }
+
     this.#nullables = new Set(
       Object.entries(this.#type.properties as Dict<{ nullable: boolean }>)
         .filter(([, v]) => v.nullable)

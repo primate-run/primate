@@ -1,4 +1,4 @@
-import fail from "#fail";
+import E from "#error";
 import binary from "#response/binary";
 import json from "#response/json";
 import redirect from "#response/redirect";
@@ -9,10 +9,6 @@ import Streamable from "@rcompat/fs/Streamable";
 import Status from "@rcompat/http/Status";
 import is from "@rcompat/is";
 import type { UnknownFunction } from "@rcompat/type";
-
-function invalid_body(body: string) {
-  throw fail("invalid body {0} returned from route", body);
-}
 
 type ReadonlyFunctions = ReadonlyArray<UnknownFunction>;
 
@@ -42,9 +38,11 @@ const guesses = match([
   [is.string, text],
 ]);
 
-const guess = (value: unknown): ResponseFunction | void =>
-  guesses.find(([_if]) => _if(value))?.[1](value as never)
-  ?? invalid_body(`${value}`);
+function guess(value: unknown): ResponseFunction | void {
+  const found = guesses.find(([_if]) => _if(value))?.[1](value as never);
+  if (found === undefined) throw E.response_invalid_body(`${value}`);
+  return found;
+};
 
 export default (result: ResponseLike): ResponseFunction =>
   typeof result === "function" ? result : guess(result) as ResponseFunction;

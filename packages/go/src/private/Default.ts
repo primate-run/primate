@@ -41,18 +41,19 @@ async function check_version() {
     const trimmed = version.trim();
 
     const version_match = trimmed.match(/^v?(\d+)\.(\d+)\.(\d+)/);
-    if (!version_match) throw fail("invalid version format: {0}", trimmed);
+    if (version_match == null) throw fail`invalid version format: ${trimmed}`;
 
     const [, major, minor] = version_match.map(Number);
 
     if (major !== MAJOR || minor !== MINOR) {
-      throw fail("installed version {0} not in range {1}", trimmed, TAG);
+      throw fail`installed version ${trimmed} not in range ${TAG}`;
     }
 
     log.info("using {0} package v{1}.{2}.x", REPO, major, minor);
   } catch (error) {
     if (error instanceof AppError) throw error;
-    throw fail("{0} dependency not found - run 'go get {0}@v{1}.0'", REPO, TAG);
+    const command = `go get ${REPO}@v${TAG}.0`;
+    throw fail`${REPO} dependency not found - run ${command}`;
   }
 }
 
@@ -81,7 +82,7 @@ export default class Default extends Runtime {
           env: ENV,
         });
       } catch (error) {
-        throw fail("error in module {0}\n{1}", route, error);
+        throw fail`error in module ${route}\n${error}`;
       }
 
       await build_go_file.remove();

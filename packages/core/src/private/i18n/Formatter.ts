@@ -1,4 +1,4 @@
-import fail from "#fail";
+import E from "#error";
 import ordinals from "#i18n/ordinals";
 import toIntlUnit from "#i18n/toIntlUnit";
 import assert from "@rcompat/assert";
@@ -117,7 +117,7 @@ export default class Formatter {
     assert.string(u);
 
     const intl_unit = toIntlUnit(u);
-    const unit = assert.defined(intl_unit, fail("unit {0} not supported", u));
+    const unit = assert.defined(intl_unit, E.i18n_unit_not_supported(u));
     const options = { style: "unit", unit } as const;
 
     try {

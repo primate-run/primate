@@ -13,7 +13,7 @@ export default class Runtime extends FrontendModule {
       const app_js = app.assets.find(asset =>
         asset.src?.includes("app") && asset.src.endsWith(".js"),
       );
-      if (!app_js) throw fail("Could not find app.js in assets");
+      if (app_js === undefined) throw fail`could not find app.js in assets`;
 
       const script = `<script type="module" src="${app_js.src}"></script>`;
 

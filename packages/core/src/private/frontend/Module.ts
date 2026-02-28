@@ -1,7 +1,7 @@
 import type App from "#App";
 import type BuildApp from "#build/App";
 import type ClientData from "#client/Data";
-import fail from "#fail";
+import E from "#error";
 import type Render from "#frontend/Render";
 import type ServerData from "#frontend/ServerData";
 import type ServerView from "#frontend/ServerView";
@@ -106,12 +106,11 @@ export default abstract class FrontendModule<
 
     if (!this.client) {
       if (app.mode === "development") {
-        const app_asset = app.assets.find(asset =>
-          asset.src?.includes("app") && asset.src.endsWith(".js"),
+        const asset = app.assets.find(a =>
+          a.src?.includes("app") && a.src.endsWith(".js"),
         );
-        if (!app_asset) throw fail("Could not find app.js in assets");
-        const app_script =
-          `<script type="module" src="${app_asset.src}"></script>`;
+        if (asset === undefined) throw E.frontend_missing_app_js();
+        const app_script = `<script type="module" src="${asset.src}"></script>`;
         return { body, head: head.concat(app_script), headers };
       }
       return { body, head, headers };
@@ -121,7 +120,7 @@ export default abstract class FrontendModule<
       asset.src?.includes("app") && asset.src.endsWith(".js"),
     );
 
-    if (!app_asset) throw fail("Could not find app.js in assets");
+    if (app_asset === undefined) throw E.frontend_missing_app_js();
 
     const app_script = `<script type="module" src="${app_asset.src}"></script>`;
     const props = JSON.stringify({ frontend: this.name, ...client });
@@ -203,8 +202,7 @@ export default abstract class FrontendModule<
 
         return app.view({ body, head, headers, ...options });
       } catch (error) {
-        const path = `${location.views}/${view}`;
-        throw fail("error in view {0}\n{1}", path, error);
+        throw E.view_error(`${location.views}/${view}`, error as Error);
       }
     };
 

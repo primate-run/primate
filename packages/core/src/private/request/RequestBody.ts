@@ -1,4 +1,4 @@
-import fail from "#fail";
+import E from "#error";
 import MIME from "@rcompat/http/mime";
 import is from "@rcompat/is";
 import type { Dict, JSONValue, Schema } from "@rcompat/type";
@@ -31,42 +31,44 @@ async function anyform(request: Request) {
   return { form, files };
 };
 
+async function parse(request: Request, url: URL): Promise<RequestBody> {
+  const raw = request.headers.get("content-type") ?? "none";
+  const type = raw.split(";")[0].trim().toLowerCase();
+  const path = url.pathname;
+
+  try {
+    switch (type) {
+      case MIME.APPLICATION_OCTET_STREAM:
+        return new RequestBody({ type: "binary", value: await request.blob() });
+      case MIME.APPLICATION_X_WWW_FORM_URLENCODED:
+      case MIME.MULTIPART_FORM_DATA: {
+        const { form, files } = await anyform(request);
+        return new RequestBody({ type: "form", value: form }, files);
+      }
+      case MIME.APPLICATION_JSON:
+        return new RequestBody({ type: "json", value: await request.json() });
+      case MIME.TEXT_PLAIN:
+        return new RequestBody({ type: "text", value: await request.text() });
+      case "none":
+        return RequestBody.none();
+      default:
+        throw E.request_unsupported_mime(path, type);
+    }
+  } catch (cause) {
+    throw E.request_unparsable_mime(path, type, cause as Error);
+  }
+}
+
+function none() {
+  return new RequestBody({ type: "none", value: null });
+}
+
 export default class RequestBody {
   #parsed: Parsed;
   #files: Dict<File>;
 
-  static async parse(request: Request, url: URL): Promise<RequestBody> {
-    const raw = request.headers.get("content-type") ?? "none";
-    const type = raw.split(";")[0].trim().toLowerCase();
-    const path = url.pathname;
-
-    try {
-      switch (type) {
-        case MIME.APPLICATION_OCTET_STREAM:
-          return new RequestBody({ type: "binary", value: await request.blob() });
-        case MIME.APPLICATION_X_WWW_FORM_URLENCODED:
-        case MIME.MULTIPART_FORM_DATA: {
-          const { form, files } = await anyform(request);
-          return new RequestBody({ type: "form", value: form }, files);
-        }
-        case MIME.APPLICATION_JSON:
-          return new RequestBody({ type: "json", value: await request.json() });
-        case MIME.TEXT_PLAIN:
-          return new RequestBody({ type: "text", value: await request.text() });
-        case "none":
-          return RequestBody.none();
-        default:
-          throw fail("{0}: unsupported content type {1}", path, type);
-      }
-    } catch (cause) {
-      const message = "{0}: unparseable content type {1} - cause:\n[2]";
-      throw fail(message, path, type, cause);
-    }
-  }
-
-  static none() {
-    return new RequestBody({ type: "none", value: null });
-  }
+  static parse = parse;
+  static none = none;
 
   constructor(parsed: Parsed, files: Dict<File> = {}) {
     this.#parsed = parsed;
@@ -81,58 +83,50 @@ export default class RequestBody {
     return this.#parsed.value as T;
   }
 
-  #throw(expected: string) {
-    throw fail("request body: expected {0}, got {1}", expected, this.type);
+  #unexpected_body(expected: string) {
+    throw E.request_unexpected_body(expected, this.type);
   }
 
   json(): JSONValue;
   json<S extends Schema<unknown>>(schema: S): ParseReturn<S>;
   json(schema?: Schema<unknown>) {
-    if (this.type !== "json") {
-      this.#throw("JSON");
-    }
+    if (this.type !== "json") this.#unexpected_body("JSON");
 
     const value = this.#value<JSONValue>();
-    return schema ? schema.parse(value) : value;
+    return schema === undefined ? value : schema.parse(value);
   }
 
   form(): Form;
   form<S extends Schema<unknown>>(schema: S): ParseReturn<S>;
   form(schema?: Schema<unknown>) {
-    if (this.type !== "form") {
-      this.#throw("form");
-    }
+    if (this.type !== "form") this.#unexpected_body("form");
 
     const value = this.#value<Form>();
-    return schema ? schema.parse(value) : value;
+    return schema === undefined ? value : schema.parse(value);
   }
 
   files(): Dict<File> {
-    if (this.type !== "form") {
-      this.#throw("form");
-    }
+    if (this.type !== "form") this.#unexpected_body("form");
 
     return this.#files;
   }
 
   text() {
-    if (this.type !== "text") {
-      this.#throw("plaintext");
-    }
+    if (this.type !== "text") this.#unexpected_body("plaintext");
 
     return this.#value<string>();
   }
 
   binary() {
     if (this.type !== "binary") {
-      this.#throw("binary");
+      this.#unexpected_body("binary");
     }
     return this.#value<Blob>();
   }
 
   none() {
     if (this.type !== "none") {
-      this.#throw("none");
+      this.#unexpected_body("none");
     }
     return null;
   }

@@ -231,6 +231,14 @@ export default <D extends DB>(db: D) => {
     },
   });
 
+  /*const AuthorWithJSON = new Store({
+    id: key.primary(p.string),
+    name: p.string,
+    articles: p.json(p.array(ArticleSchema)),
+    meta: p.json(p({ views: p.u32, tags: p.array(p.string) })),
+    notes: p.json(),  // untyped
+  }, { db, name: "author_json" });*/
+
   const Article = new Store(ArticleSchema, {
     db,
     name: "article",
@@ -1545,6 +1553,76 @@ export default <D extends DB>(db: D) => {
     assert(rows[0].id).equals(u.id);
   });
 
+  /*$store("json column: inferred type on insert", AuthorWithJSON, async assert => {
+    const author = await AuthorWithJSON.insert({
+      name: "John",
+      articles: [{ title: "First", published: new Date() }],
+      meta: { views: 0, tags: ["typescript"] },
+    });
+
+    assert(author).type<{
+      id: string;
+      name: string;
+      articles?: { title: string; published: Date }[];
+      meta?: { views: number; tags: string[] };
+      notes?: JSONValue;
+    }>();
+  });
+
+  $store("json column: inferred type on find", AuthorWithJSON, async assert => {
+    const authors = await AuthorWithJSON.find();
+    assert(authors).type<{
+      id: string;
+      name: string;
+      articles?: { title: string; published: Date }[];
+      meta?: { views: number; tags: string[] };
+      notes?: JSONValue;
+    }[]>();
+  });
+
+  $store("json column: inferred type on get", AuthorWithJSON, async assert => {
+    const a = await AuthorWithJSON.insert({
+      name: "John",
+      articles: [{ title: "First", published: new Date() }],
+      meta: { views: 0, tags: ["typescript"] },
+    });
+    const author = await AuthorWithJSON.get(a.id);
+
+    assert(author.articles).type<{ title: string; published: Date }[] | undefined>();
+    assert(author.meta).type<{ views: number; tags: string[] } | undefined>();
+    assert(author.notes).type<JSONValue | undefined>();
+
+    // inner field access fully typed
+    assert(author.articles?.[0].title).type<string | undefined>();
+    assert(author.articles?.[0].published).type<Date | undefined>();
+  });
+
+  $store("json column: roundtrip preserves types", AuthorWithJSON, async assert => {
+    const now = new Date();
+    const a = await AuthorWithJSON.insert({
+      name: "John",
+      articles: [{ title: "First", published: now }],
+      meta: { views: 42, tags: ["ts", "primate"] },
+    });
+
+    const author = await AuthorWithJSON.get(a.id);
+
+    assert(author.articles?.[0].title).equals("First");
+    assert(author.articles?.[0].published?.getTime()).equals(now.getTime());
+    assert(author.meta?.views).equals(42);
+    assert(author.meta?.tags).equals(["ts", "primate"]);
+  });
+
+  $store("json column: nested where is typed", AuthorWithJSON, async assert => {
+    // these should compile
+    await AuthorWithJSON.find({ where: { articles: { title: "First" } } });
+    await AuthorWithJSON.find({ where: { meta: { views: { $gt: 10 } } } });
+    await AuthorWithJSON.find({ where: { meta: { tags: { $like: "%ts%" } } } });
+
+    // $contains always available, untyped
+    await AuthorWithJSON.find({ where: { articles: { $contains: { title: "First" } } } });
+  });*/
+
   $user("where: null matches unset via update", async assert => {
     const [paul] = await User.find({ where: { name: "Paul" } });
 
@@ -1872,4 +1950,17 @@ export default <D extends DB>(db: D) => {
   for (const c of BAD_WHERE_COLUMN) {
     bad_where(c.label, () => ({ base: c.base, with: c.with }), c.expected);
   }
+
+  test.case("store: relation name conflicts with field throws", async assert => {
+    await throws(assert, Code.relation_conflicts_with_field, async () => new Store({
+      id: key.primary(p.string),
+      articles: p.string,
+    }, {
+      db,
+      name: "conflict",
+      relations: {
+        articles: relation.many(ArticleSchema, "author_id"),
+      },
+    }));
+  });
 };

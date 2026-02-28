@@ -1,4 +1,4 @@
-import fail from "#fail";
+import E from "#error";
 import log from "#log";
 import type { FileRef } from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";
@@ -19,14 +19,14 @@ async function resolve(root: FileRef, config_paths?: Dict<string[]>) {
       const config = JSON.parse(text);
       const ts_paths = config.compilerOptions?.paths ?? {};
       if (config_paths !== undefined && Object.keys(ts_paths).length > 0) {
-        return fail("tsconfig.json exists with paths, remove config paths");
+        return E.config_tsconfig_has_paths();
       }
 
       // merge with defaults (user paths override)
       return { ...ts_paths };
 
     } catch {
-      log.warn("Failed to parse tsconfig.json, falling back to config");
+      log.warn("failed to parse tsconfig.json, falling back to config");
     }
   }
 

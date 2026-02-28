@@ -6,7 +6,6 @@ import s_layout_depth from "#symbol/layout-depth";
 import type { FileRef } from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
-import p from "pema";
 
 type PluginType = "server" | "client";
 

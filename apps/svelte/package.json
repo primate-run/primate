@@ -11,15 +11,15 @@
     "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
-    "@lucide/svelte": "^0.564.0",
+    "@lucide/svelte": "^0.575.0",
     "@plsp/svelte": "^0.1.0",
     "@primate/sqlite": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@rcompat/assert": "^0.6.0",
-    "bits-ui": "^2.15.4",
+    "bits-ui": "^2.16.2",
     "mode-watcher": "^1.1.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "svelte": "^5.51.2"
+    "svelte": "^5.53.6"
   }
 }

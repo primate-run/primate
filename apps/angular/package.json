@@ -11,11 +11,11 @@
     "test:bun": "bun x --bun primate test"
   },
   "dependencies": {
-    "@angular/common": "^21.1.4",
-    "@angular/compiler": "^21.1.4",
-    "@angular/core": "^21.1.4",
-    "@angular/forms": "^21.1.4",
-    "@angular/platform-browser": "^21.1.4",
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
     "@primate/angular": "workspace:^",
     "@primate/sqlite": "workspace:^",
     "@rcompat/assert": "^0.6.0",

@@ -9,7 +9,7 @@ const commands = {
 function which(target: string) {
   if (target in commands) return commands[target as keyof typeof commands];
 
-  throw fail("unsupported runtime {0}", target);
+  throw fail`unsupported runtime ${target}`;
 };
 
 type Init = {

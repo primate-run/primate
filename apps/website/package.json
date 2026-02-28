@@ -21,11 +21,11 @@
     "@rcompat/string": "^0.13.0",
     "primate": "workspace:^",
     "shiki": "^3.21.0",
-    "svelte": "^5.51.2"
+    "svelte": "^5.53.6"
   },
   "devDependencies": {
-    "@angular/common": "^21.1.4",
-    "@angular/core": "^21.1.4",
+    "@angular/common": "^21.2.0",
+    "@angular/core": "^21.2.0",
     "@primate/angular": "workspace:^",
     "@primate/go": "workspace:^",
     "@primate/mongodb": "workspace:^",
@@ -38,7 +38,7 @@
     "@primate/sqlite": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@primate/vue": "workspace:^",
-    "marked": "^17.0.2",
+    "marked": "^17.0.3",
     "pema": "workspace:^"
   }
 }

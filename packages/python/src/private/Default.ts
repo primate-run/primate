@@ -12,40 +12,37 @@ const PACKAGE = "primate-run";
 const [MAJOR, MINOR] = TAG.split(".").map(Number);
 
 function package_not_found() {
-  return fail("package not found - run 'pip install {0}~={1}.0'", PACKAGE, TAG);
+  const command = `pip install ${PACKAGE}~=${TAG}.0`;
+  return fail`package not found, run ${command}`;
 }
 
 function pkg_mismatch(major: number, minor: number) {
-  return fail(
-    "installed {0} package version {1}.{2}.x not in range ~> {3}.x",
-    PACKAGE,
-    major,
-    minor,
-    TAG,
-  );
+  const range = `~> ${TAG}.x`;
+  const version = `${major}.${minor}.x`;
+  return fail`${PACKAGE} package version ${version} not in range ${range}`;
 }
 
 async function show_package(): Promise<string | null> {
   const str0 = () => "";
 
   let out = await io.run(`pip show ${PACKAGE} 2>/dev/null`).catch(str0);
-  if (out.trim()) return out;
+  if (out.trim().length > 0) return out;
 
   out = await io.run(`uv pip show ${PACKAGE} 2>/dev/null`).catch(str0);
-  if (out.trim()) return out;
+  if (out.trim().length > 0) return out;
 
   out = await io.run(`python -m pip show ${PACKAGE} 2>/dev/null`).catch(str0);
-  if (out.trim()) return out;
+  if (out.trim().length > 0) return out;
 
   return null;
 }
 
 async function check_version() {
   const output = await show_package();
-  if (!output) throw package_not_found();
+  if (output === null) throw package_not_found();
 
   const version_match = output.match(/Version:\s*(\d+)\.(\d+)\.(\d+)/);
-  if (!version_match) throw package_not_found();
+  if (version_match === null) throw package_not_found();
 
   const [major, minor] = version_match.slice(1).map(Number);
   if (major !== MAJOR || minor !== MINOR) throw pkg_mismatch(major, minor);
@@ -63,7 +60,7 @@ export default class Default extends Runtime {
       const requirements = await fs.text(requirements_txt);
       packages = requirements
         .split("\n")
-        .filter(line => line.trim() && !line.startsWith("#"))
+        .filter(line => line.trim().length > 0 && !line.startsWith("#"))
         .map(p => p.trim());
     }
     const packages_str = JSON.stringify(packages);

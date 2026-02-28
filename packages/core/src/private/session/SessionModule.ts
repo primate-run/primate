@@ -1,4 +1,4 @@
-import fail from "#fail";
+import E from "#error";
 import Module from "#Module";
 import type NextHandle from "#module/NextHandle";
 import type NextServe from "#module/NextServe";
@@ -10,7 +10,8 @@ import kSerialize from "#session/k-serialize";
 import SessionHandle from "#session/SessionHandle";
 import storage from "#session/storage";
 import type { Dict } from "@rcompat/type";
-import p, { type StoreSchema } from "pema";
+import type { StoreSchema } from "pema";
+import p from "pema";
 
 type CookieOptions = {
   httpOnly: boolean;
@@ -43,13 +44,11 @@ export default class SessionModule extends Module {
     this.#store = config.store;
 
     const props = this.#store.type.properties;
-    if (!("session_id" in props)) {
-      throw fail("Session store must have a session_id field");
-    }
+    if (!("session_id" in props)) throw E.session_missing_id();
     try {
       props.session_id.parse(crypto.randomUUID());
     } catch {
-      throw fail("Session store session_id must be a string type");
+      throw E.session_id_string();
     }
   }
 

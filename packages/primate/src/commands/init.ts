@@ -6,8 +6,8 @@ import multiselect from "@rcompat/cli/prompts/multiselect";
 import outro from "@rcompat/cli/prompts/outro";
 import select from "@rcompat/cli/prompts/select";
 import text from "@rcompat/cli/prompts/text";
-import fs from "@rcompat/fs";
 import type { FileRef } from "@rcompat/fs";
+import fs from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";
 
 function abort() {
@@ -197,13 +197,7 @@ async function gitignore(root: FileRef) {
   const content = [
     "node_modules",
     "build",
-    "dist",
-    ".DS_Store",
     "*.log",
-    "npm-debug.log*",
-    "yarn-debug.log*",
-    "yarn-error.log*",
-    "pnpm-debug.log*",
     "",
   ].join("\n");
   await gi.write(content);
@@ -234,7 +228,6 @@ async function app_config(root: FileRef, c: AppChoices) {
   const body = `import config from "primate/config";
 ${frontend_imports}
 ${backend_imports}
-
 export default config({
   modules: [
     ${modules.join(",\n    ")}

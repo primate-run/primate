@@ -1,5 +1,5 @@
 import type BuildApp from "#build/App";
-import fail from "#fail";
+import E from "#error";
 import type { FileRef } from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
@@ -40,10 +40,7 @@ export default function plugin_server_db_default(app: BuildApp): Plugin {
 
         if (db === undefined) {
           if (dbs.length === 1) db = dbs[0];
-          else throw fail(
-            "multiple database drivers, add index or default.(t|j)s; found {0}",
-            dbs.map(f => f.name).join(", "),
-          );
+          else throw E.build_multiple_db_drivers(dbs.map(f => f.name));
         }
 
         return {

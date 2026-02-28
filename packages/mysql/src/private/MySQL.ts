@@ -94,12 +94,12 @@ export default class MySQL implements DB {
   }
 
   async #sql<T = RowDataPacket[]>(query: string, params?: Dict) {
-    const [rows] = await this.#db.query(query, params);
+    const [rows] = await this.#db.query(query, params as any);
     return rows as T;
   }
 
   async #execute<T = ResultSetHeader>(query: string, params?: Dict) {
-    const [result] = await this.#db.execute(query, params);
+    const [result] = await this.#db.execute(query, params as any);
     return result as T;
   }
 

@@ -1,11 +1,22 @@
 import { s_config } from "#app/Facade";
 import BuildApp from "#build/App";
 import config from "#config/index";
+import type { Code } from "#error";
 import fs from "@rcompat/fs";
+import type { Asserter } from "@rcompat/test";
 import test from "@rcompat/test";
 
 const root = fs.ref("/test/project");
 const test_config = config({ modules: [] })[s_config];
+
+async function throws(assert: Asserter, code: Code, fn: () => any) {
+  try {
+    await fn();
+    assert(false).true();
+  } catch (error) {
+    assert((error as any).code).equals(code);
+  }
+}
 
 class TestApp extends BuildApp {
   constructor() {
@@ -19,6 +30,12 @@ class TestApp extends BuildApp {
     this.bind(".svelte", () => "");
   }
 }
+
+/*test.case("constructor: throws on reserved directory", async assert => {
+  await throws(assert, Code.app_reserved_directory, () => {
+    new TestApp("routes");
+  });
+});*/
 
 test.case("basename - routes with brackets", assert => {
   const app = new TestApp();

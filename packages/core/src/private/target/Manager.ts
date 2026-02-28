@@ -1,5 +1,5 @@
 import type App from "#App";
-import fail from "#fail";
+import E from "#error";
 import type Target from "#target/Target";
 
 const web: Target = {
@@ -35,22 +35,14 @@ export default class TargetManager {
   }
 
   set(name: string) {
-    if (!this.has(name)) {
-      let message = "no target {0}, available targets {1}";
-      if (this.#targets.length === 1) {
-        message += "\n   - add {2} for more targets";
-      }
-      const targets = this.#targets.map(p => p.name).join(", ");
-      throw fail(message, name, targets, "@primate/native");
-    }
+    const targets = this.#targets;
+    if (!this.has(name)) throw E.target_missing(name, targets.map(p => p.name));
 
     this.#name = name;
   }
 
   add(target: Target) {
-    if (this.has(target.name)) {
-      throw fail("cannot add target {0} twice", target.name);
-    }
+    if (this.has(target.name)) throw E.target_duplicate(target.name);
     this.#targets.push(target);
   }
 

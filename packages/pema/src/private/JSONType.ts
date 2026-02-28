@@ -1,17 +1,22 @@
 import DefaultType from "#DefaultType";
 import fail from "#fail";
 import type Infer from "#Infer";
-import type ObjectType from "#ObjectType";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
 import Storable from "#Storable";
-import type { Dict, JSONValue } from "@rcompat/type";
+import type { JSONValue } from "@rcompat/type";
+import is from "@rcompat/is";
 
-type JSONInfer<S extends ObjectType<Dict<Parsed<JSONValue>>> | undefined> =
-  S extends ObjectType<Dict<Parsed<JSONValue>>> ? Infer<S> : JSONValue;
+export type ParsedJSON = Parsed<JSONValue>;
+type JSONInput = ParsedJSON | undefined;
 
-export default class JSONType<S extends ObjectType<Dict<Parsed<JSONValue>>> | undefined = undefined>
+type JSONInfer<S extends JSONInput> = S extends ParsedJSON
+  ? Infer<S>
+  : JSONValue
+  ;
+
+export default class JSONType<S extends JSONInput = undefined>
   extends Storable<"json", JSONInfer<S>> {
   #inner: S;
 
@@ -42,12 +47,9 @@ export default class JSONType<S extends ObjectType<Dict<Parsed<JSONValue>>> | un
       return this.#inner.parse(x, options) as never;
     }
 
-    // if no inner schema, just validate JSONValue
-    try {
-      return JSON.parse(JSON.stringify(x));
-    } catch {
-      throw fail("json", x, options);
-    }
+    if (!is.json(x)) throw fail("json", x, options);
+
+    return JSON.parse(JSON.stringify(x));
   }
 
   toJSON() {
