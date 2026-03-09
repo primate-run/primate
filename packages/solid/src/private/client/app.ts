@@ -1,42 +1,44 @@
-import type ClientData from "@primate/core/client/Data";
-import spa from "@primate/core/client/spa";
+import type Data from "#client/Data";
+import type Payload from "#client/Payload";
+import root from "#client/root";
+import client from "@primate/core/client";
 import SolidHead from "@primate/solid/Head";
-import type { Dict } from "@rcompat/type";
-import { hydrate, render } from "solid-js/web";
-import root_view from "solid:root";
-import * as views from "solid:views";
+import Root from "solid:root";
 
-// @ts-expect-error solid hydration
-globalThis._$HY = { completed: new WeakSet(), events: [], r: {} };
+declare global {
+  interface Window {
+    _$HY: {
+      completed: WeakSet<object>;
+      events: unknown[];
+      r: Record<string, unknown>;
+    };
+  }
+}
+
+window._$HY = { completed: new WeakSet(), events: [], r: {} };
 
 const { body } = globalThis.window.document;
 SolidHead.clear();
 
-type Data = ClientData<{
-  views: string[];
-  props: Dict[];
-}>;
-
-const make_props = (data: ClientData<Data>) => ({
-  views: data.views.map(name => views[name]),
-  props: data.props,
-  request: {
-    ...data.request,
-    url: new URL(location.href),
-  },
-});
-
 export default class SolidApp {
-  static mount(_view: string, data: ClientData<Data>) {
-    const mount = () => root_view(make_props(data));
+  static mount(_view: string, data: Data) {
+    const mount = () => Root(root.toProps(data));
 
-    let dispose = data.ssr ? hydrate(mount, body) : render(mount, body);
+    let dispose = root[data.ssr ? "ssr" : "csr"](mount, body);
 
     if (data.spa) {
-      window.addEventListener("DOMContentLoaded", _ => spa<Data>(_data => {
-        dispose();
-        dispose = render(() => root_view(make_props(_data)), body);
-      }));
+      const start = () =>
+        client.boot<Payload>((_data, update) => {
+          dispose();
+          dispose = root.csr(() => Root(root.toProps(_data, update)), body);
+          update?.();
+        });
+
+      if (document.readyState === "loading") {
+        window.addEventListener("DOMContentLoaded", start, { once: true });
+      } else {
+        start();
+      }
     }
   }
 }

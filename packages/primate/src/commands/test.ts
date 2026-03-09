@@ -25,7 +25,7 @@ const first_error = (left: string, right: string) => {
 };
 
 export default async () => {
-  await build({ mode: "testing" });
+  await build(await fs.project.root(), { mode: "testing" });
   const app = (await serve()).default;
 
   const files = await (await fs.project.root()).join(directory)

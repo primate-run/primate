@@ -8,7 +8,6 @@ import Flags from "#Flags";
 import log from "#log";
 import dict from "@rcompat/dict";
 import type { FileRef } from "@rcompat/fs";
-import fs from "@rcompat/fs";
 
 const no_config = (config?: Config) =>
   config === undefined || dict.empty(config);
@@ -35,9 +34,8 @@ const get_config = async (root: FileRef) => {
   }
 };
 
-export default async (input: typeof Flags.input) => {
+export default async (root: FileRef, input: typeof Flags.input) => {
   try {
-    const root = await fs.project.root();
     const flags = Flags.parse(input);
     const config = await get_config(root) as Config;
     const app = await new BuildApp(root, config, flags).init();

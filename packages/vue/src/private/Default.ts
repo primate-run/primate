@@ -1,8 +1,7 @@
 import compile from "#compile";
 import create_root from "#create-root";
 import Runtime from "#Runtime";
-import type BuildApp from "@primate/core/BuildApp";
-import type NextBuild from "@primate/core/NextBuild";
+import type { BuildApp, NextBuild } from "@primate/core";
 
 export default class Default extends Runtime {
   compile = {

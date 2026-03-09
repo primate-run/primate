@@ -1,6 +1,6 @@
 import type ParseError from "#ParseError";
 import type ParseIssue from "#ParseIssue";
-import type Asserter from "@rcompat/test/Asserter";
+import type { Asserter } from "@rcompat/test";
 
 export default function throwsIssues(assert: Asserter, fn: () => unknown): ParseIssue[] {
   try {

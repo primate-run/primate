@@ -1,5 +1,5 @@
 import FrontendModule from "@primate/core/frontend/Module";
-import type Render from "@primate/core/frontend/Render";
+import type { Render } from "@primate/core/frontend";
 import type { Component } from "svelte";
 import { render } from "svelte/server";
 

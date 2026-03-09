@@ -1,14 +1,9 @@
 import INITIAL_PROPS from "#INITIAL_PROPS";
 import root from "#root-selector";
 import "@angular/compiler";
-import {
-  enableProdMode,
-  importProvidersFrom,
-  type Type,
-} from "@angular/core";
-import type {
-  BootstrapContext,
-} from "@angular/platform-browser";
+import type { Type } from "@angular/core";
+import { enableProdMode, importProvidersFrom } from "@angular/core";
+import type { BootstrapContext } from "@angular/platform-browser";
 import {
   bootstrapApplication,
   BrowserModule,
@@ -18,10 +13,9 @@ import {
   provideServerRendering,
   renderApplication,
 } from "@angular/platform-server";
+import type { NextServe, ServeApp } from "@primate/core";
+import type { Render } from "@primate/core/frontend";
 import FrontendModule from "@primate/core/frontend/Module";
-import type Render from "@primate/core/frontend/Render";
-import type NextServe from "@primate/core/NextServe";
-import type ServeApp from "@primate/core/ServeApp";
 
 export default class Runtime extends FrontendModule<Type<any>> {
   name = "angular";

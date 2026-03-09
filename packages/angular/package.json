@@ -20,7 +20,8 @@
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && npx proby"
   },
   "dependencies": {
     "@angular/common": "^21.2.0",
@@ -33,6 +34,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "@primate/test": "workspace:^",
     "@rcompat/type": "^0.9.0"
   },
   "peerDependencies": {

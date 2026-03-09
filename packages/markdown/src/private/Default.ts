@@ -1,6 +1,5 @@
 import Runtime from "#Runtime";
-import type BuildApp from "@primate/core/BuildApp";
-import type NextBuild from "@primate/core/NextBuild";
+import type { BuildApp, NextBuild } from "@primate/core";
 import type { FileRef } from "@rcompat/fs";
 import fs from "@rcompat/fs";
 import string from "@rcompat/string";
@@ -18,7 +17,7 @@ function slugify(text: string) {
 function frontmatter(src: string): { body: string; meta: Dict | null } {
   const input = src.replace(/^\uFEFF/, "");
   const match = input.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
-  if (!match) return {
+  if (match === null) return {
     body: input,
     meta: null,
   };

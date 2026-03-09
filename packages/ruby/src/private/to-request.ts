@@ -1,4 +1,4 @@
-import type { RequestBody, RequestFacade } from "@primate/core/request";
+import type { RequestBody, RequestFacade } from "@primate/core";
 import type { Dict } from "@rcompat/type";
 
 type FileEntry = {

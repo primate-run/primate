@@ -1,5 +1,5 @@
 import type Module from "@primate/core/frontend/Module";
-import type ViewResponse from "@primate/core/frontend/ViewResponse";
+import type { ViewResponse } from "@primate/core/frontend";
 import inline from "@primate/core/inline";
 
 const SCRIPT = /(?<=<script)>(?<code>.*?)(?=<\/script>)/gus;

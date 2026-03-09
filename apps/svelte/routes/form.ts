@@ -17,11 +17,14 @@ route.get(async () => {
 });
 
 route.post(async request => {
-  const id = p.string.parse(request.query.get("id"));
+  const id = p.number.coerce.parse(request.query.get("id"));
   const FormSchema = p({ counter: p.number.coerce });
   const validated = request.body.form(FormSchema);
 
-  await Counter.update({ id }, { counter: validated.counter });
+  await Counter.update({
+    where: { id },
+    set: { counter: validated.counter },
+  });
 
   return null;
 });

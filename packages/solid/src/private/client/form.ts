@@ -5,6 +5,7 @@ import { createSignal, onCleanup } from "solid-js";
 type FormView<Values extends Dict> = {
   id: string;
   submitting: boolean;
+  submitted: boolean;
   submit: (event?: Event) => Promise<void>;
 
   errors: readonly string[];
@@ -25,21 +26,29 @@ function form(init?: FormInit): FormView<Dict>;
 function form<Values extends Dict = Dict>(
   init?: Initial<Values>,
 ): FormView<Values> {
-  const { initial, ...form_init } = init ?? {} as Initial<Values>;
+  const { initial, ...form_init } = (init ?? {}) as Initial<Values>;
   const controller = core.createForm(form_init);
-  const values = initial ?? {} as Values;
+  const values = (initial ?? {}) as Values;
   const [snapshot, setSnapshot] = createSignal(controller.read());
   const unsub = controller.subscribe((next) => setSnapshot(next));
   onCleanup(unsub);
 
   return {
-    id: controller.id,
+    get id() {
+      return snapshot().id;
+    },
 
     get submitting() {
       return snapshot().submitting;
     },
 
-    submit: (event?: Event) => controller.submit(event),
+    get submitted() {
+      return snapshot().submitted;
+    },
+
+    submit(event?: Event) {
+      return controller.submit(event);
+    },
 
     get errors() {
       return snapshot().errors.form;
@@ -55,8 +64,7 @@ function form<Values extends Dict = Dict>(
           return snapshot().errors.fields[key] ?? [];
         },
         get error() {
-          const errors = snapshot().errors.fields[key] ?? [];
-          return errors[0] ?? null;
+          return (snapshot().errors.fields[key] ?? [])[0] ?? null;
         },
       };
     },

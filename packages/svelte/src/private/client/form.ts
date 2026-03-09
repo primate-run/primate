@@ -1,14 +1,14 @@
 
-import client, {
-  type FormInit,
-  type FormView,
-} from "@primate/core/client";
+import type { FormInit, FormView } from "@primate/core/client";
+import client from "@primate/core/client";
 import type { Dict } from "@rcompat/type";
-import { writable, type Readable } from "svelte/store";
+import type { Readable } from "svelte/store";
+import { writable } from "svelte/store";
 
 type SvelteFormView<Values extends Dict> = {
   id: string;
   submitting: boolean;
+  submitted: boolean;
   submit: (event?: Event) => Promise<void>;
 
   errors: readonly string[];
@@ -38,6 +38,7 @@ function form<Values extends Dict = Dict>(init?: Initial<Values>) {
     return {
       id: snapshot.id,
       submitting: snapshot.submitting,
+      submitted: snapshot.submitted,
       submit: controller.submit,
       errors: form_errors,
       field(name) {

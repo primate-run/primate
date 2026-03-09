@@ -271,7 +271,7 @@ export default abstract class FrontendModule<
               const { path } = view.debase(views_base, "/");
 
               contents += `export { default as ${await _normalize(path)} }
-                from "#view/${path}";\n`;
+                from "view:${path}";\n`;
             }
             return { contents, resolveDir: app.root.path };
           });

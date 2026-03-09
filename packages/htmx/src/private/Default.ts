@@ -1,7 +1,7 @@
 import type Options from "#Options";
 import Runtime from "#Runtime";
 import type Template from "#Template";
-import type BuildApp from "@primate/core/BuildApp";
+import type { BuildApp } from "@primate/core";
 import is from "@rcompat/is";
 import string from "@rcompat/string";
 

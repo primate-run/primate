@@ -1,5 +1,5 @@
 import FrontendModule from "@primate/core/frontend/Module";
-import type Render from "@primate/core/frontend/Render";
+import type { Render } from "@primate/core/frontend";
 import type { Component } from "solid-js";
 import { renderToString } from "solid-js/web";
 

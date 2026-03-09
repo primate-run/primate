@@ -1,7 +1,6 @@
-import type App from "@primate/core/App";
+import type { App, Next } from "@primate/core";
+import type { Render } from "@primate/core/frontend";
 import FrontendModule from "@primate/core/frontend/Module";
-import type Render from "@primate/core/frontend/Render";
-import type Next from "@primate/core/Next";
 import type { FileRef } from "@rcompat/fs";
 
 export default class Runtime extends FrontendModule {

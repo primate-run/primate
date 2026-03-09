@@ -1,7 +1,6 @@
 import plugin from "#plugin";
 import Runtime from "#Runtime";
-import type BuildApp from "@primate/core/BuildApp";
-import type NextBuild from "@primate/core/NextBuild";
+import type { BuildApp, NextBuild } from "@primate/core";
 import p from "pema";
 
 export default class Tailwind extends Runtime {

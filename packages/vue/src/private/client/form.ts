@@ -1,10 +1,12 @@
-import core, { type FormInit } from "@primate/core/client";
+import type { FormInit } from "@primate/core/client";
+import core from "@primate/core/client";
 import type { Dict } from "@rcompat/type";
 import { onUnmounted, shallowRef } from "vue";
 
 type FormView<Values extends Dict> = {
   id: string;
   submitting: boolean;
+  submitted: boolean;
   submit: (event?: Event) => Promise<void>;
 
   errors: readonly string[];
@@ -25,23 +27,33 @@ function form(init?: FormInit): FormView<Dict>;
 function form<Values extends Dict = Dict>(
   init?: Initial<Values>,
 ): FormView<Values> {
-  const { initial, ...form_init } = init ?? {} as Initial<Values>;
+  const { initial, ...form_init } = (init ?? {}) as Initial<Values>;
   const controller = core.createForm(form_init);
-  const values = initial ?? {} as Values;
+  const values = (initial ?? {}) as Values;
   const snapshot = shallowRef(controller.read());
-  const unsub = controller.subscribe(next => {
+
+  const unsub = controller.subscribe((next) => {
     snapshot.value = next;
   });
+
   onUnmounted(unsub);
 
   return {
-    id: controller.id,
+    get id() {
+      return snapshot.value.id;
+    },
 
     get submitting() {
       return snapshot.value.submitting;
     },
 
-    submit: (event?: Event) => controller.submit(event),
+    get submitted() {
+      return snapshot.value.submitted;
+    },
+
+    submit(event?: Event) {
+      return controller.submit(event);
+    },
 
     get errors() {
       return snapshot.value.errors.form;
@@ -49,13 +61,13 @@ function form<Values extends Dict = Dict>(
 
     field(name) {
       const key = name as string;
-      const errs = snapshot.value.errors.fields[key] ?? [];
+      const errors = snapshot.value.errors.fields[key] ?? [];
 
       return {
         name: key,
         value: values[name],
-        error: errs[0] ?? null,
-        errors: errs,
+        error: errors[0] ?? null,
+        errors,
       };
     },
   };

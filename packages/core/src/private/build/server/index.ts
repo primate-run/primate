@@ -51,6 +51,7 @@ export default async function build_server(app: BuildApp) {
   app.plugin("server", plugin_config(app));
   app.plugin("server", plugin_wasm(app));
 
+  const tsconfig = app.root.join("tsconfig.json");
   const options: esbuild.BuildOptions = {
     entryPoints: [app.path.build.join("serve.js").path],
     outfile: app.path.build.join("server.js").path,
@@ -71,7 +72,7 @@ export default async function build_server(app: BuildApp) {
     nodePaths: [app.root.join("node_modules").path],
     resolveExtensions: app.extensions,
     absWorkingDir: app.root.path,
-    tsconfig: app.root.join("tsconfig.json").path,
+    ...await tsconfig.exists() ? { tsconfig: tsconfig.path } : {},
     conditions: [
       ...conditions[runtime],
       "module", "import", "runtime", "default",

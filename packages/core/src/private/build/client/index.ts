@@ -3,6 +3,7 @@ import plugin_alias from "#build/client/plugin/alias";
 import plugin_entrypoint from "#build/client/plugin/entrypoint";
 import plugin_frontend from "#build/client/plugin/frontend";
 import plugin_server_stamp from "#build/client/plugin/server-stamp";
+import plugin_view from "#build/client/plugin/view";
 import location from "#location";
 import * as esbuild from "esbuild";
 
@@ -49,6 +50,7 @@ const write_bootstrap = async (app: BuildApp, mode: string) => {
 export default async function build_client(app: BuildApp) {
   app.plugin("client", plugin_frontend(app));
   app.plugin("client", plugin_alias(app));
+  app.plugin("client", plugin_view(app));
   app.plugin("client", plugin_server_stamp(app));
   app.plugin("client", plugin_entrypoint(app));
 
@@ -62,6 +64,7 @@ export default async function build_client(app: BuildApp) {
   });
   app.entrypoint("import \"primate/client/app\";");
 
+  const tsconfig = app.root.join("tsconfig.json");
   const conditions = app.conditions.values();
   const build_options: esbuild.BuildOptions = {
     plugins: app.plugins("client"),
@@ -69,7 +72,7 @@ export default async function build_client(app: BuildApp) {
     entryPoints: ["app:client"],
     conditions: ["style", "browser", "default", "module", ...conditions],
     resolveExtensions: [".ts", ".js", ...app.frontendExtensions],
-    tsconfig: app.root.join("tsconfig.json").path,
+    ...await tsconfig.exists() ? { tsconfig: tsconfig.path } : {},
     bundle: true,
     format: "esm",
   };

@@ -1,0 +1,20 @@
+import { Component } from "@angular/core";
+import { NgIf } from "@angular/common";
+import client from "@primate/angular/client";
+
+@Component({
+  standalone: true,
+  imports: [NgIf],
+  template: `
+    <p *ngIf="form.submitted(); else formTpl" id="submitted">submitted</p>
+
+    <ng-template #formTpl>
+      <form method="post" [id]="form.id" (submit)="form.submit($event)">
+        <button type="submit">Submit</button>
+      </form>
+    </ng-template>
+  `,
+})
+export default class Redirect {
+  form = client.form({ initial: { email: "" } });
+}

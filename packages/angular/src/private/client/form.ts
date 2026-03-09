@@ -1,11 +1,7 @@
-import {
-  DestroyRef,
-  computed,
-  inject,
-  signal,
-  type Signal,
-} from "@angular/core";
-import core, { type FormInit } from "@primate/core/client";
+import type { Signal } from "@angular/core";
+import { DestroyRef, computed, inject, signal } from "@angular/core";
+import type { FormInit } from "@primate/core/client";
+import core from "@primate/core/client";
 import type { Dict } from "@rcompat/type";
 
 type Field<T> = {
@@ -18,6 +14,7 @@ type Field<T> = {
 type FormView<Values extends Dict> = {
   id: string;
   submitting: Signal<boolean>;
+  submitted: Signal<boolean>;
   submit: (event?: Event) => Promise<void>;
 
   errors: Signal<readonly string[]>;
@@ -39,17 +36,17 @@ function form<Values extends Dict>(init: Initial<Values>): FormView<Values>;
 function form(init?: FormInit): FormView<Dict>;
 
 function form<Values extends Dict = Dict>(init?: Initial<Values>) {
-  const { initial, ...form_init } = init ?? {} as Initial<Values>;
+  const { initial, ...form_init } = (init ?? {}) as Initial<Values>;
   const controller = core.createForm(form_init);
-  const values = initial ?? {} as Values;
+  const values = (initial ?? {}) as Values;
   const snap = signal(controller.read());
   const unsub = controller.subscribe((next) => snap.set(next));
   try_destroy_ref()?.onDestroy(unsub);
+
   const submitting = computed(() => snap().submitting);
+  const submitted = computed(() => snap().submitted);
   const errors = computed(() => snap().errors.form);
 
-  // cache per-field views so templates calling field("x") repeatedly
-  // don't recreate computed signals every change detection cycle
   const cache = new Map<string, Field<any>>();
 
   function field<K extends keyof Values & string>(name: K): Field<Values[K]> {
@@ -73,6 +70,7 @@ function form<Values extends Dict = Dict>(init?: Initial<Values>) {
   return {
     id: controller.id,
     submitting,
+    submitted,
     submit: (event?: Event) => controller.submit(event),
     errors,
     field,

@@ -1,56 +1,37 @@
+import "#client/AAA";
+import type Data from "#client/Data";
+import type Payload from "#client/Payload";
+import type { RootProps } from "#client/root";
+import root from "#client/root";
 import INITIAL_PROPS from "#INITIAL_PROPS";
-import "@angular/compiler";
-import {
-  enableProdMode,
-  type ApplicationRef,
-  type ComponentRef,
-} from "@angular/core";
+import type { ApplicationRef, ComponentRef } from "@angular/core";
+import { enableProdMode } from "@angular/core";
 import {
   bootstrapApplication,
   provideClientHydration,
 } from "@angular/platform-browser";
-import type ClientData from "@primate/core/client/Data";
-import spa from "@primate/core/client/spa";
-import type Mode from "@primate/core/Mode";
-import type { Dict } from "@rcompat/type";
-import root from "angular:root";
-import * as views from "angular:views";
+import client from "@primate/core/client";
+import RootView from "angular:root";
 
-type Data = ClientData<{
-  views: string[];
-  props: Dict[];
-  mode: Mode;
-}>;
-
-const make_props = (data: ClientData<Data>) => ({
-  views: data.views.map(name => views[name]),
-  props: data.props,
-  request: {
-    ...data.request,
-    url: new URL(location.href),
-  },
-  update: () => undefined,
-});
+type RootInstance = {
+  p: RootProps;
+};
 
 export default class AngularApp {
   static #app: ApplicationRef;
-  static #root: ComponentRef<any>;
+  static #root: ComponentRef<RootInstance>;
 
-  static async mount(_view: string, data: ClientData<Data>) {
+  static async mount(_view: string, data: Data) {
     if (data.mode === "production") enableProdMode();
-    const providers = [];
 
-    // add hydration provider for SSR
+    const providers = [];
     if (data.ssr) providers.push(provideClientHydration());
-    // in non-SSR mode, the HTML won't contain app-root, inject it
     else document.body.appendChild(document.createElement("app-root"));
 
-    // create the root view props
-    const props = make_props(data);
+    const props = root.toProps(data);
 
-    // bootstrap the application
     try {
-      this.#app = await bootstrapApplication(root, {
+      this.#app = await bootstrapApplication(RootView, {
         providers: [
           ...providers,
           {
@@ -60,33 +41,26 @@ export default class AngularApp {
         ],
       });
 
-      this.#root = this.#app.components[0];
-
-      // initial props
-      if (this.#root.instance) {
-        this.#root.instance.p = props;
-
-        // change detection
-        this.#app.tick();
-      }
+      this.#root = this.#app.components[0] as ComponentRef<RootInstance>;
+      this.#root.instance.p = props;
+      this.#app.tick();
 
       if (data.spa) {
-        this.#spa();
+        const start = () =>
+          client.boot<Payload>((next, update) => {
+            this.#root.instance.p = root.toProps(next, update);
+            this.#app.tick();
+            update?.();
+          });
+
+        if (document.readyState === "loading") {
+          window.addEventListener("DOMContentLoaded", start, { once: true });
+        } else {
+          start();
+        }
       }
     } catch (error) {
       console.error("Failed to bootstrap Angular application:", error);
     }
-
-  }
-
-  static #spa() {
-    window.addEventListener("DOMContentLoaded", () => {
-      spa<Data>((next, update) => {
-        const props = { ...make_props(next), update };
-        this.#root.instance.p = props;
-        this.#app.tick();
-        update?.();
-      });
-    });
   }
 }

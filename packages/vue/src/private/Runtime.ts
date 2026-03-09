@@ -1,5 +1,5 @@
 import FrontendModule from "@primate/core/frontend/Module";
-import type Render from "@primate/core/frontend/Render";
+import type { Render } from "@primate/core/frontend";
 import { createSSRApp, type Renderer } from "vue";
 import { renderToString } from "vue/server-renderer";
 

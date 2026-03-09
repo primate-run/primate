@@ -6,7 +6,8 @@ declare module "react:views" {
 }
 
 declare module "react:root" {
-  import type { FunctionComponent } from "react";
-  const root: FunctionComponent;
-  export default root;
+  import type { RootProps } from "#client/root";
+  import type { ComponentType } from "react";
+  const RootView: ComponentType<RootProps>;
+  export default RootView;
 }

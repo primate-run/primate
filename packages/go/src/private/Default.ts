@@ -1,10 +1,9 @@
 import Runtime from "#Runtime";
+import type { BuildApp, NextBuild } from "@primate/core";
 import AppError from "@primate/core/AppError";
 import TAG from "@primate/core/backend/TAG";
-import type BuildApp from "@primate/core/BuildApp";
 import fail from "@primate/core/fail";
 import log from "@primate/core/log";
-import type NextBuild from "@primate/core/NextBuild";
 import assert from "@rcompat/assert";
 import user from "@rcompat/env/user";
 import type { FileRef } from "@rcompat/fs";

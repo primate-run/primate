@@ -1,12 +1,15 @@
 declare module "vue:views" {
-  import type { Dict } from "@rcompat/type";
   import type { Component } from "vue";
+  import type { Dict } from "@rcompat/type";
+
   const map: Dict<Component>;
   export = map;
 }
 
 declare module "vue:root" {
-  import type { Component } from "vue";
-  const root: Component;
-  export default root;
+  import type { DefineComponent } from "vue";
+  import type { RootProps } from "#client/root";
+
+  const RootView: DefineComponent<{ p: RootProps }>;
+  export default RootView;
 }

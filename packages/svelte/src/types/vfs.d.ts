@@ -6,7 +6,9 @@ declare module "svelte:views" {
 }
 
 declare module "svelte:root" {
+  import type { RootProps } from "#client/root";
   import type { Component } from "svelte";
-  const root: Component;
-  export default root;
+
+  const Root: Component<{ p: RootProps }>;
+  export default Root;
 }

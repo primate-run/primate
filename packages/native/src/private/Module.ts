@@ -1,14 +1,16 @@
 import command from "#command";
 import type NativeTarget from "#NativeTarget";
 import targets from "#targets";
-import type App from "@primate/core/App";
-import type BuildApp from "@primate/core/BuildApp";
+import type {
+  App,
+  BuildApp,
+  Next,
+  NextBuild,
+  NextServe,
+  ServeApp,
+} from "@primate/core";
 import log from "@primate/core/log";
 import Module from "@primate/core/Module";
-import type Next from "@primate/core/Next";
-import type NextBuild from "@primate/core/NextBuild";
-import type NextServe from "@primate/core/NextServe";
-import type ServeApp from "@primate/core/ServeApp";
 import color from "@rcompat/cli/color";
 import io from "@rcompat/io";
 import p from "pema";

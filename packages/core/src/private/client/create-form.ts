@@ -1,9 +1,9 @@
 import extract_issues from "#client/extract-issues";
+import submit from "#client/submit";
 import type { Dict } from "@rcompat/type";
 import type { Issue, JSONPayload } from "pema";
 
 type FormId = string;
-
 type FieldErrors = readonly string[];
 
 type FormErrors = {
@@ -14,6 +14,7 @@ type FormErrors = {
 type FormSnapshot = {
   id: FormId;
   submitting: boolean;
+  submitted: boolean;
   errors: FormErrors;
 };
 
@@ -73,6 +74,7 @@ export default function createForm(init: FormInit): FormController {
   let snapshot: FormSnapshot = {
     id,
     submitting: false,
+    submitted: false,
     errors: { form: [], fields: {} },
   };
 
@@ -88,41 +90,42 @@ export default function createForm(init: FormInit): FormController {
   }
 
   function setErrors(issues: Issue[]) {
-    const byField: Dict<string[]> = {};
-    const formErrors: string[] = [];
+    const by_field: Dict<string[]> = {};
+    const form_errors: string[] = [];
 
     for (const issue of issues) {
       const path = (issue as any).path as string | undefined;
 
       // no path or empty string -> form-level error
-      if (!path) {
-        formErrors.push(issue.message);
+      if (path === undefined) {
+        form_errors.push(issue.message);
         continue;
       }
 
       const key = pointer_to_fieldname(path);
 
       // if normalizes to empty (e.g. "/"), treat as form-level
-      if (!key) {
-        formErrors.push(issue.message);
+      if (key.length === 0) {
+        form_errors.push(issue.message);
         continue;
       }
 
-      (byField[key] ??= []).push(issue.message);
+      (by_field[key] ??= []).push(issue.message);
     }
 
     snapshot = {
       ...snapshot,
+      submitted: false,
       errors: {
-        form: formErrors,
-        fields: byField,
+        form: form_errors,
+        fields: by_field,
       },
     };
     publish();
   }
 
-  async function submit(event?: Event) {
-    if (event) {
+  async function submit_form(event?: Event) {
+    if (event !== undefined) {
       event.preventDefault();
       event.stopPropagation();
     }
@@ -132,7 +135,7 @@ export default function createForm(init: FormInit): FormController {
       (document.getElementById(id) as HTMLFormElement | null);
 
     // no form element
-    if (!form_element) return;
+    if (form_element === null) return;
 
     const method = init.method
       ?? form_element.method.toUpperCase() as FormInit["method"]
@@ -143,16 +146,12 @@ export default function createForm(init: FormInit): FormController {
     setSubmitting(true);
 
     try {
-      const response = await fetch(url, {
-        method,
-        body: form_data,
-        headers: init.headers,
-      });
+      const response = await submit(url, form_data, method);
 
       if (response.ok) {
         // on success: clear errors, let the app decide what to do next
         // (redirect/reload)
-        snapshot = { ...snapshot, errors: { form: [], fields: {} } };
+        snapshot = { ...snapshot, submitted: true, errors: { form: [], fields: {} } };
         publish();
         return;
       }
@@ -181,7 +180,7 @@ export default function createForm(init: FormInit): FormController {
   return {
     subscribe,
     read,
-    submit,
+    submit: submit_form,
     get id() {
       return snapshot.id;
     },

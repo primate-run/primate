@@ -1,5 +1,5 @@
 import FrontendModule from "@primate/core/frontend/Module";
-import type Render from "@primate/core/frontend/Render";
+import type { Render } from "@primate/core/frontend";
 import type { Renderable } from "marko/src/runtime/html/Template.js";
 
 export default class Runtime extends FrontendModule<Renderable> {

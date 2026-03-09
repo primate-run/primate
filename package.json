@@ -19,15 +19,15 @@
     "knip": "knip"
   },
   "devDependencies": {
-    "@rcompat/fs": "^0.25.2",
+    "@rcompat/fs": "^0.25.3",
     "@rcompat/io": "^0.3.0",
-    "@rcompat/test": "^0.8.3",
+    "@rcompat/test": "^0.9.1",
     "@types/node": "^25.3.3",
-    "apekit": "^0.0.44",
+    "apekit": "^0.0.45",
     "esbuild": "^0.27.3",
     "eslint": "^9.39.2",
     "knip": "^5.85.0",
-    "proby": "^0.7.0",
+    "proby": "^0.9.0",
     "typescript": "^5.9.3"
   }
 }

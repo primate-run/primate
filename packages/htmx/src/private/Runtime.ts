@@ -1,6 +1,6 @@
 import fail from "@primate/core/fail";
 import FrontendModule from "@primate/core/frontend/Module";
-import type ViewResponse from "@primate/core/frontend/ViewResponse";
+import type { ViewResponse } from "@primate/core/frontend";
 import response from "@primate/html/response";
 
 export default class Runtime extends FrontendModule {

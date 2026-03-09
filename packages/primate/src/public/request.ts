@@ -1,1 +1,1 @@
-export { type RequestFacade } from "@primate/core/request";
+export type { RequestFacade } from "@primate/core";
