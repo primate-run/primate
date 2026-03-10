@@ -1,4 +1,4 @@
-import Module from "#Module";
+import type Module from "#Module";
 import fs from "@rcompat/fs";
 import p from "pema";
 
@@ -9,8 +9,8 @@ export default p({
     host: p.string.default("localhost"),
     port: p.uint.port().default(6161),
     ssl: {
-      cert: p.union(fs.FileRef, p.string).optional(),
-      key: p.union(fs.FileRef, p.string).optional(),
+      cert: p.union(p.is(fs.isRef), p.string).optional(),
+      key: p.union(p.is(fs.isRef), p.string).optional(),
     },
     static: {
       root: p.string.default("/"),
@@ -21,7 +21,12 @@ export default p({
     host: p.string.optional(),
     port: p.uint.port().optional(),
   },
-  modules: p.array(p.constructor(Module)).optional(),
+  modules: p.array(p.object({
+    name: p.string,
+    setup: p.function,
+  }).shape<Module>())
+    .uniqueBy(member => member.name)
+    .default([]),
   request: {
     body: {
       parse: p.boolean.default(true),

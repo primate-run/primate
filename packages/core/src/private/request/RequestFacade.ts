@@ -1,20 +1,14 @@
 import type RequestBag from "#request/RequestBag";
 import type RequestBody from "#request/RequestBody";
-import type sContext from "#request/sContext";
-import type { Dict } from "@rcompat/type";
 import type RequestContext from "#request/RequestContext";
-
-type RequestView = {
-  context: Dict;
-  cookies: Dict<string>;
-  headers: Dict<string>;
-  path: Dict<string>;
-  query: Dict<string>;
-  url: URL;
-};
+import type RequestView from "#request/RequestView";
+import type sContext from "#request/sContext";
+import type Verb from "#request/Verb";
+import type { Dict } from "@rcompat/type";
 
 type RequestFacade = {
   [sContext]: RequestContext;
+  method: Verb;
   body: RequestBody;
   cookies: RequestBag;
   forward(to: string, headers?: Dict<string>): Promise<Response>;

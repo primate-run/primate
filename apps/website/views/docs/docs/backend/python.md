@@ -424,9 +424,9 @@ def get(request):
 
 ## Configuration
 
-| Option        | Type     | Default | Description               |
-| ------------- | -------- | ------- | ------------------------- |
-| fileExtension | `string` | `".py"` | Associated file extension |
+| Option    | Type     | Default | Description               |
+| --------- | -------- | ------- | ------------------------- |
+| extension | `string` | `".py"` | Associated file extension |
 
 ### Example
 
@@ -438,7 +438,7 @@ export default config({
   modules: [
     python({
       // use `.python` as associated file extension
-      fileExtension: ".python",
+      extension: ".python",
     }),
   ],
 });

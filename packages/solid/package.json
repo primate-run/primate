@@ -16,8 +16,9 @@
     "/lib/**/*.d.ts",
     "!/**/*.spec.*"
   ],
+  "types": "lib/index.d.ts",
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc && cp src/types/{app,index}.d.ts lib",
     "postbuild": "node scripts/compile-jsx.js",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
@@ -32,7 +33,7 @@
   "dependencies": {
     "@babel/core": "^7.28.6",
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.25.3",
+    "@rcompat/fs": "^0.26.0",
     "@rcompat/runtime": "^0.9.0",
     "babel-preset-solid": "^1.9.10"
   },
@@ -53,6 +54,7 @@
   },
   "exports": {
     ".": {
+      "types": "./lib/index.d.ts",
       "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"

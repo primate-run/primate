@@ -92,9 +92,9 @@ Access the props in the template:
 
 ## Configuration
 
-| Option         | Type       | Default    | Description                |
-| -------------- | ---------- | ---------- | -------------------------- |
-| fileExtensions | `string[]` | `[".eta"]` | Associated file extensions |
+| Option     | Type       | Default    | Description                |
+| -----------| ---------- | ---------- | -------------------------- |
+| extensions | `string[]` | `[".eta"]` | Associated file extensions |
 
 ### Example
 
@@ -106,7 +106,7 @@ export default config({
   modules: [
     eta({
       // add `.eta.html` to associated file extensions
-      fileExtensions: [".eta", ".eta.html"],
+      extensions: [".eta", ".eta.html"],
     }),
   ],
 });

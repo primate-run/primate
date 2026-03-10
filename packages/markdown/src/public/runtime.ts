@@ -1,3 +1,3 @@
-import Runtime from "#Runtime";
+export { default } from "#runtime";
 
-export default (config: typeof Runtime.input) => new Runtime(config);
+export type { default as Component } from "#Component";

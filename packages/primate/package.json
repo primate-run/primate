@@ -20,7 +20,7 @@
   "bin": "lib/bin.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "build": "npm run clean && tsc && cp src/app.tsconfig.json lib && cp src/index.d.ts lib",
+    "build": "npm run clean && tsc && cp src/app.tsconfig.json lib && cp src/types/{app,index}.d.ts lib",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
@@ -28,17 +28,17 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/args": "^0.11.0",
-    "@rcompat/cli": "^0.15.0",
+    "@rcompat/cli": "^0.16.0",
     "@rcompat/dict": "^0.3.1",
-    "@rcompat/fs": "^0.25.3",
-    "@rcompat/http": "~0.21.0",
-    "@rcompat/test": "^0.9.1"
+    "@rcompat/fs": "^0.26.0",
+    "@rcompat/http": "~0.23.0",
+    "@rcompat/test": "^0.10.0"
   },
   "devDependencies": {
     "@rcompat/type": "^0.9.0"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "imports": {
     "#*": {
@@ -47,14 +47,7 @@
     }
   },
   "exports": {
-    ".": {
-      "types": "./lib/index.d.ts"
-    },
     "./tsconfig": "./lib/app.tsconfig.json",
-    "./runtime/*": {
-      "apekit": "./src/runtime/*.ts",
-      "default": "./lib/runtime/*.js"
-    },
     "./http/*": {
       "apekit": "./src/public/http/*.ts",
       "default": "./lib/public/http/*.js"
@@ -62,6 +55,11 @@
     "./*": {
       "apekit": "./src/public/*.ts",
       "default": "./lib/public/*.js"
+    },
+    ".": {
+      "types": "./lib/index.d.ts",
+      "apekit": "./src/public/index.ts",
+      "default": "./lib/public/index.js"
     }
   }
 }

@@ -4,39 +4,38 @@ import type Asset from "#asset/Asset";
 import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
+import type ServerView from "#client/ServerView";
+import type ViewOptions from "#client/ViewOptions";
+import type ViewResponse from "#client/ViewResponse";
 import type CSP from "#CSP";
 import E from "#error";
-import type ServerView from "#frontend/ServerView";
-import type ViewOptions from "#frontend/ViewOptions";
-import type ViewResponse from "#frontend/ViewResponse";
 import hash from "#hash";
 import type I18NConfig from "#i18n/Config";
-import I18NModule from "#i18n/Module";
+import i18n_module from "#i18n/module";
 import location from "#location";
 import log from "#log";
-import reducer from "#reducer";
+import create from "#module/create";
+import handle from "#request/handle";
 import parse from "#request/parse";
 import RequestBag from "#request/RequestBag";
 import RequestBody from "#request/RequestBody";
 import type RequestFacade from "#request/RequestFacade";
+import route from "#request/route";
+import request_storage from "#request/storage";
 import type Verb from "#request/Verb";
 import type RouteHandler from "#route/Handler";
 import router from "#route/router";
+import dev_module from "#serve/dev-module";
 import type ServeInit from "#serve/Init";
-import DevModule from "#serve/module/Dev";
-import HandleModule from "#serve/module/Handle";
-import SessionModule from "#session/SessionModule";
+import session_module from "#session/module";
 import tags from "#tags";
 import assert from "@rcompat/assert";
 import type { FileRef } from "@rcompat/fs";
 import fs from "@rcompat/fs";
 import FileRouter from "@rcompat/fs/FileRouter";
-import type Actions from "@rcompat/http/Actions";
-import type Conf from "@rcompat/http/Conf";
-import MIME from "@rcompat/http/mime";
+import type { Actions, Conf, Server } from "@rcompat/http";
+import { MIME, Status } from "@rcompat/http";
 import serve from "@rcompat/http/serve";
-import type Server from "@rcompat/http/Server";
-import Status from "@rcompat/http/Status";
 import is from "@rcompat/is";
 import utf8 from "@rcompat/string/utf8";
 import type { Dict, PartialDict } from "@rcompat/type";
@@ -115,12 +114,6 @@ export default class ServeApp extends App {
   #stores: Dict;
   #frontends: Map<string, ViewResponse> = new Map();
   #router: FileRouter;
-  #builtins: {
-    dev?: DevModule;
-    handle: HandleModule;
-    session?: SessionModule;
-    i18n?: I18NModule;
-  };
   #i18n_config?: I18NConfig;
   constructor(rootfile: string, init: ServeInit) {
     const dir = fs.ref(rootfile).directory;
@@ -138,7 +131,7 @@ export default class ServeApp extends App {
     this.#pages = init.pages;
 
     const http = this.#init.facade[s_config].http;
-    this.#i18n_config = init.i18n_config;
+    this.#i18n_config = init.i18n;
 
     this.set(s_http, {
       host: http.host,
@@ -158,14 +151,36 @@ export default class ServeApp extends App {
       },
     }, init.routes.map(s => s[0]));
 
-    this.#builtins = {
-      dev: init.mode === "development" ? new DevModule(this) : undefined,
-      handle: new HandleModule(this),
-      session: init.session_config
-        ? new SessionModule(this.secure, init.session_config)
-        : undefined,
-      i18n: init.i18n_config ? new I18NModule(init.i18n_config) : undefined,
-    };
+    if (init.mode === "development") this.register(dev_module());
+
+    const assets = this.serve_assets.bind(this);
+    const bound_route = (request: RequestFacade) => route(this, request);
+
+    if (init.session !== undefined) {
+      this.register(session_module(init.session));
+    }
+
+    if (init.i18n !== undefined) this.register(i18n_module(init.i18n));
+
+    this.register(create({
+      name: "builtin/handle",
+      setup({ onHandle }) {
+        onHandle(async request => {
+          const asset = await assets(request.url.pathname);
+          if (asset !== undefined) return asset;
+
+          return new Promise<Response>((resolve, reject) => {
+            request_storage().run(request, async () => {
+              try {
+                resolve(await bound_route(request));
+              } catch (e) {
+                reject(e);
+              }
+            });
+          });
+        });
+      },
+    }));
   };
 
   get secure() {
@@ -176,11 +191,6 @@ export default class ServeApp extends App {
 
   get assets() {
     return this.#assets;
-  }
-
-  get modules() {
-    const { session, i18n } = this.#builtins;
-    return [session, i18n, ...super.modules].filter(m => m !== undefined);
   }
 
   get url() {
@@ -207,7 +217,7 @@ export default class ServeApp extends App {
   loadView<T = ServerView>(name: string) {
     const f = fs.ref(name).path;
     const frontends = Object.keys(this.frontends);
-    const extension = frontends.find(frontend => f.endsWith(frontend));
+    const extension = frontends.find(client => f.endsWith(client));
     const base = extension === undefined ? name : f.slice(0, -extension.length);
     const view = this.#views[base];
     if (view === undefined) throw E.view_missing(name);
@@ -305,7 +315,7 @@ export default class ServeApp extends App {
       );
   };
 
-  register(extension: string, view_response: ViewResponse) {
+  frontend(extension: string, view_response: ViewResponse) {
     if (this.#frontends.has(extension)) {
       throw E.view_duplicate_extension(extension);
     }
@@ -405,18 +415,10 @@ export default class ServeApp extends App {
           };
         }));
     }
-    const modules = [
-      this.#builtins.dev,
-      ...this.modules,
-      this.#builtins.handle,
-    ].filter(m => m !== undefined);
-
-    const handle = (request: RequestFacade) =>
-      reducer(modules, request, "handle") as Promise<Response>;
 
     this.#server = await serve(async request => {
       try {
-        return await handle(parse(request));
+        return await handle(this, parse(request));
       } catch (error) {
         log.error(error);
         return new Response(null, {

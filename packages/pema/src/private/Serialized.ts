@@ -12,6 +12,7 @@ type PrimitiveSerialized =
   | { type: "blob" } & DT
   | { type: "file" } & DT
   | { type: "url" } & DT
+  | { type: "function" }
   ;
 
 type NumberSerialized = { type: "number" } & DT;
@@ -31,7 +32,9 @@ type StructuralSerialized =
   | { type: "schema"; of: Serialized }
   | { type: "json"; datatype: "json"; of?: Serialized }
   | { type: "omit"; properties: Dict<Serialized> }
+  | { type: "enum"; values: string[] }
   | { type: "pure" }
+  | { type: "is" }
   ;
 
 type Serialized =

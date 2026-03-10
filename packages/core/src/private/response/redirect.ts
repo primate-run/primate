@@ -1,5 +1,5 @@
 import type ResponseFunction from "#response/ResponseFunction";
-import Status from "@rcompat/http/Status";
+import { Status } from "@rcompat/http";
 
 type Redirection =
   | 300 // MULTIPLE_CHOICES

@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/cli": "^0.15.0",
+    "@rcompat/cli": "^0.16.0",
     "@rcompat/io": "^0.3.0",
     "@rcompat/runtime": "^0.9.0",
     "@rcompat/webview": "^0.18.0",

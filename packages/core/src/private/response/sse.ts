@@ -1,5 +1,5 @@
 import response from "#response";
-import MIME from "@rcompat/http/mime";
+import { MIME } from "@rcompat/http";
 
 type Body = {
   close?(): undefined;

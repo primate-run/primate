@@ -8,7 +8,7 @@ import respond from "#response/respond";
 import type ResponseLike from "#response/ResponseLike";
 import type RouteHandler from "#route/Handler";
 import type ServeApp from "#serve/App";
-import Status from "@rcompat/http/Status";
+import { Status } from "@rcompat/http";
 import type { MaybePromise } from "@rcompat/type";
 import ParseError from "pema/ParseError";
 
@@ -71,13 +71,13 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
 
     errorRoute = errors[0];
 
-    const module_hooks = app.modules.map(m => wrap_hook(m.route.bind(m)));
+    const internal_hooks = app.route_hooks.map(wrap_hook);
     const route_hooks = hooks.map(wrap_hook);
     const last: InternalHook = async (req, _next) =>
       result(req, await handler(req));
 
     const { request, response } = await run(
-      [...module_hooks, ...route_hooks, last],
+      [...internal_hooks, ...route_hooks, last],
       route.request);
 
     return await respond(response)(app, {

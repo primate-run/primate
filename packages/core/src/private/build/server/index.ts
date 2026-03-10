@@ -17,6 +17,7 @@ import plugin_views from "#build/server/plugin/views";
 import plugin_virtual_pages from "#build/server/plugin/virtual-pages";
 import plugin_virtual_routes from "#build/server/plugin/virtual-routes";
 import plugin_wasm from "#build/server/plugin/wasm";
+import plugin_app_request from "#build/shared/plugin/app-request";
 import runtime from "@rcompat/runtime";
 import * as esbuild from "esbuild";
 
@@ -50,6 +51,7 @@ export default async function build_server(app: BuildApp) {
   app.plugin("server", plugin_requires(app));
   app.plugin("server", plugin_config(app));
   app.plugin("server", plugin_wasm(app));
+  app.plugin("server", plugin_app_request(app));
 
   const tsconfig = app.root.join("tsconfig.json");
   const options: esbuild.BuildOptions = {

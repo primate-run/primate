@@ -6,7 +6,9 @@ const types = {
   co: "constructor",
   d: "date",
   f: "file",
+  fn: "function",
   i: "int",
+  is: "is",
   n: "number",
   nl: "null",
   o: "object",
@@ -17,7 +19,7 @@ const types = {
   ur: "url",
 };
 
-const prefix = (at: string) => at ? `.${at}: ` : "";
+const prefix = (at: string) => at.length > 0 ? `.${at}: ` : "";
 
 type At = number | string;
 

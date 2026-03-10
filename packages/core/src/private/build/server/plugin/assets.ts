@@ -1,6 +1,6 @@
 import type BuildApp from "#build/App";
 import location from "#location";
-import MIME from "@rcompat/http/mime";
+import { MIME } from "@rcompat/http";
 import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
 

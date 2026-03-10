@@ -133,7 +133,34 @@ export default class User {
 }
 ```
 
-## Reactivity with Signals
+## Request
+
+Import the `request` signal from `app:angular` to access the current request
+inside any component. The signal updates automatically on client-side
+navigation.
+
+```ts
+import { Component } from "@angular/core";
+import { request } from "app:angular";
+
+@Component({
+  template: `<p>Current path: {{ request().url.pathname }}</p>`,
+})
+export default class Page {
+  request = request;
+}
+```
+
+The `request` signal exposes a `RequestPublic` object.
+
+| Property  | Type           | Description             |
+| --------- | -------------- | ----------------------- |
+| `url`     | `URL`          | current request URL     |
+| `query`   | `Dict<string>` | query string parameters |
+| `headers` | `Dict<string>` | request headers         |
+| `cookies` | `Dict<string>` | request cookies         |
+
+## Reactivity with signals
 
 Angular's signals provide fine-grained reactivity for state management and
 computed values.
@@ -474,9 +501,9 @@ export default class Page implements OnInit {
 
 ## Configuration
 
-| Option         | Type       | Default             | Description                |
-| -------------- | ---------- | ------------------- | -------------------------- |
-| fileExtensions | `string[]` | `[".component.ts"]` | Associated file extensions |
+| Option     | Type       | Default             | Description                |
+| -----------| ---------- | ------------------- | -------------------------- |
+| extensions | `string[]` | `[".component.ts"]` | Associated file extensions |
 
 ### Example
 
@@ -488,7 +515,7 @@ export default config({
   modules: [
     angular({
       // add `.ng.ts` to associated file extensions
-      fileExtensions: [".component.ts", ".ng.ts"],
+      extensions: [".component.ts", ".ng.ts"],
     }),
   ],
 });

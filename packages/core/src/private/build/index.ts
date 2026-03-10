@@ -12,20 +12,19 @@ import type { FileRef } from "@rcompat/fs";
 const no_config = (config?: Config) =>
   config === undefined || dict.empty(config);
 
-const find_config = async (root: FileRef) => {
+async function find_config(root: FileRef): Promise<FileRef | undefined> {
   const ts_config = root.join("config/app.ts");
   if (await ts_config.exists()) return ts_config;
   const js_config = root.join("config/app.js");
   if (await js_config.exists()) return js_config;
 };
 
-const get_config = async (root: FileRef) => {
+async function get_config(root: FileRef): Promise<Config> {
   const config_file = await find_config(root);
-  if (config_file === undefined) return default_config();
+  if (config_file === undefined) return default_config()[s_config];
 
   try {
     const imported = (await config_file.import("default"))[s_config];
-
     if (no_config(imported)) throw E.config_file_empty(config_file);
 
     return imported;
@@ -37,7 +36,7 @@ const get_config = async (root: FileRef) => {
 export default async (root: FileRef, input: typeof Flags.input) => {
   try {
     const flags = Flags.parse(input);
-    const config = await get_config(root) as Config;
+    const config = await get_config(root);
     const app = await new BuildApp(root, config, flags).init();
 
     await (app as BuildApp).buildInit();

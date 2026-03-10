@@ -16,5 +16,4 @@ class ClientApp {
   }
 }
 
-const app = new ClientApp();
-app.start();
+new ClientApp().start();

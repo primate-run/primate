@@ -146,9 +146,9 @@ export default class Counter extends Component {
 
 ## Configuration
 
-| Option         | Type       | Default     | Description                |
-| -------------- | ---------- | ----------- | -------------------------- |
-| fileExtensions | `string[]` | `[".webc"]` | Associated file extensions |
+| Option     | Type       | Default     | Description                |
+| ---------- | ---------- | ----------- | -------------------------- |
+| extensions | `string[]` | `[".webc"]` | Associated file extensions |
 
 ### Example
 

@@ -178,11 +178,11 @@ or alternatively any other frontend for this.
 
 ## Configuration
 
-| Option         | Type              | Default      | Description                |
-| -------------- | ----------------- | ------------ | -------------------------- |
-| fileExtensions | `string[]`        | `[".md"]`    | Associated file extensions |
-| options        | `MarkedExtension` | `{}`         | `marked` options           |
-| pretransform   | `Pretransform`    | `() => void` | Pretransform function      |
+| Option       | Type              | Default      | Description                |
+| ------------ | ----------------- | ------------ | -------------------------- |
+| extensions   | `string[]`        | `[".md"]`    | Associated file extensions |
+| options      | `MarkedExtension` | `{}`         | `marked` options           |
+| pretransform | `Pretransform`    | `() => void` | Pretransform function      |
 
 ### Example
 
@@ -194,7 +194,7 @@ export default config({
   modules: [
     markdown({
       // add `.markdown` to associated file extensions
-      fileExtensions: [".md", ".markdown"],
+      extensions: [".md", ".markdown"],
     }),
   ],
 });

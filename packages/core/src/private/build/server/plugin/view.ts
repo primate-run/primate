@@ -61,7 +61,7 @@ export default function plugin_server_view(app: BuildApp): Plugin {
       build.onLoad({ filter: /.*/, namespace: "primate-view-original" }, async args => {
         const file = fs.ref(args.path);
         const binder = app.binder(file);
-        if (!binder) return null;
+        if (binder === undefined) return null;
         const contents = await binder(file, {
           build: { id: app.id },
           context: "views",

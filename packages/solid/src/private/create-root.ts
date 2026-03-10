@@ -2,12 +2,12 @@ export default (length: number, i18n_active: boolean) => {
   const n = length;
   const body = Array.from({ length: n }, (_, i) => i - 1).reduceRight(
     (child, _, i) => `views[${i + 1}] !== undefined
-      ? createComponent(views[${i}], { request, ...props[${i}],
+      ? createComponent(views[${i}], { ...props[${i}],
           get children() { return ${child}; }
         })
-      : createComponent(views[${i}], { request, ...props[${i}] })
+      : createComponent(views[${i}], props[${i}])
     `,
-    `createComponent(views[${n}], { request, ...props[${n}] })`,
+    `createComponent(views[${n}], props[${n}])`,
   );
 
   const i18n_imports = i18n_active
@@ -23,10 +23,12 @@ export default (length: number, i18n_active: boolean) => {
   return `
     import { createSignal } from "solid-js";
     import { createComponent } from "solid-js/web";
+    import { setRequest } from "@primate/solid/app";
     import AppContext from "@primate/solid/context/app";
     import HeadContext from "@primate/solid/context/head";${i18n_imports}
 
     export default ({ views, props, request, push_heads: value }) => {
+      setRequest(request);
       const [context, setContext] = createSignal(request.context);
       const $value = { context, setContext };
 

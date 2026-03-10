@@ -1,4 +1,4 @@
-import type View from "#frontend/View";
+import type View from "#client/View";
 import type RequestFacade from "#request/RequestFacade";
 import type ServeApp from "#serve/App";
 import type { Dict, MaybePromise } from "@rcompat/type";

@@ -758,7 +758,7 @@ export default class Store<
 
     const result = await this.db.read(this.#as, {
       where: options?.where ?? {},
-      fields: options?.select ? [...options.select] : undefined,
+      fields: options?.select !== undefined ? [...options.select] : undefined,
       limit: options?.limit,
       sort: options?.sort as ReadSort | undefined,
       with: this.#with(options?.with),

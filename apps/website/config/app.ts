@@ -4,7 +4,7 @@ import svelte from "@primate/svelte";
 import fs, { type FileRef } from "@rcompat/fs";
 import config from "primate/config";
 import { createHighlighter } from "shiki";
-import Website from "./Website.ts";
+import website from "./Website.ts";
 
 const sorting = [
   // package managers
@@ -245,6 +245,6 @@ export default config({
       },
     }),
     svelte(),
-    new Website(),
+    website(),
   ],
 });

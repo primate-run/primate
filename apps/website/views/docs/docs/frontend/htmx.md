@@ -156,8 +156,8 @@ Use `\${...}` to output literal `${...}` text in templates:
 
 | Option         | Type       | Default     | Description                |
 | -------------- | ---------- | ----------- | -------------------------- |
-| fileExtensions | `string[]` | `[".htmx"]` | Associated file extensions |
-| extensions     | `string[]` | `[]`        | HTMX extensions to load    |
+| extensions     | `string[]` | `[".htmx"]` | Associated file extensions |
+| htmxExtensions | `string[]` | `[]`        | HTMX extensions to load    |
 | templates      | `string[]` | `[]`        | Client template engines    |
 
 ### Example
@@ -170,7 +170,7 @@ export default config({
   modules: [
     htmx({
       // use the `client-side-templates` extension
-      extensions: ["client-side-templates"],
+      htmxExtensions: ["client-side-templates"],
       // with the `handlebars` template
       templates: ["handlebars"],
     }),

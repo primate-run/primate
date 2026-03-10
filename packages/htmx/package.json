@@ -20,14 +20,19 @@
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && npx proby"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
     "@primate/html": "workspace:^",
     "@rcompat/is": "^0.4.4",
     "@rcompat/string": "^0.13.0",
-    "htmx-esm": "^0.2.1910"
+    "htmx-esm": "^0.2.1910",
+    "pema": "workspace:^"
+  },
+  "devDependencies": {
+    "@primate/test": "workspace:^"
   },
   "peerDependencies": {
     "primate": "workspace:^"

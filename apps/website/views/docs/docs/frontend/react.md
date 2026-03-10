@@ -122,7 +122,32 @@ export default function User({ user, permissions }: Props) {
 }
 ```
 
-## Reactivity with Hooks
+## Request
+
+Import the `useRequest` hook from `app:react` to access the current request
+inside any component. The hook re-renders the component automatically on
+client-side navigation.
+
+```tsx
+import { useRequest } from "app:react";
+
+export default function Page() {
+  const request = useRequest();
+
+  return <p>Current path: {request.url.pathname}</p>;
+}
+```
+
+The `useRequest` hook returns a `RequestPublic` object.
+
+| Property  | Type           | Description             |
+| --------- | -------------- | ----------------------- |
+| `url`     | `URL`          | current request URL     |
+| `query`   | `Dict<string>` | query string parameters |
+| `headers` | `Dict<string>` | request headers         |
+| `cookies` | `Dict<string>` | request cookies         |
+
+## Reactivity with hooks
 
 React's hooks provide state management and side effects for interactive
 components.
@@ -472,11 +497,11 @@ export default function About() {
 
 ## Configuration
 
-| Option         | Type       | Default            | Description                  |
-| -------------- | ---------- | ------------------ | ---------------------------- |
-| fileExtensions | `string[]` | `[".tsx", ".jsx"]` | Associated file extensions   |
-| ssr            | `boolean`  | `true`             | Active server-side rendering |
-| spa            | `boolean`  | `true`             | Active client-browsing       |
+| Option     | Type       | Default            | Description                  |
+| -----------| ---------- | ------------------ | ---------------------------- |
+| extensions | `string[]` | `[".tsx", ".jsx"]` | Associated file extensions   |
+| ssr        | `boolean`  | `true`             | Active server-side rendering |
+| spa        | `boolean`  | `true`             | Active client-browsing       |
 
 ### Example
 
@@ -488,7 +513,7 @@ export default config({
   modules: [
     react({
       // add `.react.tsx` to associated file extensions
-      fileExtensions: [".tsx", ".jsx", ".react.tsx"],
+      extensions: [".tsx", ".jsx", ".react.tsx"],
     }),
   ],
 });

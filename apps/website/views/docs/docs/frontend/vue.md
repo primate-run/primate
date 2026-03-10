@@ -123,6 +123,33 @@ const props = defineProps<Props>();
 </template>
 ```
 
+## Request
+
+Import the `useRequest` composable from `app:vue` to access the current request
+inside any component. The composable updates automatically on client-side
+navigation.
+
+```vue
+<script lang="ts" setup>
+  import { useRequest } from "app:vue";
+
+  const request = useRequest();
+</script>
+
+<template>
+  <p>Current path: {{ request.url.pathname }}</p>
+</template>
+```
+
+The `useRequest` composable returns a `RequestPublic` object.
+
+| Property  | Type           | Description             |
+| --------- | -------------- | ----------------------- |
+| `url`     | `URL`          | current request URL     |
+| `query`   | `Dict<string>` | query string parameters |
+| `headers` | `Dict<string>` | request headers         |
+| `cookies` | `Dict<string>` | request cookies         |
+
 ## Reactivity with Composition API
 
 Vue's Composition API provides reactive state management with `ref` and
@@ -434,11 +461,11 @@ onMounted(() => {
 
 ## Configuration
 
-| Option         | Type       | Default    | Description                  |
-| -------------- | ---------- | ---------- | ---------------------------- |
-| fileExtensions | `string[]` | `[".vue"]` | Associated file extensions   |
-| ssr            | `boolean`  | `true`     | Active server-side rendering |
-| spa            | `boolean`  | `true`     | Active client-browsing       |
+| Option     | Type       | Default    | Description                  |
+| ---------- | ---------- | ---------- | ---------------------------- |
+| extensions | `string[]` | `[".vue"]` | Associated file extensions   |
+| ssr        | `boolean`  | `true`     | Active server-side rendering |
+| spa        | `boolean`  | `true`     | Active client-browsing       |
 
 ### Example
 

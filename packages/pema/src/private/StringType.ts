@@ -1,5 +1,5 @@
-import schemafail from "#error/schemafail";
 import PrimitiveType from "#PrimitiveType";
+import E from "#schema-error";
 import Storable from "#Storable";
 import email from "#validator/email";
 import ends_with from "#validator/ends-with";
@@ -48,16 +48,12 @@ export default class StringType
   }
 
   min(limit: number) {
-    if (limit < 0) {
-      throw schemafail("min: {0} must be positive", limit);
-    }
+    if (limit < 0) throw E.min_negative(limit);
     return this.derive({ validators: [min(limit)] });
   }
 
   max(limit: number) {
-    if (limit < 0) {
-      throw schemafail("max: {0} must be positive", limit);
-    }
+    if (limit < 0) throw E.max_negative(limit);
     return this.derive({ validators: [max(limit)] });
   }
 

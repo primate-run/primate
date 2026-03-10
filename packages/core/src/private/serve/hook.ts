@@ -1,11 +1,7 @@
-import log from "#log";
-import reducer from "#reducer";
 import type ServeApp from "#serve/App";
 
-async function post(app: ServeApp) {
+export default async function run_serve_hooks(app: ServeApp) {
+  await app.serve_hooks(app);
   await app.start();
   return app;
 }
-
-export default async (app: ServeApp) =>
-  post(await reducer(app.modules, app, "serve"));

@@ -105,7 +105,30 @@ Access the props in the component:
 </div>
 ```
 
-## Reactivity with Stores
+## Request
+
+Import the `request` store from `app:svelte` to access the current request
+inside any component. The store is reactive — it updates automatically on
+client-side navigation.
+
+```svelte
+<script lang="ts">
+  import { request } from "app:svelte";
+</script>
+
+<p>Current path: {$request.url.pathname}</p>
+```
+
+The `request` store exposes a `RequestPublic` object.
+
+| Property  | Type           | Description             |
+| --------- | -------------- | ----------------------- |
+| `url`     | `URL`          | current request URL     |
+| `query`   | `Dict<string>` | query string parameters |
+| `headers` | `Dict<string>` | request headers         |
+| `cookies` | `Dict<string>` | request cookies         |
+
+## Reactivity with stores
 
 Svelte's reactivity system uses reactive statements and stores for state
 management.
@@ -389,11 +412,11 @@ Use Svelte's `<svelte:head>` to manage document head elements.
 
 ## Configuration
 
-| Option         | Type       | Default       | Description                  |
-| -------------- | ---------- | ------------- | ---------------------------- |
-| fileExtensions | `string[]` | `[".svelte"]` | Associated file extensions   |
-| ssr            | `boolean`  | `true`        | Active server-side rendering |
-| spa            | `boolean`  | `true`        | Active client-browsing       |
+| Option     | Type       | Default       | Description                  |
+| ---------- | ---------- | ------------- | ---------------------------- |
+| extensions | `string[]` | `[".svelte"]` | Associated file extensions   |
+| ssr        | `boolean`  | `true`        | Active server-side rendering |
+| spa        | `boolean`  | `true`        | Active client-browsing       |
 
 ### Example
 
@@ -405,7 +428,7 @@ export default config({
   modules: [
     svelte({
       // add `.component.svelte` to associated file extensions
-      fileExtensions: [".svelte", ".component.svelte"],
+      extensions: [".svelte", ".component.svelte"],
     }),
   ],
 });

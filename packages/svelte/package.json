@@ -16,8 +16,9 @@
     "/lib/**/*.d.ts",
     "!/**/*.spec.*"
   ],
+  "types": "lib/index.d.ts",
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc && cp src/types/{app,index}.d.ts lib",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build",
@@ -25,7 +26,7 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "esbuild": "^0.27.3"
+    "esbuild": "^0.27.4"
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
@@ -43,6 +44,7 @@
   },
   "exports": {
     ".": {
+      "types": "./lib/index.d.ts",
       "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"

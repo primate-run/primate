@@ -1,7 +1,7 @@
 import location from "#location";
 import type ResponseFunction from "#response/ResponseFunction";
-import Status from "@rcompat/http/Status";
-import type ValidStatus from "@rcompat/http/ValidStatus";
+import type { ValidStatus } from "@rcompat/http";
+import { Status } from "@rcompat/http";
 
 type Options = {
   body?: string;

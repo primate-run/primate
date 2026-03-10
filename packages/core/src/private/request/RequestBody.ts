@@ -1,5 +1,5 @@
 import E from "#error";
-import MIME from "@rcompat/http/mime";
+import { MIME } from "@rcompat/http";
 import is from "@rcompat/is";
 import type { Dict, JSONValue, Schema } from "@rcompat/type";
 

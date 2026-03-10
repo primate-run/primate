@@ -1,5 +1,6 @@
 import GenericType from "#GenericType";
 import type Storable from "#Storable";
+import is from "@rcompat/is";
 
 const storable = (x: unknown): x is Storable =>
   !!x && typeof x === "object" && "datatype" in x;

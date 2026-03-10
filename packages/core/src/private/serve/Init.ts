@@ -20,8 +20,8 @@ type ServeInit = {
   mode: Mode;
   target: string;
   pages: Dict<string>;
-  session_config?: SessionConfig;
-  i18n_config?: I18NConfig;
+  session?: SessionConfig;
+  i18n?: I18NConfig;
 };
 
 export type { ServeInit as default };

@@ -4,7 +4,6 @@ import build_server from "#build/server/index";
 import E from "#error";
 import location from "#location";
 import log from "#log";
-import reducer from "#reducer";
 import $router from "#request/router";
 import s_layout_depth from "#symbol/layout-depth";
 import c from "@rcompat/cli/color";
@@ -43,8 +42,6 @@ async function pre(app: BuildApp) {
   const session_ts = app.path.config.join("session.ts");
   const session_js = app.path.config.join("session.js");
   app.session_active = await session_ts.exists() || await session_js.exists();
-
-  return app;
 };
 
 async function post(app: BuildApp) {
@@ -58,5 +55,8 @@ async function post(app: BuildApp) {
   return app;
 };
 
-export default async (app: BuildApp) =>
-  post(await reducer(app.modules, await pre(app), "build"));
+export default async function run_build_hooks(app: BuildApp) {
+  await pre(app);
+  await app.build_hooks(app);
+  return post(app);
+}

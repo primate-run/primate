@@ -1,1 +1,2 @@
-export type * from "#frontend/index";
+export { default } from "#frontend";
+export type * from "#frontend";

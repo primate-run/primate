@@ -6,7 +6,7 @@ import type ResponseFunction from "#response/ResponseFunction";
 import type ResponseLike from "#response/ResponseLike";
 import text from "#response/text";
 import Streamable from "@rcompat/fs/Streamable";
-import Status from "@rcompat/http/Status";
+import { Status } from "@rcompat/http";
 import is from "@rcompat/is";
 import type { UnknownFunction } from "@rcompat/type";
 

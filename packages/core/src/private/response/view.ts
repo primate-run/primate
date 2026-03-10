@@ -1,5 +1,5 @@
+import type ViewOptions from "#client/ViewOptions";
 import E from "#error";
-import type ViewOptions from "#frontend/ViewOptions";
 import type ResponseFunction from "#response/ResponseFunction";
 import fs from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";

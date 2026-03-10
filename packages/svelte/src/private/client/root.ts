@@ -1,8 +1,8 @@
 import type Data from "#client/Data";
 import type { Dict } from "@rcompat/type";
-import type { Component } from "svelte";
 import { hydrate, mount } from "svelte";
 import * as views from "svelte:views";
+import type { Component } from "svelte";
 
 type ViewComponent = Component<any>;
 
@@ -21,7 +21,7 @@ function toProps(data: Data) {
     props: data.props,
     request: {
       ...data.request,
-      url: new URL(location.href),
+      url: new URL(data.request.url),
     },
     update: () => undefined,
   };

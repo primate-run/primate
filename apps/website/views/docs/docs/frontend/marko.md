@@ -94,9 +94,9 @@ Access the props in the view:
 
 ## Configuration
 
-| Option         | Type       | Default       | Description                |
-| -------------- | ---------- | ------------- | -------------------------- |
-| fileExtensions | `string[]` | `[".marko"]`  | Associated file extensions |
+| Option     | Type       | Default       | Description                |
+| -----------| ---------- | ------------- | -------------------------- |
+| extensions | `string[]` | `[".marko"]`  | Associated file extensions |
 
 ### Example
 
@@ -108,7 +108,7 @@ export default config({
   modules: [
     marko({
       // add `.marko.html` to associated file extensions
-      fileExtensions: [".marko", ".marko.html"],
+      extensions: [".marko", ".marko.html"],
     }),
   ],
 });

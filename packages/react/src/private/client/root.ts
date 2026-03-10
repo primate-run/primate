@@ -19,7 +19,7 @@ function toProps(data: Data): RootProps {
     props: data.props,
     request: {
       ...data.request,
-      url: new URL(location.href),
+      url: new URL(data.request.url),
     },
   };
 }

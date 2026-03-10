@@ -1,6 +1,11 @@
-import type NativeTarget from "#NativeTarget";
+import type { Target } from "@primate/core";
 
 const runner = () => { };
+
+export interface NativeTarget extends Target {
+  exe: string;
+  flags: string;
+}
 
 const targets: NativeTarget[] = [
   {

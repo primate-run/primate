@@ -26,7 +26,7 @@ function interpolate(template: string, props: Dict) {
     let k = j + 2, depth = 1, quote: null | string = null, esc = false;
     while (k < template.length && depth > 0) {
       const ch = template[k++];
-      if (quote) {
+      if (quote !== null && quote.length > 0) {
         if (esc) esc = false;
         else if (ch === "\\") esc = true;
         else if (ch === quote) quote = null;
@@ -36,7 +36,7 @@ function interpolate(template: string, props: Dict) {
         else if (ch === "}") depth--;
       }
     }
-    if (depth) throw new Error("Unbalanced ${...} expression in template");
+    if (depth > 0) throw new Error("Unbalanced ${...} expression in template");
     const expr = template.slice(j + 2, k - 1);
 
     // evaluate with props in scope (non-strict by default)

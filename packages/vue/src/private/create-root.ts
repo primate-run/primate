@@ -13,10 +13,12 @@ export default (depth: number, i18n_active: boolean) => {
 
   const body = depth > 0 ? build_view(0) : "h(\"div\")";
 
-  const vueImports =
-    `import {
-    defineComponent, h${i18n_active ? ", ref, onMounted, onUnmounted" : ""}
-    } from "vue";`;
+  const vueImports = `
+    import {
+      defineComponent, h${i18n_active ? ", ref, onMounted, onUnmounted" : ""}
+    } from "vue";
+    import { setRequest } from "@primate/vue/app";
+    `;
   const i18nImports = i18n_active
     ? `
 import t from "#i18n";
@@ -48,6 +50,7 @@ export default defineComponent({
     ${i18nSetup}
     return () => {
       const p = props.p;
+      setRequest(props.p.request);
       return ${body};
     };
   },

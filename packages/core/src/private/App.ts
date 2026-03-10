@@ -1,10 +1,12 @@
+import type BuildApp from "#build/App";
 import type Config from "#config/Config";
 import E from "#error";
 import type Flags from "#Flags";
 import location from "#location";
 import type Mode from "#Mode";
-import type Module from "#Module";
-import reducer from "#reducer";
+import type { Created, Hooks } from "#module/create";
+import create from "#module/create";
+import type ServeApp from "#serve/App";
 import TargetManager from "#target/Manager";
 import dict from "@rcompat/dict";
 import entries from "@rcompat/dict/entries";
@@ -15,7 +17,14 @@ export default class App {
   #path: { [K in keyof typeof location]: FileRef } & { build: FileRef };
   #root: FileRef;
   #config: Config;
-  #modules: Module[];
+  #hooks: Hooks = {
+    init: [],
+    build: [],
+    serve: [],
+    handle: [],
+    route: [],
+  };
+  #module_names = new Set<string>();
   #kv = new Map<symbol, unknown>();
   #mode: Mode;
   #target: TargetManager;
@@ -27,7 +36,7 @@ export default class App {
     }
     this.#root = root;
     this.#config = config;
-    this.#modules = config.modules?.flat(10) ?? [];
+    for (const module of config.modules) this.register(create(module));
     this.#path = entries({
       ...location,
       build: flags.dir,
@@ -38,16 +47,43 @@ export default class App {
   }
 
   async init() {
-    const names = this.#modules.map(({ name }) => name);
-    if (new Set(names).size !== this.#modules.length) {
-      throw E.app_duplicate_module(names);
-    }
-
-    const app = await reducer(this.#modules, this, "init");
+    for (const hook of this.#hooks.init) await hook(this);
 
     this.#target.set(this.#target_name);
 
+    return this;
+  }
+
+  register(created: Created) {
+    if (this.#module_names.has(created.name)) {
+      throw E.app_duplicate_module(created.name);
+    }
+    this.#module_names.add(created.name);
+    this.#hooks.init.push(...created.hooks.init);
+    this.#hooks.build.push(...created.hooks.build);
+    this.#hooks.serve.push(...created.hooks.serve);
+    this.#hooks.handle.push(...created.hooks.handle);
+    this.#hooks.route.push(...created.hooks.route);
+  }
+
+  async build_hooks(app: BuildApp) {
+    for (const hook of this.#hooks.build) await hook(app);
+
     return app;
+  }
+
+  async serve_hooks(app: ServeApp) {
+    for (const hook of this.#hooks.serve) await hook(app);
+
+    return app;
+  }
+
+  get handle_hooks() {
+    return [...this.#hooks.handle];
+  }
+
+  get route_hooks() {
+    return [...this.#hooks.route];
   }
 
   get location() {
@@ -68,10 +104,6 @@ export default class App {
 
   get mode() {
     return this.#mode;
-  }
-
-  get modules() {
-    return [...this.#modules];
   }
 
   get livereload() {

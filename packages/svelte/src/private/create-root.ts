@@ -3,13 +3,13 @@ export default (depth: number, i18n_active: boolean) => {
   const body = Array.from({ length: n }, (_, i) => i - 1)
     .reduceRight((child, _, i) => `
       {#if p.views[${i + 1}]}
-        <svelte:component this={p.views[${i}]} request={p.request} {...p.props[${i}]}>
+        <svelte:component this={p.views[${i}]} {...p.props[${i}]}>
           ${child}
         </svelte:component>
       {:else}
-        <svelte:component this={p.views[${i}]} request={p.request} {...p.props[${i}]}/>
+        <svelte:component this={p.views[${i}]} {...p.props[${i}]}/>
       {/if}
-    `, `<svelte:component this={p.views[${n}]} request={p.request} {...p.props[${n}]}/>`);
+    `, `<svelte:component this={p.views[${n}]} {...p.props[${n}]}/>`);
 
   const i18nImports = i18n_active
     ? `
@@ -33,15 +33,21 @@ export default (depth: number, i18n_active: boolean) => {
     <script>
       import { afterUpdate, setContext } from "svelte";
       import context_name from "@primate/svelte/context-name";
+      import { request } from "@primate/svelte/app";
       ${i18nImports}
 
       export let p;
 
       setContext(context_name, p.request.context);
 
+      const { context, path, ...public_request } = p.request;
+      request.set(public_request);
+
       ${i18nInit}
 
       afterUpdate(() => {
+         const { context, path, ...public_request } = p.request;
+         request.set(public_request);
          p.update?.();
       });
     </script>

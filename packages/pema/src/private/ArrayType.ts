@@ -1,6 +1,6 @@
 import DefaultType from "#DefaultType";
+import EnumType from "#EnumType";
 import error from "#error";
-import schemafail from "#error/schemafail";
 import fail from "#fail";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
@@ -13,6 +13,7 @@ import join from "#path/join";
 import next from "#path/next";
 import rebase from "#path/rebase";
 import PrimitiveType from "#PrimitiveType";
+import E from "#schema-error";
 import type DefaultTrait from "#trait/Default";
 import type OptionalTrait from "#trait/Optional";
 import type Validator from "#Validator";
@@ -20,6 +21,7 @@ import length from "#validator/length";
 import max from "#validator/max";
 import min from "#validator/min";
 import unique from "#validator/unique";
+import uniqueBy from "#validator/unique-by";
 import type { Newable, Primitive } from "@rcompat/type";
 
 type Next<T> = {
@@ -27,7 +29,7 @@ type Next<T> = {
 };
 
 function isPrimitive(x: Parsed<unknown>): x is PrimitiveType<unknown, string> {
-  return x instanceof PrimitiveType;
+  return x instanceof PrimitiveType || x instanceof EnumType;
 }
 
 export default class ArrayType<T extends Parsed<unknown>>
@@ -72,24 +74,22 @@ export default class ArrayType<T extends Parsed<unknown>>
     this: Infer<T> extends Primitive ? ArrayType<T> : never,
   ): ArrayType<T> {
     if (!isPrimitive(this.#item)) {
-      throw schemafail(
-        "unique: subtype {0} must be primitive", this.#item.name,
-      );
+      throw E.unique_subtype_not_primitive(this.#item.name);
     }
     return this.derive({ validators: [unique] });
   }
 
+  uniqueBy<K>(select: (value: Infer<T>) => K) {
+    return this.derive({ validators: [uniqueBy(select)] });
+  }
+
   min(limit: number) {
-    if (limit < 0) {
-      throw schemafail("min: {0} must be positive", limit);
-    }
+    if (limit < 0) throw E.min_negative(limit);
     return this.derive({ validators: [min(limit)] });
   }
 
   max(limit: number) {
-    if (limit < 0) {
-      throw schemafail("max: {0} must be positive", limit);
-    }
+    if (limit < 0) throw E.max_negative(limit);
     return this.derive({ validators: [max(limit)] });
   }
 
@@ -103,22 +103,22 @@ export default class ArrayType<T extends Parsed<unknown>>
     const base = options[ParsedKey] ?? "";
     const item = this.#item;
     const len = x.length;
+    const out = new Array(len) as Infer<T>[];
 
     for (let i = 0; i < len; i++) {
-      // sparse array check
       if (!(i in x)) {
         throw new ParseError([{
           ...error(item.name, undefined, options)[0],
           path: join(base, i),
         }]);
       }
-      item.parse(x[i], next(i, options));
+      out[i] = item.parse(x[i], next(i, options));
     }
 
     const validators = this.#validators;
     for (let i = 0; i < validators.length; i++) {
       try {
-        validators[i](x);
+        validators[i](out);
       } catch (e) {
         if (e instanceof ParseError) {
           const rebased = (e.issues ?? [])
@@ -129,7 +129,7 @@ export default class ArrayType<T extends Parsed<unknown>>
       }
     }
 
-    return x as never;
+    return out as never;
   }
 
   toJSON() {

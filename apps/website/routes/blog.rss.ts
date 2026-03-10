@@ -1,4 +1,4 @@
-import MIME from "@rcompat/http/mime";
+import { MIME } from "@rcompat/http";
 import views from "app:views";
 import response from "primate/response";
 import route from "primate/route";

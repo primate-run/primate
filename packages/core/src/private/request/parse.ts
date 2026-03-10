@@ -5,6 +5,7 @@ import type RequestFacade from "#request/RequestFacade";
 import sContext from "#request/sContext";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
+import type Verb from "#request/Verb";
 
 function decode(s: string) {
   try {
@@ -56,6 +57,7 @@ function parse(request: Request): RequestFacade {
   const url = new URL(request.url);
   const facade: RequestFacade = {
     body: RequestBody.none(),
+    method: request.method.toLowerCase() as Verb,
     cookies: cookie_bag(request),
     forward(to: string, headers?: Dict<string>) {
       return fetch(to, {

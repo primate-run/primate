@@ -48,6 +48,26 @@ test.case("flat", assert => {
   assert(() => s_n_b.parse(x(fbb))).throws(expect("u", "bar", 3));
 });
 
+test.case("coerce", assert => {
+  const snb = tuple(string, number.coerce, boolean.coerce);
+
+  assert(snb).type<TupleType<[StringType, NumberType, BooleanType]>>();
+
+  assert(snb.parse(["foo", "1", "true"]))
+    .equals(["foo", 1, true])
+    .type<[string, number, boolean]>();
+
+  assert(snb.parse(["bar", "0", "false"]))
+    .equals(["bar", 0, false])
+    .type<[string, number, boolean]>();
+
+  assert(() => snb.parse(["foo", "oops", "true"]))
+    .throws(expect("n", "oops", 1));
+
+  assert(() => snb.parse(["foo", "1", "nope"]))
+    .throws(expect("b", "nope", 2));
+});
+
 test.case("deep", assert => {
   // recursive
   const rc = tuple(tuple(string));
@@ -55,6 +75,14 @@ test.case("deep", assert => {
   assert(rc).type<TupleType<[TupleType<[StringType]>]>>();
   assert(rc.parse([["foo"]])).equals([["foo"]]).type<[[string]]>();
   assert(() => rc.parse([])).throws();
+});
+
+test.case("deep coerce", assert => {
+  const rc = tuple(tuple(number.coerce));
+
+  assert(rc.parse([["1"]]))
+    .equals([[1]])
+    .type<[[number]]>();
 });
 
 test.case("in array", assert => {

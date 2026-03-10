@@ -1,7 +1,7 @@
 import http from "#client/http";
 import root from "#client/root";
 import storage from "#client/storage";
-import MIME from "@rcompat/http/mime";
+import { MIME } from "@rcompat/http";
 
 const headers = {
   Accept: MIME.APPLICATION_JSON,

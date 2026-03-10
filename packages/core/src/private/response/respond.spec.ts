@@ -1,6 +1,5 @@
 import respond from "#response/respond";
-import MIME from "@rcompat/http/mime";
-import Status from "@rcompat/http/Status";
+import { MIME, Status } from "@rcompat/http";
 import test from "@rcompat/test";
 
 const app = {

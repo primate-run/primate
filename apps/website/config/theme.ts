@@ -65,6 +65,10 @@ export default {
           href: "/i18n",
           title: "I18N",
         },
+        {
+          href: "/modules",
+          title: "Modules",
+        },
       ],
       title: "Framework",
     },

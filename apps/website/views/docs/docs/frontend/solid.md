@@ -126,7 +126,30 @@ export default function User(props: Props) {
 }
 ```
 
-## Reactivity with Signals
+## Request
+
+Import the `request` signal from `app:solid` to access the current request
+inside any component. The signal updates automatically on client-side
+navigation.
+
+```tsx
+import { request } from "app:solid";
+
+export default function Page() {
+  return <p>Current path: {request().url.pathname}</p>;
+}
+```
+
+The `request` signal exposes a `RequestPublic` object.
+
+| Property  | Type           | Description             |
+| --------- | -------------- | ----------------------- |
+| `url`     | `URL`          | current request URL     |
+| `query`   | `Dict<string>` | query string parameters |
+| `headers` | `Dict<string>` | request headers         |
+| `cookies` | `Dict<string>` | request cookies         |
+
+## Reactivity with signals
 
 Solid's signals provide fine-grained reactivity for state management and
 computed values.
@@ -482,11 +505,11 @@ export default function About() {
 
 ## Configuration
 
-| Option         | Type       | Default            | Description                  |
-| -------------- | ---------- | ------------------ | ---------------------------- |
-| fileExtensions | `string[]` | `[".tsx", ".jsx"]` | Associated file extensions   |
-| ssr            | `boolean`  | `true`             | Active server-side rendering |
-| spa            | `boolean`  | `true`             | Active client-browsing       |
+| Option     | Type       | Default            | Description                  |
+| ---------- | ---------- | ------------------ | ---------------------------- |
+| extensions | `string[]` | `[".tsx", ".jsx"]` | Associated file extensions   |
+| ssr        | `boolean`  | `true`             | Active server-side rendering |
+| spa        | `boolean`  | `true`             | Active client-browsing       |
 
 ### Example
 
@@ -498,7 +521,7 @@ export default config({
   modules: [
     solid({
       // add `.solid.tsx` to associated file extensions
-      fileExtensions: [".tsx", ".jsx", ".solid.tsx"],
+      extensions: [".tsx", ".jsx", ".solid.tsx"],
     }),
   ],
 });

@@ -147,9 +147,9 @@ Use `\${...}` to output literal `${...}` text in templates:
 
 ## Configuration
 
-| Option         | Type       | Default     | Description                |
-| -------------- | ---------- | ----------- | -------------------------- |
-| fileExtensions | `string[]` | `[".html"]` | Associated file extensions |
+| Option    | Type       | Default     | Description                |
+| ----------| ---------- | ----------- | -------------------------- |
+| extension | `string[]` | `[".html"]` | Associated file extensions |
 
 ### Example
 
@@ -161,7 +161,7 @@ export default config({
   modules: [
     html({
       // add `.htm` to associated file extensions
-      fileExtensions: [".html", ".htm"],
+      extensions: [".html", ".htm"],
     }),
   ],
 });

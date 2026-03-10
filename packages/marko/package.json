@@ -20,14 +20,17 @@
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && npx proby"
   },
   "dependencies": {
     "@marko/compiler": "^5.39.56",
     "@primate/core": "workspace:^",
+    "@rcompat/fs": "^0.26.0",
     "marko": "^5.38.25"
   },
   "devDependencies": {
+    "@primate/test": "workspace:^",
     "@types/marko": "^4.6.9"
   },
   "peerDependencies": {

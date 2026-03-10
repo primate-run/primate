@@ -47,6 +47,7 @@ import {
 } from "@angular/core";
 import { CommonModule, NgComponentOutlet } from "@angular/common";
 import INITIAL_PROPS from "@primate/angular/INITIAL_PROPS";
+import { request } from "@primate/angular/app";
 ${i18n_imports}
 
 type Dict = Record<string, any>;
@@ -71,7 +72,10 @@ export default class RootComponent implements OnDestroy {
   constructor() {
     try {
       const initial = inject<any>(INITIAL_PROPS);
-      if (initial) this.#p = initial;
+      if (initial) {
+        this.#p = initial;
+        request.set(initial.request);
+      }
     } catch {}
     ${i18n_setup}
   }
@@ -79,6 +83,7 @@ export default class RootComponent implements OnDestroy {
   @Input({ required: true })
   set p(value: RootProps) {
     this.#p = value;
+    request.set(value.request);
     this.#cdr.markForCheck();  // root on default CD
   }
   get p(): RootProps { return this.#p; }

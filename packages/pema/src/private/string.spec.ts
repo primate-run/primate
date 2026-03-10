@@ -1,14 +1,12 @@
 import type DefaultType from "#DefaultType";
 import expect from "#expect";
+import { Code, throws } from "#schema-error";
 import string from "#string";
 import type StringType from "#StringType";
 import messagesOf from "#test/messages-of";
 import pathsOf from "#test/paths-of";
 import throwsIssues from "#test/throws-issues";
-import color from "@rcompat/cli/color";
 import test from "@rcompat/test";
-
-const { dim } = color;
 
 test.case("fail", assert => {
   const issues = throwsIssues(assert, () => string.parse(1));
@@ -31,7 +29,7 @@ test.case("default", assert => {
   });
 });
 
-test.case("validator - startsWith", assert => {
+test.case("validator: startsWith", assert => {
   const sw = string.startsWith("/");
 
   assert(sw).type<StringType>();
@@ -40,7 +38,7 @@ test.case("validator - startsWith", assert => {
   assert(() => sw.parse("foo")).throws("\"foo\" does not start with \"/\"");
 });
 
-test.case("validator - endsWith", assert => {
+test.case("validator: endsWith", assert => {
   const ew = string.endsWith("/");
 
   assert(ew).type<StringType>();
@@ -49,7 +47,7 @@ test.case("validator - endsWith", assert => {
   assert(() => ew.parse("foo")).throws("\"foo\" does not end with \"/\"");
 });
 
-test.case("validator - email", assert => {
+test.case("validator: email", assert => {
   const email = string.email();
   assert(email).type<StringType>();
 
@@ -68,7 +66,7 @@ test.case("validator - email", assert => {
 
 });
 
-test.case("validator - uuid", assert => {
+test.case("validator: uuid", assert => {
   const uuid = string.uuid();
   assert(uuid).type<StringType>();
 
@@ -86,31 +84,31 @@ test.case("validator - uuid", assert => {
   });
 });
 
-test.case("validator - min", assert => {
-  assert(() => string.min(-10))
-    .throws(`min: ${dim("-10")} must be positive`);
+test.case("validator: min", assert => {
+  throws(assert, Code.min_negative, () => string.min(-10));
+  throws(assert, Code.min_limit_not_finite, () => string.min(Infinity));
+  throws(assert, Code.min_limit_not_finite, () => string.min(NaN));
   const min = string.min(5);
   assert(min.parse("hello")).equals("hello").type<string>();
   assert(min.parse("universe")).equals("universe").type<string>();
   assert(() => min.parse("hi")).throws("min 5 characters");
 });
 
-test.case("validator - max", assert => {
-  assert(() => string.max(-10))
-    .throws(`max: ${dim("-10")} must be positive`);
+test.case("validator: max", assert => {
+  throws(assert, Code.max_negative, () => string.max(-10));
+  throws(assert, Code.max_limit_not_finite, () => string.max(Infinity));
+  throws(assert, Code.max_limit_not_finite, () => string.max(NaN));
   const max = string.max(5);
   assert(max.parse("hello")).equals("hello").type<string>();
   assert(max.parse("hi")).equals("hi").type<string>();
   assert(() => max.parse("universe")).throws("max 5 characters");
 });
 
-test.case("validator - length", assert => {
-  assert(() => string.length(-10, 10))
-    .throws(`length: ${dim("-10")} and ${dim("10")} must be positive`);
-  assert(() => string.length(10, -10))
-    .throws(`length: ${dim("10")} and ${dim("-10")} must be positive`);
-  assert(() => string.length(5, 3))
-    .throws(`length: ${dim("5")} must be lower than ${dim("3")}`);
+test.case("validator: length", assert => {
+  throws(assert, Code.length_not_finite, () => string.length(Infinity, 10));
+  throws(assert, Code.length_not_positive, () => string.length(-10, 10));
+  throws(assert, Code.length_not_positive, () => string.length(10, -10));
+  throws(assert, Code.length_from_exceeds_to, () => string.length(5, 3));
   const length = string.length(0, 5);
   assert(length.parse("hello")).equals("hello").type<string>();
   assert(length.parse("hi")).equals("hi").type<string>();

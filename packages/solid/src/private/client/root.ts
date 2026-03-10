@@ -21,7 +21,7 @@ function toProps(data: Data, update?: () => void): RootProps {
     props: data.props,
     request: {
       ...data.request,
-      url: new URL(location.href),
+      url: new URL(data.request.url),
     },
     update,
   };

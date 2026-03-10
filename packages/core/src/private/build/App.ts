@@ -27,6 +27,7 @@ export default class BuildApp extends App {
 
   async buildInit() {
     this.#paths = await resolve_paths(this.root, this.config("paths"));
+
     await build(this);
   }
 

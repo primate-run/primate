@@ -419,9 +419,9 @@ greeting = "Hello, #{name}!"
 
 ## Configuration
 
-| Option        | Type     | Default | Description               |
-| ------------- | -------- | ------- | ------------------------- |
-| fileExtension | `string` | `".rb"` | Associated file extension |
+| Option    | Type     | Default | Description               |
+| --------- | -------- | ------- | ------------------------- |
+| extension | `string` | `".rb"` | Associated file extension |
 
 ### Example
 
@@ -433,7 +433,7 @@ export default config({
   modules: [
     ruby({
       // use `.ruby` as associated file extension
-      fileExtension: ".ruby",
+      extension: ".ruby",
     }),
   ],
 });

@@ -1,6 +1,6 @@
 import response from "#response";
 import fn from "@rcompat/fn";
-import MIME from "@rcompat/http/mime";
+import { MIME } from "@rcompat/http";
 
 /**
  * Return a plaintext response

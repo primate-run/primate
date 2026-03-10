@@ -101,11 +101,11 @@ export default ({ user, permissions }) => {
 
 ## Configuration
 
-| Option         | Type       | Default            | Description                  |
-| -------------- | ---------- | ------------------ | ---------------------------- |
-| fileExtensions | `string[]` | `[".tsx", ".jsx"]` | Associated file extensions   |
-| ssr            | `boolean`  | `true`             | Active server-side rendering |
-| spa            | `boolean`  | `true`             | Active client-browsing       |
+| Option     | Type       | Default            | Description                  |
+| ---------- | ---------- | ------------------ | ---------------------------- |
+| extensions | `string[]` | `[".tsx", ".jsx"]` | Associated file extensions   |
+| ssr        | `boolean`  | `true`             | Active server-side rendering |
+| spa        | `boolean`  | `true`             | Active client-browsing       |
 
 ### Example
 
@@ -117,7 +117,7 @@ export default config({
   modules: [
     voby({
       // add .voby.tsx to associated file extensions
-      fileExtentions: [".jsx", ".tsx", ".voby.tsx"],
+      extensions: [".jsx", ".tsx", ".voby.tsx"],
     }),
   ],
 });

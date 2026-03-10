@@ -16,8 +16,9 @@
     "/lib/**/*.d.ts",
     "!/**/*.spec.*"
   ],
+  "types": "lib/index.d.ts",
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsc && cp src/types/{app,index}.d.ts lib",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build",
@@ -42,6 +43,7 @@
   },
   "exports": {
     ".": {
+      "types": "./lib/index.d.ts",
       "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"

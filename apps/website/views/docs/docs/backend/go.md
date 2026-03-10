@@ -454,9 +454,9 @@ users := core.Array[core.Dict]{
 
 ## Configuration
 
-| Option        | Type     | Default | Description               |
-| ------------- | -------- | ------- | ------------------------- |
-| fileExtension | `string` | `".go"` | Associated file extension |
+| Option    | Type     | Default | Description               |
+| --------- | -------- | ------- | ------------------------- |
+| extension | `string` | `".go"` | Associated file extension |
 
 ### Example
 
@@ -468,7 +468,7 @@ export default config({
   modules: [
     go({
       // use `.golang` as associated file extension
-      fileExtension: ".golang",
+      extension: ".golang",
     }),
   ],
 });

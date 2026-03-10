@@ -93,9 +93,9 @@ Access the props in the template:
 
 ## Configuration
 
-| Option         | Type       | Default    | Description                |
-| -------------- | ---------- | ---------- | -------------------------- |
-| fileExtensions | `string[]` | `[".hbs"]` | Associated file extensions |
+| Option     | Type       | Default    | Description                |
+| -----------| ---------- | ---------- | -------------------------- |
+| extensions | `string[]` | `[".hbs"]` | Associated file extensions |
 
 ### Example
 
@@ -107,7 +107,7 @@ export default config({
   modules: [
     handlebars({
       // add `.handlebars` to associated extensions
-      fileExtensions: [".hbs", ".handlebars"],
+      extensions: [".hbs", ".handlebars"],
     }),
   ],
 });

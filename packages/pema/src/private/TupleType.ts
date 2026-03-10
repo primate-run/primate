@@ -39,14 +39,17 @@ export default class TupleType<T extends Parsed<unknown>[]>
 
     const items = this.#items;
     const len = items.length;
+    const out = new Array(len) as InferTuple<T>;
 
     // validate each expected item
-    for (let i = 0; i < len; i++) items[i].parse(x[i], next(i, options));
+    for (let i = 0; i < len; i++) {
+      out[i] = items[i].parse(x[i], next(i, options)) as InferTuple<T>[typeof i];
+    }
 
     // reject extra items
     if (x.length > len) throw fail("undefined", x[len], next(len, options));
 
-    return x as never;
+    return out as never;
   }
 
   toJSON() {

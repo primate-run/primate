@@ -5,14 +5,24 @@ import type InferInputSchema from "#InferInputSchema";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
 import next from "#path/next";
+import SE from "#schema-error";
 import type Serialized from "#Serialized";
 import is from "@rcompat/is";
-import type { Dict, Newable } from "@rcompat/type";
+import type { Dict, Newable, Unpack } from "@rcompat/type";
 
-export default class ObjectType<P extends Dict<Parsed<unknown>>>
-  extends GenericType<P, { [K in keyof P]: P[K]["infer"] }, "ObjectType"> {
+type ObjectInfer<P extends Dict<Parsed<unknown>>> = {
+  [K in keyof P]: P[K]["infer"];
+};
+
+export default class ObjectType<
+  P extends Dict<Parsed<unknown>>,
+  I = ObjectInfer<P>,
+> extends GenericType<P, I, "ObjectType"> {
   #properties: P;
   #options: ParseOptions;
+
+  declare readonly Complement: ObjectType<Record<
+    Exclude<string, keyof P>, Parsed<unknown>>>;
 
   constructor(properties: P, options: ParseOptions = {}) {
     super();
@@ -44,10 +54,27 @@ export default class ObjectType<P extends Dict<Parsed<unknown>>>
     return this.#derive({ coerce: true });
   }
 
+  shape<T>() {
+    return new ObjectType<P, T>(this.#properties, this.#options);
+  }
+
+  extend<E extends {
+    [K in keyof E]: K extends keyof P ? never : Parsed<unknown>
+  }>(extra: E | ObjectType<E>): ObjectType<Unpack<P & E>> {
+    const properties = extra instanceof ObjectType ? extra.properties : extra;
+    for (const key of Object.keys(properties)) {
+      if (key in this.#properties) throw SE.extend_key_collision(key);
+    }
+    return new ObjectType(
+      { ...this.#properties, ...properties } as Unpack<P & E>,
+      this.#options,
+    );
+  }
+
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     const $options = { ...this.#options, ...options };
 
-    if (x !== undefined && !is.dict(x)) throw fail("object", x, $options);
+    if (is.defined(x) && !is.dict(x)) throw fail("object", x, $options);
 
     const input = x ?? {};
     const out: Dict = {};

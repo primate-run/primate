@@ -4,6 +4,7 @@ import plugin_entrypoint from "#build/client/plugin/entrypoint";
 import plugin_frontend from "#build/client/plugin/frontend";
 import plugin_server_stamp from "#build/client/plugin/server-stamp";
 import plugin_view from "#build/client/plugin/view";
+import plugin_app_request from "#build/shared/plugin/app-request";
 import location from "#location";
 import * as esbuild from "esbuild";
 
@@ -37,8 +38,8 @@ const write_bootstrap = async (app: BuildApp, mode: string) => {
       views,
       pages,
       mode: "${mode}",
-      session_config,
-      i18n_config,
+      session: session_config,
+      i18n: i18n_config,
       target: "${app.target.name}",
     });
 
@@ -51,6 +52,7 @@ export default async function build_client(app: BuildApp) {
   app.plugin("client", plugin_frontend(app));
   app.plugin("client", plugin_alias(app));
   app.plugin("client", plugin_view(app));
+  app.plugin("client", plugin_app_request(app));
   app.plugin("client", plugin_server_stamp(app));
   app.plugin("client", plugin_entrypoint(app));
 

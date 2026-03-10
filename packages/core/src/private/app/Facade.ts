@@ -1,5 +1,5 @@
 import type Config from "#config/Config";
-import type ServerView from "#frontend/ServerView";
+import type ServerView from "#client/ServerView";
 import type ServeApp from "#serve/App";
 import dict from "@rcompat/dict";
 

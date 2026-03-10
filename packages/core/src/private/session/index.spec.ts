@@ -1,14 +1,14 @@
 import MemoryDB from "#db/MemoryDB";
-import key from "#orm/key";
+import orm_key from "#orm/key";
 import Store from "#orm/Store";
+import session_module from "#session/module";
 import type SessionHandle from "#session/SessionHandle";
-import SessionModule from "#session/SessionModule";
 import storage from "#session/storage";
 import test from "@rcompat/test";
 import p from "pema";
 
 const new_store = () => new Store({
-  id: key.primary(p.string),
+  id: orm_key.primary(p.string),
   session_id: p.string.uuid(),
   foo: p.string.optional(),
   user: p.string.optional(),
@@ -38,7 +38,7 @@ async function run(
   cookie: string | undefined,
   route: () => unknown | Promise<unknown>) {
   const request = { cookies: { try: () => cookie } } as any;
-  return await new SessionModule(true, config(store)).handle(request,
+  return await session_module(config(store)).hooks.handle[0](request,
     async () => {
       const response = { headers: new MultiHeaders() } as any;
       await route();
@@ -49,7 +49,7 @@ async function run(
 
 function session<T>() {
   const h = storage().getStore() as SessionHandle<T> | undefined;
-  if (!h) throw new Error("no session handle in ALS");
+  if (h === undefined) throw new Error("no session handle in ALS");
   return h;
 }
 

@@ -14,9 +14,9 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@rcompat/fs": "^0.25.3",
-    "@rcompat/test": "^0.9.0",
-    "happy-dom": "^20.8.3",
+    "@rcompat/fs": "^0.26.0",
+    "@rcompat/test": "^0.10.0",
+    "happy-dom": "^20.8.4",
     "primate": "workspace:^"
   },
   "devDependencies": {
@@ -29,6 +29,10 @@
     }
   },
   "exports": {
+    "./*": {
+      "apekit": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
+    },
     ".": {
       "apekit": "./src/public/index.ts",
       "default": "./lib/public/index.js"

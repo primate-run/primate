@@ -1,5 +1,5 @@
 import type ResponseFunction from "#response/ResponseFunction";
-import type Actions from "@rcompat/http/Actions";
+import type { Actions } from "@rcompat/http";
 
 export default (actions: Actions): ResponseFunction => (app, _, request) =>
   app.upgrade(request.original, actions);

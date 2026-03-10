@@ -1,89 +1,83 @@
-import type BuildApp from "@primate/core/BuildApp";
-import Module from "@primate/core/Module";
-import type NextBuild from "@primate/core/NextBuild";
-import type NextHandle from "@primate/core/NextHandle";
-import type NextServe from "@primate/core/NextServe";
-import type ServeApp from "@primate/core/ServeApp";
+import type { Module } from "primate";
 import fs from "@rcompat/fs";
-import Status from "@rcompat/http/Status";
-import type { RequestFacade } from "primate/request";
+import { Status } from "@rcompat/http";
 
 const cookie = (name: string, value: string, secure: boolean) =>
   `${name}=${value};HttpOnly;Path=/;${secure};SameSite=Strict`;
 
 const cookie_name = "color-scheme";
 
-export default class Website extends Module {
-  #secure = false;
+const website: () => Module = () => {
+  let secure = false;
 
-  get name() {
-    return "primate-website";
-  }
+  return {
+    name: "primate-website",
 
-  async build(app: BuildApp, next: NextBuild) {
-    app.plugin("client", {
-      name: "static-loader",
-      setup(build) {
-        build.onLoad({ filter: /\.woff2$/ }, async args => {
-          return {
-            contents: await fs.bytes(args.path),
-            loader: "file",
-          };
+    setup({ onBuild, onServe, onHandle }) {
+      onBuild(async app => {
+        app.plugin("client", {
+          name: "static-loader",
+          setup(build) {
+            build.onLoad({ filter: /\.woff2$/ }, async args => {
+              return {
+                contents: await fs.bytes(args.path),
+                loader: "file",
+              };
+            });
+          },
         });
-      },
-    });
+        const views = app.path.views;
 
-    const views = app.path.views;
+        // collect guide categories and names
+        const base = views.join("docs", "guides");
+        const guides = await base.files({
+          recursive: true,
+          filter: info => info.kind === "file",
+        });
+        const categories = new Map<string, { name: string; path: string }[]>();
+        for (const guide of guides) {
+          const name = ((await guide.text()).split("\n")[1].slice("name: ".length));
+          const [category, path] = guide.debase(base).path.slice(1).split("/");
 
-    // collect guide categories and names
-    const base = views.join("docs", "guides");
-    const guides = await base.files({
-      recursive: true,
-      filter: info => info.kind === "file",
-    });
-    const categories = new Map<string, { name: string; path: string }[]>();
-    for (const guide of guides) {
-      const name = ((await guide.text()).split("\n")[1].slice("name: ".length));
-      const [category, path] = guide.debase(base).path.slice(1).split("/");
+          categories.set(category, (categories.get(category) ?? []).concat({
+            name,
+            path: path.slice(0, -".md".length),
+          }));
+        }
 
-      categories.set(category, (categories.get(category) ?? []).concat({
-        name,
-        path: path.slice(0, -".md".length),
-      }));
-    }
+        await app.runpath("guides.json").writeJSON([...categories.entries()]);
 
-    await app.runpath("guides.json").writeJSON([...categories.entries()]);
-
-    return next(app);
-  }
-
-  serve(app: ServeApp, next: NextServe) {
-    this.#secure = app.secure;
-
-    return next(app);
-  }
-
-  async handle(request: RequestFacade, next: NextHandle) {
-    const { cookies, headers } = request;
-
-    const color_scheme = headers.try("Color-Scheme");
-
-    if (color_scheme !== undefined) {
-      return new Response(null, {
-        headers: {
-          "set-cookie": cookie(cookie_name, color_scheme, this.#secure),
-        },
-        status: Status.OK,
       });
-    }
 
-    const scheme = cookies.try(cookie_name) ?? "light";
+      onServe(app => {
+        secure = app.secure;
+      });
 
-    const placeholders = {
-      "color-scheme": scheme,
-      "theme-color": scheme === "dark" ? "#1b1b1b" : "#ffffff",
-    };
+      onHandle((request, next) => {
+        const { cookies, headers } = request;
 
-    return next(request.set("placeholders", placeholders));
-  }
+        const color_scheme = headers.try("Color-Scheme");
+
+        if (color_scheme !== undefined) {
+          return new Response(null, {
+            headers: {
+              "set-cookie": cookie(cookie_name, color_scheme, secure),
+            },
+            status: Status.OK,
+          });
+        }
+
+        const scheme = cookies.try(cookie_name) ?? "light";
+
+        const placeholders = {
+          "color-scheme": scheme,
+          "theme-color": scheme === "dark" ? "#1b1b1b" : "#ffffff",
+        };
+
+        return next(request.set("placeholders", placeholders));
+      });
+    },
+  };
 };
+
+export default website;

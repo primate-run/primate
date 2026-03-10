@@ -15,15 +15,11 @@ function coded<T extends Dict<(...args: any[]) => Error>>(fns: T): T {
   ) as T;
 }
 
-const doubled = (set: string[]) =>
-  set.find((part: string, i: number, array: string[]) =>
-    array.filter((_, j) => i !== j).includes(part)) ?? "";
-
 function app_reserved_directory(directory: string) {
   return fail`cannot build to ${directory}, reserved directory`;
 }
-function app_duplicate_module(names: string[]) {
-  return fail`module ${doubled(names)} loaded twice`;
+function app_duplicate_module(name: string) {
+  return fail`module ${name} loaded twice`;
 }
 
 const APP = coded({

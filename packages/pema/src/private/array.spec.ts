@@ -9,15 +9,14 @@ import type DateType from "#DateType";
 import expect from "#expect";
 import number from "#number";
 import type NumberType from "#NumberType";
+import { Code, throws } from "#schema-error";
 import string from "#string";
 import type StringType from "#StringType";
 import messagesOf from "#test/messages-of";
 import pathsOf from "#test/paths-of";
 import throwsIssues from "#test/throws-issues";
-import color from "@rcompat/cli/color";
+import tuple from "#tuple";
 import test from "@rcompat/test";
-
-const { dim } = color;
 
 const b = array(boolean);
 const bi = array(bigint);
@@ -77,6 +76,31 @@ test.case("flat", assert => {
   assert(() => s.parse([...as, ...an])).throws(expect("s", 0, 1));
 });
 
+test.case("coerce", assert => {
+  const nc = array(number.coerce);
+  const bc = array(boolean.coerce);
+  const bic = array(bigint.coerce);
+  const dc = array(date.coerce);
+
+  assert(nc).type<ArrayType<NumberType>>();
+  assert(bc).type<ArrayType<BooleanType>>();
+  assert(bic).type<ArrayType<BigIntType>>();
+  assert(dc).type<ArrayType<DateType>>();
+
+  assert(nc.parse(["1", "2"])).equals([1, 2]).type<number[]>();
+  assert(bc.parse(["true", "false"])).equals([true, false]).type<boolean[]>();
+  assert(bic.parse(["1", "2"])).equals([1n, 2n]).type<bigint[]>();
+
+  const d0 = "2024-01-01T00:00:00.000Z";
+  const d1 = "2024-01-02T00:00:00.000Z";
+  assert(dc.parse([d0, d1])).equals([new Date(d0), new Date(d1)]).type<Date[]>();
+
+  assert(() => nc.parse(["oops"])).throws(expect("n", "oops", 0));
+  assert(() => bc.parse(["nope"])).throws(expect("b", "nope", 0));
+  assert(() => bic.parse(["wat"])).throws(expect("bi", "wat", 0));
+  assert(() => dc.parse(["wat"])).throws(expect("d", "wat", 0));
+});
+
 test.case("sparse", assert => {
   const b0 = ["f", undefined, "f"];
   const b1 = ["f", , "f"];
@@ -122,13 +146,30 @@ test.case("deep", assert => {
   assert(() => rc.parse([[0]])).throws();
 });
 
-test.case("validator - unique", assert => {
+test.case("deep coerce", assert => {
+  const rc = array(array(number.coerce));
+  const tc = array(tuple(string, number.coerce, boolean.coerce));
+
+  assert(rc.parse([["1"], ["2", "3"]]))
+    .equals([[1], [2, 3]])
+    .type<number[][]>();
+
+  assert(tc.parse([["foo", "1", "true"], ["bar", "2", "false"]]))
+    .equals([["foo", 1, true], ["bar", 2, false]])
+    .type<[string, number, boolean][]>();
+
+  assert(() => rc.parse([["oops"]])).throws(expect("n", "oops", "0.0"));
+  assert(() => tc.parse([["foo", "nope", "true"]]))
+    .throws(expect("n", "nope", "0.1"));
+  assert(() => tc.parse([["foo", "1", "nope"]]))
+    .throws(expect("b", "nope", "0.2"));
+});
+
+test.case("validator: unique", assert => {
   const unique_s = s.unique();
   const unique_n = n.unique();
 
-  // @ts-expect-error non-primitive subtype
-  assert(() => d.unique().parse())
-    .throws(`unique: subtype ${color.dim("date")} must be primitive`);
+  throws(assert, Code.unique_subtype_not_primitive, () => (d as any).unique());
 
   assert(unique_s).type<ArrayType<StringType>>();
   assert(unique_n).type<ArrayType<NumberType>>();
@@ -151,27 +192,42 @@ test.case("validator - unique", assert => {
   }
 });
 
-test.case("validator - min", assert => {
-  assert(() => s.min(-10)).throws(`min: ${dim("-10")} must be positive`);
+test.case("validator: uniqueBy", assert => {
+  const o = array(tuple(string, number)).uniqueBy(([name]) => name);
+
+  assert(o.parse([["a", 1], ["b", 2]]))
+    .equals([["a", 1], ["b", 2]])
+    .type<[string, number][]>();
+
+  const issues = throwsIssues(assert, () => o.parse([["a", 1], ["a", 2]]));
+  assert(pathsOf(issues)).equals(["/1"]);
+  assert(messagesOf(issues))
+    .equals(["duplicate value at index 1 (first seen at 0)"]);
+});
+
+test.case("validator: min", assert => {
+  throws(assert, Code.min_negative, () => s.min(-10));
+  throws(assert, Code.min_limit_not_finite, () => s.min(Infinity));
+  throws(assert, Code.min_limit_not_finite, () => s.min(NaN));
   const min = s.min(3);
   assert(min.parse(["a", "b", "c"])).equals(["a", "b", "c"]).type<string[]>();
   assert(() => min.parse(["a", "b"])).throws("min 3 items");
 });
 
-test.case("validator - max", assert => {
-  assert(() => s.max(-10)).throws(`max: ${dim("-10")} must be positive`);
+test.case("validator: max", assert => {
+  throws(assert, Code.max_negative, () => s.max(-10));
+  throws(assert, Code.max_limit_not_finite, () => s.max(Infinity));
+  throws(assert, Code.max_limit_not_finite, () => s.max(NaN));
   const max = s.max(3);
   assert(max.parse(["a", "b", "c"])).equals(["a", "b", "c"]).type<string[]>();
   assert(() => max.parse(["a", "b", "c", "d"])).throws("max 3 items");
 });
 
-test.case("validator - length", assert => {
-  assert(() => s.length(-10, 10))
-    .throws(`length: ${dim("-10")} and ${dim("10")} must be positive`);
-  assert(() => s.length(10, -10))
-    .throws(`length: ${dim("10")} and ${dim("-10")} must be positive`);
-  assert(() => s.length(5, 3))
-    .throws(`length: ${dim("5")} must be lower than ${dim("3")}`);
+test.case("validator: length", assert => {
+  throws(assert, Code.length_not_finite, () => s.length(Infinity, 10));
+  throws(assert, Code.length_not_positive, () => s.length(-10, 10));
+  throws(assert, Code.length_not_positive, () => s.length(10, -10));
+  throws(assert, Code.length_from_exceeds_to, () => s.length(5, 3));
   const length = s.length(0, 2);
   assert(length.parse(["a", "b"])).equals(["a", "b"]).type<string[]>();
   assert(length.parse(["a"])).equals(["a"]).type<string[]>();

@@ -1,1 +1,1 @@
-export { default } from "@rcompat/http/Status";
+export { Status as default } from "@rcompat/http";

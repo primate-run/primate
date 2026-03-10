@@ -1,9 +1,10 @@
-import type { Dict } from "@rcompat/type";
 import type Mode from "#Mode";
+import type RequestView from "#request/RequestView";
+import type { Dict } from "@rcompat/type";
 
 type ClientData<T extends Dict = Dict> = {
   view: string;
-  request: Dict;
+  request: RequestView;
   spa: boolean;
   ssr: boolean;
   mode: Mode;

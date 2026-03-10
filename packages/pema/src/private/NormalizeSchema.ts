@@ -12,7 +12,7 @@ import type { AbstractNewable } from "@rcompat/type";
 type NormalizeSchemaArray<T extends Schema[]> =
   { [K in keyof T]: NormalizeSchema<T[K]> };
 
-type NormalizeSchemaObject<T extends Record<string, unknown>> =
+export type NormalizeSchemaObject<T extends Record<string, unknown>> =
   { -readonly [K in keyof T]: NormalizeSchema<T[K]> };
 
 type NormalizeSchema<S> =

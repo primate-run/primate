@@ -3,7 +3,7 @@ import type { Updater } from "#client/root";
 import root from "#client/root";
 import storage from "#client/storage";
 import submit from "#client/submit";
-import MIME from "@rcompat/http/mime";
+import { MIME } from "@rcompat/http";
 import type { Dict } from "@rcompat/type";
 
 export default <T extends Dict>(u: Updater<T>) => {

@@ -1,4 +1,4 @@
-import MIME from "@rcompat/http/mime";
+import { MIME } from "@rcompat/http";
 
 const sameorigin = (url: URL) => url.origin === globalThis.location.origin;
 
