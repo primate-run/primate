@@ -172,7 +172,7 @@ export default function frontend_module<
           ...$props,
         };
 
-        if (spa && request.headers.get("Accept") === MIME.APPLICATION_JSON) {
+        if (spa && request.headers.try("Accept") === MIME.APPLICATION_JSON) {
           const json_body = JSON.stringify(client);
           return new Response(json_body, {
             headers: {
