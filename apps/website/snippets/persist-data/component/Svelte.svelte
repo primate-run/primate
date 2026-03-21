@@ -1,10 +1,8 @@
 <script lang="ts">
-  import validate from "@primate/svelte/validate";
+  import client from "@primate/svelte/client";
   export let id, value;
 
-  const counter = validate<number>(value).post(
-    `/counter?id=${id}`,
-  );
+  const counter = client.field<number>(value).post(`/counter?id=${id}`);
 </script>
 
 <div style="margin-top: 2rem; text-align: center;">

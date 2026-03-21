@@ -1,6 +1,6 @@
 import E from "#error";
 import create from "#module/create";
-import type Store from "#orm/Store";
+import type { Store } from "#orm/store";
 import type Config from "#session/Config";
 import kSerialize from "#session/k-serialize";
 import SessionHandle from "#session/SessionHandle";

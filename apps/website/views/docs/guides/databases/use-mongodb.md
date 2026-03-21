@@ -15,24 +15,24 @@ Ensure MongoDB is running and accessible.
 
 Install the Primate MongoDB package.
 
-[s=guides/databases/use-mongodb/install]
+[s=guides/databases/use/mongodb/install]
 
 ---
 
 ### 2) Configure
 
-Create `config/db/index.ts` as a default database.
+Create a database configuration file.
 
-[s=guides/databases/use-mongodb/configure]
+[s=guides/databases/use/mongodb/configure]
 
 ---
 
 ### 3) Create a store
 
-Stores used with MongoDb abstract a collection. The store will use MongoDB
-automatically, being the default database.
+MongoDB stores abstract a collection. Give the store a name and wire the
+database.
 
-[s=guides/databases/use-mongodb/create-a-store]
+[s=guides/databases/use/shared/create-a-store]
 
 ---
 
@@ -40,4 +40,4 @@ automatically, being the default database.
 
 Use the store in routes.
 
-[s=guides/databases/use-mongodb/use-the-store]
+[s=guides/databases/use/shared/use-the-store]

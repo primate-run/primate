@@ -1,23 +1,28 @@
 import MemoryDB from "#db/MemoryDB";
 import orm_key from "#orm/key";
-import Store from "#orm/Store";
+import type { Store } from "#orm/store";
+import store from "#orm/store";
 import session_module from "#session/module";
 import type SessionHandle from "#session/SessionHandle";
 import storage from "#session/storage";
 import test from "@rcompat/test";
 import p from "pema";
 
-const new_store = () => new Store({
-  id: orm_key.primary(p.string),
-  session_id: p.string.uuid(),
-  foo: p.string.optional(),
-  user: p.string.optional(),
-  x: p.number.optional(),
-  ok: p.boolean.optional(),
-  a: p.number.optional(),
-  b: p.number.optional(),
-  v: p.number.optional(),
-}, { db: new MemoryDB(), name: "session" });
+const new_store = () => store({
+  name: "session",
+  db: new MemoryDB(),
+  schema: {
+    id: orm_key.primary(p.string),
+    session_id: p.string.uuid(),
+    foo: p.string.optional(),
+    user: p.string.optional(),
+    x: p.number.optional(),
+    ok: p.boolean.optional(),
+    a: p.number.optional(),
+    b: p.number.optional(),
+    v: p.number.optional(),
+  },
+});
 
 class MultiHeaders {
   #map = new Map<string, string[]>();

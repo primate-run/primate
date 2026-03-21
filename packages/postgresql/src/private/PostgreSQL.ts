@@ -111,11 +111,11 @@ function relation_order(types: Types, sort?: Sort) {
 const BIND_BY = "$";
 
 const schema = p({
-  database: p.string,
   host: p.string.default("localhost"),
-  password: p.string.optional(),
   port: p.uint.port().default(5432),
+  database: p.string,
   username: p.string.optional(),
+  password: p.string.optional(),
 });
 
 export default class PostgreSQL implements DB {

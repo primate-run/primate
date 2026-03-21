@@ -1,6 +1,6 @@
 import MemoryDB from "#db/MemoryDB";
 import key from "#orm/key";
-import Store from "#orm/Store";
+import store, { Store } from "#orm/store";
 import p from "pema";
 
 export default p({
@@ -11,9 +11,13 @@ export default p({
     sameSite: p.union("Strict", "Lax", "None").default("Lax"),
   },
   store: p.constructor(Store).default(() => {
-    return new Store({
-      id: key.primary(p.string),
-      session_id: p.string.uuid(),
-    }, { db: new MemoryDB(), name: "session" }) as Store<any>;
+    return store({
+      schema: {
+        id: key.primary(p.string),
+        session_id: p.string.uuid(),
+      },
+      db: new MemoryDB(),
+      name: "session",
+    }) as Store<any>;
   }),
 });

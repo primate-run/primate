@@ -3,14 +3,37 @@
   "compilerOptions": {
     "baseUrl": "${configDir}",
     "paths": {
-      "#view/*": ["views/*"],
-      "#store/*": ["stores/*"],
-      "#locale/*": ["locales/*"],
-      "#config/*": ["config/*"],
-      "#static/*": ["static/*"],
-      "#app": ["config/app"],
-      "#session": ["config/session"],
-      "#i18n": ["config/i18n"]
+      "#view/*": [
+        "views/*"
+      ],
+      "#store/*": [
+        "stores/*"
+      ],
+      "#locale/*": [
+        "locales/*"
+      ],
+      "#config/*": [
+        "config/*"
+      ],
+      "#static/*": [
+        "static/*"
+      ],
+      "#db/*": [
+        "config/db/*"
+      ],
+      "#app": [
+        "config/app"
+      ],
+      "#session": [
+        "config/session"
+      ],
+      "#i18n": [
+        "config/i18n"
+      ],
+      "#db": [
+        "config/db/index",
+        "config/db/default"
+      ]
     }
   },
   "include": [
@@ -21,5 +44,7 @@
     "${configDir}/test",
     "${configDir}/static"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

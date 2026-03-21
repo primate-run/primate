@@ -15,43 +15,23 @@ SQLite is file-based or in-memory, no server needed.
 
 Install the Primate SQLite package.
 
-```sh
-npm install @primate/sqlite
-```
+[s=guides/databases/use/sqlite/install]
 
 ---
 
 ### 2) Configure
 
-Create `config/db/index.ts` as a default database.
+Create a database configuration file.
 
-```ts
-import sqlite from "@primate/sqlite";
-
-export default sqlite({
-  database: "/tmp/app.db", // or ":memory:" for in-memory
-});
-```
+[s=guides/databases/use/sqlite/configure]
 
 ---
 
 ### 3) Create a store
 
-Stores used with SQLite abstract a table. The store will use SQLite
-automatically, being the default database.
+SQLite stores abstract a table. Give the store a name and wire the database.
 
-```ts
-// stores/User.ts
-import store from "primate/orm/store";
-import key from "primate/orm/key";
-import p from "pema";
-
-export default store({
-  id: key.primary(p.u32),
-  name: p.string,
-  email: p.string.email(),
-});
-```
+[s=guides/databases/use/shared/create-a-store]
 
 ---
 
@@ -59,18 +39,4 @@ export default store({
 
 Use the store in routes.
 
-```ts
-// routes/users.ts
-import route from "primate/route";
-import User from "#store/User";
-
-route.get(async () => {
-  const users = await User.find({});
-  return users;
-});
-
-route.post(async (request) => {
-  const user = await User.insert(request.body);
-  return user;
-});
-```
+[s=guides/databases/use/shared/use-the-store]

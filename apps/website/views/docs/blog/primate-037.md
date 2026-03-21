@@ -137,6 +137,73 @@ navigation.
 
 The old magical `request` prop was removed in this release.
 
+## Explicit, portable stores
+
+Primate stores previously relied on runtime magic to fill in two pieces of
+information: the store's `name` (derived from the filename) and its `db`
+(inferred from the app's default database). This was convenient inside a
+running Primate app, but it meant stores were not self-contained — importing
+one outside of the framework context could silently fail or behave differently.
+
+In 0.37, both `name` and `db` are required, and the `schema` field moves
+inside the single options object:
+
+```ts
+// stores/Post.ts
+import p from "pema";
+import store from "primate/orm/store";
+import key from "primate/orm/key";
+import db from "../config/db/index.ts";
+
+export default store({
+  name: "post",
+  db,
+  schema: {
+    id: key.primary(p.u32),
+    title: p.string.max(100),
+    body: p.string,
+    created: p.date.default(() => new Date()),
+  },
+});
+```
+
+Passing an incorrect or missing `name`, `db`, or `schema` now throws
+immediately at construction time.
+
+The payoff is portability. A store file is now a plain module that works
+anywhere — migration scripts, test suites, REPLs, or any other context outside
+a running Primate app:
+
+```ts
+// scripts/migrate.ts
+import Post from "../stores/Post.ts";
+
+await Post.schema.create();
+```
+
+No framework initialisation required. See the updated [Stores] page for the
+full reference.
+
+### Migrating
+
+Change the `store()` call in each of your store files from the old two-argument
+form to the new single-object form, and add explicit `name` and `db` fields:
+
+```ts
+// before
+export default store(
+  { id: key.primary(p.u32), title: p.string },
+  { db, name: "post" },
+);
+
+// after
+export default store({
+  name: "post",
+  db,
+  schema: { id: key.primary(p.u32), title: p.string },
+});
+```
+
 ## What's next
 
 Check out our issue tracker for upcoming [0.38 features].

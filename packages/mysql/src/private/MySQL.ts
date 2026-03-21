@@ -59,10 +59,10 @@ function unbind(types: Types, row: Dict) {
 }
 
 const schema = p({
-  database: p.string,
   host: p.string.default("localhost"),
-  password: p.string.optional(),
   port: p.uint.port().default(3306),
+  database: p.string,
+  password: p.string.optional(),
   username: p.string.optional(),
 });
 

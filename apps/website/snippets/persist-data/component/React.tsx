@@ -1,9 +1,9 @@
-import validate from "@primate/react/validate";
+import client from "@primate/react/client";
 
 interface Props { counter: number; id: string };
 
 export default function Counter(props: Props) {
-  const counter = validate<number>(props.counter).post(
+  const counter = client.field<number>(props.counter).post(
     `/counter?id=${props.id}`,
   );
 

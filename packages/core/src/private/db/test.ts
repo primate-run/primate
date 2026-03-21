@@ -2,7 +2,7 @@ import type DB from "#db/DB";
 import { Code } from "#db/error";
 import key from "#orm/key";
 import relation from "#orm/relation";
-import Store from "#orm/Store";
+import store, { Store } from "#orm/store";
 import type { Asserter } from "@rcompat/test";
 import test from "@rcompat/test";
 import any from "@rcompat/test/any";
@@ -145,64 +145,89 @@ async function throws(assert: Asserter, code: Code, fn: () => Promise<any>) {
 export default <D extends DB>(db: D) => {
   test.ended(() => db.close());
 
-  const Post = new Store({
-    id: key.primary(p.string),
-    title: p.string,
-    user_id: p.uint,
-  }, { db, name: "post" });
+  const Post = store({
+    name: "post",
+    db,
+    schema: {
+      id: key.primary(p.string),
+      title: p.string,
+      user_id: p.uint,
+    },
+  });
 
   Post.update;
 
-  const User = new Store({
-    id: key.primary(p.string),
-    age: p.u8.optional(),
-    lastname: p.string.optional(),
-    name: p.string.default("Donald"),
-  }, { db: db, name: "user" });
+  const User = store({
+    name: "user",
+    db,
+    schema: {
+      id: key.primary(p.string),
+      age: p.u8.optional(),
+      lastname: p.string.optional(),
+      name: p.string.default("Donald"),
+    },
+  });
 
-  const UserN = new Store({
-    id: key.primary(p.u32),
-    age: p.u8.optional(),
-    lastname: p.string.optional(),
-    name: p.string.default("Donald"),
-  }, { db: db, name: "user_n" });
+  const UserN = store({
+    name: "user_n",
+    db,
+    schema: {
+      id: key.primary(p.u32),
+      age: p.u8.optional(),
+      lastname: p.string.optional(),
+      name: p.string.default("Donald"),
+    },
+  });
 
-  const UserB = new Store({
-    id: key.primary(p.u128),
-    age: p.u8.optional(),
-    lastname: p.string.optional(),
-    name: p.string.default("Donald"),
-  }, { db: db, name: "user_b" });
+  const UserB = store({
+    name: "user_b",
+    db,
+    schema: {
+      id: key.primary(p.u128),
+      age: p.u8.optional(),
+      lastname: p.string.optional(),
+      name: p.string.default("Donald"),
+    },
+  });
 
   const USER_STORES = [User, UserN, UserB];
 
-  const Type = new Store({
-    id: key.primary(p.string),
-    boolean: p.boolean.optional(),
-    date: p.date.optional(),
-    f32: p.f32.optional(),
-    f64: p.f64.optional(),
-    i128: p.i128.optional(),
-    i16: p.i16.optional(),
-    i32: p.i32.optional(),
-    i64: p.i64.optional(),
-    i8: p.i8.optional(),
-    string: p.string.optional(),
-    u128: p.u128.optional(),
-    u16: p.u16.optional(),
-    u32: p.u32.optional(),
-    u64: p.u64.optional(),
-    u8: p.u8.optional(),
-    json: p.json().optional(),
-  }, { db: db, name: "type" });
+  const Type = store({
+    name: "type",
+    db,
+    schema: {
+      id: key.primary(p.string),
+      boolean: p.boolean.optional(),
+      date: p.date.optional(),
+      f32: p.f32.optional(),
+      f64: p.f64.optional(),
+      i128: p.i128.optional(),
+      i16: p.i16.optional(),
+      i32: p.i32.optional(),
+      i64: p.i64.optional(),
+      i8: p.i8.optional(),
+      string: p.string.optional(),
+      u128: p.u128.optional(),
+      u16: p.u16.optional(),
+      u32: p.u32.optional(),
+      u64: p.u64.optional(),
+      u8: p.u8.optional(),
+      json: p.json().optional(),
+    },
+  });
 
   // this stresses identifier quoting in CREATE/INSERT/SELECT/UPDATE/DELETE
-  const Reserved = new Store({
-    id: key.primary(p.string),
-    // deliberately reserved-looking column name
-    order: p.u8.optional(),
-    name: p.string,
-  }, { db: db, name: "select" }); // deliberately reserved-like table name
+  const Reserved = store({
+    // deliberately reserved-like table name
+    name: "select",
+    db,
+    schema: {
+      id: key.primary(p.string),
+      // deliberately reserved-looking column name
+      order: p.u8.optional(),
+      name: p.string,
+    },
+  });
 
   const AuthorSchema = {
     id: key.primary(p.string),
@@ -222,9 +247,10 @@ export default <D extends DB>(db: D) => {
     author_id: key.foreign(p.string),
   };
 
-  const Author = new Store(AuthorSchema, {
+  const Author = store({
     db,
     name: "author",
+    schema: AuthorSchema,
     relations: {
       articles: relation.many(ArticleSchema, "author_id"),
       profile: relation.one(ProfileSchema, "author_id"),
@@ -239,29 +265,31 @@ export default <D extends DB>(db: D) => {
     notes: p.json(),  // untyped
   }, { db, name: "author_json" });*/
 
-  const Article = new Store(ArticleSchema, {
+  const Article = store({
     db,
     name: "article",
+    schema: ArticleSchema,
     relations: {
       author: relation.one(AuthorSchema, "author_id", { reverse: true }),
     },
   });
 
-  const Profile = new Store(ProfileSchema, {
+  const Profile = store({
     db,
     name: "profile",
+    schema: ProfileSchema,
     relations: {
       author: relation.one(AuthorSchema, "author_id", { reverse: true }),
     },
   });
 
-  function $store<S extends Store<any>>(label: string, store: S, body: Body) {
+  function $store<S extends Store<any>>(label: string, s: S, body: Body) {
     test.case(label, async assert => {
-      await store.collection.create();
+      await s.collection.create();
       try {
         await body(assert);
       } finally {
-        await store.collection.delete();
+        await s.collection.delete();
       }
     });
   }
@@ -433,10 +461,14 @@ export default <D extends DB>(db: D) => {
     assert(await UserB.has(user.id)).true();
   });
 
-  const ManualUser = new Store({
-    id: key.primary(p.string, { generate: false }),
-    name: p.string,
-  }, { db, name: "manual_user" });
+  const ManualUser = store({
+    name: "manual_user",
+    db,
+    schema: {
+      id: key.primary(p.string, { generate: false }),
+      name: p.string,
+    },
+  });
 
   $store("insert: generate=false requires PK", ManualUser, async assert => {
     await throws(assert, Code.pk_required, () => {
@@ -1772,9 +1804,13 @@ export default <D extends DB>(db: D) => {
   });
 
   $user$("inject invalid identifier (table name)", async assert => {
-    const BadStore = new Store({
-      id: key.primary(p.string),
-    }, { db, name: "users; DROP TABLE users" });
+    const BadStore = store({
+      name: "users; DROP TABLE users",
+      db,
+      schema: {
+        id: key.primary(p.string),
+      },
+    });
 
     await throws(assert, Code.identifier_invalid, async () => {
       await BadStore.collection.create();
@@ -1864,17 +1900,19 @@ export default <D extends DB>(db: D) => {
       url: p.url.optional(),
     };
 
-    const Parent = new Store(ParentSchema, {
-      db,
+    const Parent = store({
       name: "j_parent",
+      db,
+      schema: ParentSchema,
       relations: {
         children: relation.many(ChildSchema, "parent_id"),
       },
     });
 
-    const Child = new Store(ChildSchema, {
+    const Child = store({
       db,
       name: "j_child",
+      schema: ChildSchema,
       relations: {
         parent: relation.one(ParentSchema, "parent_id", { reverse: true }),
       },
@@ -1952,12 +1990,13 @@ export default <D extends DB>(db: D) => {
   }
 
   test.case("store: relation name conflicts with field throws", async assert => {
-    await throws(assert, Code.relation_conflicts_with_field, async () => new Store({
-      id: key.primary(p.string),
-      articles: p.string,
-    }, {
-      db,
+    await throws(assert, Code.relation_conflicts_with_field, async () => store({
       name: "conflict",
+      db,
+      schema: {
+        id: key.primary(p.string),
+        articles: p.string,
+      },
       relations: {
         articles: relation.many(ArticleSchema, "author_id"),
       },

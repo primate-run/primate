@@ -75,10 +75,11 @@ import p from "pema";
 import store from "primate/orm/store";
 import key from "primate/orm/key";
 
-export default store(
-  { id: key.primary(p.u32), title: p.string },
-  { db: postgresql },
-);
+export default store({
+  name: "post",
+  db: PostgreSQL,
+  schema: { id: key.primary(p.u32), title: p.string },
+});
 ```
 
 See the [stores](/docs/stores) page for the full store API.

@@ -10,11 +10,11 @@ import type { DataKey, StoreSchema } from "pema";
 import p from "pema";
 
 const schema = p({
-  database: p.string,
   host: p.string.default("localhost"),
-  password: p.string.optional(),
   port: p.uint.port().default(27017),
+  database: p.string,
   username: p.string.optional(),
+  password: p.string.optional(),
 });
 
 function is_object_id(x: unknown): x is ObjectId {

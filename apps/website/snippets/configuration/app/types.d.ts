@@ -1,5 +1,5 @@
-import type Module from "@primate/core/Module";
-import type FileRef from "@rcompat/fs/FileRef";
+import type { Module } from "@primate/core";
+import type { FileRef } from "@rcompat/fs";
 
 interface Config {
   http?: {
@@ -21,4 +21,4 @@ interface Config {
       parse?: boolean; // true
     };
   };
-};
+}

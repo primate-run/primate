@@ -1,8 +1,13 @@
 import p from "pema";
-import store from "primate/orm/store";
 import key from "primate/orm/key";
+import store from "primate/orm/store";
+import db from "../config/db/index.ts";
 
 export default store({
-  id: key.primary(p.u32),
-  value: p.i8.range(-20, 20),
+  name: "counter",
+  db,
+  schema: {
+    id: key.primary(p.u32),
+    value: p.i8.range(-20, 20),
+  }
 });

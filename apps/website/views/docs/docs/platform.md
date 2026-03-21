@@ -65,9 +65,9 @@ Prefer `rcompat` packages over runtime-specific APIs.
 ### Filesystem
 
 ```ts
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 
-const base = new FileRef("static");
+const base = fs.ref("static");
 const file = base.join("logo.svg");
 ```
 

@@ -12,20 +12,18 @@ export default function plugin_server_stores(app: BuildApp): Plugin {
       });
 
       build.onLoad({ filter: /.*/, namespace: "primate-stores" }, async () => {
-        const stores = await Promise.all(
-          (await base.files({ recursive: true, filter: /\.[jt]s$/ }))
-            .map(async path => `${path}`.replace(base.toString(), _ => "")),
-        );
-
+        const files = await base.files({ recursive: true, filter: /\.[jt]s$/ });
         const contents = `
-        const stores = {};
-        ${stores.map(path => path.slice(1, -".js".length)).map((bare, i) =>
-          `import * as store${i} from "${fs.webpath(`app:store/${bare}`)}";
-           stores["${fs.webpath(bare)}"] = store${i}.default;`,
-        ).join("\n")}
-        export default stores;
-      `;
-
+    const stores = {};
+    ${files.map((file, i) => {
+          const bare = fs.webpath(`${file}`
+            .replace(base.toString(), "")
+            .replace(/\.[jt]s$/, "").slice(1));
+          return `import * as store${i} from "${file}";
+       stores["${bare}"] = store${i}.default;`;
+        }).join("\n")}
+    export default stores;
+  `;
         return { contents, loader: "js", resolveDir: app.root.path };
       });
     },

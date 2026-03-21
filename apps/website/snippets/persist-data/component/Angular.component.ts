@@ -1,7 +1,7 @@
 import { NgIf } from "@angular/common";
 import { Component, Input } from "@angular/core";
-import validate from "@primate/angular/validate";
-import type Validated from "@primate/angular/Validated";
+import type { Validated } from "@primate/angular/client";
+import client from "@primate/angular/client";
 
 @Component({
   imports: [NgIf],
@@ -38,7 +38,7 @@ export default class CounterComponent {
   }
 
   ngOnInit() {
-    this.counter = validate<number>(this.initial)
+    this.counter = client.field<number>(this.initial)
       .post(`/counter?id=${this.id}`);
   }
 

@@ -160,12 +160,6 @@ type WithRelations<
   }>
   : Base;
 
-type Config<R extends Dict<Relation>> = {
-  db?: DB;
-  name?: string;
-  relations?: R;
-};
-
 type ReadSort = Dict<"asc" | "desc">;
 
 const VALID_IDENTIFIER = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
@@ -223,6 +217,16 @@ const NUMBER_OPS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
 const BIGINT_OPS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
 const DATE_OPS = ["$before", "$after", "$ne"];
 
+type Init<
+  S extends StoreInput,
+  R extends Dict<Relation>,
+> = {
+  name: string;
+  db: DB;
+  schema: S;
+  relations?: R;
+};
+
 /**
  * Database-backed store.
  *
@@ -230,7 +234,7 @@ const DATE_OPS = ["$before", "$after", "$ne"];
  * document database table/collection. It pairs a Pema schema with a uniform
  * CRUD/query API.
  */
-export default class Store<
+export class Store<
   T extends StoreInput,
   R extends Dict<Relation> = EmptyObject,
 > implements Serializable {
@@ -247,20 +251,24 @@ export default class Store<
 
   declare readonly Schema: Schema<T>;
 
-  constructor(input: T, config: Config<R> = {}) {
-    const { pk, generate_pk, fks, schema } = parse(input);
+  constructor(init: Init<T, R>) {
+    const { pk, generate_pk, fks, schema } = parse(init.schema);
+
+    assert.string(init.name);
+    assert.defined(init.db);
+    assert.dict(init.schema);
 
     this.#schema = schema;
     this.#type = new StoreType(schema as ExtractSchema<T>, pk);
     this.#types = Object.fromEntries(
       Object.entries(schema).map(([key, value]) => [key, value.datatype]),
     );
-    this.#name = config.name;
-    this.#db = config.db;
+    this.#name = init.name;
+    this.#db = init.db;
     this.#pk = pk;
     this.#generate_pk = generate_pk;
     this.#fks = fks;
-    this.#relations = config.relations ?? {} as R;
+    this.#relations = init.relations ?? {} as R;
 
     for (const name of Object.keys(this.#relations)) {
       if (name in schema) throw E.relation_conflicts_with_field(name);
@@ -272,14 +280,7 @@ export default class Store<
         .map(([k]) => k),
     );
 
-    registry.set(input, this);
-  }
-
-  static new<T extends StoreInput, R extends Dict<Relation> = EmptyObject>(
-    input: T,
-    config: Config<R> = {},
-  ) {
-    return new Store<T, R>(input, config);
+    registry.set(init.schema, this);
   }
 
   get #as() {
@@ -781,3 +782,12 @@ export default class Store<
     return this as this & A;
   }
 }
+
+function store<
+  T extends StoreInput,
+  R extends Dict<Relation> = EmptyObject,
+>(init: Init<T, R>) {
+  return new Store(init);
+}
+
+export default store;

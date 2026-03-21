@@ -60,16 +60,21 @@ associate each stored record with the session cookie.
 First create the store inside `stores`.
 
 ```ts
+import db from "#db";
 import p from "pema";
 import store from "primate/orm/store";
 import key from "primate/orm/key";
 
 export default store({
-  id: key.primary(p.u32),
-  session_id: p.string.uuid(),
-  user_id: p.number,
-  last_active: p.date,
-  // additional fields as needed
+  name: "session",
+  db,
+  schema: {
+    id: key.primary(p.u32),
+    session_id: p.string.uuid(),
+    user_id: p.number,
+    last_active: p.date,
+    // additional fields as needed
+  },
 });
 ```
 
@@ -143,14 +148,19 @@ Primate validates data passed to `create` and `set` using the provided session
 store.
 
 ```ts
+import db from "#db";
 import p from "pema";
 import store from "primate/orm/store";
 import key from "primate/orm/key";
 
 export default store({
-  id: key.primary(p.u32),
-  session_id: p.string.uuid(),
-  token: p.string.min(10),
+  name: "session",
+  db,
+  schema: {
+    id: key.primary(p.u32),
+    session_id: p.string.uuid(),
+    token: p.string.min(10),
+  },
 });
 ```
 
@@ -159,7 +169,7 @@ import session from "#session";
 import route from "primate/route";
 
 route.post(() => {
-  // Throws if token is shorter than 10 characters
+  // throws if token is shorter than 10 characters
   session.set({ token: "abc" });
 });
 ```

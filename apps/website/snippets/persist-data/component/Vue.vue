@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { computed } from "vue";
-import validate from "@primate/vue/validate";
+import client from "@primate/vue/client";
 
 interface Props { id: string; counter: number };
 
 const props = defineProps<Props>();
-const counter = validate<number>(props.value).post(
+const counter = client.field<number>(props.counter).post(
   `/counter?id=${props.id}`,
 );
 const loading = computed(() => counter.loading.value);

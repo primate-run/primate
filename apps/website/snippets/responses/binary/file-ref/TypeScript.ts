@@ -1,5 +1,5 @@
-import FileRef from "@rcompat/fs/FileRef";
+import fs from "@rcompat/fs";
 import route from "primate/route";
 
-route.get(() => new FileRef("/tmp/data.bin"));
+route.get(() => fs.ref("/tmp/data.bin"));
 
