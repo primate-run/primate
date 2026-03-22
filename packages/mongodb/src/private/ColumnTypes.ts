@@ -1,5 +1,5 @@
 import type { JSONValue, TypedArray } from "@rcompat/type";
-import type { Binary, Decimal128, ObjectId } from "mongodb";
+import type { Binary, Decimal128, ObjectId, UUID } from "mongodb";
 
 type Param =
   | bigint
@@ -27,7 +27,7 @@ type ColumnTypes = Validate<{
   PRIMARY: ObjectId;
   STRING: string;
   TIME: string;
-  UUID: string;
+  UUID: UUID;
   JSON: JSONValue;
 }>;
 

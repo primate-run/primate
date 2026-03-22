@@ -12,6 +12,9 @@ type PrimitiveSerialized =
   | { type: "blob" } & DT
   | { type: "file" } & DT
   | { type: "url" } & DT
+  | { type: "uuid" } & DT
+  | { type: "uuid_v4" } & DT
+  | { type: "uuid_v7" } & DT
   | { type: "function" }
   ;
 

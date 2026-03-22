@@ -140,7 +140,9 @@ function unbind(types: Types, row: Dict) {
 function columns_to_types(type: string): DataKey[] {
   const t = type.toUpperCase();
   if (t === "TEXT") return [
-    "string", "url", "time", "datetime", "json", "u64", "u128", "i64", "i128",
+    "string", "url", "time", "datetime", "json",
+    "u64", "u128", "i64", "i128",
+    "uuid", "uuid_v4", "uuid_v7",
   ];
   if (t === "INTEGER") return [
     "boolean", "i8", "u8", "i16", "u16", "i32", "u32",

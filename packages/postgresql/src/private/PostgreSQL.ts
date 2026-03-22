@@ -1,8 +1,8 @@
 import typemap from "#typemap";
 import type {
-    As, DataDict, DB, PK, ReadArgs, ReadRelationsArgs,
-    SchemaDiff,
-    Sort, Types, With,
+  As, DataDict, DB, PK, ReadArgs, ReadRelationsArgs,
+  SchemaDiff,
+  Sort, Types, With,
 } from "@primate/core/db";
 import common from "@primate/core/db";
 import E from "@primate/core/db/error";
@@ -121,6 +121,7 @@ function columns_to_types(row: IntrospectRow): DataKey[] {
   const { data_type, numeric_precision, numeric_scale } = row;
 
   if (data_type === "text") return ["string", "url"];
+  if (data_type === "uuid") return ["uuid", "uuid_v4", "uuid_v7"];
   if (data_type === "boolean") return ["boolean"];
   if (data_type === "smallint") return ["i8", "u8", "i16"];
   if (data_type === "integer") return ["u16", "i32"];

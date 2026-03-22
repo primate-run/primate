@@ -1,4 +1,4 @@
-import type { JSONValue, TypedArray } from "@rcompat/type";
+import type { TypedArray } from "@rcompat/type";
 
 type Param =
   | bigint
@@ -30,6 +30,7 @@ type ColumnTypes = Validate<{
   TINYINT: number;
   "TINYINT UNSIGNED": number;
   JSON: string;
+  "BINARY(16)": Uint8Array<ArrayBuffer>; // uuid
 }>;
 
 export type { ColumnTypes as default };

@@ -25,6 +25,20 @@ function number<C extends keyof ColumnTypes>(column: C): {
   };
 }
 
+function uuid_to_bin(uuid: string): Uint8Array<ArrayBuffer> {
+  return (Uint8Array as any).fromHex(uuid.replace(/-/g, ""));
+}
+
+function bin_to_uuid(buf: Uint8Array): string {
+  const hex = (buf as any).toHex();
+  const a = hex.slice(0, 8);
+  const b = hex.slice(8, 12);
+  const c = hex.slice(12, 16);
+  const d = hex.slice(16, 20);
+  const e = hex.slice(20);
+  return `${a}-${b}-${c}-${d}-${e}`;
+}
+
 const typemap: TypeMap<ColumnTypes> = {
   blob: {
     async bind(value) {
@@ -108,6 +122,21 @@ const typemap: TypeMap<ColumnTypes> = {
     unbind(value) {
       return new URL(value);
     },
+  },
+  uuid: {
+    bind: uuid_to_bin,
+    column: "BINARY(16)",
+    unbind: bin_to_uuid,
+  },
+  uuid_v4: {
+    bind: uuid_to_bin,
+    column: "BINARY(16)",
+    unbind: bin_to_uuid,
+  },
+  uuid_v7: {
+    bind: uuid_to_bin,
+    column: "BINARY(16)",
+    unbind: bin_to_uuid,
   },
 };
 

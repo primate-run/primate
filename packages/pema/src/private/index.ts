@@ -14,8 +14,8 @@ export type { default as IsType } from "#IsType";
 export type { default as JSONPayload } from "#json/JSONPayload";
 export type { default as LiteralType } from "#LiteralType";
 export type {
-    default as NormalizeSchema,
-    NormalizeSchemaObject
+  default as NormalizeSchema,
+  NormalizeSchemaObject,
 } from "#NormalizeSchema";
 export type { default as NullType } from "#NullType";
 export type { default as NumberType } from "#NumberType";
@@ -35,6 +35,9 @@ export type { default as UintType } from "#UintType";
 export type { default as UndefinedType } from "#UndefinedType";
 export type { default as UnionType } from "#UnionType";
 export type { default as UnknownType } from "#UnknownType";
+export type { default as UUIDType } from "#UUIDType";
+export type { default as UUIDV4Type } from "#UUIDV4Type";
+export type { default as UUIDV7Type } from "#UUIDV7Type";
 
 import array from "#array";
 import bigint from "#bigint";
@@ -77,6 +80,7 @@ import uint from "#uint";
 import union from "#union";
 import unknown from "#unknown";
 import url from "#url";
+import uuid from "#uuid";
 
 /**
 * Create a schema.
@@ -123,6 +127,7 @@ schema.uint = uint;
 schema.union = union;
 schema.unknown = unknown;
 schema.url = url;
+schema.uuid = uuid;
 
 export default schema;
 

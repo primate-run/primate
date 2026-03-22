@@ -11,6 +11,7 @@ type DataType = {
   i32: number;
   i64: bigint;
   i8: number;
+  json: JSONValue;
   string: string;
   time: string;
   u128: bigint;
@@ -19,7 +20,9 @@ type DataType = {
   u64: bigint;
   u8: number;
   url: URL;
-  json: JSONValue;
+  uuid: string;
+  uuid_v4: string;
+  uuid_v7: string;
 };
 
 export type { DataType as default };

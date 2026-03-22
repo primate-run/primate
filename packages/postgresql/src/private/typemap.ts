@@ -110,6 +110,9 @@ const typemap: TypeMap<ColumnTypes> = {
       return new URL(value);
     },
   },
+  uuid: identity("UUID"),
+  uuid_v4: identity("UUID"),
+  uuid_v7: identity("UUID"),
 };
 
 export default typemap;

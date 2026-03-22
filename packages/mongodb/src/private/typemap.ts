@@ -1,7 +1,7 @@
 import type ColumnTypes from "#ColumnTypes";
 import type { TypeMap } from "@primate/core/db";
 import type { TypedArray } from "@rcompat/type";
-import { Binary, Decimal128 } from "mongodb";
+import { Binary, Decimal128, UUID } from "mongodb";
 
 function identity<C extends keyof ColumnTypes>(column: C): {
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];
@@ -80,6 +80,21 @@ const typemap: TypeMap<ColumnTypes> = {
     unbind(value) {
       return new URL(value);
     },
+  },
+  uuid: {
+    bind: (value: string) => new UUID(value),
+    column: "UUID",
+    unbind: (value: UUID) => value.toString(),
+  },
+  uuid_v4: {
+    bind: (value: string) => new UUID(value),
+    column: "UUID",
+    unbind: (value: UUID) => value.toString(),
+  },
+  uuid_v7: {
+    bind: (value: string) => new UUID(value),
+    column: "UUID",
+    unbind: (value: UUID) => value.toString(),
   },
 };
 

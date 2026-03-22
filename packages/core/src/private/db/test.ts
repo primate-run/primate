@@ -2106,6 +2106,34 @@ export default <D extends DB>(db: D) => {
     assert(types!.lastname).undefined();
   });
 
+  const UUIDTest = store({
+    name: "uuid_test",
+    db,
+    schema: {
+      id: key.primary(p.string),
+      uuid: p.uuid,
+      uuid_v4: p.uuid.v4(),
+      uuid_v7: p.uuid.v7(),
+    },
+  });
+
+  $store("uuid: round-trips uuid column", UUIDTest, async assert => {
+    const uuid = "4d0996db-bda9-4f95-ad7c-7075b10d4ba6"; // any valid uuid
+    const uuid_v4 = "7c9e6679-7425-40de-944b-e07fc1f90ae7"; // distinct v4
+    const uuid_v7 = "01932b6e-5a2f-7e4f-9a3b-4f6d2c8b1a0e"; // v7
+
+    const row = await UUIDTest.insert({ uuid, uuid_v4, uuid_v7 });
+
+    assert(row.uuid).equals(uuid).type<string>();
+    assert(row.uuid_v4).equals(uuid_v4).type<string>();
+    assert(row.uuid_v7).equals(uuid_v7).type<string>();
+
+    const fetched = await UUIDTest.get(row.id);
+    assert(fetched.uuid).equals(uuid);
+    assert(fetched.uuid_v4).equals(uuid_v4);
+    assert(fetched.uuid_v7).equals(uuid_v7);
+  });
+
   test.case("schema: alter non-existent throws", async assert => {
     await throws(assert, Code.table_not_found, () =>
       db.schema.alter("no_such_table", {

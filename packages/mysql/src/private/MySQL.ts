@@ -1,9 +1,9 @@
 import typemap from "#typemap";
 import type {
-  As, DataDict, DB,
-  ReadArgs, ReadRelationsArgs,
-  SchemaDiff,
-  Sort, Types, With,
+    As, DataDict, DB,
+    ReadArgs, ReadRelationsArgs,
+    SchemaDiff,
+    Sort, Types, With,
 } from "@primate/core/db";
 import common from "@primate/core/db";
 import E from "@primate/core/db/error";
@@ -64,6 +64,9 @@ function columns_to_types(data_t: string, column_t: string): DataKey[] {
 
   if (data_t === "varchar") return ["string", "url"];
   if (data_t === "text") return ["string", "url", "time"];
+  if (data_t === "binary" && column_t.includes("(16)")) return [
+    "uuid", "uuid_v4", "uuid_v7"
+  ];
   if (data_t === "smallint") return unsigned ? ["u16"] : ["i16"];
   if (data_t === "int") return unsigned ? ["u32"] : ["i32"];
   if (data_t === "bigint") return unsigned ? ["u64"] : ["i64"];
