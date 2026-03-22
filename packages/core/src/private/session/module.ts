@@ -45,7 +45,7 @@ export default function session_module(config: Config) {
     setup({ onServe, onHandle }) {
       onServe(async app => {
         secure = app.secure;
-        await store.collection.create();
+        await store.table.create();
       });
 
       onHandle(async (request, next) => {

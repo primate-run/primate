@@ -1,5 +1,6 @@
 import type ResponseFunction from "#response/ResponseFunction";
 import { Status } from "@rcompat/http";
+import type { Dict } from "@rcompat/type";
 
 type Redirection =
   | 300 // MULTIPLE_CHOICES
@@ -16,7 +17,7 @@ type Redirection =
 type RedirectObject = {
   // must start with "/"
   pathname: string;
-  query?: Record<string, boolean | null | number | string | undefined>;
+  query?: Dict<boolean | null | number | string | undefined>;
 };
 
 type RedirectTarget = RedirectObject | string;
@@ -60,9 +61,7 @@ function encodePathname(s: string): string {
 }
 
 function toSearch(query?: RedirectObject["query"]) {
-  if (!query) {
-    return "";
-  }
+  if (!query) return "";
 
   const search = Object.entries(query)
     .filter(([, v]) => v !== null && v !== undefined)
@@ -78,7 +77,7 @@ function toSearch(query?: RedirectObject["query"]) {
 
 function toNormalized(relative: string, base?: string | URL): string {
   // base -> URL resolution
-  if (base) {
+  if (base !== undefined) {
     const url = new URL(relative, new URL(String(base)));
     return url.pathname + url.search;
   }
@@ -92,11 +91,11 @@ function toNormalized(relative: string, base?: string | URL): string {
 }
 
 /**
- * Redirect request
- * @param location location to redirect to
- * @param status redirection 3xx code
- * @return Response rendering function
- */
+* Redirect request
+* @param location location to redirect to
+* @param status redirection 3xx code
+* @return Response rendering function
+*/
 export default (location: string, status?: Redirection): ResponseFunction =>
   // no body
   app => app.respond(null, {

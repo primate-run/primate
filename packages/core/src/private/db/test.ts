@@ -2,11 +2,12 @@ import type DB from "#db/DB";
 import { Code } from "#db/error";
 import key from "#orm/key";
 import relation from "#orm/relation";
-import store, { Store } from "#orm/store";
+import type { Store } from "#orm/store";
+import store from "#orm/store";
 import type { Asserter } from "@rcompat/test";
 import test from "@rcompat/test";
 import any from "@rcompat/test/any";
-import type { Dict } from "@rcompat/type";
+import type { Dict, MaybePromise } from "@rcompat/type";
 import p from "pema";
 
 type Body = (assert: Asserter) => Promise<void>;
@@ -133,7 +134,11 @@ function pick<
   ) as Pick<D, P[number]>;
 }
 
-async function throws(assert: Asserter, code: Code, fn: () => Promise<any>) {
+async function throws(
+  assert: Asserter,
+  code: Code,
+  fn: () => MaybePromise<any>,
+) {
   try {
     await fn();
     assert(false).true();
@@ -257,13 +262,16 @@ export default <D extends DB>(db: D) => {
     },
   });
 
-  /*const AuthorWithJSON = new Store({
-    id: key.primary(p.string),
-    name: p.string,
-    articles: p.json(p.array(ArticleSchema)),
-    meta: p.json(p({ views: p.u32, tags: p.array(p.string) })),
-    notes: p.json(),  // untyped
-  }, { db, name: "author_json" });*/
+  /*const AuthorWithJSON = store({
+    name: "author_json",
+    db,
+    schema: {
+      id: key.primary(p.string),
+      name: p.string,
+      meta: p.json(p({ views: p.u32, tags: p.array(p.string) })),
+      notes: p.json(),  // untyped
+    },
+  });*/
 
   const Article = store({
     db,
@@ -285,18 +293,18 @@ export default <D extends DB>(db: D) => {
 
   function $store<S extends Store<any>>(label: string, s: S, body: Body) {
     test.case(label, async assert => {
-      await s.collection.create();
+      await s.table.create();
       try {
         await body(assert);
       } finally {
-        await s.collection.delete();
+        await s.table.delete();
       }
     });
   }
 
   function $user(label: string, body: Body) {
     test.case(label, async assert => {
-      for (const S of USER_STORES) await S.collection.create();
+      for (const S of USER_STORES) await S.table.create();
 
       try {
         for (const u of Object.values(USERS)) {
@@ -304,7 +312,7 @@ export default <D extends DB>(db: D) => {
         }
         await body(assert);
       } finally {
-        for (const S of USER_STORES) await S.collection.delete();
+        for (const S of USER_STORES) await S.table.delete();
       }
     });
   }
@@ -319,9 +327,9 @@ export default <D extends DB>(db: D) => {
 
   function $rel(label: string, body: Body) {
     test.case(`relation: ${label}`, async assert => {
-      await Author.collection.create();
-      await Article.collection.create();
-      await Profile.collection.create();
+      await Author.table.create();
+      await Article.table.create();
+      await Profile.table.create();
 
       try {
         const john = await Author.insert({ name: "John" });
@@ -352,9 +360,9 @@ export default <D extends DB>(db: D) => {
 
         await body(assert);
       } finally {
-        await Profile.collection.delete();
-        await Article.collection.delete();
-        await Author.collection.delete();
+        await Profile.table.delete();
+        await Article.table.delete();
+        await Author.table.delete();
       }
     });
   }
@@ -1804,16 +1812,15 @@ export default <D extends DB>(db: D) => {
   });
 
   $user$("inject invalid identifier (table name)", async assert => {
-    const BadStore = store({
-      name: "users; DROP TABLE users",
-      db,
-      schema: {
-        id: key.primary(p.string),
-      },
-    });
 
-    await throws(assert, Code.identifier_invalid, async () => {
-      await BadStore.collection.create();
+    await throws(assert, Code.identifier_invalid, () => {
+      store({
+        name: "users; DROP TABLE users",
+        db,
+        schema: {
+          id: key.primary(p.string),
+        },
+      });
     });
   });
 
@@ -1918,8 +1925,8 @@ export default <D extends DB>(db: D) => {
       },
     });
 
-    await Parent.collection.create();
-    await Child.collection.create();
+    await Parent.table.create();
+    await Child.table.create();
 
     try {
       const p0 = await Parent.insert({
@@ -1958,8 +1965,8 @@ export default <D extends DB>(db: D) => {
       assert(c0.url instanceof URL).true();
       assert(c0.url!.href).equals("https://example.com/joined");
     } finally {
-      await Child.collection.delete();
-      await Parent.collection.delete();
+      await Child.table.delete();
+      await Parent.table.delete();
     }
   });
 
@@ -2001,5 +2008,102 @@ export default <D extends DB>(db: D) => {
         articles: relation.many(ArticleSchema, "author_id"),
       },
     }));
+  });
+
+  // introspect: returns null for non-existent table
+  test.case("schema: introspect non-existent", async assert => {
+    assert(await db.schema.introspect("no_such_table")).null();
+  });
+
+  // introspect: returns correct types after create
+  $store("schema: introspect after create", User, async assert => {
+    // insert a record so MongoDB has something to sample
+    await User.insert({ name: "test", age: 1, lastname: "test" });
+    const types = await db.schema.introspect(User.name, User.pk);
+    assert(types).not.null();
+    if (types !== null) {
+      assert(types.id).includes("string");
+      assert(types.name).includes("string");
+      assert(types.age).includes("u8");
+      assert(types.lastname).includes("string");
+    }
+  });
+
+  // alter: add a field
+  $store("schema: alter add", User, async assert => {
+    await db.schema.alter("user", {
+      add: { email: "string" }, drop: [], rename: [],
+    });
+    const MigratedUser = store({
+      name: "user",
+      db,
+      schema: {
+        id: key.primary(p.string),
+        age: p.u8.optional(),
+        lastname: p.string.optional(),
+        name: p.string.default("Donald"),
+        email: p.string.email(),
+      },
+    });
+    await MigratedUser.insert({ name: "test", age: 1, email: "test@test.com" });
+    const types = await db.schema.introspect("user");
+    assert(types!.email).includes("string");
+  });
+
+  // alter: drop a field
+  $store("schema: alter drop", User, async assert => {
+    await db.schema.alter("user", { add: {}, drop: ["lastname"], rename: [] });
+    const types = await db.schema.introspect("user");
+    assert(types!.lastname).undefined();
+  });
+
+  // alter: rename a field
+  $store("schema: alter rename", User, async assert => {
+    await db.schema.alter("user", {
+      add: {}, drop: [], rename: [["lastname", "surname"]],
+    });
+    const MigratedUser = store({
+      name: "user",
+      db,
+      schema: {
+        id: key.primary(p.string),
+        age: p.u8.optional(),
+        surname: p.string.optional(),
+        name: p.string.default("Donald"),
+      },
+    });
+    await MigratedUser.insert({ name: "Donald", surname: "Adams" });
+    const types = await db.schema.introspect("user");
+    assert(types!.lastname).undefined();
+    assert(types!.surname).includes("string");
+  });
+
+  // alter: combined add + drop
+  $store("schema: alter add and drop", User, async assert => {
+    await db.schema.alter("user", {
+      add: { email: "string" }, drop: ["lastname"], rename: [],
+    });
+    const MigratedUser = store({
+      name: "user",
+      db,
+      schema: {
+        id: key.primary(p.string),
+        age: p.u8.optional(),
+        name: p.string.default("Donald"),
+        email: p.string.email(),
+      },
+    });
+    await MigratedUser.insert({ name: "Donald", email: "test@test.com" });
+    const types = await db.schema.introspect("user");
+    assert(types!.email).includes("string");
+    assert(types!.lastname).undefined();
+  });
+
+  test.case("schema: alter non-existent throws", async assert => {
+    await throws(assert, Code.table_not_found, () =>
+      db.schema.alter("no_such_table", {
+        add: { email: "string" }, drop: [], rename: [],
+      }),
+    );
   });
 };

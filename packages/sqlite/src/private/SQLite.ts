@@ -1,6 +1,7 @@
 import typemap from "#typemap";
 import type {
-  As, DataDict, DB, PK, ReadArgs, ReadRelationsArgs, Sort, Types, With,
+  As, DataDict, DB, PK, ReadArgs, ReadRelationsArgs,
+  SchemaDiff, Sort, Types, With,
 } from "@primate/core/db";
 import common from "@primate/core/db";
 import E from "@primate/core/db/error";
@@ -136,6 +137,19 @@ function unbind(types: Types, row: Dict) {
   return sql.unbind<ReturnType<typeof unbind_one>>(types, row, unbind_one);
 }
 
+function columns_to_types(type: string): DataKey[] {
+  const t = type.toUpperCase();
+  if (t === "TEXT") return [
+    "string", "url", "time", "datetime", "json", "u64", "u128", "i64", "i128",
+  ];
+  if (t === "INTEGER") return [
+    "boolean", "i8", "u8", "i16", "u16", "i32", "u32",
+  ];
+  if (t === "REAL") return ["f32", "f64"];
+  if (t === "BLOB") return ["blob"];
+  return [];
+}
+
 export default class SQLite implements DB {
   #factory: () => Client;
   #client?: Client;
@@ -202,6 +216,36 @@ export default class SQLite implements DB {
       },
       delete: (table: string) => {
         this.#sql(Q`DROP TABLE IF EXISTS ${table}`).run();
+      },
+      introspect: (name: string): Dict<DataKey[]> | null => {
+        type PragmaRow = { name: string; type: string };
+        const rows = this.#sql(`PRAGMA table_info(${sql.quote(name)})`).all() as PragmaRow[];
+        if (rows.length === 0) return null;
+
+        const result: Dict<DataKey[]> = {};
+        for (const row of rows) {
+          const candidates = columns_to_types(row.type);
+          if (candidates.length > 0) result[row.name] = candidates;
+        }
+        return result;
+      },
+      alter: (name: string, diff: SchemaDiff) => {
+        const existing = this.schema.introspect(name);
+        if (existing === null) throw E.table_not_found(name);
+
+        for (const [from, to] of diff.rename) {
+          this.#sql(Q`ALTER TABLE ${name}
+            RENAME COLUMN ${[sql.quote(from)]} TO ${[sql.quote(to)]}`).run();
+        }
+
+        for (const field of diff.drop) {
+          this.#sql(Q`ALTER TABLE ${name}
+            DROP COLUMN ${[sql.quote(field)]}`).run();
+        }
+        for (const [field, type] of Object.entries(diff.add)) {
+          this.#sql(Q`ALTER TABLE ${name}
+            ADD COLUMN ${[`${sql.quote(field)} ${get_column(type)}`]}`).run();
+        }
       },
     };
   }

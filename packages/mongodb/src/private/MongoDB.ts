@@ -1,5 +1,8 @@
 import typemap from "#typemap";
-import type { As, DataDict, DB, PK, Sort, With } from "@primate/core/db";
+import type {
+  As, DataDict, DB, PK,
+  SchemaDiff, Sort, With,
+} from "@primate/core/db";
 import common from "@primate/core/db";
 import E from "@primate/core/db/error";
 import assert from "@rcompat/assert";
@@ -8,6 +11,8 @@ import type { Dict } from "@rcompat/type";
 import { MongoClient, ObjectId } from "mongodb";
 import type { DataKey, StoreSchema } from "pema";
 import p from "pema";
+
+type MaybeTable = Dict<DataKey[]> | null;
 
 const schema = p({
   host: p.string.default("localhost"),
@@ -145,6 +150,23 @@ function like_to_regex(pattern: string) {
     .replace(/<<UNDERSCORE>>/g, "_") + "$";
 }
 
+function columns_to_types(column_type: string): DataKey[] {
+  switch (column_type) {
+    case "string": return ["string", "url", "time", "i128", "u128"];
+    case "int": return ["i8", "u8", "i16", "u16", "i32", "u32"];
+    case "long": return ["i64"];
+    case "double": return ["f32", "f64"];
+    case "bool": return ["boolean"];
+    case "date": return ["datetime"];
+    case "binData": return ["blob"];
+    case "decimal": return ["u64"];
+    case "objectId": return ["string"];
+    case "object": return ["json"];
+    case "array": return ["json"];
+    default: return [];
+  }
+}
+
 export default class MongoDB implements DB {
   static config: typeof schema.input;
 
@@ -175,12 +197,65 @@ export default class MongoDB implements DB {
 
   get schema() {
     return {
-      create: async (_as: As, _store: StoreSchema) => {
-        // MongoDB is schemaless, noop
+      create: async (as: As, _store: StoreSchema) => {
+        const client = this.#client ??= await this.#factory();
+        const db = client.db(this.#database);
+        // ignore if already exists
+        await db.createCollection(as.table).catch(() => { });
       },
       delete: async (name: string) => {
+        const client = this.#client ??= await this.#factory();
+        const db = client.db(this.#database);
+
+        // ignore if doesn't exist
+        await db.dropCollection(name).catch(() => { });
+      },
+      introspect: async (name: string, pk: PK): Promise<MaybeTable> => {
+        const client = (this.#client ??= await this.#factory());
+        const db = client.db(this.#database);
+        const collections = await db.listCollections({ name }).toArray();
+        if (collections.length === 0) return null;
+
         const collection = await this.#collection(name);
-        await collection.drop().catch(() => { });  // ignore if doesn't exist
+
+        type FieldRow = { name: string; type: string };
+        const rows = await collection.aggregate<FieldRow>([
+          { $limit: 1 },
+          { $project: { fields: { $objectToArray: "$$ROOT" } } },
+          { $unwind: "$fields" },
+          { $project: { _id: 0, name: "$fields.k", type: { $type: "$fields.v" } } },
+        ]).toArray();
+
+        if (rows.length === 0) return {};
+
+        const result: Dict<DataKey[]> = {};
+        for (const row of rows) {
+          if (row.name === "_id") {
+            if (pk !== null) result[pk] = columns_to_types(row.type);
+            continue;
+          }
+          result[row.name] = columns_to_types(row.type);
+        }
+        return result;
+      },
+
+      alter: async (name: string, diff: SchemaDiff) => {
+        const client = this.#client ??= await this.#factory();
+        const db = client.db(this.#database);
+        const collections = await db.listCollections({ name }).toArray();
+        if (collections.length === 0) throw E.table_not_found(name);
+
+        const collection = await this.#collection(name);
+
+        if (diff.rename.length > 0) {
+          const $rename = Object.fromEntries(diff.rename);
+          await collection.updateMany({}, { $rename });
+        }
+
+        if (diff.drop.length > 0) {
+          const $unset = Object.fromEntries(diff.drop.map(f => [f, ""]));
+          await collection.updateMany({}, { $unset });
+        }
       },
     };
   }

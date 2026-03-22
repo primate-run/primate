@@ -1,7 +1,9 @@
 import type As from "#db/As";
 import type DB from "#db/DB";
+import type { SchemaDiff } from "#db/DB";
 import type DataDict from "#db/DataDict";
 import type Sort from "#db/Sort";
+import type Types from "#db/Types";
 import type With from "#db/With";
 import E from "#db/error";
 import assert from "@rcompat/assert";
@@ -136,10 +138,12 @@ function toSorted<T extends Dict>(d1: T, d2: T, sort: Sort) {
 
 export default class MemoryDB implements DB {
   #tables: PartialDict<Dict[]> = {};
+  #types: PartialDict<Types> = {};
 
   #new(as: As) {
     if (this.#tables[as.table] !== undefined) return;
     this.#tables[as.table] = [];
+    this.#types[as.table] = as.types;
   }
 
   #drop(table: string) {
@@ -155,6 +159,28 @@ export default class MemoryDB implements DB {
     return {
       create: this.#new.bind(this),
       delete: this.#drop.bind(this),
+      introspect: (name: string) => {
+        if (this.#tables[name] === undefined) return null;
+        const types = this.#types[name] ?? {};
+        return Object.fromEntries(
+          Object.entries(types).map(([field, type]) => [field, [type]]),
+        );
+      },
+      alter: (name: string, diff: SchemaDiff) => {
+        if (this.#types[name] === undefined) throw E.table_not_found(name);
+
+        const types = { ...this.#types[name] };
+
+        const { add, drop, rename } = diff;
+        for (const [field, type] of Object.entries(add)) types[field] = type;
+        for (const field of drop) delete types[field];
+        for (const [from, to] of rename) {
+          types[to] = types[from];
+          delete types[from];
+        }
+
+        this.#types[name] = types;
+      },
     };
   }
 
@@ -189,9 +215,9 @@ export default class MemoryDB implements DB {
     }
 
     if (pk !== null) {
-      const pkv = to_insert[pk];
-      if (!PK_TYPES.includes(typeof pkv)) throw E.pk_invalid(pkv);
-      if (table.find(stored => stored[pk] === pkv)) throw E.pk_duplicate(pk);
+      const pv = to_insert[pk];
+      if (!PK_TYPES.includes(typeof pv)) throw E.pk_invalid(pk);
+      if (table.find(s => s[pk] === pv) !== undefined) throw E.pk_duplicate(pk);
     }
 
     table.push({ ...to_insert });

@@ -2,6 +2,7 @@ import typemap from "#typemap";
 import type {
   As, DataDict, DB,
   ReadArgs, ReadRelationsArgs,
+  SchemaDiff,
   Sort, Types, With,
 } from "@primate/core/db";
 import common from "@primate/core/db";
@@ -33,7 +34,7 @@ function order_by(types: Types, sort?: Sort, alias?: string) {
 
   const parts = entries.map(([k, dir]) => {
     const quoted = sql.quote(k);
-    const base = alias ? `${alias}.${quoted}` : quoted;
+    const base = alias !== undefined ? `${alias}.${quoted}` : quoted;
     const expression = is_bigint_key(types[k]) ? bigint_cast(base) : base;
     return `${expression} ${dir.toLowerCase() === "desc" ? "DESC" : "ASC"}`;
   });
@@ -56,6 +57,24 @@ function unbind_value(key: DataKey, value: unknown) {
 
 function unbind(types: Types, row: Dict) {
   return sql.unbind<ReturnType<typeof unbind_value>>(types, row, unbind_value);
+}
+
+function columns_to_types(data_t: string, column_t: string): DataKey[] {
+  const unsigned = column_t.includes("unsigned");
+
+  if (data_t === "varchar") return ["string", "url"];
+  if (data_t === "text") return ["string", "url", "time"];
+  if (data_t === "smallint") return unsigned ? ["u16"] : ["i16"];
+  if (data_t === "int") return unsigned ? ["u32"] : ["i32"];
+  if (data_t === "bigint") return unsigned ? ["u64"] : ["i64"];
+  if (data_t === "decimal") return ["u128", "i128"];
+  if (data_t === "double") return ["f32", "f64"];
+  if (data_t === "datetime") return ["datetime"];
+  if (data_t === "tinyint" && column_t === "tinyint(1)") return ["boolean"];
+  if (data_t === "tinyint") return unsigned ? ["u8"] : ["i8", "boolean"];
+  if (data_t === "blob") return ["blob"];
+  if (data_t === "json") return ["json"];
+  return [];
 }
 
 const schema = p({
@@ -140,12 +159,51 @@ export default class MySQL implements DB {
       delete: async (table: string) => {
         await this.#sql(Q`DROP TABLE IF EXISTS ${table}`);
       },
+      introspect: async (name: string): Promise<Dict<DataKey[]> | null> => {
+        const rows = await this.#sql<RowDataPacket[]>(`
+          SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE
+          FROM information_schema.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = :name
+        `, { name });
+
+        if (rows.length === 0) return null;
+
+        const result: Dict<DataKey[]> = {};
+        for (const row of rows) {
+          const candidates = columns_to_types(row.DATA_TYPE, row.COLUMN_TYPE);
+          if (candidates.length > 0) result[row.COLUMN_NAME] = candidates;
+        }
+
+        return result;
+      },
+      alter: async (name: string, diff: SchemaDiff) => {
+        const existing = await this.schema.introspect(name);
+        if (existing === null) throw E.table_not_found(name);
+
+        for (const [from, to] of diff.rename) {
+          await this.#sql(Q`
+            ALTER TABLE ${name}
+            RENAME COLUMN ${[sql.quote(from)]} TO ${[sql.quote(to)]}`);
+        }
+
+        const parts: string[] = [];
+        for (const field of diff.drop) {
+          parts.push(`DROP COLUMN ${sql.quote(field)}`);
+        }
+        for (const [field, type] of Object.entries(diff.add)) {
+          parts.push(`ADD COLUMN ${sql.quote(field)} ${get_column(type)}`);
+        }
+        if (parts.length > 0) {
+          await this.#sql(Q`ALTER TABLE ${name} ${[parts.join(", ")]}`);
+        }
+      },
     };
   }
 
   async #where(as: As, where: DataDict): Promise<[string, Dict]> {
     const fields = Object.keys(where);
-    if (fields.length === 0) return ["", {} as Dict];
+    if (fields.length === 0) return ["", {}];
 
     const parts: string[] = [];
     const binds: Dict = {};
@@ -292,7 +350,7 @@ export default class MySQL implements DB {
 
     // string or bigint, generate manually
     const pk_value = await this.#generate_pk(as);
-    const to_insert = { ...record, [pk]: pk_value } as DataDict;
+    const to_insert = { ...record, [pk]: pk_value };
     const [keys, values] = this.#create(to_insert);
     const query = Q`INSERT INTO ${table} (${keys}) VALUES (${values})`;
     await this.#sql(query, await this.#create_params(as.types, to_insert));

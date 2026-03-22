@@ -1,7 +1,6 @@
 import type DB from "#db/DB";
 import E from "#db/error";
 import type PK from "#db/PK";
-import wrap from "#db/symbol/wrap";
 import type Types from "#db/Types";
 import type DBWith from "#db/With";
 import type ExtractSchema from "#orm/ExtractSchema";
@@ -242,8 +241,8 @@ export class Store<
   #type: StoreType<ExtractSchema<T>>;
   #types: Types;
   #nullables: Set<string>;
-  #db?: DB;
-  #name?: string;
+  #name: string;
+  #db: DB;
   #pk: PK;
   #generate_pk: boolean;
   #fks: Map<string, ForeignKey<Storable<DataKey>>>;
@@ -254,24 +253,28 @@ export class Store<
   constructor(init: Init<T, R>) {
     const { pk, generate_pk, fks, schema } = parse(init.schema);
 
-    assert.string(init.name);
-    assert.defined(init.db);
-    assert.dict(init.schema);
+    const { name, db } = init;
+
+    if (name === undefined) throw E.store_name_required();
+    assert.string(name);
+    if (!VALID_IDENTIFIER.test(name)) throw E.identifier_invalid(name);
+    assert.defined(db, E.db_missing as any);
+    assert.dict(schema);
 
     this.#schema = schema;
     this.#type = new StoreType(schema as ExtractSchema<T>, pk);
     this.#types = Object.fromEntries(
       Object.entries(schema).map(([key, value]) => [key, value.datatype]),
     );
-    this.#name = init.name;
-    this.#db = init.db;
+    this.#name = name;
+    this.#db = db;
     this.#pk = pk;
     this.#generate_pk = generate_pk;
     this.#fks = fks;
     this.#relations = init.relations ?? {} as R;
 
-    for (const name of Object.keys(this.#relations)) {
-      if (name in schema) throw E.relation_conflicts_with_field(name);
+    for (const relation of Object.keys(this.#relations)) {
+      if (relation in schema) throw E.relation_conflicts_with_field(relation);
     }
 
     this.#nullables = new Set(
@@ -292,7 +295,7 @@ export class Store<
     };
   }
 
-  get collection() {
+  get table() {
     const db = this.db;
     const name = this.name;
     const schema = this.#schema;
@@ -315,26 +318,20 @@ export class Store<
     return this.#type;
   }
 
-  [wrap](name: string, db: DB) {
-    this.#db ??= db;
-    this.#name ??= name;
-    return this;
+  get name() {
+    return this.#name;
+  }
+
+  get pk() {
+    return this.#pk;
   }
 
   get db() {
-    if (this.#db === undefined) throw E.db_missing();
     return this.#db;
   }
 
   get types() {
     return this.#types;
-  }
-
-  get name() {
-    const name = this.#name;
-    if (name === undefined) throw E.store_name_required();
-    if (!VALID_IDENTIFIER.test(name)) throw E.identifier_invalid(name);
-    return name;
   }
 
   #parse_query(query: Query, types: Types) {

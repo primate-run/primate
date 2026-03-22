@@ -1,6 +1,8 @@
 import typemap from "#typemap";
 import type {
-  As, DataDict, DB, PK, ReadArgs, ReadRelationsArgs, Sort, Types, With,
+    As, DataDict, DB, PK, ReadArgs, ReadRelationsArgs,
+    SchemaDiff,
+    Sort, Types, With,
 } from "@primate/core/db";
 import common from "@primate/core/db";
 import E from "@primate/core/db/error";
@@ -108,6 +110,36 @@ function relation_order(types: Types, sort?: Sort) {
   }).join(", ");
 }
 
+interface IntrospectRow {
+  column_name: string;
+  data_type: string;
+  numeric_precision: number;
+  numeric_scale: number;
+}
+
+function columns_to_types(row: IntrospectRow): DataKey[] {
+  const { data_type, numeric_precision, numeric_scale } = row;
+
+  if (data_type === "text") return ["string", "url"];
+  if (data_type === "boolean") return ["boolean"];
+  if (data_type === "smallint") return ["i8", "u8", "i16"];
+  if (data_type === "integer") return ["u16", "i32"];
+  if (data_type === "real") return ["f32"];
+  if (data_type === "double precision") return ["f64"];
+  if (data_type === "timestamp without time zone") return ["datetime"];
+  if (data_type === "time without time zone") return ["time"];
+  if (data_type === "jsonb") return ["json"];
+  if (data_type === "bytea") return ["blob"];
+  if (data_type === "bigint") return ["u32", "i64"];
+  if (data_type === "numeric") {
+    if (numeric_precision === 20 && numeric_scale === 0) return ["u64"];
+    if (numeric_precision === 39 && numeric_scale === 0) return [
+      "u128", "i128",
+    ];
+  }
+  return [];
+}
+
 const BIND_BY = "$";
 
 const schema = p({
@@ -144,8 +176,8 @@ export default class PostgreSQL implements DB {
     return (this.#client ??= this.#factory());
   }
 
-  async #sql<T = unknown>(q: string, params?: unknown[]) {
-    return await this.#db.unsafe(q, params as UnsafeParams) as T;
+  async #sql<Out = unknown>(q: string, params?: unknown[]) {
+    return await this.#db.unsafe(q, params as UnsafeParams) as Out;
   }
 
   async #capture(name: string, query: string, params?: unknown[]) {
@@ -179,12 +211,13 @@ export default class PostgreSQL implements DB {
 
     const parts: string[] = [];
     const params: unknown[] = [];
+    const aliased = alias !== undefined;
     let i = index;
 
     for (const field of keys) {
       const raw = where[field];
       const datatype = as.types[field];
-      const base = alias ? `${alias}.${quote(field)}` : quote(field);
+      const base = aliased ? `${alias}.${quote(field)}` : quote(field);
 
       if (raw === null) {
         parts.push(`${base} IS NULL`);
@@ -275,6 +308,55 @@ export default class PostgreSQL implements DB {
       delete: async (name: string) => {
         await this.#sql(Q`DROP TABLE IF EXISTS ${name}`);
       },
+
+      introspect: async (name: string) => {
+        const exists = await this.#sql<{ exists: boolean }[]>(`
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.tables
+          WHERE table_schema = 'public'
+          AND table_name = $1
+        ) AS exists
+        `, [name]);
+
+        if (!exists[0].exists) return null;
+
+        const rows = await this.#sql<IntrospectRow[]>(`
+        SELECT column_name, data_type, numeric_precision, numeric_scale
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+        AND table_name = $1
+        `, [name]);
+
+        const result: Dict<DataKey[]> = {};
+        for (const row of rows) {
+          const candidates = columns_to_types(row);
+          if (candidates.length > 0) result[row.column_name] = candidates;
+        }
+        return result;
+      },
+
+      alter: async (name: string, diff: SchemaDiff) => {
+        // check table exists
+        const existing = await this.schema.introspect(name);
+        if (existing === null) throw E.table_not_found(name);
+
+        const parts: string[] = [];
+
+        for (const [from, to] of diff.rename) {
+          parts.push(`RENAME COLUMN ${quote(from)} TO ${quote(to)}`);
+        }
+        for (const field of diff.drop) {
+          parts.push(`DROP COLUMN ${quote(field)}`);
+        }
+        for (const [field, type] of Object.entries(diff.add)) {
+          parts.push(`ADD COLUMN ${quote(field)} ${get_column(type)}`);
+        }
+
+        if (parts.length === 0) return;
+
+        // PostgreSQL supports multiple ALTER TABLE operations in one statement
+        await this.#sql(Q`ALTER TABLE ${name} ${[parts.join(", ")]}`);
+      },
     };
   }
 
@@ -286,7 +368,7 @@ export default class PostgreSQL implements DB {
 
     if (common.BIGINT_STRING_TYPES.includes(type)) {
       const q = Q`SELECT MAX((${pk})::numeric)::text AS v FROM ${as.table}`;
-      const rows = await this.#sql(q) as { v: PK }[];
+      const rows = await this.#sql<{ v: PK }[]>(q);
       return rows[0]?.v !== null ? BigInt(rows[0].v) + 1n : 1n;
     }
 
@@ -343,7 +425,7 @@ export default class PostgreSQL implements DB {
       const q = has_values
         ? Q`INSERT INTO ${table} (${keys}) VALUES (${values}) RETURNING ${pk}`
         : Q`INSERT INTO ${table} DEFAULT VALUES RETURNING ${pk}`;
-      const rows = await this.#sql(q, params) as Dict[];
+      const rows = await this.#sql<Dict[]>(q, params);
       const pk_value = unbind_value(type, rows[0][pk]);
       return { ...record, [pk]: pk_value } as O;
     }
@@ -399,7 +481,7 @@ export default class PostgreSQL implements DB {
   async #count(as: As, where: DataDict) {
     const { WHERE, params } = await this.#where(as, where);
     const q = `SELECT COUNT(*)::text AS n FROM ${quote(as.table)} ${WHERE}`;
-    const rows = await this.#sql(q, params) as { n: string }[];
+    const rows = await this.#sql<{ n: string }[]>(q, params);
     await this.#capture(as.table, q, params);
 
     return Number(rows[0]?.n ?? 0);
@@ -449,7 +531,7 @@ export default class PostgreSQL implements DB {
     const q = `SELECT ${SELECT} FROM (${query}) ${alias}
       ${JOIN}${order_by(as.types, args.sort, alias)}`;
 
-    const rows = await this.#sql(q, params) as Dict[];
+    const rows = await this.#sql<Dict[]>(q, params);
     await this.#capture(as.table, q, params);
 
     return sql.nest(as, { rows, aliases }, args, unbind_value);
@@ -457,7 +539,7 @@ export default class PostgreSQL implements DB {
 
   async #read(as: As, args: ReadArgs) {
     const { query, params } = await this.#base_query(as, args);
-    const rows = await this.#sql(query, params) as Dict[];
+    const rows = await this.#sql<Dict[]>(query, params);
     await this.#capture(as.table, query, params);
     return rows.map(r => unbind(as.types, r));
   }
@@ -612,7 +694,7 @@ export default class PostgreSQL implements DB {
     }
 
     const params = [...where_params, ...in_params];
-    const rows = await this.#sql(q, params) as Dict[];
+    const rows = await this.#sql<Dict[]>(q, params);
     await this.#capture(args.as.table, q, params);
     return rows.map(r => unbind(args.as.types, r));
   }
@@ -636,7 +718,7 @@ export default class PostgreSQL implements DB {
     const { WHERE, params } = await this.#where(as, args.where, i);
 
     const q = `UPDATE ${quote(as.table)} ${SET} ${WHERE} RETURNING 1`;
-    const rows = await this.#sql(q, [...set_params, ...params]) as unknown[];
+    const rows = await this.#sql<unknown[]>(q, [...set_params, ...params]);
     return rows.length;
   }
 
@@ -645,7 +727,7 @@ export default class PostgreSQL implements DB {
 
     const { WHERE, params } = await this.#where(as, args.where);
     const q = `DELETE FROM ${quote(as.table)} ${WHERE} RETURNING 1`;
-    const rows = await this.#sql(q, params) as unknown[];
+    const rows = await this.#sql<unknown[]>(q, params);
     return rows.length;
   }
 }

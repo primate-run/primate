@@ -1,5 +1,7 @@
+import type { Dict } from "@rcompat/type";
+
 function toIntlUnit(unit: string): Intl.NumberFormatOptions["unit"] {
-  const map: Record<string, string> = {
+  const map: Dict<string> = {
     // length
     mm: "millimeter", millimeter: "millimeter",
     cm: "centimeter", centimeter: "centimeter",

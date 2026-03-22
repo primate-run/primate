@@ -39,6 +39,9 @@ function record_not_found(field: string, value: string | number | bigint) {
 function key_duplicate(key: string) {
   return fail`key ${key} already exists`;
 }
+function table_not_found(table: string) {
+  return fail`table ${table} not found`;
+}
 
 const STORE = coded({
   db_missing,
@@ -46,6 +49,7 @@ const STORE = coded({
   unregistered_schema,
   record_not_found,
   key_duplicate,
+  table_not_found,
 });
 
 function pk_undefined(store: string) {

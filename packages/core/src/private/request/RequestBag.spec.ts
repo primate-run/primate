@@ -2,12 +2,12 @@ import RequestBag from "#request/RequestBag";
 import test from "@rcompat/test";
 import any from "@rcompat/test/any";
 import undef from "@rcompat/test/undef";
+import type { Dict } from "@rcompat/type";
 
 const toLower = (k: string) => k.toLowerCase();
 
-/** helper to build a bag quickly */
 function bag(
-  input: Record<string, string | undefined>,
+  input: Dict<string | undefined>,
   name = "test",
   raw = "",
   normalize?: (k: string) => string,

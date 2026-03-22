@@ -58,14 +58,14 @@ export interface Init<
   transform?: (input: {
     body: string;
     head: string;
-    headers: Record<string, string>;
+    headers: Dict<string>;
     app: ServeApp;
     options: ViewOptions;
     request: RequestFacade;
   }) => MaybePromise<{
     body: string;
     head?: string;
-    headers?: Record<string, string>;
+    headers?: Dict<string>;
     partial?: boolean;
   }>;
   schema?: E;
