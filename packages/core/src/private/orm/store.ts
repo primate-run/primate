@@ -12,7 +12,7 @@ import type StoreInput from "#orm/StoreInput";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { Dict, EmptyObject, Serializable } from "@rcompat/type";
-import type { DataKey, InferStore, Storable } from "pema";
+import type { DataKey, DefaultType, InferStore, Storable } from "pema";
 import StoreType from "pema/StoreType";
 
 type X<T> = { [K in keyof T]: T[K] } & {};
@@ -82,9 +82,13 @@ type Projected<T, S extends Select<T> | undefined> =
   ? X<Pick<T, S[number]>>
   : T;
 
+type DefaultFields<T extends StoreInput> = {
+  [K in keyof InferRecord<T>]: T[K] extends DefaultType<any, any> ? K : never
+}[keyof InferRecord<T>];
+
 type Insertable<T extends StoreInput> =
-  Omit<InferRecord<T>, PrimaryKeyField<T>> &
-  Partial<Pick<InferRecord<T>, PrimaryKeyField<T>>>;
+  Omit<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>> &
+  Partial<Pick<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>>>;
 
 type PrimaryKeyField<T extends StoreInput> = {
   [K in keyof T]: T[K] extends PrimaryKey<any> ? K : never

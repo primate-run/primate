@@ -1069,6 +1069,13 @@ export default <D extends DB>(db: D) => {
     assert(got.lastname).undefined();
   });
 
+  $store("insert: default fields can be omitted", User, async assert => {
+    // User has name: p.string.default("Donald")
+    // should be insertable without providing name
+    const user = await User.insert({ age: 30 });
+    assert(user.name).equals("Donald");
+  });
+
   $store("reserved table / column names", Reserved, async assert => {
     const a = await Reserved.insert({ name: "alpha", order: 1 });
     const b = await Reserved.insert({ name: "beta", order: 2 });
