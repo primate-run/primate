@@ -220,29 +220,28 @@ test.case("coerce", assert => {
     tupled: TupleType<[StringType, BooleanType]>;
   }>;
 
-  const coerced = schema({
+  const s = schema({
     name: string,
     scores: array(number),
     tupled: tuple(string, boolean),
-  }).coerce;
+  });
 
-  const coercedi = schema({
+  const si = schema({
     name: string,
     scores: [number],
     tupled: [string, boolean],
-  }).coerce;
+  });
 
   const valid = { name: "John", scores: ["1", "2"], tupled: ["yes", "true"] };
   const parsed = { name: "John", scores: [1, 2], tupled: ["yes", true] };
   const invalid = { name: "Bob", scores: ["oops"], tupled: ["ok", "nope"] };
 
-  assert(coerced).type<ExpectSchema>();
-  assert(coerced.parse(valid)).equals(parsed).type<Expected>;
+  assert(s).type<ExpectSchema>();
+  assert(s.coerce(valid)).equals(parsed).type<Expected>;
 
-  assert(coercedi).type<ExpectSchema>();
-  assert(coercedi.parse(valid)).equals(parsed).type<Expected>();
-  assert(() => coerced.parse(invalid))
-    .throws(expect("n", "oops", "scores.0"));
+  assert(si).type<ExpectSchema>();
+  assert(si.coerce(valid)).equals(parsed).type<Expected>();
+  assert(() => s.coerce(invalid)).throws(expect("n", "oops", "scores.0"));
 });
 
 test.case("deep shorthand coerce", assert => {
@@ -252,7 +251,7 @@ test.case("deep shorthand coerce", assert => {
       flags: [boolean],
     },
     pair: [string, boolean],
-  }).coerce;
+  });
 
   type Expected = {
     user: {
@@ -262,7 +261,7 @@ test.case("deep shorthand coerce", assert => {
     pair: [string, boolean];
   };
 
-  assert(s.parse({
+  assert(s.coerce({
     user: {
       age: "42",
       flags: ["true", "false"],

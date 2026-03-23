@@ -50,10 +50,6 @@ export default class ObjectType<
     return new Constructor(this.#properties, { ...this.#options, ...options });
   }
 
-  get coerce() {
-    return this.#derive({ coerce: true });
-  }
-
   shape<T>() {
     return new ObjectType<P, T>(this.#properties, this.#options);
   }

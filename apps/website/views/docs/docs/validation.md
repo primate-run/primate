@@ -61,7 +61,7 @@ const Login = p({
 });
 
 route.post(request => {
-  const form = request.body.form(Login);
+  const form = Login.parse(request.body.form());
   // form.email and form.password are now validated
   return "Welcome back!";
 });

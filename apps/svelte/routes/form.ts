@@ -17,9 +17,8 @@ route.get(async () => {
 });
 
 route.post(async request => {
-  const id = p.number.coerce.parse(request.query.get("id"));
-  const FormSchema = p({ counter: p.number.coerce });
-  const validated = request.body.form(FormSchema);
+  const id = p.number.coerce(request.query.get("id"));
+  const validated = p({ counter: p.number }).coerce(request.body.form());
 
   await Counter.update(
     id,

@@ -6,11 +6,11 @@ import (
 )
 
 var _ = route.Post(func(request route.Request) any {
-	var m map[string]any
-	if err := request.Body.JSON(&m); err != nil {
+	json, err := request.Body.JSON()
+	if err != nil {
 		return map[string]any{"error": err.Error()}
 	}
-	name, _ := m["name"].(string)
+	name, _ := json["name"].(string)
 
 	return fmt.Sprintf("Hello, %s", name)
 })

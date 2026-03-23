@@ -3,7 +3,7 @@ import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
 
-await Counter.schema.create();
+await Counter.table.create();
 
 route.get(async () => {
   const counters = await Counter.find({});
@@ -17,10 +17,11 @@ route.get(async () => {
 
 route.post(async request => {
   // validate that an id was provided
+  // request.query.get() will throw if id is missing
   const id = p.string.parse(request.query.get("id"));
 
   // validate body as a number, coercing from string first
-  const body = request.body.form(p({ value: p.number }).coerce);
+  const body = p({ value: p.number }).coerce(request.body.form());
 
   // update the value in the database
   await Counter.update({ id }, { value: body.value });

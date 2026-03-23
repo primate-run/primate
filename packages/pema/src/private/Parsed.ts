@@ -34,5 +34,9 @@ export default abstract class Parsed<StaticType> implements Serializable {
   */
   abstract parse(x: unknown, options?: ParseOptions): StaticType;
 
+  coerce(x: unknown, options: ParseOptions = {}): StaticType {
+    return this.parse(x, { ...options, coerce: true });
+  }
+
   abstract toJSON(): Serialized;
 }

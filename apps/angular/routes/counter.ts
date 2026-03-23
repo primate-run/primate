@@ -17,10 +17,10 @@ route.get(async () => {
 
 route.post(async request => {
   // validate that an id was provided
-  const id = p.u32.coerce.parse(request.query.get("id"));
+  const id = p.u32.coerce(request.query.get("id"));
 
   // validate that a request body contains a number value
-  const counter = request.body.json(p.number.coerce);
+  const counter = p.number.coerce(request.body.json());
 
   // update the value in the database
   await Counter.update(id, { set: { counter } });

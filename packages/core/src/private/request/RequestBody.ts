@@ -1,7 +1,7 @@
 import E from "#error";
 import { MIME } from "@rcompat/http";
 import is from "@rcompat/is";
-import type { Dict, JSONValue, Schema } from "@rcompat/type";
+import type { Dict, JSONValue } from "@rcompat/type";
 
 type Form = Dict<string>;
 
@@ -87,22 +87,16 @@ export default class RequestBody {
     throw E.request_unexpected_body(expected, this.type);
   }
 
-  json(): JSONValue;
-  json<S extends Schema<unknown>>(schema: S): ParseReturn<S>;
-  json(schema?: Schema<unknown>) {
+  json() {
     if (this.type !== "json") this.#unexpected_body("JSON");
 
-    const value = this.#value<JSONValue>();
-    return schema === undefined ? value : schema.parse(value);
+    return this.#value<JSONValue>();
   }
 
-  form(): Form;
-  form<S extends Schema<unknown>>(schema: S): ParseReturn<S>;
-  form(schema?: Schema<unknown>) {
+  form() {
     if (this.type !== "form") this.#unexpected_body("form");
 
-    const value = this.#value<Form>();
-    return schema === undefined ? value : schema.parse(value);
+    return this.#value<Form>();
   }
 
   files(): Dict<File> {

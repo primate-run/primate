@@ -47,8 +47,8 @@ test.case("object", assert => {
 test.case("coerce", assert => {
   const s = object({
     name: string,
-    age: number.coerce,
-    active: boolean.coerce,
+    age: number,
+    active: boolean,
   });
 
   type Expected = {
@@ -63,7 +63,7 @@ test.case("coerce", assert => {
     active: BooleanType;
   }>>();
 
-  assert(s.parse({
+  assert(s.coerce({
     name: "Bob",
     age: "42",
     active: "true",
@@ -78,10 +78,10 @@ test.case("deep coerce", assert => {
   const s = object({
     user: {
       name: string,
-      age: number.coerce,
+      age: number,
     },
-    scores: array(number.coerce),
-    tupled: tuple(string, boolean.coerce),
+    scores: array(number),
+    tupled: tuple(string, boolean),
   });
 
   type Expected = {
@@ -102,7 +102,7 @@ test.case("deep coerce", assert => {
     tupled: TupleType<[StringType, BooleanType]>;
   }>>();
 
-  assert(s.parse({
+  assert(s.coerce({
     user: {
       name: "Bob",
       age: "42",
@@ -122,14 +122,14 @@ test.case("deep coerce", assert => {
 test.case("deep coerce errors", assert => {
   const s = object({
     user: {
-      age: number.coerce,
+      age: number,
     },
-    scores: array(number.coerce),
-    tupled: tuple(string, boolean.coerce),
+    scores: array(number),
+    tupled: tuple(string, boolean),
   });
 
   {
-    const issues = throwsIssues(assert, () => s.parse({
+    const issues = throwsIssues(assert, () => s.coerce({
       user: { age: "oops" },
       scores: ["1"],
       tupled: ["ok", "true"],
@@ -139,7 +139,7 @@ test.case("deep coerce errors", assert => {
   }
 
   {
-    const issues = throwsIssues(assert, () => s.parse({
+    const issues = throwsIssues(assert, () => s.coerce({
       user: { age: "1" },
       scores: ["oops"],
       tupled: ["ok", "true"],
@@ -149,7 +149,7 @@ test.case("deep coerce errors", assert => {
   }
 
   {
-    const issues = throwsIssues(assert, () => s.parse({
+    const issues = throwsIssues(assert, () => s.coerce({
       user: { age: "1" },
       scores: ["1"],
       tupled: ["ok", "nope"],
@@ -227,10 +227,9 @@ test.case("extend: adds new fields", assert => {
 });
 
 test.case("extend: preserves options (coerce)", assert => {
-  const base = object({ spa: boolean.coerce }).coerce;
-  const extended = base.extend({ name: string });
+  const base = object({ spa: boolean });
 
-  assert(extended.parse({ spa: "true", name: "html" }))
+  assert(base.extend({ name: string }).coerce({ spa: "true", name: "html" }))
     .equals({ spa: true, name: "html" });
 });
 
@@ -315,7 +314,7 @@ test.case("shape: preserves parsing/coercion", assert => {
 
   const schema = object({
     name: string,
-    age: number.coerce,
+    age: number,
   }).shape<User>();
 
   assert(schema).type<ObjectType<{
@@ -323,7 +322,7 @@ test.case("shape: preserves parsing/coercion", assert => {
     age: NumberType;
   }, User>>();
 
-  assert(schema.parse({
+  assert(schema.coerce({
     name: "Bob",
     age: "42",
   })).equals({

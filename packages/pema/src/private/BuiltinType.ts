@@ -21,10 +21,6 @@ export default abstract class BuiltinType<StaticType, Name extends string>
     return new Constructor({ ...this.#options, ...next });
   }
 
-  get coerce() {
-    return this.#derive({ coerce: true });
-  }
-
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     const $options = { ...this.#options, ...options };
     const $x = $options.coerce === true ? this[CoerceKey](x) : x;

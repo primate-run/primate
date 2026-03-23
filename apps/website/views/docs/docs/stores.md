@@ -65,7 +65,7 @@ app — without any framework initialisation.
 // scripts/migrate.ts
 import Post from "../stores/Post.ts";
 
-await Post.schema.create();
+await Post.table.create();
 ```
 
 ### Primary keys
@@ -254,10 +254,10 @@ Create tables or collections at app startup, e.g. in a route file.
 ```ts
 import Post from "#store/Post";
 
-await Post.schema.create();
+await Post.table.create();
 
 // ... later (e.g., tests/teardown)
-// await Post.schema.delete();
+// await Post.table.delete();
 ```
 
 You can safely call `create()` multiple times; drivers treat it as idempotent.
@@ -285,10 +285,10 @@ route.get(async () => {
 });
 
 route.post(async request => {
-  const body = request.body.form(p({
+  const body = p({
     title: p.string.max(100),
     body: p.string,
-  }).coerce);
+  }).coerce(request.body.form());
 
   const created = await Post.insert(body);
 
@@ -364,7 +364,7 @@ export default Base.extend(User => {
       return User.find({ where: { name: { $like: `${prefix}%` } } });
     },
     async updateAge(id: typeof Schema.id, age: typeof Schema.age) {
-      return User.update({ where: { id }, set: { age } });
+      return User.update(id, { set: { age } });
     },
     async getAverageAge() {
       const users = await User.find({ where: {} });

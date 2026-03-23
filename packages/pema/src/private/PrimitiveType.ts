@@ -43,10 +43,6 @@ export default abstract class PrimitiveType<StaticType, Name extends string>
     );
   }
 
-  get coerce() {
-    return this.derive({ options: { coerce: true } });
-  }
-
   parse(x: unknown, options: ParseOptions<StaticType> = {}): Infer<this> {
     // hotpath: avoid object spread when possible
     const has_instance_options = this.#options.coerce !== undefined

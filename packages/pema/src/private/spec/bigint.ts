@@ -31,23 +31,22 @@ export default <T extends BigIntDataType>(
   });
 
   test.case("coerced", assert => {
-    const coerced = i.coerce;
-    assert(coerced.parse(0n)).equals(0n).type<bigint>();
-    assert(coerced.parse(1n)).equals(1n).type<bigint>();
-    assert(coerced.parse(0)).equals(0n).type<bigint>();
-    assert(coerced.parse(1)).equals(1n).type<bigint>();
-    assert(coerced.parse("1")).equals(1n).type<bigint>();
-    assert(coerced.parse("1.0")).equals(1n).type<bigint>();
-    assert(coerced.parse("1.")).equals(1n).type<bigint>();
-    assert(() => coerced.parse("0.1")).throws(expect("bi", "0.1"));
-    assert(() => coerced.parse(".1")).throws(expect("bi", ".1"));
+    assert(i.coerce(0n)).equals(0n).type<bigint>();
+    assert(i.coerce(1n)).equals(1n).type<bigint>();
+    assert(i.coerce(0)).equals(0n).type<bigint>();
+    assert(i.coerce(1)).equals(1n).type<bigint>();
+    assert(i.coerce("1")).equals(1n).type<bigint>();
+    assert(i.coerce("1.0")).equals(1n).type<bigint>();
+    assert(i.coerce("1.")).equals(1n).type<bigint>();
+    assert(() => i.coerce("0.1")).throws(expect("bi", "0.1"));
+    assert(() => i.coerce(".1")).throws(expect("bi", ".1"));
 
-    assert(coerced.parse(-1)).equals(-1n).type<bigint>();
-    assert(coerced.parse("-1")).equals(-1n).type<bigint>();
-    assert(coerced.parse("-1.0")).equals(-1n).type<bigint>();
-    assert(coerced.parse("-1.")).equals(-1n).type<bigint>();
-    assert(() => coerced.parse("-0.1")).throws(expect("bi", "-0.1"));
-    assert(() => coerced.parse("-.1")).throws(expect("bi", "-.1"));
+    assert(i.coerce(-1)).equals(-1n).type<bigint>();
+    assert(i.coerce("-1")).equals(-1n).type<bigint>();
+    assert(i.coerce("-1.0")).equals(-1n).type<bigint>();
+    assert(i.coerce("-1.")).equals(-1n).type<bigint>();
+    assert(() => i.coerce("-0.1")).throws(expect("bi", "-0.1"));
+    assert(() => i.coerce("-.1")).throws(expect("bi", "-.1"));
   });
 
   test.case("default", assert => {

@@ -10,6 +10,10 @@ interface Schema<T> {
   parse(input: unknown): T;
 }
 
+interface CoercibleSchema<T> extends Schema<T> {
+  coerce(input: unknown): T;
+}
+
 type Options = {
   normalize?: Normalize;
   raw?: string;
@@ -133,6 +137,10 @@ export default class RequestBag {
    */
   parse<T>(schema: Schema<T>): T {
     return schema.parse(this.#contents);
+  }
+
+  coerce<T>(schema: CoercibleSchema<T>): T {
+    return schema.coerce(this.#contents);
   }
 
   /** Returns {@link raw}. Useful in template strings. */

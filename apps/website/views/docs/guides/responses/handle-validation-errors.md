@@ -23,13 +23,11 @@ helpers to keep client values validated and synced with the server.
 import p from "pema";
 import route from "primate/route";
 
-const Signup = p({
-  email: p.string.email(),
-});
+const Signup = p({ email: p.string.email() });
 
 route.post(request => {
   // throws a `ParseError` if the `email` field does not contain a valid email
-  const { email } = request.body.form(Signup);
+  const { email } = Signup.parse(request.body.form());
   return `Signed up with ${email}`;
 });
 ```
@@ -46,7 +44,7 @@ import ParseError from "pema/ParseError";
 
 route.post(request => {
   try {
-    const { email } = request.body.form(Signup);
+    const { email } = Signup.parse(request.body.form());
     return `Signed up with ${email}`;
   } catch (error) {
     if (error instanceof ParseError) {
@@ -76,7 +74,7 @@ import response from "primate/response";
 
 route.post(request => {
   try {
-    const { email } = request.body.form(Signup);
+    const { email } = Signup.parse(request.body.form());
     return `Signed up with ${email}`;
   } catch (error) {
     if (error instanceof ParseError) {

@@ -241,7 +241,7 @@ import route from "primate/route";
 import response from "primate/response";
 import p from "pema";
 
-await Counter.schema.create();
+await Counter.table.create();
 
 // GET page
 route.get(async () => {
@@ -259,9 +259,9 @@ route.post(async request => {
   // Ensure id is present
   const id = p.string.parse(request.query.get("id"));
   // Validate and coerce
-  const body = request.body.form(p({ value: p.number }).coerce);
+  const body = p({ value: p.number }).coerce(request.body.form());
   // Persist changes
-  await Counter.update({ id }, { value: body.value });
+  await Counter.update(id, { set: { value: body.value } });
   return null; // 204
 });
 ```
@@ -339,8 +339,8 @@ const LoginSchema = p({
 
 route.get(() => response.view("LoginForm.component.ts"));
 
-route.post(async request => {
-  const body = await request.body.json(LoginSchema);
+route.post(request => {
+  const body = LoginSchema.parse(request.body.json());
 
   // implement authentication logic
 

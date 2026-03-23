@@ -49,22 +49,18 @@ test.case("flat", assert => {
 });
 
 test.case("coerce", assert => {
-  const snb = tuple(string, number.coerce, boolean.coerce);
-
-  assert(snb).type<TupleType<[StringType, NumberType, BooleanType]>>();
-
-  assert(snb.parse(["foo", "1", "true"]))
+  assert(s_n_b.coerce(["foo", "1", "true"]))
     .equals(["foo", 1, true])
     .type<[string, number, boolean]>();
 
-  assert(snb.parse(["bar", "0", "false"]))
+  assert(s_n_b.coerce(["bar", "0", "false"]))
     .equals(["bar", 0, false])
     .type<[string, number, boolean]>();
 
-  assert(() => snb.parse(["foo", "oops", "true"]))
+  assert(() => s_n_b.coerce(["foo", "oops", "true"]))
     .throws(expect("n", "oops", 1));
 
-  assert(() => snb.parse(["foo", "1", "nope"]))
+  assert(() => s_n_b.coerce(["foo", "1", "nope"]))
     .throws(expect("b", "nope", 2));
 });
 
@@ -78,11 +74,9 @@ test.case("deep", assert => {
 });
 
 test.case("deep coerce", assert => {
-  const rc = tuple(tuple(number.coerce));
+  const rc = tuple(tuple(number));
 
-  assert(rc.parse([["1"]]))
-    .equals([[1]])
-    .type<[[number]]>();
+  assert(rc.coerce([["1"]])).equals([[1]]).type<[[number]]>();
 });
 
 test.case("in array", assert => {

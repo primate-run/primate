@@ -77,28 +77,24 @@ test.case("flat", assert => {
 });
 
 test.case("coerce", assert => {
-  const nc = array(number.coerce);
-  const bc = array(boolean.coerce);
-  const bic = array(bigint.coerce);
-  const dc = array(date.coerce);
+  assert(n).type<ArrayType<NumberType>>();
+  assert(b).type<ArrayType<BooleanType>>();
+  assert(bi).type<ArrayType<BigIntType>>();
+  assert(d).type<ArrayType<DateType>>();
 
-  assert(nc).type<ArrayType<NumberType>>();
-  assert(bc).type<ArrayType<BooleanType>>();
-  assert(bic).type<ArrayType<BigIntType>>();
-  assert(dc).type<ArrayType<DateType>>();
-
-  assert(nc.parse(["1", "2"])).equals([1, 2]).type<number[]>();
-  assert(bc.parse(["true", "false"])).equals([true, false]).type<boolean[]>();
-  assert(bic.parse(["1", "2"])).equals([1n, 2n]).type<bigint[]>();
+  assert(n.coerce(["1", "2"])).equals([1, 2]).type<number[]>();
+  assert(b.coerce(["true", "false"])).equals([true, false]).type<boolean[]>();
+  assert(bi.coerce(["1", "2"])).equals([1n, 2n]).type<bigint[]>();
 
   const d0 = "2024-01-01T00:00:00.000Z";
   const d1 = "2024-01-02T00:00:00.000Z";
-  assert(dc.parse([d0, d1])).equals([new Date(d0), new Date(d1)]).type<Date[]>();
+  assert(d.coerce([d0, d1]))
+    .equals([new Date(d0), new Date(d1)]).type<Date[]>();
 
-  assert(() => nc.parse(["oops"])).throws(expect("n", "oops", 0));
-  assert(() => bc.parse(["nope"])).throws(expect("b", "nope", 0));
-  assert(() => bic.parse(["wat"])).throws(expect("bi", "wat", 0));
-  assert(() => dc.parse(["wat"])).throws(expect("d", "wat", 0));
+  assert(() => n.coerce(["oops"])).throws(expect("n", "oops", 0));
+  assert(() => b.coerce(["nope"])).throws(expect("b", "nope", 0));
+  assert(() => bi.coerce(["wat"])).throws(expect("bi", "wat", 0));
+  assert(() => d.coerce(["wat"])).throws(expect("d", "wat", 0));
 });
 
 test.case("sparse", assert => {
@@ -147,21 +143,21 @@ test.case("deep", assert => {
 });
 
 test.case("deep coerce", assert => {
-  const rc = array(array(number.coerce));
-  const tc = array(tuple(string, number.coerce, boolean.coerce));
+  const rc = array(array(number));
+  const tc = array(tuple(string, number, boolean));
 
-  assert(rc.parse([["1"], ["2", "3"]]))
+  assert(rc.coerce([["1"], ["2", "3"]]))
     .equals([[1], [2, 3]])
     .type<number[][]>();
 
-  assert(tc.parse([["foo", "1", "true"], ["bar", "2", "false"]]))
+  assert(tc.coerce([["foo", "1", "true"], ["bar", "2", "false"]]))
     .equals([["foo", 1, true], ["bar", 2, false]])
     .type<[string, number, boolean][]>();
 
-  assert(() => rc.parse([["oops"]])).throws(expect("n", "oops", "0.0"));
-  assert(() => tc.parse([["foo", "nope", "true"]]))
+  assert(() => rc.coerce([["oops"]])).throws(expect("n", "oops", "0.0"));
+  assert(() => tc.coerce([["foo", "nope", "true"]]))
     .throws(expect("n", "nope", "0.1"));
-  assert(() => tc.parse([["foo", "1", "nope"]]))
+  assert(() => tc.coerce([["foo", "1", "nope"]]))
     .throws(expect("b", "nope", "0.2"));
 });
 

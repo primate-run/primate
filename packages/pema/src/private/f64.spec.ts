@@ -15,22 +15,20 @@ test.case("pass", assert => {
 });
 
 test.case("coerce", assert => {
-  const coerced = number.coerce;
-  assert(coerced).type<NumberType>();
-  assert(coerced.parse(1)).equals(1).type<number>();
-  assert(coerced.parse(-1)).equals(-1).type<number>();
+  assert(number.coerce(1)).equals(1).type<number>();
+  assert(number.coerce(-1)).equals(-1).type<number>();
 
-  assert(coerced.parse("1")).equals(1).type<number>();
-  assert(coerced.parse("1.0")).equals(1).type<number>();
-  assert(coerced.parse("1.")).equals(1).type<number>();
-  assert(coerced.parse("0.1")).equals(0.1).type<number>();
-  assert(coerced.parse(".1")).equals(0.1).type<number>();
+  assert(number.coerce("1")).equals(1).type<number>();
+  assert(number.coerce("1.0")).equals(1).type<number>();
+  assert(number.coerce("1.")).equals(1).type<number>();
+  assert(number.coerce("0.1")).equals(0.1).type<number>();
+  assert(number.coerce(".1")).equals(0.1).type<number>();
 
-  assert(coerced.parse("-1")).equals(-1).type<number>();
-  assert(coerced.parse("-1.0")).equals(-1).type<number>();
-  assert(coerced.parse("-1.")).equals(-1).type<number>();
-  assert(coerced.parse("-0.1")).equals(-0.1).type<number>();
-  assert(coerced.parse("-.1")).equals(-0.1).type<number>();
+  assert(number.coerce("-1")).equals(-1).type<number>();
+  assert(number.coerce("-1.0")).equals(-1).type<number>();
+  assert(number.coerce("-1.")).equals(-1).type<number>();
+  assert(number.coerce("-0.1")).equals(-0.1).type<number>();
+  assert(number.coerce("-.1")).equals(-0.1).type<number>();
 });
 
 test.case("default", assert => {

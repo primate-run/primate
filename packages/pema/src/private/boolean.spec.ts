@@ -17,14 +17,12 @@ test.case("pass", assert => {
 });
 
 test.case("coerce", assert => {
-  const coerced = boolean.coerce;
-  assert(coerced).type<BooleanType>();
-  assert(coerced.parse(true)).equals(true).type<boolean>();
-  assert(coerced.parse(false)).equals(false).type<boolean>();
-  assert(coerced.parse("true")).equals(true).type<boolean>();
-  assert(coerced.parse("false")).equals(false).type<boolean>();
-  assert(() => coerced.parse("1")).throws(expect("b", "1"));
-  assert(() => coerced.parse("0")).throws(expect("b", "0"));
+  assert(boolean.coerce(true)).equals(true).type<boolean>();
+  assert(boolean.coerce(false)).equals(false).type<boolean>();
+  assert(boolean.coerce("true")).equals(true).type<boolean>();
+  assert(boolean.coerce("false")).equals(false).type<boolean>();
+  assert(() => boolean.coerce("1")).throws(expect("b", "1"));
+  assert(() => boolean.coerce("0")).throws(expect("b", "0"));
 });
 
 test.case("default", assert => {

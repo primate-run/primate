@@ -16,12 +16,9 @@ test.case("pass", assert => {
 });
 
 test.case("coerce", assert => {
-  const coerced = date.coerce;
-  assert(coerced).type<DateType>();
-
   const d = new Date(1723718400000);
 
-  assert(coerced.parse(1723718400000)).equals(d);
+  assert(date.coerce(1723718400000)).equals(d);
 });
 
 test.case("default", assert => {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import client from "@primate/svelte/client";
-  const props: { id: string; counter: number } = $props();
+  const props: { id: number; counter: number } = $props();
   const counter = client.field(props.counter).post(`/counter?id=${props.id}`);
 </script>
 

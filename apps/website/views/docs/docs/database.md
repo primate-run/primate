@@ -148,7 +148,7 @@ Helpers provided by the base `Database` class include:
 * identifier quoting: `ident()`, `table()`
 * SQL-like builders: `toSelect()`, `toWhere()`, `toSort()`, `toLimit()`
 * binding: `bind()`, `bindCriteria()`, `unbind()`, `formatBinds()`
-* schema ops on `database.schema.create(name, schema)` and `delete()`
+* schema ops on `database.table.create(name, schema)` and `delete()`
 
 Drivers adapt these to their backends (SQL, Mongo queries).
 

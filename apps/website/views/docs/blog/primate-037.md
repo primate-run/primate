@@ -178,7 +178,7 @@ a running Primate app:
 // scripts/migrate.ts
 import Post from "../stores/Post.ts";
 
-await Post.schema.create();
+await Post.table.create();
 ```
 
 No framework initialisation required. See the updated [stores] page for the
@@ -273,6 +273,134 @@ to `key.primary(p.uuid)`. The same applies to `key.foreign(p.string)` — use
 
 The compiler will flag any remaining uses of `p.string` as a primary or
 foreign key type. Replace them with `p.uuid` and rebuild.
+
+## Validation and request API cleanup
+
+This release also simplifies a few validation and request-handling seams.
+
+None of these changes are large features on their own, but together they make
+the API more explicit and easier to reason about.
+
+### Pema: `coerce` is now a method
+
+In Pema, `coerce` used to be a getter that produced a modified schema, which
+meant writing things like:
+
+```ts
+const id = p.u32.coerce.parse(request.query.get("id"));
+```
+
+In 0.37, `coerce` is now a real method:
+
+```ts
+const id = p.u32.coerce(request.query.get("id"));
+```
+
+This also applies to objects and nested schemas. Instead of sprinkling
+`.coerce` through child fields, you now usually coerce at the point where you
+actually parse:
+
+```ts
+// before
+const FormSchema = p({ counter: p.number.coerce });
+const body = FormSchema.parse(request.body.form());
+
+// after
+const body = p({ counter: p.number }).coerce(request.body.form());
+```
+
+This reads better, and it makes coercion a parsing strategy rather than a
+special schema flavour.
+
+### Request bags gained `.coerce(schema)`
+
+`request.query`, `request.path`, `request.headers`, and `request.cookies` are
+all `RequestBag`s: normalized bags of string values.
+
+They already supported `.parse(schema)`. They now also support
+`.coerce(schema)` for schemas that expose coercive parsing.
+
+```ts
+const query = request.query.coerce(p({
+  page: p.u32,
+  active: p.boolean,
+}));
+```
+
+This is a convenience API only — you can still always write the equivalent
+schema call directly:
+
+```ts
+const query = p({
+  page: p.u32,
+  active: p.boolean,
+}).coerce(request.query.toJSON());
+```
+
+### `request.body` is now transport-only
+
+`request.body` methods no longer accept a schema. They now simply decode the
+body into its transport-level representation:
+
+```ts
+request.body.json()
+request.body.form()
+request.body.text()
+request.body.files()
+request.body.binary()
+```
+
+Validation now happens explicitly on the schema side:
+
+```ts
+// before
+const body = request.body.json(p.number.coerce);
+
+// after
+const body = p.number.coerce(request.body.json());
+```
+
+and:
+
+```ts
+// before
+const body = request.body.form(LoginSchema);
+
+// after
+const body = LoginSchema.parse(request.body.form());
+```
+
+This keeps `RequestBody` focused on decoding HTTP payloads, leaves validation
+policy in the hands of the schema, and translates better to the non-JavaScript
+backends.
+
+### Migrating
+
+Most migrations are mechanical:
+
+```ts
+// before
+p.u32.coerce.parse(x)
+
+// after
+p.u32.coerce(x)
+```
+
+```ts
+// before
+request.body.form(MySchema)
+
+// after
+MySchema.parse(request.body.form())
+```
+
+```ts
+// before
+request.body.json(p.number.coerce)
+
+// after
+p.number.coerce(request.body.json())
+```
 
 ## What's next
 

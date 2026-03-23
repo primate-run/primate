@@ -83,6 +83,11 @@ test.case("parse: schema receives normalized contents", assert => {
       // return something transformed to prove delegation worked
       return { ok: true };
     },
+    coerce(input: unknown) {
+      received = input;
+      // return something transformed to prove delegation worked
+      return { ok: true };
+    },
   };
 
   const b = bag({ bar: "2", Foo: "1" }, "query", "?Foo=1&bar=2", toLower);
