@@ -3,7 +3,7 @@ import type {
   As, DataDict, DB, PK, ReadArgs, ReadRelationsArgs,
   SchemaDiff, Sort, Types, With,
 } from "@primate/core/db";
-import common from "@primate/core/db";
+import base from "@primate/core/db";
 import E from "@primate/core/db/error";
 import sql from "@primate/core/db/sql";
 import assert from "@rcompat/assert";
@@ -88,8 +88,8 @@ function cmp_expr(field: string, key: string, op: string, datatype: string) {
   const sql_op = sql.OPS[op];
   assert.defined(sql_op, E.operator_unknown(field, op));
 
-  if (common.BIGINT_STRING_TYPES.includes(datatype)) {
-    const cmp = common.UNSIGNED_BIGINT_TYPES.includes(datatype)
+  if (base.BIGINT_STRING_TYPES.includes(datatype)) {
+    const cmp = base.UNSIGNED_BIGINT_TYPES.includes(datatype)
       ? u_cmp(field, `CAST(${field} AS TEXT)`, `CAST(${rhs} AS TEXT)`, sql_op)
       : i_cmp(field, rhs, sql_op);
     return `(${cmp})`;
@@ -142,7 +142,7 @@ function columns_to_types(type: string): DataKey[] {
   if (t === "TEXT") return [
     "string", "url", "time", "datetime", "json",
     "u64", "u128", "i64", "i128",
-    "uuid", "uuid_v4", "uuid_v7",
+    ...base.UUID_TYPES,
   ];
   if (t === "INTEGER") return [
     "boolean", "i8", "u8", "i16", "u16", "i32", "u32",
@@ -368,9 +368,9 @@ export default class SQLite implements DB {
     const pk = as.pk!;
     const type = as.types[pk];
 
-    if (type === "string") return crypto.randomUUID();
+    if (base.is_uuid_type(type)) return base.generate_uuid(type);
 
-    if (common.BIGINT_STRING_TYPES.includes(type)) {
+    if (base.BIGINT_STRING_TYPES.includes(type)) {
       const query = Q`SELECT ${pk} AS v
         FROM ${as.table} ORDER BY LENGTH(${pk}) DESC, ${pk} DESC LIMIT 1`;
       const rows = this.#sql(query).all() as { v: PK }[];
@@ -409,7 +409,7 @@ export default class SQLite implements DB {
     const type = as.types[pk];
 
     // integer types, use RETURNING
-    if (!common.BIGINT_STRING_TYPES.includes(type) && type !== "string") {
+    if (!base.BIGINT_STRING_TYPES.includes(type) && !base.is_uuid_type(type)) {
       const [keys, values] = this.#create(record);
       const query = keys.length > 0
         ? Q`INSERT INTO ${table} (${keys}) VALUES (${values}) RETURNING ${pk}`
@@ -454,7 +454,7 @@ export default class SQLite implements DB {
 
     if (args.count === true) return this.#count(as, args.where);
 
-    if (common.withed(args)) {
+    if (base.withed(args)) {
       return sql.joinable(as, args.with)
         ? this.#read_joined(as, args)
         : this.#read_phased(as, args);
@@ -491,9 +491,9 @@ export default class SQLite implements DB {
   }
 
   async #read_phased(as: As, args: ReadRelationsArgs) {
-    const fields = common.expand(as, args.fields, args.with);
+    const fields = base.expand(as, args.fields, args.with);
     const rows = await this.#read_base(as, { ...args, fields });
-    const out = rows.map(row => common.project(row, args.fields));
+    const out = rows.map(row => base.project(row, args.fields));
 
     for (const [table, relation] of Object.entries(args.with)) {
       await this.#attach_relation(as, { rows, out, table, relation });
@@ -547,8 +547,8 @@ export default class SQLite implements DB {
 
       const rows = grouped.get(join_value) ?? [];
       args.out[i][args.table] = is_many
-        ? rows.map(r => common.project(r, relation.fields))
-        : rows[0] ? common.project(rows[0], relation.fields) : null;
+        ? rows.map(r => base.project(r, relation.fields))
+        : rows[0] ? base.project(rows[0], relation.fields) : null;
     }
   }
 
@@ -583,7 +583,7 @@ export default class SQLite implements DB {
     const fields = args.fields !== undefined && args.fields.length > 0
       ? args.fields
       : all_columns;
-    const SELECT = sql.columns(args.as.types, common.fields(fields, args.by));
+    const SELECT = sql.columns(args.as.types, base.fields(fields, args.by));
 
     const base_order = `${sql.quote(args.by)} ASC`;
     const user_order = sql.orderBy(args.as.types, args.sort)
@@ -669,14 +669,14 @@ export default class SQLite implements DB {
     const tables = [as.table, ...Object.values(args.with).map(r => r.as.table)];
     const aliases = sql.aliases(tables);
     const alias = aliases[as.table];
-    const fields = common.fields(args.fields, as.pk);
+    const fields = base.fields(args.fields, as.pk);
 
     // subquery for limited parents
     const SELECT = [
       sql.aliased(aliases, as, fields),
       ...Object.values(args.with).map(relation => {
         return sql.aliased(aliases, relation.as, relation.as.pk !== null
-          ? common.fields(relation.fields, relation.as.pk)
+          ? base.fields(relation.fields, relation.as.pk)
           : relation.fields);
 
       }),

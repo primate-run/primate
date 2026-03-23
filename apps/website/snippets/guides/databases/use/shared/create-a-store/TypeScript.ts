@@ -7,7 +7,7 @@ export default store({
   name: "user",
   db,
   schema: {
-    id: key.primary(p.string),
+    id: key.primary(p.uuid),
     name: p.string,
     email: p.string.email(),
   },

@@ -62,13 +62,16 @@ function pk_duplicate(pk: string) {
   return fail`primary key ${pk} already exists`;
 }
 function pk_invalid(pk: unknown) {
-  return fail`pk must be string, number or bigint, got ${kind_of(pk)}`;
+  return fail`pk value ${pk} (${kind_of(pk)}) does not match the expected type`;
 }
 function pk_required(table: string) {
-  return fail`pk is required but has generate=${false} in table ${table}`;
+  return fail`primary key is required but has generate=${false} in table ${table}`;
 }
 function pk_multiple_pks(first: string, second: string) {
   return fail`multiple primary keys: ${first}, ${second}`;
+}
+function pk_invalid_type(datatype: string) {
+  return fail`primary key type ${datatype} not allowed; use unsigned integers or p.uuid`;
 }
 
 const PK = coded({
@@ -78,6 +81,7 @@ const PK = coded({
   pk_invalid,
   pk_required,
   pk_multiple_pks,
+  pk_invalid_type,
 });
 
 type Context = "select" | "where" | "sort" | "insert" | "set";

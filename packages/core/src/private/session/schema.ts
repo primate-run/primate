@@ -13,8 +13,8 @@ export default p({
   store: p.constructor(Store).default(() => {
     return store({
       schema: {
-        id: key.primary(p.string),
-        session_id: p.string.uuid(),
+        id: key.primary(p.uuid),
+        session_id: p.uuid,
       },
       db: new MemoryDB(),
       name: "session",

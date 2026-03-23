@@ -78,8 +78,8 @@ import p from "pema";
 // auto-generated integer PK (default)
 id: key.primary(p.u32)
 
-// auto-generated string PK (UUID)
-id: key.primary(p.string)
+// auto-generated UUID PK
+id: key.primary(p.uuid)
 
 // bigint PK
 id: key.primary(p.u64)
@@ -135,7 +135,7 @@ export default store({
   name: "user",
   db,
   schema: {
-    id: key.primary(p.string),
+    id: key.primary(p.uuid),
     name: p.string,
   },
   relations: {
@@ -159,7 +159,7 @@ export default store({
   name: "user",
   db,
   schema: {
-    id: key.primary(p.string),
+    id: key.primary(p.uuid),
     name: p.string,
   },
   relations: {

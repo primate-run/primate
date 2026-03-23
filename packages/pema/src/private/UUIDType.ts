@@ -4,7 +4,7 @@ import Storable from "#Storable";
 import UUIDV4Type from "#UUIDV4Type";
 import UUIDV7Type from "#UUIDV7Type";
 
-const re = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const re = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 
 const v4 = new UUIDV4Type();
 const v7 = new UUIDV7Type();

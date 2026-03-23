@@ -5,6 +5,7 @@ import type Types from "#db/Types";
 import type DBWith from "#db/With";
 import type ExtractSchema from "#orm/ExtractSchema";
 import type ForeignKey from "#orm/ForeignKey";
+import type { AllowedFKType } from "#orm/ForeignKey";
 import parse from "#orm/parse";
 import type PrimaryKey from "#orm/PrimaryKey";
 import type { ManyRelation, OneRelation, Relation } from "#orm/relation";
@@ -112,7 +113,7 @@ const is_bigint_key = (d: string): d is BigIntKey =>
 type PKV<T extends StoreInput> =
   T[PrimaryKeyField<T>] extends PrimaryKey<infer P>
   ? P extends Storable<infer D>
-  ? D extends "string" ? string
+  ? D extends "uuid" | "uuid_v4" | "uuid_v7" ? string
   : D extends NumberKey ? number
   : D extends BigIntKey ? bigint
   : string | number | bigint
@@ -249,7 +250,7 @@ export class Store<
   #db: DB;
   #pk: PK;
   #generate_pk: boolean;
-  #fks: Map<string, ForeignKey<Storable<DataKey>>>;
+  #fks: Map<string, ForeignKey<AllowedFKType>>;
   #relations: R;
 
   declare readonly Schema: Schema<T>;
@@ -336,6 +337,17 @@ export class Store<
 
   get types() {
     return this.#types;
+  }
+
+  #parse_pk(pkv: unknown): string {
+    const pk = this.#pk;
+    if (pk === null) throw E.pk_undefined(this.name);
+    try {
+      this.#schema[pk].parse(pkv);
+    } catch {
+      throw E.pk_invalid(pkv);
+    }
+    return pk;
   }
 
   #parse_query(query: Query, types: Types) {
@@ -478,6 +490,11 @@ export class Store<
         case "blob":
           if (!is.blob(value)) throw E.wrong_type("blob", k, value);
           continue;
+        case "uuid":
+        case "uuid_v4":
+        case "uuid_v7":
+          if (!is.string(value)) throw E.wrong_type("string", k, value);
+          continue;
         default:
           throw E.where_invalid_value(k, value);
       }
@@ -537,8 +554,8 @@ export class Store<
    * Check whether a record with the given primary key exists.
    */
   async has(pkv: PKV<T>) {
-    if (this.#pk === null) throw E.pk_undefined(this.name);
-    return (await this.count({ where: { [this.#pk]: pkv } as Where<T> })) === 1;
+    const pk = this.#parse_pk(pkv);
+    return (await this.count({ where: { [pk]: pkv } as Where<T> })) === 1;
   }
 
   /**
@@ -563,8 +580,7 @@ export class Store<
     pkv: PKV<T>,
     options?: { select?: readonly string[]; with?: With<R> },
   ) {
-    const pk = this.#pk;
-    if (pk === null) throw E.pk_undefined(this.name);
+    const pk = this.#parse_pk(pkv);
 
     guard_options(options, ["select", "with"]);
     this.#parse_query(options ?? {}, this.#types);
@@ -576,9 +592,10 @@ export class Store<
       with: $with,
     });
 
-    assert.true(records.length <= 1);
+    const n = records.length;
+    assert.true(n <= 1, `got ${n} records instead of 0 or 1`);
 
-    if (records.length === 0) {
+    if (n === 0) {
       const err = E.record_not_found(pk, pkv);
       (err as any).not_found = true;
       throw err;
@@ -693,9 +710,7 @@ export class Store<
   }
 
   async #update_1(pkv: PKV<T>, set: $Set<T>) {
-    const pk = this.#pk;
-    if (pk === null) throw E.pk_undefined(this.name);
-
+    const pk = this.#parse_pk(pkv);
     const n = await this.db.update(this.#as, { set, where: { [pk]: pkv } });
 
     assert.true(n === 1, `${n} records updated instead of 1`);
@@ -727,9 +742,7 @@ export class Store<
   }
 
   async #delete_1(pkv: PKV<T>) {
-    const pk = this.#pk;
-    if (pk === null) throw E.pk_undefined(this.name);
-
+    const pk = this.#parse_pk(pkv);
     const n = await this.db.delete(this.#as, { where: { [pk]: pkv } });
     assert.true(n === 1, `${n} records deleted instead of 1`);
   }

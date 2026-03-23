@@ -1,15 +1,15 @@
-import key from "#orm/key";
 import ForeignKey from "#orm/ForeignKey";
+import key from "#orm/key";
 import PrimaryKey from "#orm/PrimaryKey";
-import p from "pema";
 import test from "@rcompat/test";
+import p from "pema";
 
 test.case("primary - creates PrimaryKey", assert => {
-  const pk = key.primary(p.string);
+  const pk = key.primary(p.uuid);
 
   assert(pk instanceof PrimaryKey).true();
   assert(pk.name).equals("string");
-  assert(pk.datatype).equals("string");
+  assert(pk.datatype).equals("uuid");
   assert(pk.nullable).equals(false);
 });
 
@@ -25,22 +25,22 @@ test.case("primary - numeric types", assert => {
 });
 
 test.case("primary - exposes underlying type", assert => {
-  const pk = key.primary(p.string);
+  const pk = key.primary(p.uuid);
 
-  assert(pk.type).equals(p.string);
+  assert(pk.type).equals(p.uuid);
 });
 
 test.case("foreign - creates ForeignKey", assert => {
-  const fk = key.foreign(p.string);
+  const fk = key.foreign(p.uuid);
 
   assert(fk instanceof ForeignKey).true();
   assert(fk.name).equals("string");
-  assert(fk.datatype).equals("string");
+  assert(fk.datatype).equals("uuid");
   assert(fk.nullable).equals(false);
 });
 
 test.case("foreign - nullable when optional", assert => {
-  const fk = key.foreign(p.string.optional());
+  const fk = key.foreign(p.uuid.optional());
 
   assert(fk.nullable).equals(true);
 });

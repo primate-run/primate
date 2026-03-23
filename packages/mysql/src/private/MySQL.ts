@@ -1,11 +1,11 @@
 import typemap from "#typemap";
 import type {
-    As, DataDict, DB,
-    ReadArgs, ReadRelationsArgs,
-    SchemaDiff,
-    Sort, Types, With,
+  As, DataDict, DB,
+  ReadArgs, ReadRelationsArgs,
+  SchemaDiff,
+  Sort, Types, With,
 } from "@primate/core/db";
-import common from "@primate/core/db";
+import base from "@primate/core/db";
 import E from "@primate/core/db/error";
 import sql from "@primate/core/db/sql";
 import assert from "@rcompat/assert";
@@ -64,9 +64,7 @@ function columns_to_types(data_t: string, column_t: string): DataKey[] {
 
   if (data_t === "varchar") return ["string", "url"];
   if (data_t === "text") return ["string", "url", "time"];
-  if (data_t === "binary" && column_t.includes("(16)")) return [
-    "uuid", "uuid_v4", "uuid_v7"
-  ];
+  if (data_t === "binary" && column_t.includes("(16)")) return base.UUID_TYPES;
   if (data_t === "smallint") return unsigned ? ["u16"] : ["i16"];
   if (data_t === "int") return unsigned ? ["u32"] : ["i32"];
   if (data_t === "bigint") return unsigned ? ["u64"] : ["i64"];
@@ -147,7 +145,7 @@ export default class MySQL implements DB {
         for (const [key, value] of Object.entries(store)) {
           const type = get_column(value.datatype);
           if (key === as.pk) {
-            const is_int = common.INT_TYPES.includes(value.datatype);
+            const is_int = base.INT_TYPES.includes(value.datatype);
             const auto = as.generate_pk && is_int ? " AUTO_INCREMENT" : "";
             // 36 is UUID length
             const pk_type = value.datatype === "string" ? "VARCHAR(36)" : type;
@@ -290,9 +288,9 @@ export default class MySQL implements DB {
     const type = as.types[pk];
     const table = as.table;
 
-    if (type === "string") return crypto.randomUUID();
+    if (base.is_uuid_type(type)) return base.generate_uuid(type);
 
-    if (common.BIGINT_STRING_TYPES.includes(type)) {
+    if (base.BIGINT_STRING_TYPES.includes(type)) {
       const cast = bigint_cast(sql.quote(pk));
       const q = `SELECT MAX(${cast}) AS v FROM ${sql.quote(table)}`;
       const rows = await this.#sql<RowDataPacket[]>(q);
@@ -340,7 +338,7 @@ export default class MySQL implements DB {
     const type = as.types[pk];
 
     // integer types, use AUTO_INCREMENT
-    if (!common.BIGINT_STRING_TYPES.includes(type) && type !== "string") {
+    if (!base.BIGINT_STRING_TYPES.includes(type) && !base.is_uuid_type(type)) {
       const [keys, values] = this.#create(record);
       const query = keys.length > 0
         ? Q`INSERT INTO ${table} (${keys}) VALUES (${values})`
@@ -385,7 +383,7 @@ export default class MySQL implements DB {
 
     if (args.count === true) return this.#count(as, args.where);
 
-    if (common.withed(args)) {
+    if (base.withed(args)) {
       return sql.joinable(as, args.with)
         ? this.#read_joined(as, args)
         : this.#read_phased(as, args);
@@ -430,9 +428,9 @@ export default class MySQL implements DB {
   }
 
   async #read_phased(as: As, args: ReadRelationsArgs) {
-    const fields = common.expand(as, args.fields, args.with);
+    const fields = base.expand(as, args.fields, args.with);
     const rows = await this.#read(as, { ...args, fields });
-    const out = rows.map(row => common.project(row, args.fields));
+    const out = rows.map(row => base.project(row, args.fields));
 
     for (const [table, relation] of Object.entries(args.with)) {
       await this.#attach_relation(as, { rows, out, table, relation });
@@ -484,8 +482,8 @@ export default class MySQL implements DB {
 
       const rows = grouped.get(join_value) ?? [];
       args.out[i][args.table] = is_many
-        ? rows.map(r => common.project(r, relation.fields))
-        : rows[0] ? common.project(rows[0], relation.fields) : null;
+        ? rows.map(r => base.project(r, relation.fields))
+        : rows[0] ? base.project(rows[0], relation.fields) : null;
     }
   }
 
@@ -594,14 +592,14 @@ export default class MySQL implements DB {
     const tables = [as.table, ...Object.values(args.with).map(r => r.as.table)];
     const aliases = sql.aliases(tables);
     const alias = aliases[as.table];
-    const fields = common.fields(args.fields, as.pk) ?? Object.keys(as.types);
+    const fields = base.fields(args.fields, as.pk) ?? Object.keys(as.types);
 
     const SELECT = [
       ...fields.map(f => `${alias}.${sql.quote(f)} AS ${alias}_${f}`),
       ...Object.values(args.with).flatMap(relation => {
         const r_alias = aliases[relation.as.table];
         const r_fields = relation.as.pk !== null
-          ? common.fields(relation.fields, relation.as.pk)
+          ? base.fields(relation.fields, relation.as.pk)
           : relation.fields;
         return (r_fields ?? Object.keys(relation.as.types))
           .map(f => `${r_alias}.${sql.quote(f)} AS ${r_alias}_${f}`);

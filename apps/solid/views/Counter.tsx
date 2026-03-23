@@ -1,6 +1,6 @@
 import client from "@primate/solid/client";
 
-interface Props { counter: number; id: string };
+interface Props { counter: number; id: number };
 
 export default function Counter(props: Props) {
   const counter = client.field(props.counter).post(`/counter?id=${props.id}`);

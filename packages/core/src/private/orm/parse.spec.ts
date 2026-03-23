@@ -10,7 +10,7 @@ const { dim } = color;
 
 test.case("extracts primary key", assert => {
   const result = parse({
-    id: key.primary(p.string),
+    id: key.primary(p.uuid),
     name: p.string,
   });
   assert(result.pk).equals("id");
@@ -18,8 +18,8 @@ test.case("extracts primary key", assert => {
 
 test.case("extracts foreign keys", assert => {
   const result = parse({
-    id: key.primary(p.string),
-    author_id: key.foreign(p.string),
+    id: key.primary(p.uuid),
+    author_id: key.foreign(p.uuid),
   });
   assert(result.fks.size).equals(1);
   assert(result.fks.has("author_id")).true();
@@ -27,7 +27,7 @@ test.case("extracts foreign keys", assert => {
 
 test.case("schema contains unwrapped types", assert => {
   const result = parse({
-    id: key.primary(p.string),
+    id: key.primary(p.uuid),
     author_id: key.foreign(p.u32),
     title: p.string,
   });
@@ -41,7 +41,7 @@ test.case("schema contains unwrapped types", assert => {
 
 test.case("throws on multiple primary keys", assert => {
   assert(() => parse({
-    id: key.primary(p.string),
+    id: key.primary(p.uuid),
     id2: key.primary(p.u32),
   })).throws(`multiple primary keys: ${dim("id")}, ${dim("id2")}`);
 });

@@ -1,13 +1,16 @@
-import type { DataKey, Storable } from "pema";
+import type { AllowedPKType } from "#orm/PrimaryKey";
+import type { OptionalType } from "pema";
 
-export default class ForeignKey<T extends Storable<DataKey>> {
+export type AllowedFKType = AllowedPKType | OptionalType<AllowedPKType>;
+
+export default class ForeignKey<T extends AllowedFKType> {
   #type: T;
 
   constructor(type: T) {
     this.#type = type;
   }
 
-  static new<T extends Storable<DataKey>>(type: T) {
+  static new<T extends AllowedFKType>(type: T) {
     return new ForeignKey(type);
   }
 

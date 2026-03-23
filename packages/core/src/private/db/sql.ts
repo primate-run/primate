@@ -160,7 +160,8 @@ const sql = {
     const grouped = new Map<unknown, Dict>();
 
     for (const base_row of args.rows) {
-      const pk_value = base_row[base_pk_key];
+      const pk_value = unbind(as.types[as.pk], base_row[base_pk_key]);
+
       const relation_entries = Object.entries(relation_args.with);
 
       if (!grouped.has(pk_value)) {

@@ -9,7 +9,6 @@ import max from "#validator/max";
 import min from "#validator/min";
 import regex from "#validator/regex";
 import starts_with from "#validator/starts-with";
-import uuid from "#validator/uuid";
 
 export default class StringType
   extends PrimitiveType<string, "StringType">
@@ -33,10 +32,6 @@ export default class StringType
 
   email() {
     return this.derive({ validators: [email] });
-  }
-
-  uuid() {
-    return this.derive({ validators: [uuid] });
   }
 
   startsWith(prefix: string) {

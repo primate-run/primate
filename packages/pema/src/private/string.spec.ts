@@ -66,24 +66,6 @@ test.case("validator: email", assert => {
 
 });
 
-test.case("validator: uuid", assert => {
-  const uuid = string.uuid();
-  assert(uuid).type<StringType>();
-
-  [
-    "4d0996 b-BDA9-4f95-ad7c-7075b10d4ba6",
-    "4d0996db-BD$9-4f95-ad7c-7075b10d4ba6",
-    "4d0996db-BDA9-%f95-ad7c-7075b10d4ba6",
-  ].forEach(fail => {
-    assert(() => uuid.parse(fail)).throws(`"${fail}" is not a valid UUID`);
-  });
-
-  const pass = "4d0996db-BDA9-4f95-ad7c-7075b10d4ba6";
-  [pass, pass.toLowerCase(), pass.toUpperCase()].forEach(passing => {
-    assert(uuid.parse(passing)).equals(passing);
-  });
-});
-
 test.case("validator: min", assert => {
   throws(assert, Code.min_negative, () => string.min(-10));
   throws(assert, Code.min_limit_not_finite, () => string.min(Infinity));

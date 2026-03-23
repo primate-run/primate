@@ -2,7 +2,7 @@ import type Infer from "#Infer";
 import PrimitiveType from "#PrimitiveType";
 import Storable from "#Storable";
 
-const re = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const re = /^[\da-f]{8}-[\da-f]{4}-7[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 
 export default class UUIDV7Type
   extends PrimitiveType<string, "UUIDV7Type">

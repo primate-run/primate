@@ -11,8 +11,6 @@ import entries from "@rcompat/dict/entries";
 import is from "@rcompat/is";
 import type { Dict, MaybePromise, PartialDict } from "@rcompat/type";
 
-const PK_TYPES = ["string", "bigint", "number"];
-
 function escape_re(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -193,7 +191,7 @@ export default class MemoryDB implements DB {
     const pk = assert.defined(as.pk);
     const type = as.types[pk];
 
-    if (type === "string") {
+    if (type === "uuid" || type === "uuid_v4" || type === "uuid_v7") {
       return crypto.randomUUID();
     } else if (["u64", "u128", "i64", "i128"].includes(type)) {
       return size === 0 ? 0n : table[size - 1][pk] as bigint + 1n;
@@ -216,7 +214,6 @@ export default class MemoryDB implements DB {
 
     if (pk !== null) {
       const pv = to_insert[pk];
-      if (!PK_TYPES.includes(typeof pv)) throw E.pk_invalid(pk);
       if (table.find(s => s[pk] === pv) !== undefined) throw E.pk_duplicate(pk);
     }
 

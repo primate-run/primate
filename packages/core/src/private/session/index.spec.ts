@@ -1,5 +1,5 @@
 import MemoryDB from "#db/MemoryDB";
-import orm_key from "#orm/key";
+import k from "#orm/key";
 import type { Store } from "#orm/store";
 import store from "#orm/store";
 import session_module from "#session/module";
@@ -12,8 +12,8 @@ const new_store = () => store({
   name: "session",
   db: new MemoryDB(),
   schema: {
-    id: orm_key.primary(p.string),
-    session_id: p.string.uuid(),
+    id: k.primary(p.uuid),
+    session_id: p.uuid,
     foo: p.string.optional(),
     user: p.string.optional(),
     x: p.number.optional(),

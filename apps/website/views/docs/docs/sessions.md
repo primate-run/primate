@@ -70,7 +70,7 @@ export default store({
   db,
   schema: {
     id: key.primary(p.u32),
-    session_id: p.string.uuid(),
+    session_id: p.uuid,
     user_id: p.number,
     last_active: p.date,
     // additional fields as needed
@@ -158,7 +158,7 @@ export default store({
   db,
   schema: {
     id: key.primary(p.u32),
-    session_id: p.string.uuid(),
+    session_id: p.uuid,
     token: p.string.min(10),
   },
 });

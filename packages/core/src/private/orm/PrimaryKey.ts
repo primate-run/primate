@@ -1,15 +1,27 @@
-import log from "#log";
-import type { DataKey, Storable } from "pema";
+import E from "#db/error";
+import type { Storable } from "pema";
 
 export type Options = {
   generate?: boolean;
 };
 
-const RECOMMENDED_TYPES = new Set([
-  "string", "u16", "u32", "u64", "u128",
+const ALLOWED_TYPES = new Set([
+  "uuid", "uuid_v4", "uuid_v7",
+  "u8", "u16", "u32", "u64", "u128",
 ]);
 
-export default class PrimaryKey<T extends Storable<DataKey>> {
+export type AllowedPKType =
+  | Storable<"uuid">
+  | Storable<"uuid_v4">
+  | Storable<"uuid_v7">
+  | Storable<"u8">
+  | Storable<"u16">
+  | Storable<"u32">
+  | Storable<"u64">
+  | Storable<"u128">
+  ;
+
+export default class PrimaryKey<T extends AllowedPKType> {
   #type: T;
   #generate: boolean;
 
@@ -18,12 +30,10 @@ export default class PrimaryKey<T extends Storable<DataKey>> {
     this.#generate = options?.generate ?? true;
 
     const datatype = this.#type.datatype;
-    if (!RECOMMENDED_TYPES.has(datatype)) {
-      log.warn("key.primary: {0} is unusual for a primary key", datatype);
-    }
+    if (!ALLOWED_TYPES.has(datatype)) throw E.pk_invalid_type(datatype);
   }
 
-  static new<T extends Storable<DataKey>>(type: T, options?: Options) {
+  static new<T extends AllowedPKType>(type: T, options?: Options) {
     return new PrimaryKey(type, options);
   }
 

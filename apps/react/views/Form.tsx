@@ -1,6 +1,6 @@
 import client from "@primate/react/client";
 
-interface Props { counter: number; id: string };
+interface Props { counter: number; id: number };
 
 export default function Form(props: Props) {
   const form = client.form({ initial: { counter: props.counter } });

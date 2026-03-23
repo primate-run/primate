@@ -154,7 +154,7 @@ export default <D extends DB>(db: D) => {
     name: "post",
     db,
     schema: {
-      id: key.primary(p.string),
+      id: key.primary(p.uuid),
       title: p.string,
       user_id: p.uint,
     },
@@ -166,7 +166,7 @@ export default <D extends DB>(db: D) => {
     name: "user",
     db,
     schema: {
-      id: key.primary(p.string),
+      id: key.primary(p.uuid),
       age: p.u8.optional(),
       lastname: p.string.optional(),
       name: p.string.default("Donald"),
@@ -201,7 +201,7 @@ export default <D extends DB>(db: D) => {
     name: "type",
     db,
     schema: {
-      id: key.primary(p.string),
+      id: key.primary(p.uuid),
       boolean: p.boolean.optional(),
       date: p.date.optional(),
       f32: p.f32.optional(),
@@ -227,7 +227,7 @@ export default <D extends DB>(db: D) => {
     name: "select",
     db,
     schema: {
-      id: key.primary(p.string),
+      id: key.primary(p.uuid),
       // deliberately reserved-looking column name
       order: p.u8.optional(),
       name: p.string,
@@ -235,21 +235,21 @@ export default <D extends DB>(db: D) => {
   });
 
   const AuthorSchema = {
-    id: key.primary(p.string),
+    id: key.primary(p.uuid),
     name: p.string,
   };
 
   const ArticleSchema = {
-    id: key.primary(p.string),
+    id: key.primary(p.uuid),
     title: p.string,
-    author_id: key.foreign(p.string),
+    author_id: key.foreign(p.uuid),
   };
 
   const ProfileSchema = {
-    id: key.primary(p.string),
+    id: key.primary(p.uuid),
     bio: p.string,
     url: p.url.optional(),
-    author_id: key.foreign(p.string),
+    author_id: key.foreign(p.uuid),
   };
 
   const Author = store({
@@ -266,7 +266,7 @@ export default <D extends DB>(db: D) => {
     name: "author_json",
     db,
     schema: {
-      id: key.primary(p.string),
+      id: key.primary(p.uuid),
       name: p.string,
       meta: p.json(p({ views: p.u32, tags: p.array(p.string) })),
       notes: p.json(),  // untyped
@@ -473,7 +473,7 @@ export default <D extends DB>(db: D) => {
     name: "manual_user",
     db,
     schema: {
-      id: key.primary(p.string, { generate: false }),
+      id: key.primary(p.uuid, { generate: false }),
       name: p.string,
     },
   });
@@ -485,9 +485,10 @@ export default <D extends DB>(db: D) => {
   });
 
   $store("insert: generate=false accepts provided PK", ManualUser, async assert => {
-    const user = await ManualUser.insert({ id: "manual-id", name: "Test" });
-    assert(user.id).equals("manual-id");
-    assert(await ManualUser.has("manual-id")).true();
+    const id = "4d0996db-bda9-4f95-ad7c-7075b10d4ba6";
+    const user = await ManualUser.insert({ id, name: "Test" });
+    assert(user.id).equals(id);
+    assert(await ManualUser.has(id)).true();
   });
 
   $store("insert: defaults apply", User, async assert => {
@@ -1338,14 +1339,16 @@ export default <D extends DB>(db: D) => {
   });
 
   $user("get/try: missing id", async assert => {
-    const missing = `missing-${Date.now()}-${Math.random()}`;
+    const missing = "00000000-0000-4000-8000-000000000000";
+    // const missing = `missing-${Date.now()}-${Math.random()}`;
 
     await throws(assert, Code.record_not_found, () => User.get(missing));
     assert(await User.try(missing)).undefined();
   });
 
   $rel("get/try: missing id (with relations)", async assert => {
-    const missing = `missing-${Date.now()}-${Math.random()}`;
+    //const missing = `missing-${Date.now()}-${Math.random()}`;
+    const missing = "00000000-0000-4000-8000-000000000000";
 
     await throws(assert, Code.record_not_found, () =>
       Article.get(missing, { with: { author: true } }));
@@ -1353,7 +1356,8 @@ export default <D extends DB>(db: D) => {
   });
 
   $rel("get/try: missing id (+ parent)", async assert => {
-    const missing = `missing-${Date.now()}-${Math.random()}`;
+    const missing = "00000000-0000-4000-8000-000000000000";
+    //const missing = `missing-${Date.now()}-${Math.random()}`;
 
     await throws(assert, Code.record_not_found, () =>
       Author.get(missing, { with: { articles: true, profile: true } }));
@@ -1751,9 +1755,10 @@ export default <D extends DB>(db: D) => {
   });
 
   $rel("one relation returns null when FK missing", async assert => {
+    const author_id = "4d0996db-bda9-4f95-ad7c-7075b10d4ba6";
     const orphan = await Article.insert({
       title: "Orphan",
-      author_id: "missing-author",
+      author_id,
     });
 
     const got = await Article.get(orphan.id, { with: { author: true } });
@@ -1825,7 +1830,7 @@ export default <D extends DB>(db: D) => {
         name: "users; DROP TABLE users",
         db,
         schema: {
-          id: key.primary(p.string),
+          id: key.primary(p.uuid),
         },
       });
     });
@@ -1903,14 +1908,14 @@ export default <D extends DB>(db: D) => {
 
   $rel("with: joined relations decode URL fields (base + rel)", async assert => {
     const ParentSchema = {
-      id: key.primary(p.string),
+      id: key.primary(p.uuid),
       name: p.string,
       url: p.url.optional(),
     };
 
     const ChildSchema = {
-      id: key.primary(p.string),
-      parent_id: key.foreign(p.string),
+      id: key.primary(p.uuid),
+      parent_id: key.foreign(p.uuid),
       url: p.url.optional(),
     };
 
@@ -2008,7 +2013,7 @@ export default <D extends DB>(db: D) => {
       name: "conflict",
       db,
       schema: {
-        id: key.primary(p.string),
+        id: key.primary(p.uuid),
         articles: p.string,
       },
       relations: {
@@ -2022,6 +2027,74 @@ export default <D extends DB>(db: D) => {
     assert(await db.schema.introspect("no_such_table")).null();
   });
 
+  // UUID pk (User): wrong JS type
+  $store("pk: get rejects non-string for uuid pk", User, async assert => {
+    await throws(assert, Code.pk_invalid, () => User.get(123 as any));
+  });
+
+  $store("pk: has rejects non-string for uuid pk", User, async assert => {
+    await throws(assert, Code.pk_invalid, () => User.has(123 as any));
+  });
+
+  $store("pk: delete rejects non-string for uuid pk", User, async assert => {
+    await throws(assert, Code.pk_invalid, () => User.delete(123 as any));
+  });
+
+  $store("pk: update rejects non-string for uuid pk", User, async assert => {
+    await throws(assert, Code.pk_invalid, () =>
+      User.update(123 as any, { set: { name: "x" } }));
+  });
+
+  // UUID pk (User): valid JS type but malformed UUID
+  $store("pk: get rejects malformed uuid", User, async assert => {
+    await throws(assert, Code.pk_invalid, () => User.get("not-a-uuid" as any));
+  });
+
+  $store("pk: has rejects malformed uuid", User, async assert => {
+    await throws(assert, Code.pk_invalid, () => User.has("not-a-uuid" as any));
+  });
+
+  $store("pk: delete rejects malformed uuid", User, async assert => {
+    await throws(assert, Code.pk_invalid, () => User.delete("not-a-uuid" as any));
+  });
+
+  $store("pk: update rejects malformed uuid", User, async assert => {
+    await throws(assert, Code.pk_invalid, () =>
+      User.update("not-a-uuid" as any, { set: { name: "x" } }));
+  });
+
+  // Numeric pk (UserN u32): wrong JS type
+  $store("pk: get rejects string for numeric pk", UserN, async assert => {
+    await throws(assert, Code.pk_invalid, () => UserN.get("abc" as any));
+  });
+
+  $store("pk: has rejects string for numeric pk", UserN, async assert => {
+    await throws(assert, Code.pk_invalid, () => UserN.has("abc" as any));
+  });
+
+  $store("pk: delete rejects string for numeric pk", UserN, async assert => {
+    await throws(assert, Code.pk_invalid, () => UserN.delete("abc" as any));
+  });
+
+  $store("pk: update rejects string for numeric pk", UserN, async assert => {
+    await throws(assert, Code.pk_invalid, () =>
+      UserN.update("abc" as any, { set: { name: "x" } }));
+  });
+
+  // Numeric pk (UserN u32): negative value
+  $store("pk: get rejects negative for unsigned pk", UserN, async assert => {
+    await throws(assert, Code.pk_invalid, () => UserN.get(-1 as any));
+  });
+
+  // Bigint pk (UserB u128): wrong JS type
+  $store("pk: get rejects string for bigint pk", UserB, async assert => {
+    await throws(assert, Code.pk_invalid, () => UserB.get("abc" as any));
+  });
+
+  $store("pk: get rejects negative for unsigned bigint pk", UserB, async assert => {
+    await throws(assert, Code.pk_invalid, () => UserB.get(-1n as any));
+  });
+
   // introspect: returns correct types after create
   $store("schema: introspect after create", User, async assert => {
     // insert a record so MongoDB has something to sample
@@ -2029,7 +2102,7 @@ export default <D extends DB>(db: D) => {
     const types = await db.schema.introspect(User.name, User.pk);
     assert(types).not.null();
     if (types !== null) {
-      assert(types.id).includes("string");
+      assert(types.id).includes("uuid");
       assert(types.name).includes("string");
       assert(types.age).includes("u8");
       assert(types.lastname).includes("string");
@@ -2045,7 +2118,7 @@ export default <D extends DB>(db: D) => {
       name: "user",
       db,
       schema: {
-        id: key.primary(p.string),
+        id: key.primary(p.uuid),
         age: p.u8.optional(),
         lastname: p.string.optional(),
         name: p.string.default("Donald"),
@@ -2073,7 +2146,7 @@ export default <D extends DB>(db: D) => {
       name: "user",
       db,
       schema: {
-        id: key.primary(p.string),
+        id: key.primary(p.uuid),
         age: p.u8.optional(),
         surname: p.string.optional(),
         name: p.string.default("Donald"),
@@ -2094,7 +2167,7 @@ export default <D extends DB>(db: D) => {
       name: "user",
       db,
       schema: {
-        id: key.primary(p.string),
+        id: key.primary(p.uuid),
         age: p.u8.optional(),
         name: p.string.default("Donald"),
         email: p.string.email(),
@@ -2110,7 +2183,7 @@ export default <D extends DB>(db: D) => {
     name: "uuid_test",
     db,
     schema: {
-      id: key.primary(p.string),
+      id: key.primary(p.uuid),
       uuid: p.uuid,
       uuid_v4: p.uuid.v4(),
       uuid_v7: p.uuid.v7(),

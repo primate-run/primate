@@ -4,7 +4,7 @@ import response from "primate/response";
 import route from "primate/route";
 
 const CookieSchema = p({
-  session: p.string.uuid().optional(),
+  session: p.uuid.optional(),
 });
 
 route.get(request => {

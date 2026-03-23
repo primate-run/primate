@@ -4,7 +4,7 @@ import type {
   SchemaDiff,
   Sort, Types, With,
 } from "@primate/core/db";
-import common from "@primate/core/db";
+import base from "@primate/core/db";
 import E from "@primate/core/db/error";
 import sql from "@primate/core/db/sql";
 import assert from "@rcompat/assert";
@@ -66,11 +66,11 @@ function order_by(types: Types, sort?: Sort, alias?: string) {
     const d = String(dir).toLowerCase();
     const direction = d === "desc" ? "DESC" : "ASC";
 
-    const base = alias !== undefined ? `${alias}.${quote(k)}` : quote(k);
-    const datatype = types[k];
+    const quoted = alias !== undefined ? `${alias}.${quote(k)}` : quote(k);
+    const type = types[k];
 
     // if bigint-ish might be stored as TEXT/NUMERIC, force numeric ordering
-    const expression = is_bigint_key(datatype) ? `(${base})::numeric` : base;
+    const expression = is_bigint_key(type) ? `(${quoted})::numeric` : quoted;
 
     return `${expression} ${direction}`;
   });
@@ -121,7 +121,7 @@ function columns_to_types(row: IntrospectRow): DataKey[] {
   const { data_type, numeric_precision, numeric_scale } = row;
 
   if (data_type === "text") return ["string", "url"];
-  if (data_type === "uuid") return ["uuid", "uuid_v4", "uuid_v7"];
+  if (data_type === "uuid") return base.UUID_TYPES;
   if (data_type === "boolean") return ["boolean"];
   if (data_type === "smallint") return ["i8", "u8", "i16"];
   if (data_type === "integer") return ["u16", "i32"];
@@ -361,13 +361,12 @@ export default class PostgreSQL implements DB {
     };
   }
 
-  async #generate_pk(as: As) {
-    const pk = as.pk!;
+  async #generate_pk(pk: NonNullable<PK>, as: As) {
     const type = as.types[pk];
 
-    if (type === "string") return crypto.randomUUID();
+    if (base.is_uuid_type(type)) return base.generate_uuid(type);
 
-    if (common.BIGINT_STRING_TYPES.includes(type)) {
+    if (base.BIGINT_STRING_TYPES.includes(type)) {
       const q = Q`SELECT MAX((${pk})::numeric)::text AS v FROM ${as.table}`;
       const rows = await this.#sql<{ v: PK }[]>(q);
       return rows[0]?.v !== null ? BigInt(rows[0].v) + 1n : 1n;
@@ -420,7 +419,7 @@ export default class PostgreSQL implements DB {
     const type = as.types[pk];
 
     // integer types, use RETURNING
-    if (!is_bigint_key(type) && type !== "string") {
+    if (!is_bigint_key(type) && !base.is_uuid_type(type)) {
       const [keys, values] = this.#create(as, record);
       const params = await this.#create_params(as, record);
       const q = has_values
@@ -432,7 +431,7 @@ export default class PostgreSQL implements DB {
     }
 
     // string or bigint, generate manually
-    const pk_value = await this.#generate_pk(as);
+    const pk_value = await this.#generate_pk(pk, as);
     const to_insert = { ...record, [pk]: pk_value };
     const [keys, values] = this.#create(as, to_insert);
     const params = await this.#create_params(as, to_insert);
@@ -470,7 +469,7 @@ export default class PostgreSQL implements DB {
 
     if (args.count === true) return this.#count(as, args.where);
 
-    if (common.withed(args)) {
+    if (base.withed(args)) {
       return sql.joinable(as, args.with)
         ? this.#read_joined(as, args)
         : this.#read_phased(as, args);
@@ -517,8 +516,8 @@ export default class PostgreSQL implements DB {
     const alias = aliases[as.table];
     const r_alias = aliases[relation.as.table];
 
-    const fields = common.fields(args.fields, as.pk) ?? Object.keys(as.types);
-    const r_fields = common.fields(relation.fields, relation.fk, relation.as.pk)
+    const fields = base.fields(args.fields, as.pk) ?? Object.keys(as.types);
+    const r_fields = base.fields(relation.fields, relation.fk, relation.as.pk)
       ?? Object.keys(relation.as.types);
 
     const SELECT = [
@@ -546,9 +545,9 @@ export default class PostgreSQL implements DB {
   }
 
   async #read_phased(as: As, args: ReadRelationsArgs) {
-    const fields = common.expand(as, args.fields, args.with);
+    const fields = base.expand(as, args.fields, args.with);
     const rows = await this.#read(as, { ...args, fields });
-    const out = rows.map(row => common.project(row, args.fields));
+    const out = rows.map(row => base.project(row, args.fields));
 
     for (const [table, relation] of Object.entries(args.with)) {
       await this.#attach_relation(as, { rows, out, table, relation });
@@ -606,8 +605,8 @@ export default class PostgreSQL implements DB {
 
       const rows = grouped.get(join_value) ?? [];
       args.out[i][args.table] = is_many
-        ? rows.map(r => common.project(r, relation.fields))
-        : rows[0] ? common.project(rows[0], relation.fields) : null;
+        ? rows.map(r => base.project(r, relation.fields))
+        : rows[0] ? base.project(rows[0], relation.fields) : null;
     }
   }
 

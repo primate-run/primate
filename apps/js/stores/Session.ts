@@ -8,7 +8,7 @@ export default store({
   db: db(),
   schema: {
     id: key.primary(p.u32),
-    session_id: p.string.uuid(),
+    session_id: p.uuid,
     foo: p.string,
   },
 });

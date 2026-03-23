@@ -1,6 +1,7 @@
 import E from "#db/error";
 import type PK from "#db/PK";
 import ForeignKey from "#orm/ForeignKey";
+import type { AllowedFKType } from "#orm/ForeignKey";
 import PrimaryKey from "#orm/PrimaryKey";
 import type StoreInput from "#orm/StoreInput";
 import type { Dict } from "@rcompat/type";
@@ -12,7 +13,7 @@ const is_fk = (x: unknown): x is ForeignKey<any> => x instanceof ForeignKey;
 export default function parse(input: StoreInput) {
   let pk: PK = null;
   let generate_pk = true;
-  const fks = new Map<string, ForeignKey<Storable<DataKey>>>();
+  const fks = new Map<string, ForeignKey<AllowedFKType>>();
   const schema: Dict<Storable<DataKey>> = {};
 
   for (const [key, value] of Object.entries(input)) {

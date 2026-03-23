@@ -3,16 +3,17 @@ import type {
   As, DataDict, DB, PK,
   SchemaDiff, Sort, With,
 } from "@primate/core/db";
-import common from "@primate/core/db";
+import base from "@primate/core/db";
 import E from "@primate/core/db/error";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient } from "mongodb";
 import type { DataKey, StoreSchema } from "pema";
 import p from "pema";
 
 type MaybeTable = Dict<DataKey[]> | null;
+type FieldRow = { name: string; type: string };
 
 const schema = p({
   host: p.string.default("localhost"),
@@ -21,10 +22,6 @@ const schema = p({
   username: p.string.optional(),
   password: p.string.optional(),
 });
-
-function is_object_id(x: unknown): x is ObjectId {
-  return x instanceof ObjectId;
-}
 
 function get_limit(limit?: number) {
   return limit ?? 0;  // 0 = no limit
@@ -125,8 +122,8 @@ async function bind(as: As, object: DataDict): Promise<Dict> {
 
     if (field === pk) {
       const type = as.types[pk];
-      if (type === "string" && ObjectId.isValid(value as string)) {
-        out._id = new ObjectId(value as string);
+      if (base.is_uuid_type(type)) {
+        out._id = await bind_value(type, value);
       } else {
         out._id = value;
       }
@@ -150,15 +147,15 @@ function like_to_regex(pattern: string) {
     .replace(/<<UNDERSCORE>>/g, "_") + "$";
 }
 
-function columns_to_types(column_type: string): DataKey[] {
-  switch (column_type) {
+function columns_to_types(row: FieldRow): DataKey[] {
+  switch (row.type) {
     case "string": return ["string", "url", "time", "i128", "u128"];
     case "int": return ["i8", "u8", "i16", "u16", "i32", "u32"];
     case "long": return ["i64"];
     case "double": return ["f32", "f64"];
     case "bool": return ["boolean"];
     case "date": return ["datetime"];
-    case "binData": return ["blob"];
+    case "binData": return row.name === "_id" ? base.UUID_TYPES : ["blob"];
     case "decimal": return ["u64"];
     case "objectId": return ["string"];
     case "object": return ["json"];
@@ -218,7 +215,6 @@ export default class MongoDB implements DB {
 
         const collection = await this.#collection(name);
 
-        type FieldRow = { name: string; type: string };
         const rows = await collection.aggregate<FieldRow>([
           { $limit: 1 },
           { $project: { fields: { $objectToArray: "$$ROOT" } } },
@@ -231,10 +227,10 @@ export default class MongoDB implements DB {
         const result: Dict<DataKey[]> = {};
         for (const row of rows) {
           if (row.name === "_id") {
-            if (pk !== null) result[pk] = columns_to_types(row.type);
+            if (pk !== null) result[pk] = columns_to_types(row);
             continue;
           }
-          result[row.name] = columns_to_types(row.type);
+          result[row.name] = columns_to_types(row);
         }
         return result;
       },
@@ -281,8 +277,10 @@ export default class MongoDB implements DB {
       }
 
       if (field === "_id") {
-        // handle ObjectId to string for PK, other keep as-is
-        out[user_field] = is_object_id(value) ? value.toString() : value;
+        const type = as.types[user_field];
+        out[user_field] = base.is_uuid_type(type)
+          ? unbind_value(type, value)
+          : value;
         continue;
       }
 
@@ -297,14 +295,14 @@ export default class MongoDB implements DB {
     const type = as.types[pk];
     const collection = await this.#collection(as.table);
 
-    if (type === "string") return new ObjectId();
+    if (base.is_uuid_type(type)) return base.generate_uuid(type);
 
     // for numeric types, find max and increment
     const pipeline = [{ $group: { _id: null, max: { $max: "$_id" } } }];
     const results = await collection.aggregate(pipeline).toArray();
     const max = results.length === 0 ? 0 : results[0].max ?? 0;
 
-    if (common.BIGINT_STRING_TYPES.includes(type)) return BigInt(max) + 1n;
+    if (base.BIGINT_STRING_TYPES.includes(type)) return BigInt(max) + 1n;
 
     return Number(max) + 1;
   }
@@ -323,14 +321,16 @@ export default class MongoDB implements DB {
 
       if (pk in record) {
         pk_value = record[pk];
-        doc._id = type === "string" && ObjectId.isValid(pk_value as string)
-          ? new ObjectId(pk_value as string)
+        doc._id = base.is_uuid_type(type)
+          ? await bind_value(type, pk_value)
           : pk_value;
       } else if (as.generate_pk !== false) {
         const generated = await this.#generate_pk(as);
-        doc._id = generated;
         // convert to user-facing value
-        pk_value = is_object_id(generated) ? generated.toString() : generated;
+        pk_value = generated;
+        doc._id = base.is_uuid_type(type)
+          ? await bind_value(type, generated)
+          : generated;
       } else {
         throw E.pk_required(pk);
       }
@@ -376,7 +376,7 @@ export default class MongoDB implements DB {
     if (args.count === true) return this.#count(as, args.where);
 
     // relations always use phased approach
-    if (common.withed(args)) return this.#read_phased(as, args);
+    if (base.withed(args)) return this.#read_phased(as, args);
 
     return this.#read(as, args);
   }
@@ -420,9 +420,9 @@ export default class MongoDB implements DB {
     sort?: Sort;
     with: With;
   }) {
-    const fields = common.expand(as, args.fields, args.with);
+    const fields = base.expand(as, args.fields, args.with);
     const rows = await this.#read(as, { ...args, fields });
-    const out = rows.map(row => common.project(row, args.fields));
+    const out = rows.map(row => base.project(row, args.fields));
 
     for (const [name, relation] of Object.entries(args.with)) {
       await this.#attach_relation(as, { rows, out, name, relation });
@@ -475,8 +475,8 @@ export default class MongoDB implements DB {
 
       const rows = grouped.get(join_value) ?? [];
       args.out[i][args.name] = is_many
-        ? rows.map(r => common.project(r, relation.fields))
-        : rows[0] ? common.project(rows[0], relation.fields) : null;
+        ? rows.map(r => base.project(r, relation.fields))
+        : rows[0] ? base.project(rows[0], relation.fields) : null;
     }
   }
 
@@ -494,17 +494,15 @@ export default class MongoDB implements DB {
     const filter = await bind(args.as, args.where);
     const by_field = this.#to_mongo_pk(args.by, args.as.pk);
     // convert join values to ObjectId if needed
-    const pk_type = args.as.types[args.as.pk!];
-    const in_values = args.by === args.as.pk && pk_type === "string"
-      ? args.join_values.map(v =>
-        ObjectId.isValid(v as string) ? new ObjectId(v as string) : v,
-      )
+    const fk_type = args.as.types[args.by];
+    const in_values = base.is_uuid_type(fk_type)
+      ? await Promise.all(args.join_values.map(v => bind_value(fk_type, v as string)))
       : args.join_values;
 
     filter[by_field] = { $in: in_values };
 
     const collection = await this.#collection(args.as.table);
-    const fields_with_by = common.fields(args.fields, args.by);
+    const fields_with_by = base.fields(args.fields, args.by);
     const projection = get_projection(args.as.pk, fields_with_by);
     const sort = get_sort(args.sort);
 

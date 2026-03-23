@@ -8,7 +8,7 @@ Today we're announcing the availability of the Primate 0.37 preview release.
 This release revises the module system, XXX, YYY, and ZZZ.
 
 !!!
-If you're new to Primate, we recommend reading the [Quickstart] page to get
+If you're new to Primate, we recommend reading the [quickstart] page to get
 started.
 !!!
 
@@ -62,7 +62,7 @@ export default (): Module => {
 };
 ```
 
-See the new [Modules] page in the docs for a full reference.
+See the new [modules] page in the docs for a full reference.
 
 ## `app:FRONTEND` and deprecation of magical request props
 
@@ -181,7 +181,7 @@ import Post from "../stores/Post.ts";
 await Post.schema.create();
 ```
 
-No framework initialisation required. See the updated [Stores] page for the
+No framework initialisation required. See the updated [stores] page for the
 full reference.
 
 ### Migrating
@@ -204,17 +204,88 @@ export default store({
 });
 ```
 
+## `p.uuid` and first-class UUID primary keys
+
+Primate 0.37 introduces `p.uuid` as a first-class Pema type, replacing the
+implicit use of `p.string` for UUID primary keys.
+
+### The new type
+
+`p.uuid` and its variants are fully storable types with their own datatypes:
+
+```ts
+import p from "pema";
+
+p.uuid      // any valid UUID, generates v7 by default
+p.uuid.v4() // strict RFC 4122 v4
+p.uuid.v7() // strict RFC 9562 v7
+```
+
+All three validate UUID format on parse. `p.uuid.v4()` and `p.uuid.v7()`
+additionally enforce the version digit.
+
+### Native storage per driver
+
+Each driver stores UUIDs in its most efficient native format:
+
+| Driver     | Storage         |
+| ---------- | --------------- |
+| PostgreSQL | `UUID`          |
+| MySQL      | `BINARY(16)`    |
+| SQLite     | `TEXT`          |
+| MongoDB    | `BinData(4)`    |
+
+Bind and unbind are handled transparently — your application always works
+with plain UUID strings regardless of driver.
+
+### Primary keys
+
+`key.primary` now only accepts unsigned integer types or `p.uuid` variants.
+`p.string` is no longer a valid primary key type:
+
+```ts
+// before
+export default store({
+  name: "post",
+  db,
+  schema: {
+    id: key.primary(p.string), // no longer valid
+    title: p.string,
+  },
+});
+
+// after
+export default store({
+  name: "post",
+  db,
+  schema: {
+    id: key.primary(p.uuid),
+    title: p.string,
+  },
+});
+```
+
+This is a breaking change. Update all stores using `key.primary(p.string)`
+to `key.primary(p.uuid)`. The same applies to `key.foreign(p.string)` — use
+`key.foreign(p.uuid)` instead.
+
+### Migrating
+
+The compiler will flag any remaining uses of `p.string` as a primary or
+foreign key type. Replace them with `p.uuid` and rebuild.
+
 ## What's next
 
-Check out our issue tracker for upcoming [0.38 features].
+Check out our issue tracker for [upcoming features].
 
 ## Fin
 
 If you like Primate, consider [joining our Discord server][discord] or starring
 us on [GitHub].
 
-[Quickstart]: /docs/quickstart
-[Modules]: /docs/modules
+[quickstart]: /docs/quickstart
+[modules]: /docs/modules
+[stores]: /docs/stores
 [discord]: https://discord.gg/RSg4NNwM4f
 [GitHub]: https://github.com/primate-run/primate
-[0.38 features]: https://github.com/primate-run/primate/milestone/10
+[upcoming features]: https://github.com/primate-run/primate/milestone/10
