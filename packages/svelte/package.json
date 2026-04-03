@@ -45,7 +45,7 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
-      "@primate/source": "./source/public/default.ts",
+      "@primate/source": "./src/public/default.ts",
       "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
