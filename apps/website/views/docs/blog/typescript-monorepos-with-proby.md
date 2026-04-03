@@ -15,11 +15,6 @@ not when changing implementation files, and not across package boundaries within
 the monorepo. Edit any `.ts` file anywhere and the next `npx proby` run sees it
 immediately.
 
-!!!
-`test.mock` uses Node's module loader hooks, which are not yet available in
-Deno or Bun. This feature is Node-exclusive for now.
-!!!
-
 ## The build step problem
 
 In a TypeScript monorepo, the typical test workflow looks like this:
@@ -195,6 +190,11 @@ test.case("uses mocked math", async assert => {
 
 Call counts reset automatically between test cases. `using` restores the
 original module when the scope exits.
+
+!!!
+`test.mock` uses Node's module loader hooks, which are not yet available in
+Deno or Bun. This feature is Node-exclusive for now.
+!!!
 
 ### `test.mock` — static
 
