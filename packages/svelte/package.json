@@ -18,7 +18,7 @@
   ],
   "types": "lib/index.d.ts",
   "scripts": {
-    "build": "npm run clean && tsc && cp src/types/{app,index}.d.ts lib",
+    "build": "npm run clean && tsc && cp src/types/app.d.ts lib && cp src/types/index.d.ts lib",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build",
