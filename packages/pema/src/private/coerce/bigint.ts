@@ -1,6 +1,6 @@
 import is from "@rcompat/is";
 
-export default function coerceBigInt(x: unknown) {
+export default function coerce_bigint(x: unknown) {
   // normalize from string to number; other types unaffected
   const n = is.numeric(x) ? Number(x) : x;
 

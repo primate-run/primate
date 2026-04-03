@@ -21,7 +21,7 @@
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build",
-    "test": "npm run build && npx proby"
+    "test": "npx proby"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
@@ -30,19 +30,20 @@
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
-    "@rcompat/type": "^0.9.0"
+    "@rcompat/type": "^0.11.1"
   },
   "peerDependencies": {
     "primate": "workspace:^"
   },
   "imports": {
     "#*": {
-      "apekit": "./src/private/*.ts",
+      "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
     }
   },
   "exports": {
     ".": {
+      "@primate/source": "./src/public/default.ts",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     }

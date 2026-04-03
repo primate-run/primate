@@ -1,7 +1,7 @@
 import { s_config } from "#app/Facade";
 import BuildApp from "#build/App";
 import config from "#config/index";
-import type { Code } from "#error";
+import type { Code } from "#errors";
 import fs from "@rcompat/fs";
 import type { Asserter } from "@rcompat/test";
 import test from "@rcompat/test";

@@ -9,27 +9,30 @@ core_test(new SQLite());
 
 const db = new SQLite({ database: ":memory:" }, { debug: true });
 
-const users_types = { id: "u32", name: "string", age: "u8" } as const;
+const dt = {
+  u8: p.u8.datatype,
+  u32: p.u32.datatype,
+  u64: p.u64.datatype,
+  u128: p.u128.datatype,
+  string: p.string.datatype,
+};
+
+const users_types = { id: dt.u32, name: dt.string, age: dt.u8 } as const;
 const users_as = { table: "users", pk: "id", types: users_types };
 
-const posts_types = { id: "u32", user_id: "u32", title: "string" } as const;
+const posts_types = { id: dt.u32, user_id: dt.u32, title: dt.string } as const;
 const posts_as = { table: "posts", pk: "id", types: posts_types };
 
-const tx_types = { id: "u64", amount: "u128", memo: "string" } as const;
+const tx_types = { id: dt.u64, amount: dt.u128, memo: dt.string } as const;
 const tx_as = { table: "transactions", pk: "id", types: tx_types };
 
 test.ended(() => db.close());
 
 async function $(body: () => Promise<void>) {
-  db.schema.create({ table: "users", pk: "id", types: {} }, {
-    id: p.u32, name: p.string, age: p.u8,
-  });
-  db.schema.create({ table: "posts", pk: "id", types: {} }, {
-    id: p.u32, user_id: p.u32, title: p.string,
-  });
-  db.schema.create({ table: "transactions", pk: "id", types: {} }, {
-    id: p.u64, amount: p.u128, memo: p.string,
-  });
+  await db.schema.create("users", { name: "id", generate: true }, users_types);
+  await db.schema.create("posts", { name: "id", generate: true }, posts_types);
+  await db.schema.create("transactions", { name: "id", generate: true },
+    tx_types);
   await body();
   db.schema.delete("users");
   db.schema.delete("posts");

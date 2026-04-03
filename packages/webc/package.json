@@ -24,34 +24,36 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/crypto": "^0.14.0",
-    "@rcompat/fs": "^0.26.0"
+    "@rcompat/crypto": "^0.16.1",
+    "@rcompat/error": "^0.3.1",
+    "@rcompat/fs": "^0.28.1"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.9.0"
+    "@rcompat/type": "^0.11.1"
   },
   "peerDependencies": {
     "primate": "workspace:^"
   },
   "imports": {
     "#*": {
-      "apekit": "./src/private/*.ts",
+      "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
     },
     "#Component": {
-      "apekit": "./src/private/client/Component.ts",
+      "@primate/source": "./src/private/client/Component.ts",
       "browser": "./lib/private/client/Component.js",
       "default": "./lib/private/server/Component.js"
     }
   },
   "exports": {
     ".": {
+      "@primate/source": "./src/public/default.ts",
       "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     },
     "./*": {
-      "apekit": "./src/public/*.ts",
+      "@primate/source": "./src/public/*.ts",
       "default": "./lib/public/*.js"
     }
   }

@@ -1,10 +1,9 @@
 import f32 from "#f32";
 import type NumberType from "#NumberType";
-import test from "@rcompat/test";
+import test from "#test";
 
 test.case("fail", assert => {
-  const n = 1.23456789012345;
-  assert(() => f32.parse(n)).throws(`${n} is not a 32-bit float`);
+  assert(f32).out_of_range([1.23456789012345]);
 });
 
 test.case("pass", assert => {

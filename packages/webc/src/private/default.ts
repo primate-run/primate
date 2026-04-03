@@ -1,12 +1,20 @@
 import init from "#init";
-import fail from "@primate/core/fail";
 import frontend from "@primate/core/frontend";
 import hash from "@rcompat/crypto/hash";
+import error from "@rcompat/error";
 import type { FileRef } from "@rcompat/fs";
 import fs from "@rcompat/fs";
 
 const script_re = /(?<=<script)>(?<code>.*?)(?=<\/script>)/gus;
 const webc_class_name_re = /export default class (?<name>.*?) extends/u;
+
+function no_class_name(view: FileRef) {
+  return error.template`view at ${view} has no class name`;
+}
+
+const errors = error.coded({
+  no_class_name,
+});
 
 async function normalize(path: string) {
   const file = fs.ref(path);
@@ -22,7 +30,7 @@ export default frontend({
         .map(({ groups }) => groups!.code);
       const { name } = script.match(webc_class_name_re)?.groups
         ?? { name: undefined };
-      if (name === undefined) throw fail`view at ${view} has no class name`;
+      if (name === undefined) throw errors.no_class_name(view);
       const tag = (await normalize(view
         .debase(view.directory, "/").path)).replace("_", "-");
       const js = `${script}

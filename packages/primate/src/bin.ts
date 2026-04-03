@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import args from "@rcompat/args";
+import runtime from "@rcompat/runtime";
 import init from "./init.js";
 
-await init(...args);
+await init(...runtime.args);

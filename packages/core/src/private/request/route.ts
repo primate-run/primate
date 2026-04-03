@@ -1,4 +1,4 @@
-import E from "#error";
+import E from "#errors";
 import log from "#log";
 import type RequestHook from "#module/RequestHook";
 import type RequestFacade from "#request/RequestFacade";

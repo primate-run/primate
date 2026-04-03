@@ -1,6 +1,8 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "customConditions": ["bun"]
+    "customConditions": [
+      "bun"
+    ]
   }
 }

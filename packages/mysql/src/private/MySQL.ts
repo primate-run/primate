@@ -1,19 +1,19 @@
 import typemap from "#typemap";
 import type {
-  As, DataDict, DB,
-  ReadArgs, ReadRelationsArgs,
-  SchemaDiff,
-  Sort, Types, With,
+    As, DataDict, DB,
+    ReadArgs, ReadRelationsArgs,
+    Schema,
+    Sort, Types, With,
 } from "@primate/core/db";
 import base from "@primate/core/db";
-import E from "@primate/core/db/error";
+import E from "@primate/core/db/errors";
 import sql from "@primate/core/db/sql";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
 import type { Pool, ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import mysql from "mysql2/promise";
-import type { DataKey, StoreSchema } from "pema";
+import type { DataKey } from "pema";
 import p from "pema";
 
 const BIND_BY = ":";
@@ -137,36 +137,36 @@ export default class MySQL implements DB {
     await this.#db.end();
   }
 
-  get schema() {
+  get schema(): Schema {
     return {
-      create: async (as: As, store: StoreSchema) => {
+      create: async (table, pk, types) => {
         const columns: string[] = [];
 
-        for (const [key, value] of Object.entries(store)) {
-          const type = get_column(value.datatype);
-          if (key === as.pk) {
-            const is_int = base.INT_TYPES.includes(value.datatype);
-            const auto = as.generate_pk && is_int ? " AUTO_INCREMENT" : "";
+        for (const [key, value] of Object.entries(types)) {
+          const type = get_column(value);
+          if (key === pk.name) {
+            const is_int = base.INT_TYPES.includes(value);
+            const auto = pk.generate && is_int ? " AUTO_INCREMENT" : "";
             // 36 is UUID length
-            const pk_type = value.datatype === "string" ? "VARCHAR(36)" : type;
+            const pk_type = value === "string" ? "VARCHAR(36)" : type;
             columns.push(`${sql.quote(key)} ${pk_type} PRIMARY KEY${auto}`);
           } else {
             columns.push(`${sql.quote(key)} ${type}`);
           }
         }
 
-        await this.#sql(Q`CREATE TABLE IF NOT EXISTS ${as.table} (${columns})`);
+        await this.#sql(Q`CREATE TABLE IF NOT EXISTS ${table} (${columns})`);
       },
-      delete: async (table: string) => {
+      delete: async table => {
         await this.#sql(Q`DROP TABLE IF EXISTS ${table}`);
       },
-      introspect: async (name: string): Promise<Dict<DataKey[]> | null> => {
+      introspect: async table => {
         const rows = await this.#sql<RowDataPacket[]>(`
           SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE
           FROM information_schema.COLUMNS
           WHERE TABLE_SCHEMA = DATABASE()
           AND TABLE_NAME = :name
-        `, { name });
+        `, { name: table });
 
         if (rows.length === 0) return null;
 
@@ -178,13 +178,13 @@ export default class MySQL implements DB {
 
         return result;
       },
-      alter: async (name: string, diff: SchemaDiff) => {
-        const existing = await this.schema.introspect(name);
-        if (existing === null) throw E.table_not_found(name);
+      alter: async (table, diff) => {
+        const existing = await this.schema.introspect(table);
+        if (existing === null) throw E.table_not_found(table);
 
         for (const [from, to] of diff.rename) {
           await this.#sql(Q`
-            ALTER TABLE ${name}
+            ALTER TABLE ${table}
             RENAME COLUMN ${[sql.quote(from)]} TO ${[sql.quote(to)]}`);
         }
 
@@ -196,7 +196,7 @@ export default class MySQL implements DB {
           parts.push(`ADD COLUMN ${sql.quote(field)} ${get_column(type)}`);
         }
         if (parts.length > 0) {
-          await this.#sql(Q`ALTER TABLE ${name} ${[parts.join(", ")]}`);
+          await this.#sql(Q`ALTER TABLE ${table} ${[parts.join(", ")]}`);
         }
       },
     };

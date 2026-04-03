@@ -1,11 +1,7 @@
-import expected from "#expected";
 import number from "#number";
 import partial from "#partial";
 import string from "#string";
-import messagesOf from "#test/messages-of";
-import pathsOf from "#test/paths-of";
-import throwsIssues from "#test/throws-issues";
-import test from "@rcompat/test";
+import test from "#test";
 
 test.case("partial parse only validates provided keys", assert => {
   const p = partial({ foo: string, n: number });
@@ -29,13 +25,9 @@ test.case("partial default returns widened type", assert => {
 
 test.case("partial aggregates and rebases child errors", assert => {
   const p = partial({ foo: string, n: number });
-  const issues = throwsIssues(assert, () => p.parse({ foo: 1, n: "x" } as any));
-
-  // Each failing provided key shows up once, rebased to /<key>
-  assert(pathsOf(issues)).equals(["/foo", "/n"]);
-  assert(messagesOf(issues)).equals([
-    expected("string", 1),
-    expected("number", "x"),
+  assert(p).parse_issues({ foo: 1, n: "x" }, [
+    { type: "invalid_type", path: "/foo" },
+    { type: "invalid_type", path: "/n" },
   ]);
 });
 
@@ -48,18 +40,13 @@ test.case("partial wraps non-ParseError child throws with proper path", assert =
   } as any;
 
   const p = partial({ foo: boom });
-  const issues = throwsIssues(assert, () => p.parse({ foo: 42 }));
-
-  assert(pathsOf(issues)).equals(["/foo"]);
-  assert(messagesOf(issues)).equals(["kaboom"]);
+  assert(p).parse_issues({ foo: 42 }, [
+    { type: "invalid_type", path: "/foo", message: "kaboom" },
+  ]);
 });
 
 // NEW: rejects non-object input with a proper ParseError at root
 test.case("partial rejects non-object input", assert => {
   const p = partial({ foo: string });
-  const issues = throwsIssues(assert, () => p.parse("nope" as any));
-
-  assert(pathsOf(issues)).equals([""]);
-  // Message comes from `expected("object", x)`; keep it resilient:
-  assert(messagesOf(issues)[0].includes("expected object")).equals(true);
+  assert(p).invalid_type(["nope"]);
 });

@@ -1,5 +1,5 @@
 import type DB from "#db/DB";
-import { Code } from "#db/error";
+import { Code } from "#db/errors";
 import key from "#orm/key";
 import relation from "#orm/relation";
 import type { Store } from "#orm/store";

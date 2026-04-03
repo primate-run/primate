@@ -1,4 +1,4 @@
-import ParseError from "#ParseError";
+import E from "#errors";
 import regex from "#validator/regex";
 
 const ISOTIME = /^T?(?<hour>\d{2}):?(?<minute>\d{2}):?(?<second>\d{2})$/u;
@@ -9,9 +9,13 @@ const RANGE = {
   second: { max: 60, min: 0 },
 };
 
+function validator(s: string) {
+  return `"${s}" is not a valid ISO time`;
+}
+
 export default function isotime(x: string) {
   // check format
-  regex(ISOTIME, y => `"${y}" is not a valid ISO time`)(x);
+  regex(ISOTIME, validator)(x);
 
   // check range
   const match = ISOTIME.exec(x);
@@ -21,16 +25,10 @@ export default function isotime(x: string) {
   const m = Number(g.minute);
   const s = Number(g.second);
 
-  const inRange =
+  const in_range =
     h >= RANGE.hour.min && h <= RANGE.hour.max &&
     m >= RANGE.minute.min && m <= RANGE.minute.max &&
     s >= RANGE.second.min && s <= RANGE.second.max;
 
-  if (!inRange) {
-    throw new ParseError([{
-      input: x,
-      message: `"${x}" is not a valid ISO time`,
-      path: "",
-    }]);
-  }
+  if (!in_range) throw E.out_of_range(x, validator(x));
 };

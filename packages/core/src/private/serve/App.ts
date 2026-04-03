@@ -8,7 +8,7 @@ import type ServerView from "#client/ServerView";
 import type ViewOptions from "#client/ViewOptions";
 import type ViewResponse from "#client/ViewResponse";
 import type CSP from "#CSP";
-import E from "#error";
+import E from "#errors";
 import hash from "#hash";
 import type I18NConfig from "#i18n/Config";
 import i18n_module from "#i18n/module";

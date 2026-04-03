@@ -12,7 +12,7 @@
 <Header {title} />
 <main class="blog">
   <article class="blog">
-    <h1>{title}</h1>
+    <h1>{@html title.replace(/`([^`]+)`/g, "<code>$1</code>")}</h1>
     <div class="blog-metadata">
       <Icon name="calendar" />
       {date(epoch)} by

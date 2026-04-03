@@ -1,5 +1,5 @@
 import DefaultType from "#DefaultType";
-import fail from "#fail";
+import E from "#errors";
 import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
 import Parsed from "#Parsed";
@@ -29,7 +29,7 @@ export default class IsType<T> extends Parsed<T>
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (!this.#predicate(x)) throw fail(this.name, x, options);
+    if (!this.#predicate(x)) throw E.invalid_type(x, this.name, options);
     return x as Infer<this>;
   }
 

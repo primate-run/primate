@@ -1,12 +1,12 @@
 import DefaultType from "#DefaultType";
-import fail from "#fail";
+import E from "#errors";
 import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
 import Storable from "#Storable";
-import type { JSONValue } from "@rcompat/type";
 import is from "@rcompat/is";
+import type { JSONValue } from "@rcompat/type";
 
 export type ParsedJSON = Parsed<JSONValue>;
 type JSONInput = ParsedJSON | undefined;
@@ -47,7 +47,7 @@ export default class JSONType<S extends JSONInput = undefined>
       return this.#inner.parse(x, options) as never;
     }
 
-    if (!is.json(x)) throw fail("json", x, options);
+    if (!is.json(x)) throw E.invalid_type(x, "json", options);
 
     return JSON.parse(JSON.stringify(x));
   }

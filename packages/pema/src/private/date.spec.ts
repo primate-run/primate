@@ -1,11 +1,10 @@
 import date from "#date";
 import type DateType from "#DateType";
 import type DefaultType from "#DefaultType";
-import expect from "#expect";
-import test from "@rcompat/test";
+import test from "#test";
 
 test.case("fail", assert => {
-  assert(() => date.parse("1")).throws(expect("d", "1"));
+  assert(date).invalid_type(["1"]);
 });
 
 test.case("pass", assert => {
@@ -30,7 +29,7 @@ test.case("default", assert => {
     assert(d.parse(undefined)).equals(da).type<Date>();
     assert(d.parse(da)).equals(da).type<Date>();
     assert(d.parse(da1)).equals(da1).type<Date>();
-    assert(() => d.parse(1)).throws(expect("d", 1));
+    assert(d).invalid_type([1]);
   });
 });
 

@@ -1,8 +1,8 @@
 import type UUIDType from "#UUIDType";
 import type UUIDV4Type from "#UUIDV4Type";
 import type UUIDV7Type from "#UUIDV7Type";
+import test from "#test";
 import uuid from "#uuid";
-import test from "@rcompat/test";
 
 const valid_uuid = "4d0996db-bda9-4f95-ad7c-7075b10d4ba6";
 const valid_uuid_v4 = "4d0996db-bda9-4f95-ad7c-7075b10d4ba6";
@@ -11,32 +11,20 @@ const valid_uuid_v7 = "01932b6e-5a2f-7e4f-9a3b-4f6d2c8b1a0e";
 test.case("uuid", assert => {
   assert(uuid).type<UUIDType>();
   assert(uuid.parse(valid_uuid)).equals(valid_uuid).type<string>();
-  assert(() => uuid.parse("not-a-uuid"))
-    .throws('"not-a-uuid" is not a valid UUID');
-  assert(() => uuid.parse(123)).throws('"123" is not a valid UUID');
-  assert(() => uuid.parse(null)).throws('"null" is not a valid UUID');
+  assert(uuid).invalid_format(["not-a-uuid", 123, null]);
 });
 
 test.case("uuid.v4", assert => {
   const v4 = uuid.v4();
   assert(v4).type<UUIDV4Type>();
   assert(v4.parse(valid_uuid_v4)).equals(valid_uuid_v4).type<string>();
-  assert(() => v4.parse(valid_uuid_v7))
-    .throws('"01932b6e-5a2f-7e4f-9a3b-4f6d2c8b1a0e" is not a valid UUID v4');
-  assert(() => v4.parse("not-a-uuid"))
-    .throws('"not-a-uuid" is not a valid UUID v4');
-  assert(() => v4.parse(123)).throws('"123" is not a valid UUID v4');
+  assert(v4).invalid_format([valid_uuid_v7, "not-a-uuid", 123]);
 });
-
 test.case("uuid.v7", assert => {
   const v7 = uuid.v7();
   assert(v7).type<UUIDV7Type>();
   assert(v7.parse(valid_uuid_v7)).equals(valid_uuid_v7).type<string>();
-  assert(() => v7.parse(valid_uuid_v4))
-    .throws('"4d0996db-bda9-4f95-ad7c-7075b10d4ba6" is not a valid UUID v7');
-  assert(() => v7.parse("not-a-uuid"))
-    .throws('"not-a-uuid" is not a valid UUID v7');
-  assert(() => v7.parse(123)).throws('"123" is not a valid UUID v7');
+  assert(v7).invalid_format([valid_uuid_v4, "not-a-uuid", 123]);
 });
 
 test.case("uuid.default", assert => {

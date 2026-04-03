@@ -1,12 +1,10 @@
+import { Code } from "#db/errors";
 import ForeignKey from "#orm/ForeignKey";
 import key from "#orm/key";
 import parse from "#orm/parse";
 import PrimaryKey from "#orm/PrimaryKey";
-import color from "@rcompat/cli/color";
 import test from "@rcompat/test";
 import p from "pema";
-
-const { dim } = color;
 
 test.case("extracts primary key", assert => {
   const result = parse({
@@ -43,5 +41,5 @@ test.case("throws on multiple primary keys", assert => {
   assert(() => parse({
     id: key.primary(p.uuid),
     id2: key.primary(p.u32),
-  })).throws(`multiple primary keys: ${dim("id")}, ${dim("id2")}`);
+  })).throws(Code.pk_multiple_pks);
 });

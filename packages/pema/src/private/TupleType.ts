@@ -1,4 +1,4 @@
-import fail from "#fail";
+import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import type NormalizeSchema from "#NormalizeSchema";
@@ -35,19 +35,19 @@ export default class TupleType<T extends Parsed<unknown>[]>
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (!Array.isArray(x)) throw fail("array", x, options);
+    if (!Array.isArray(x)) throw E.invalid_type(x, "array", options);
 
     const items = this.#items;
-    const len = items.length;
-    const out = new Array(len) as InferTuple<T>;
+    const n = items.length;
+    const out = new Array(n) as InferTuple<T>;
 
     // validate each expected item
-    for (let i = 0; i < len; i++) {
+    for (let i = 0; i < n; i++) {
       out[i] = items[i].parse(x[i], next(i, options)) as InferTuple<T>[typeof i];
     }
 
     // reject extra items
-    if (x.length > len) throw fail("undefined", x[len], next(len, options));
+    if (x.length > n) throw E.invalid_type(x[n], "undefined", next(n, options));
 
     return out as never;
   }

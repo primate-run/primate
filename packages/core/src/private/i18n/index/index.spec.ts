@@ -1,3 +1,4 @@
+import { Code } from "#i18n/errors";
 import i18n from "#i18n/index/server";
 import type TypeOf from "#i18n/TypeOf";
 import test from "@rcompat/test";
@@ -533,5 +534,5 @@ test.case("reject dotted catalog keys (runtime)", assert => {
         "bad.key": "nope",
       },
     },
-  } as any)).throws();
+  } as any)).throws(Code.no_dots_catalog_keys);
 });

@@ -21,12 +21,12 @@
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build",
-    "test": "npm run build && npx proby"
+    "test": "npx proby"
   },
   "dependencies": {
     "@marko/compiler": "^5.39.56",
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.26.0",
+    "@rcompat/fs": "^0.28.1",
     "marko": "^5.38.25"
   },
   "devDependencies": {
@@ -38,12 +38,13 @@
   },
   "imports": {
     "#*": {
-      "apekit": "./src/private/*.ts",
+      "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
     }
   },
   "exports": {
     ".": {
+      "@primate/source": "./src/public/default.ts",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     }

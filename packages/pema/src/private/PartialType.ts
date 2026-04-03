@@ -1,5 +1,5 @@
 import DefaultType from "#DefaultType";
-import fail from "#fail";
+import E from "#errors";
 import type Infer from "#Infer";
 import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
@@ -40,7 +40,7 @@ export default class PartialType<D extends Partialable>
   }
 
   parse(x: unknown, options: ParseOptions = {}): InferPartial<D> {
-    if (!is.dict(x)) throw fail("object", x, options);
+    if (!is.dict(x)) throw E.invalid_type(x, "object", options);
 
     const input = x;
     const out: Dict = {};
@@ -54,9 +54,9 @@ export default class PartialType<D extends Partialable>
         const parsed = this.#spec[key].parse(input[key], next(key, options));
         if (parsed !== undefined) out[key] = parsed;
       } catch (e) {
-        if (e instanceof ParseError) {
+        if (ParseError.is(e)) {
           // child already rebased to /<key> via nextOptions -> just collect
-          if (e.issues && e.issues.length) issues.push(...e.issues);
+          if (e.issues.length > 0) issues.push(...e.issues);
         } else {
           // wrap non-ParseError into a properly-pathed issue at /<key>
           const message = e && typeof (e as any).message === "string"
@@ -64,6 +64,7 @@ export default class PartialType<D extends Partialable>
             : String(e);
           issues.push({
             input: input[key],
+            type: "invalid_type",
             message: message,
             path: join(options[ParsedKey] ?? "", key),
           });

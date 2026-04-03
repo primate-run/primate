@@ -1,5 +1,5 @@
 import type BuildApp from "#build/App";
-import E from "#error";
+import E from "#errors";
 import wrap from "#route/wrap";
 import type { FileRef } from "@rcompat/fs";
 import fs from "@rcompat/fs";

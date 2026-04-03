@@ -6,7 +6,7 @@ import type ServerData from "#client/ServerData";
 import type ServerView from "#client/ServerView";
 import type View from "#client/View";
 import type ViewOptions from "#client/ViewOptions";
-import E from "#error";
+import E from "#errors";
 import inline from "#inline";
 import location from "#location";
 import type Mode from "#Mode";

@@ -1,8 +1,8 @@
-import AppError from "#AppError";
-import args from "@rcompat/args";
 import color from "@rcompat/cli/color";
 import mark from "@rcompat/cli/mark";
 import print from "@rcompat/cli/print";
+import { CodeError } from "@rcompat/error";
+import runtime from "@rcompat/runtime";
 import p from "pema";
 
 const levels = {
@@ -16,7 +16,7 @@ type Level = keyof Levels;
 type N = Levels[Level];
 
 const flag = "--log=";
-const n = args.find(arg => arg.startsWith(flag))?.slice(flag.length);
+const n = runtime.args.find(arg => arg.startsWith(flag))?.slice(flag.length);
 const vn = p.union(...Object.keys(levels)).optional().parse(n) as Level;
 
 class Log {
@@ -47,8 +47,10 @@ class Log {
   }
 
   error(error: unknown) {
-    if (error instanceof AppError) {
-      print(color.red("[ERROR]"), error.message, "\n");
+    if (CodeError.is(error)) {
+      const message = error.strings.reduce((acc, str, i) =>
+        acc + (i > 0 ? color.bold(String(error.params[i - 1])) : "") + str, "");
+      print(color.red("[ERROR]"), message, "\n");
     } else {
       console.error(error);
     }

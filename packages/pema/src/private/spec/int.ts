@@ -1,87 +1,73 @@
 import type DefaultType from "#DefaultType";
-import expect from "#expect";
 import type IntDataType from "#IntDataType";
 import type IntType from "#IntType";
-import test from "@rcompat/test";
+import test from "#test";
 
 export default <T extends IntDataType>(
-  i: IntType<T>, min: number, max: number) => {
+  t: IntType<T>, min: number, max: number) => {
 
   test.case("fail", assert => {
-    assert(() => i.parse("1")).throws(expect("n", "1"));
-    assert(() => i.parse(1.1)).throws("1.1 is not an integer");
-    assert(() => i.parse(-1.1)).throws("-1.1 is not an integer");
-    assert(() => i.parse(0n)).throws(expect("n", 0n));
-    assert(() => i.parse(1n)).throws(expect("n", 1n));
+    assert(t).invalid_type(["1", 0n, 1n, 1.1, -1.1]);
   });
 
   test.case("pass", assert => {
-    assert(i).type<IntType<T>>();
+    assert(t).type<IntType<T>>();
 
-    assert(i.parse(0)).equals(0).type<number>();
-    assert(i.parse(1)).equals(1).type<number>();
+    assert(t.parse(0)).equals(0).type<number>();
+    assert(t.parse(1)).equals(1).type<number>();
   });
 
   test.case("range", assert => {
-    assert(i.parse(min)).equals(min).type<number>();
-    assert(i.parse(max)).equals(max).type<number>();
-
-    assert(() => i.parse(min - 1)).throws(`${min - 1} is out of range`);
-    assert(() => i.parse(max + 1)).throws(`${max + 1} is out of range`);
+    assert(t.parse(min)).equals(min).type<number>();
+    assert(t.parse(max)).equals(max).type<number>();
+    assert(t).out_of_range([min - 1, max + 1]);
   });
 
   test.case("coerced", assert => {
-    assert(i.coerce(0)).equals(0).type<number>();
-    assert(i.coerce(1)).equals(1).type<number>();
-    assert(i.coerce("1")).equals(1).type<number>();
-    assert(i.coerce("1.0")).equals(1).type<number>();
-    assert(i.coerce("1.")).equals(1).type<number>();
-    assert(() => i.coerce("0.1")).throws("0.1 is not an integer");
-    assert(() => i.coerce(".1")).throws("0.1 is not an integer");
+    assert(t.coerce(0)).equals(0).type<number>();
+    assert(t.coerce(1)).equals(1).type<number>();
+    assert(t.coerce("1")).equals(1).type<number>();
+    assert(t.coerce("1.0")).equals(1).type<number>();
+    assert(t.coerce("1.")).equals(1).type<number>();
+    assert(t).invalid_type(["0.1", ".1"]);
 
-    assert(i.coerce("-1")).equals(-1).type<number>();
-    assert(i.coerce("-1.0")).equals(-1).type<number>();
-    assert(i.coerce("-1.")).equals(-1).type<number>();
-    assert(() => i.coerce("-0.1")).throws("-0.1 is not an integer");
-    assert(() => i.coerce("-.1")).throws("-0.1 is not an integer");
+    assert(t.coerce("-1")).equals(-1).type<number>();
+    assert(t.coerce("-1.0")).equals(-1).type<number>();
+    assert(t.coerce("-1.")).equals(-1).type<number>();
+    assert(t).invalid_type(["-0.1", "-.1"]);
   });
 
   test.case("default", assert => {
-    [i.default(1), i.default(() => 1)].forEach(d => {
+    [t.default(1), t.default(() => 1)].forEach(d => {
       assert(d).type<DefaultType<IntType<T>, 1>>();
       assert(d.parse(undefined)).equals(1).type<number>();
       assert(d.parse(1)).equals(1).type<number>();
       assert(d.parse(0)).equals(0).type<number>();
-      assert(() => d.parse(1.2)).throws("1.2 is not an integer");
-      assert(() => d.parse(-1.2)).throws("-1.2 is not an integer");
+      assert(d).invalid_type(["1.2", "-1.2"]);
     });
   });
 
   test.case("validator - range", assert => {
-    const r = i.range(-10, 10);
+    const r = t.range(-10, 10);
     assert(r.parse(-10)).equals(-10).type<number>();
     assert(r.parse(0)).equals(0).type<number>();
     assert(r.parse(10)).equals(10).type<number>();
-
-    assert(() => r.parse(-11)).throws("-11 is out of range");
-    assert(() => r.parse(11)).throws("11 is out of range");
+    assert(r).out_of_range([-11, 11]);
   });
 
   test.case("validator - min", assert => {
-    const r = i.min(-10);
+    const r = t.min(-10);
     assert(r.parse(-10)).equals(-10).type<number>();
     assert(r.parse(0)).equals(0).type<number>();
     assert(r.parse(10)).equals(10).type<number>();
-
-    assert(() => r.parse(-11)).throws("-11 is lower than min (-10)");
+    assert(r).too_small([-11]);
   });
 
   test.case("validator - max", assert => {
-    const r = i.max(10);
+    const r = t.max(10);
     assert(r.parse(-10)).equals(-10).type<number>();
     assert(r.parse(0)).equals(0).type<number>();
     assert(r.parse(10)).equals(10).type<number>();
-
-    assert(() => r.parse(11)).throws("11 is greater than max (10)");
+    assert(r).too_large([11]);
   });
 };

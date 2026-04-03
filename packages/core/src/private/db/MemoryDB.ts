@@ -1,11 +1,11 @@
 import type As from "#db/As";
 import type DB from "#db/DB";
-import type { SchemaDiff } from "#db/DB";
+import type { Schema } from "#db/DB";
 import type DataDict from "#db/DataDict";
 import type Sort from "#db/Sort";
 import type Types from "#db/Types";
 import type With from "#db/With";
-import E from "#db/error";
+import E from "#db/errors";
 import assert from "@rcompat/assert";
 import entries from "@rcompat/dict/entries";
 import is from "@rcompat/is";
@@ -138,36 +138,32 @@ export default class MemoryDB implements DB {
   #tables: PartialDict<Dict[]> = {};
   #types: PartialDict<Types> = {};
 
-  #new(as: As) {
-    if (this.#tables[as.table] !== undefined) return;
-    this.#tables[as.table] = [];
-    this.#types[as.table] = as.types;
-  }
-
-  #drop(table: string) {
-    if (this.#tables[table] !== undefined) delete this.#tables[table];
-  }
-
   #use(name: string) {
     this.#tables[name] ??= [];
     return this.#tables[name];
   }
 
-  get schema() {
+  get schema(): Schema {
     return {
-      create: this.#new.bind(this),
-      delete: this.#drop.bind(this),
-      introspect: (name: string) => {
-        if (this.#tables[name] === undefined) return null;
-        const types = this.#types[name] ?? {};
+      create: async (table, _pk, types) => {
+        if (this.#tables[table] !== undefined) return;
+        this.#tables[table] = [];
+        this.#types[table] = types;
+      },
+      delete: table => {
+        if (this.#tables[table] !== undefined) delete this.#tables[table];
+      },
+      introspect: table => {
+        if (this.#tables[table] === undefined) return null;
+        const types = this.#types[table] ?? {};
         return Object.fromEntries(
           Object.entries(types).map(([field, type]) => [field, [type]]),
         );
       },
-      alter: (name: string, diff: SchemaDiff) => {
-        if (this.#types[name] === undefined) throw E.table_not_found(name);
+      alter: (table, diff) => {
+        if (this.#types[table] === undefined) throw E.table_not_found(table);
 
-        const types = { ...this.#types[name] };
+        const types = { ...this.#types[table] };
 
         const { add, drop, rename } = diff;
         for (const [field, type] of Object.entries(add)) types[field] = type;
@@ -177,7 +173,7 @@ export default class MemoryDB implements DB {
           delete types[from];
         }
 
-        this.#types[name] = types;
+        this.#types[table] = types;
       },
     };
   }
@@ -201,7 +197,8 @@ export default class MemoryDB implements DB {
   }
 
   create<O extends Dict>(as: As, record: Dict) {
-    assert.nonempty(record, "empty record");
+    assert.nonempty(record);
+
     const table = this.#use(as.table);
     const pk = as.pk;
 
@@ -314,7 +311,7 @@ export default class MemoryDB implements DB {
             t[target_pk] === fk_value && match(t, r_where),
           );
 
-          if (r_sort && Object.keys(r_sort).length > 0) {
+          if (r_sort !== undefined && Object.keys(r_sort).length > 0) {
             candidates = candidates.toSorted((a, b) => toSorted(a, b, r_sort));
           }
 
@@ -340,7 +337,7 @@ export default class MemoryDB implements DB {
         if (!match(row, r_where)) continue;
 
         const bucket = grouped.get(key);
-        if (bucket) bucket.push(row);
+        if (bucket !== undefined) bucket.push(row);
         else grouped.set(key, [row]);
       }
 
@@ -350,7 +347,7 @@ export default class MemoryDB implements DB {
 
         let rows = grouped.get(key) ?? [];
 
-        if (r_sort && Object.keys(r_sort).length > 0) {
+        if (r_sort !== undefined && Object.keys(r_sort).length > 0) {
           rows = rows.toSorted((a, b) => toSorted(a, b, r_sort));
         }
 

@@ -1,38 +1,53 @@
 import constructor from "#constructor";
 import type ConstructorType from "#ConstructorType";
 import type DefaultType from "#DefaultType";
-import expect from "#expect";
-import test from "@rcompat/test";
+import type OptionalType from "#OptionalType";
+import test from "#test";
+
+class Foo { }
+class Bar { }
+
+const foo = constructor(Foo);
+const f = new Foo();
+const f1 = new Foo();
+const b = new Bar();
 
 test.case("fail", assert => {
-  class Foo { };
-  const c = constructor(Foo);
-
-  assert(() => c.parse("1")).throws(expect("co", "1"));
+  assert(foo).invalid_type(["1", 1, null, undefined, true, {}, [], b]);
 });
 
 test.case("pass", assert => {
-  class Foo { };
+  assert(foo).type<ConstructorType<typeof Foo>>();
+  assert(foo.parse(f)).equals(f).type<Foo>();
+  assert(foo.parse(f1)).equals(f1).type<Foo>();
+});
 
-  const c = constructor(Foo);
-  const f = new Foo();
+test.case("subclass", assert => {
+  class SubFoo extends Foo { }
+  const sf = new SubFoo();
+  assert(foo.parse(sf)).equals(sf).type<Foo>();
+});
 
-  assert(c).type<ConstructorType<typeof Foo>>();
-  assert(c.parse(f)).equals(f).type<Foo>();
+test.case("optional", assert => {
+  const o = foo.optional();
+  assert(o).type<OptionalType<ConstructorType<typeof Foo>>>();
+  assert(o.parse(undefined)).equals(undefined);
+  assert(o.parse(f)).equals(f).type<Foo>();
+  assert(o).invalid_type([b, "1"]);
 });
 
 test.case("default", assert => {
-  class Foo { };
-
-  const f = new Foo();
-  const f1 = new Foo();
-
-  [constructor(Foo).default(f), constructor(Foo).default(() => f)].map(d => {
+  [foo.default(f), foo.default(() => f)].forEach(d => {
     assert(d).type<DefaultType<ConstructorType<typeof Foo>, Foo>>();
     assert(d.parse(undefined)).equals(f).type<Foo>();
     assert(d.parse(f)).equals(f).type<Foo>();
     assert(d.parse(f1)).equals(f1).type<Foo>();
-    assert(() => d.parse(1)).throws(expect("co", 1));
+    assert(d).invalid_type([1, b, "foo"]);
   });
 });
 
+test.case("toJSON", assert => {
+  assert(foo.toJSON())
+    .type<{ type: "newable"; of: string }>()
+    .equals({ type: "newable", of: "Foo" });
+});

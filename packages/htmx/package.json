@@ -21,13 +21,14 @@
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build",
-    "test": "npm run build && npx proby"
+    "test": "npx proby"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
     "@primate/html": "workspace:^",
-    "@rcompat/is": "^0.4.4",
-    "@rcompat/string": "^0.13.0",
+    "@rcompat/error": "^0.3.1",
+    "@rcompat/is": "^0.6.1",
+    "@rcompat/string": "^0.16.1",
     "htmx-esm": "^0.2.1910",
     "pema": "workspace:^"
   },
@@ -39,18 +40,19 @@
   },
   "imports": {
     "#*": {
-      "apekit": "./src/private/*.ts",
+      "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
     }
   },
   "exports": {
     ".": {
+      "@primate/source": "./src/public/default.ts",
       "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     },
     "./*": {
-      "apekit": "./src/public/*.ts",
+      "@primate/source": "./src/public/*.ts",
       "default": "./lib/public/*.js"
     }
   }

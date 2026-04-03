@@ -1,4 +1,4 @@
-import E from "#error";
+import E from "#errors";
 import assert from "@rcompat/assert";
 import fn from "@rcompat/fn";
 import type { PartialDict } from "@rcompat/type";

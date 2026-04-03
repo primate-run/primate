@@ -4,7 +4,7 @@ import type Sort from "#db/Sort";
 import type Types from "#db/Types";
 import type With from "#db/With";
 import type { Dict, MaybePromise } from "@rcompat/type";
-import type { DataType, StoreSchema } from "pema";
+import type { DataType } from "pema";
 
 export interface SchemaDiff {
   add: Types;
@@ -13,14 +13,20 @@ export interface SchemaDiff {
 };
 
 type MaybeTable = Dict<(keyof DataType)[]> | null;
+type PKConfig = {
+  name: PK;
+  generate: boolean;
+};
+
+export type Schema = {
+  create(name: string, pk: PKConfig, types: Types): MaybePromise<void>;
+  delete(name: string): MaybePromise<void>;
+  introspect(name: string, pk?: PK): MaybePromise<MaybeTable>;
+  alter(name: string, diff: SchemaDiff): MaybePromise<void>;
+};
 
 export default interface DB {
-  schema: {
-    create(as: As, schema: StoreSchema): MaybePromise<void>;
-    delete(name: string): MaybePromise<void>;
-    introspect(name: string, pk?: PK): MaybePromise<MaybeTable>;
-    alter(name: string, diff: SchemaDiff): MaybePromise<void>;
-  };
+  schema: Schema;
 
   close(): MaybePromise<void>;
 

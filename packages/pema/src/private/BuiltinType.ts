@@ -1,5 +1,5 @@
 import CoerceKey from "#CoerceKey";
-import fail from "#fail";
+import E from "#errors";
 import type Infer from "#Infer";
 import type ParseOptions from "#ParseOptions";
 import Type from "#Type";
@@ -25,7 +25,7 @@ export default abstract class BuiltinType<StaticType, Name extends string>
     const $options = { ...this.#options, ...options };
     const $x = $options.coerce === true ? this[CoerceKey](x) : x;
 
-    if (!($x instanceof this.Type)) throw fail(this.name, $x, $options);
+    if (!($x instanceof this.Type)) throw E.invalid_type($x, this.name, $options);
 
     return $x as never;
   }

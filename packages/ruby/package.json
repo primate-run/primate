@@ -20,26 +20,28 @@
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "npx proby"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.6.1",
-    "@rcompat/fs": "^0.26.0",
-    "@rcompat/io": "^0.3.0",
+    "@rcompat/assert": "^0.8.1",
+    "@rcompat/error": "^0.3.1",
+    "@rcompat/fs": "^0.28.1",
+    "@rcompat/io": "^0.5.1",
     "@ruby/head-wasm-wasi": "^2.7.2",
     "@ruby/wasm-wasi": "^2.7.2",
     "pema": "workspace:^"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.9.0"
+    "@rcompat/type": "^0.11.1"
   },
   "peerDependencies": {
     "primate": "workspace:^"
   },
   "imports": {
     "#*": {
-      "apekit": "./src/private/*.ts",
+      "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
     }
   },
@@ -49,7 +51,7 @@
       "default": "./lib/public/default.js"
     },
     "./*": {
-      "apekit": "./src/public/*.ts",
+      "@primate/source": "./src/public/*.ts",
       "default": "./lib/public/*.js"
     }
   }

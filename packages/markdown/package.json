@@ -25,21 +25,21 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.6.1",
-    "@rcompat/string": "^0.13.0",
+    "@rcompat/assert": "^0.8.1",
+    "@rcompat/string": "^0.16.1",
     "marked": "^17.0.3",
     "pema": "workspace:^"
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
-    "@rcompat/type": "^0.9.0"
+    "@rcompat/type": "^0.11.1"
   },
   "peerDependencies": {
     "primate": "workspace:^"
   },
   "imports": {
     "#*": {
-      "apekit": "./src/private/*.ts",
+      "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
     }
   },
@@ -50,7 +50,7 @@
       "default": "./lib/public/default.js"
     },
     "./*": {
-      "apekit": "./src/public/*.ts",
+      "@primate/source": "./src/public/*.ts",
       "default": "./lib/public/*.js"
     }
   }

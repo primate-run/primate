@@ -1,4 +1,4 @@
-import E from "#error";
+import E from "#errors";
 import binary from "#response/binary";
 import json from "#response/json";
 import redirect from "#response/redirect";

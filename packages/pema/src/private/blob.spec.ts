@@ -1,11 +1,10 @@
 import blob from "#blob";
 import type BlobType from "#BlobType";
 import type DefaultType from "#DefaultType";
-import expect from "#expect";
-import test from "@rcompat/test";
+import test from "#test";
 
 test.case("fail", assert => {
-  assert(() => blob.parse("1")).throws(expect("bb", "1"));
+  assert(blob).invalid_type(["1"]);
 });
 
 test.case("pass", assert => {
@@ -30,7 +29,7 @@ test.case("default", assert => {
     assert(d.parse(undefined)).equals(b).type<Blob>();
     assert(d.parse(b)).equals(b).type<Blob>();
     assert(d.parse(b1)).equals(b1).type<Blob>();
-    assert(() => d.parse(1)).throws("expected blob, got `1` (number)");
+    assert(d).invalid_type([1]);
   });
 
   const f = new File([""], "");

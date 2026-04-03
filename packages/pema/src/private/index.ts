@@ -3,6 +3,7 @@ export type { default as BooleanType } from "#BooleanType";
 export type { default as ConstructorType } from "#ConstructorType";
 export type { default as DataKey } from "#DataKey";
 export type { default as DataType } from "#DataType";
+export type { default as DateType } from "#DateType";
 export type { default as DefaultType } from "#DefaultType";
 export type { default as EnumType } from "#EnumType";
 export type { default as FunctionType } from "#FunctionType";
@@ -15,7 +16,7 @@ export type { default as JSONPayload } from "#json/JSONPayload";
 export type { default as LiteralType } from "#LiteralType";
 export type {
   default as NormalizeSchema,
-  NormalizeSchemaObject,
+  NormalizeSchemaObject
 } from "#NormalizeSchema";
 export type { default as NullType } from "#NullType";
 export type { default as NumberType } from "#NumberType";

@@ -5,7 +5,7 @@ import omit from "#omit";
 import type OmitType from "#OmitType";
 import string from "#string";
 import type StringType from "#StringType";
-import test from "@rcompat/test";
+import test from "#test";
 
 test.case("omit single field", assert => {
   const original = object({
@@ -112,7 +112,7 @@ test.case("omit fails on invalid data", assert => {
 
   const omitted = omit(original, "id");
 
-  assert(() => omitted.parse({ age: "not a number" })).throws();
+  assert(omitted).invalid_type([{ age: "not a number " }], "/age");
 });
 
 test.case("omit preserves validation", assert => {
@@ -125,11 +125,11 @@ test.case("omit preserves validation", assert => {
   const omitted = omit(original, "id");
 
   // valid
-  const valid = omitted.parse({ email: "test@example.com", age: 25 });
-  assert(valid).equals({ email: "test@example.com", age: 25 });
+  const valid = omitted.parse({ email: "hi@example.com", age: 25 });
+  assert(valid).equals({ email: "hi@example.com", age: 25 });
 
-  // invalid - age out of range
-  assert(() => omitted.parse({ email: "test@example.com", age: 150 })).throws();
+  // invalid - age beyond range
+  assert(omitted).too_large([{ email: "hi@example.com", age: 150 }], "/age");
 });
 
 test.case("omit multiple fields", assert => {

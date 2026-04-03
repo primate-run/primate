@@ -1,16 +1,17 @@
 import typemap from "#typemap";
 import type {
-  As, DataDict, DB, PK, ReadArgs, ReadRelationsArgs,
-  SchemaDiff,
+  As, DataDict, DB,
+  PK, ReadArgs, ReadRelationsArgs,
+  Schema,
   Sort, Types, With,
 } from "@primate/core/db";
 import base from "@primate/core/db";
-import E from "@primate/core/db/error";
+import E from "@primate/core/db/errors";
 import sql from "@primate/core/db/sql";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
-import type { DataKey, StoreSchema } from "pema";
+import type { DataKey } from "pema";
 import p from "pema";
 import type { Sql } from "postgres";
 import postgres from "postgres";
@@ -283,16 +284,16 @@ export default class PostgreSQL implements DB {
     };
   }
 
-  get schema() {
+  get schema(): Schema {
     return {
-      create: async (as: As, store: StoreSchema) => {
+      create: async (table, pk, types) => {
         const columns: string[] = [];
-        for (const [key, value] of Object.entries(store)) {
-          const column_type = get_column(value.datatype);
+        for (const [key, value] of Object.entries(types)) {
+          const column_type = get_column(value);
           const column = quote(key);
-          if (key === as.pk) {
+          if (key === pk.name) {
             const is_int = ["INTEGER", "BIGINT"].includes(column_type);
-            if (as.generate_pk === true && is_int) {
+            if (pk.generate === true && is_int) {
               const serial = column_type === "BIGINT" ? "BIGSERIAL" : "SERIAL";
               columns.push(`${column} ${serial} PRIMARY KEY`);
             } else {
@@ -303,21 +304,21 @@ export default class PostgreSQL implements DB {
           }
         }
 
-        await this.#sql(Q`CREATE TABLE IF NOT EXISTS ${as.table} (${columns})`);
+        await this.#sql(Q`CREATE TABLE IF NOT EXISTS ${table} (${columns})`);
       },
 
-      delete: async (name: string) => {
-        await this.#sql(Q`DROP TABLE IF EXISTS ${name}`);
+      delete: async table => {
+        await this.#sql(Q`DROP TABLE IF EXISTS ${table}`);
       },
 
-      introspect: async (name: string) => {
+      introspect: async table => {
         const exists = await this.#sql<{ exists: boolean }[]>(`
         SELECT EXISTS (
           SELECT 1 FROM information_schema.tables
           WHERE table_schema = 'public'
           AND table_name = $1
         ) AS exists
-        `, [name]);
+        `, [table]);
 
         if (!exists[0].exists) return null;
 
@@ -326,7 +327,7 @@ export default class PostgreSQL implements DB {
         FROM information_schema.columns
         WHERE table_schema = 'public'
         AND table_name = $1
-        `, [name]);
+        `, [table]);
 
         const result: Dict<DataKey[]> = {};
         for (const row of rows) {
@@ -336,10 +337,10 @@ export default class PostgreSQL implements DB {
         return result;
       },
 
-      alter: async (name: string, diff: SchemaDiff) => {
+      alter: async (table, diff) => {
         // check table exists
-        const existing = await this.schema.introspect(name);
-        if (existing === null) throw E.table_not_found(name);
+        const existing = await this.schema.introspect(table);
+        if (existing === null) throw E.table_not_found(table);
 
         const parts: string[] = [];
 
@@ -356,7 +357,7 @@ export default class PostgreSQL implements DB {
         if (parts.length === 0) return;
 
         // PostgreSQL supports multiple ALTER TABLE operations in one statement
-        await this.#sql(Q`ALTER TABLE ${name} ${[parts.join(", ")]}`);
+        await this.#sql(Q`ALTER TABLE ${table} ${[parts.join(", ")]}`);
       },
     };
   }

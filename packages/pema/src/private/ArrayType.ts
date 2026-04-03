@@ -1,7 +1,6 @@
 import DefaultType from "#DefaultType";
 import EnumType from "#EnumType";
-import error from "#error";
-import fail from "#fail";
+import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
@@ -13,7 +12,7 @@ import join from "#path/join";
 import next from "#path/next";
 import rebase from "#path/rebase";
 import PrimitiveType from "#PrimitiveType";
-import E from "#schema-error";
+import S from "#schema-errors";
 import type DefaultTrait from "#trait/Default";
 import type OptionalTrait from "#trait/Optional";
 import type Validator from "#Validator";
@@ -74,7 +73,7 @@ export default class ArrayType<T extends Parsed<unknown>>
     this: Infer<T> extends Primitive ? ArrayType<T> : never,
   ): ArrayType<T> {
     if (!isPrimitive(this.#item)) {
-      throw E.unique_subtype_not_primitive(this.#item.name);
+      throw S.unique_subtype_not_primitive(this.#item.name);
     }
     return this.derive({ validators: [unique] });
   }
@@ -84,12 +83,12 @@ export default class ArrayType<T extends Parsed<unknown>>
   }
 
   min(limit: number) {
-    if (limit < 0) throw E.min_negative(limit);
+    if (limit < 0) throw S.min_negative(limit);
     return this.derive({ validators: [min(limit)] });
   }
 
   max(limit: number) {
-    if (limit < 0) throw E.max_negative(limit);
+    if (limit < 0) throw S.max_negative(limit);
     return this.derive({ validators: [max(limit)] });
   }
 
@@ -98,20 +97,15 @@ export default class ArrayType<T extends Parsed<unknown>>
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (!Array.isArray(x)) throw fail("array", x, options);
+    const path = options[ParsedKey] ?? "";
+    if (!Array.isArray(x)) throw E.invalid_type(x, "array", path);
 
-    const base = options[ParsedKey] ?? "";
     const item = this.#item;
     const len = x.length;
     const out = new Array(len) as Infer<T>[];
 
     for (let i = 0; i < len; i++) {
-      if (!(i in x)) {
-        throw new ParseError([{
-          ...error(item.name, undefined, options)[0],
-          path: join(base, i),
-        }]);
-      }
+      if (!(i in x)) throw E.invalid_type(undefined, item.name, join(path, i));
       out[i] = item.parse(x[i], next(i, options));
     }
 
@@ -120,10 +114,9 @@ export default class ArrayType<T extends Parsed<unknown>>
       try {
         validators[i](out);
       } catch (e) {
-        if (e instanceof ParseError) {
-          const rebased = (e.issues ?? [])
-            .map(issue => ({ ...issue, path: rebase(base, issue.path) }));
-          throw new ParseError(rebased);
+        if (ParseError.is(e)) {
+          throw new ParseError(e.issues.map(issue =>
+            ({ ...issue, path: rebase(path, issue.path) })));
         }
         throw e;
       }

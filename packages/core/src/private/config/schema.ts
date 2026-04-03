@@ -1,3 +1,4 @@
+import type DB from "#db/DB";
 import type Module from "#Module";
 import fs from "@rcompat/fs";
 import p from "pema";
@@ -20,6 +21,13 @@ export default p({
     exclude: p.array(p.string).optional(),
     host: p.string.optional(),
     port: p.uint.port().optional(),
+  },
+  db: {
+    migrations: p.object({
+      table: p.string,
+      db: p.pure<DB>(),
+      blocking: p.boolean.default(true),
+    }).optional(),
   },
   modules: p.array(p.object({
     name: p.string,

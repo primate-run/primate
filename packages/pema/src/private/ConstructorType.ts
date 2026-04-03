@@ -1,14 +1,16 @@
 import DefaultType from "#DefaultType";
-import fail from "#fail";
+import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
+import OptionalType from "#OptionalType";
 import type ParseOptions from "#ParseOptions";
 import type DefaultTrait from "#trait/Default";
+import type OptionalTrait from "#trait/Optional";
 import type { AbstractNewable } from "@rcompat/type";
 
 export default class ConstructorType<C extends AbstractNewable>
   extends GenericType<C, InstanceType<C>, "InstanceType">
-  implements DefaultTrait<InstanceType<C>> {
+  implements OptionalTrait, DefaultTrait<InstanceType<C>> {
   #type: C;
 
   constructor(t: C) {
@@ -20,12 +22,16 @@ export default class ConstructorType<C extends AbstractNewable>
     return "constructor";
   }
 
+  optional() {
+    return new OptionalType(this);
+  }
+
   default(value: (() => InstanceType<C>) | InstanceType<C>) {
     return new DefaultType(this, value);
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (!(x instanceof this.#type)) throw fail(this.name, x, options);
+    if (!(x instanceof this.#type)) throw E.invalid_type(x, this.name, options);
 
     return x as never;
   }

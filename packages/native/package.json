@@ -20,15 +20,15 @@
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build",
-    "test": "npm run build && npx proby"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/cli": "^0.16.0",
-    "@rcompat/io": "^0.3.0",
-    "@rcompat/runtime": "^0.9.0",
-    "@rcompat/webview": "^0.18.0",
+    "@rcompat/cli": "^0.18.1",
+    "@rcompat/error": "^0.3.1",
+    "@rcompat/io": "^0.5.1",
+    "@rcompat/runtime": "^0.11.1",
+    "@rcompat/webview": "^0.20.1",
     "pema": "workspace:^"
   },
   "peerDependencies": {
@@ -36,17 +36,17 @@
   },
   "imports": {
     "#*": {
-      "apekit": "./src/private/*.ts",
+      "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
     }
   },
   "exports": {
     ".": {
-      "apekit": "./src/public/index.ts",
+      "@primate/source": "./src/public/index.ts",
       "default": "./lib/public/index.js"
     },
     "./*": {
-      "apekit": "./src/public/*.ts",
+      "@primate/source": "./src/public/*.ts",
       "default": "./lib/public/*.js"
     }
   }

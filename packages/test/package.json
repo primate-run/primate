@@ -14,27 +14,27 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@rcompat/fs": "^0.26.0",
-    "@rcompat/test": "^0.10.0",
+    "@rcompat/fs": "^0.28.1",
+    "@rcompat/test": "^0.12.1",
     "happy-dom": "^20.8.4",
     "primate": "workspace:^"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.9.0"
+    "@rcompat/type": "^0.11.1"
   },
   "imports": {
     "#*": {
-      "apekit": "./src/private/*.ts",
+      "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
     }
   },
   "exports": {
     "./*": {
-      "apekit": "./src/public/*.ts",
+      "@primate/source": "./src/public/*.ts",
       "default": "./lib/public/*.js"
     },
     ".": {
-      "apekit": "./src/public/index.ts",
+      "@primate/source": "./src/public/index.ts",
       "default": "./lib/public/index.js"
     }
   }

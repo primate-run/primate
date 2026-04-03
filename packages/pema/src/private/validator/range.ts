@@ -1,9 +1,6 @@
-import ParseError from "#ParseError";
+import E from "#errors";
 import type Validator from "#Validator";
 import is from "@rcompat/is";
-
-const fail = (input: unknown, msg: string) =>
-  new ParseError([{ input, message: msg, path: "" }]);
 
 export default function range<
   From extends bigint | number,
@@ -14,17 +11,11 @@ export default function range<
   }
 
   return (x: From) => {
-    if (typeof x !== "number" && typeof x !== "bigint") {
-      throw fail(x, "invalid type");
+    if (!is.number(x) && !is.bigint(x)) {
+      throw E.invalid_type(x, "number or bigint");
     }
 
-    if (x < from || x > to) {
-      throw new ParseError([{
-        input: x,
-        message: `${x} is out of range`,
-        path: "",
-      }]);
-    }
+    if (x < from || x > to) throw E.out_of_range(x, `${x} is out of range`);
   };
 };
 

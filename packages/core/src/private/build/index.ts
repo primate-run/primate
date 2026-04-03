@@ -3,7 +3,7 @@ import BuildApp from "#build/App";
 import bye from "#bye";
 import type Config from "#config/Config";
 import default_config from "#config/index";
-import E from "#error";
+import E from "#errors";
 import Flags from "#Flags";
 import log from "#log";
 import dict from "@rcompat/dict";

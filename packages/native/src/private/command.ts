@@ -1,4 +1,4 @@
-import fail from "@primate/core/fail";
+import error from "@rcompat/error";
 import runtime from "@rcompat/runtime";
 
 const commands = {
@@ -6,10 +6,18 @@ const commands = {
   deno: "deno compile",
 } as const;
 
+function unsupported_runtime(target: string) {
+  return error.template`unsupported runtime ${target}`;
+}
+
+const errors = error.coded({
+  unsupported_runtime,
+});
+
 function which(target: string) {
   if (target in commands) return commands[target as keyof typeof commands];
 
-  throw fail`unsupported runtime ${target}`;
+  throw errors.unsupported_runtime(target);
 };
 
 type Init = {
@@ -20,7 +28,7 @@ type Init = {
 
 export default function(init: Init) {
   return `
-    ${which(runtime)} \
+    ${which(runtime.name)} \
     ${init.files.map(file => `build/${file}`).join(" ")} \
     --conditions=runtime --compile --minify \
     ${init.flags} \

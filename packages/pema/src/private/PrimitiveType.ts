@@ -1,5 +1,5 @@
 import CoerceKey from "#CoerceKey";
-import error from "#error";
+import E from "#errors";
 import type Infer from "#Infer";
 import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
@@ -59,18 +59,16 @@ export default abstract class PrimitiveType<StaticType, Name extends string>
 
     const $x = $options.coerce === true ? this[CoerceKey](x) : x;
 
-    if (typeof $x !== this.name) {
-      throw new ParseError(error(this.name, $x, $options));
-    }
+    if (typeof $x !== this.name) throw E.invalid_type($x, this.name, $options);
     const base = $options[ParsedKey] ?? "";
 
     for (let i = 0; i < validators.length; i++) {
       try {
         validators[i]($x as StaticType);
       } catch (e) {
-        if (e instanceof ParseError) {
+        if (ParseError.is(e)) {
           // rebase each issue path under `base`
-          const rebased = (e.issues ?? []).map(issue => ({
+          const rebased = e.issues.map(issue => ({
             ...issue,
             path: issue.path === ""
               ? base
@@ -82,11 +80,7 @@ export default abstract class PrimitiveType<StaticType, Name extends string>
         const message = e && typeof (e as any).message === "string"
           ? (e as any).message
           : String(e);
-        throw new ParseError([{
-          input: x,
-          message,
-          path: base,
-        }]);
+        throw E.invalid_type(x, message, base);
       }
     }
     return $x as never;

@@ -6,17 +6,13 @@ import boolean from "#boolean";
 import type BooleanType from "#BooleanType";
 import date from "#date";
 import type DateType from "#DateType";
-import expect from "#expect";
 import number from "#number";
 import type NumberType from "#NumberType";
-import { Code, throws } from "#schema-error";
+import { Code } from "#schema-errors";
 import string from "#string";
 import type StringType from "#StringType";
-import messagesOf from "#test/messages-of";
-import pathsOf from "#test/paths-of";
-import throwsIssues from "#test/throws-issues";
+import test from "#test";
 import tuple from "#tuple";
-import test from "@rcompat/test";
 
 const b = array(boolean);
 const bi = array(bigint);
@@ -63,17 +59,17 @@ test.case("flat", assert => {
   assert(n.parse(x(an, 6))).equals(x(an, 6));
   assert(s.parse(x(as))).equals(x(as));
 
-  assert(() => b.parse(abi)).throws(expect("b", 0n, 0));
-  assert(() => bi.parse(ad)).throws(expect("bi", _d, 0));
-  assert(() => d.parse(an)).throws(expect("d", 0, 0));
-  assert(() => n.parse(as)).throws(expect("n", "0", 0));
-  assert(() => s.parse(ab)).throws(expect("s", false, 0));
+  assert(b).invalid_type([abi], "/0");
+  assert(bi).invalid_type([ad], "/0");
+  assert(d).invalid_type([an], "/0");
+  assert(n).invalid_type([as], "/0");
+  assert(s).invalid_type([ab], "/0");
 
-  assert(() => b.parse([...ab, ...ad])).throws(expect("b", _d, 1));
-  assert(() => bi.parse([...abi, ...ad])).throws(expect("bi", _d, 1));
-  assert(() => d.parse([...ab, ...ad])).throws(expect("d", false, 0));
-  assert(() => n.parse([...as, ...an])).throws(expect("n", "0", 0));
-  assert(() => s.parse([...as, ...an])).throws(expect("s", 0, 1));
+  assert(b).invalid_type([[...ab, ...ad]], "/1");
+  assert(bi).invalid_type([[...abi, ...ad]], "/1");
+  assert(d).invalid_type([[...ab, ...ad]], "/0");
+  assert(n).invalid_type([[...as, ...an]], "/0");
+  assert(s).invalid_type([[...as, ...an]], "/1");
 });
 
 test.case("coerce", assert => {
@@ -91,39 +87,17 @@ test.case("coerce", assert => {
   assert(d.coerce([d0, d1]))
     .equals([new Date(d0), new Date(d1)]).type<Date[]>();
 
-  assert(() => n.coerce(["oops"])).throws(expect("n", "oops", 0));
-  assert(() => b.coerce(["nope"])).throws(expect("b", "nope", 0));
-  assert(() => bi.coerce(["wat"])).throws(expect("bi", "wat", 0));
-  assert(() => d.coerce(["wat"])).throws(expect("d", "wat", 0));
+  for (const type of [n, b, bi, d]) {
+    assert(type).coerce_invalid_type([["foo"]], "/0");
+  }
 });
 
 test.case("sparse", assert => {
-  const b0 = ["f", undefined, "f"];
-  const b1 = ["f", , "f"];
-  const b2 = [, "f"];
-  const b3 = ["f", "f", ,];
-
-  {
-    const issues = throwsIssues(assert, () => s.parse(b0));
-    assert(pathsOf(issues)).equals(["/1"]);
-    assert(messagesOf(issues)).equals([expect("s", undefined)]);
-  }
-  {
-    const issues = throwsIssues(assert, () => s.parse(b1));
-    assert(pathsOf(issues)).equals(["/1"]);
-    assert(messagesOf(issues)).equals([expect("s", undefined)]);
-  }
-  {
-    const issues = throwsIssues(assert, () => s.parse(b2));
-    assert(pathsOf(issues)).equals(["/0"]);
-    assert(messagesOf(issues)).equals([expect("s", undefined)]);
-  }
-  {
-    const issues = throwsIssues(assert, () => s.parse(b3));
-    // current implementation points at the trailing hole index
-    assert(pathsOf(issues)).equals(["/2"]);
-    assert(messagesOf(issues)).equals([expect("s", undefined)]);
-  }
+  assert(s).invalid_type([["f", undefined, "f"]], "/1");
+  assert(s).invalid_type([["f", , "f"]], "/1");
+  assert(s).invalid_type([[, "f"]], "/0");
+  // current implementation points at the trailing hole index
+  assert(s).invalid_type([["f", "f", ,]], "/2");
 });
 
 test.case("default", assert => {
@@ -131,41 +105,38 @@ test.case("default", assert => {
   assert(sd.parse(undefined)).equals(["a", "b"]).type<string[]>();
   assert(sd.parse(["x"])).equals(["x"]).type<string[]>();
   const nd = array(number).default([1, 2]);
-  assert(() => nd.parse(["nope"])).throws();
+  assert(nd).invalid_type([["nope"]], "/0");
 });
 
 test.case("deep", assert => {
   const rc = array(s);
   assert(rc.parse([as])).equals([as]).type<string[][]>();
 
-  assert(() => rc.parse(as)).throws(expect("a", "0", 0));
-  assert(() => rc.parse([[0]])).throws();
+  assert(rc).invalid_type([["0"]], "/0");
+  assert(rc).invalid_type([[[0]]], "/0/0");
 });
 
 test.case("deep coerce", assert => {
   const rc = array(array(number));
-  const tc = array(tuple(string, number, boolean));
-
   assert(rc.coerce([["1"], ["2", "3"]]))
     .equals([[1], [2, 3]])
     .type<number[][]>();
+  assert(rc).coerce_invalid_type([[["oops"]]], "/0/0");
 
+  const tc = array(tuple(string, number, boolean));
   assert(tc.coerce([["foo", "1", "true"], ["bar", "2", "false"]]))
     .equals([["foo", 1, true], ["bar", 2, false]])
     .type<[string, number, boolean][]>();
 
-  assert(() => rc.coerce([["oops"]])).throws(expect("n", "oops", "0.0"));
-  assert(() => tc.coerce([["foo", "nope", "true"]]))
-    .throws(expect("n", "nope", "0.1"));
-  assert(() => tc.coerce([["foo", "1", "nope"]]))
-    .throws(expect("b", "nope", "0.2"));
+  assert(tc).coerce_invalid_type([[["foo", "nope", "true"]]], "/0/1");
+  assert(tc).coerce_invalid_type([[["foo", "1", "nope"]]], "/0/2");
 });
 
 test.case("validator: unique", assert => {
   const unique_s = s.unique();
   const unique_n = n.unique();
 
-  throws(assert, Code.unique_subtype_not_primitive, () => (d as any).unique());
+  assert(() => (d as any).unique()).throws(Code.unique_subtype_not_primitive);
 
   assert(unique_s).type<ArrayType<StringType>>();
   assert(unique_n).type<ArrayType<NumberType>>();
@@ -175,17 +146,8 @@ test.case("validator: unique", assert => {
   assert(unique_n.parse([1, 2])).type<number[]>().equals([1, 2]);
   assert(unique_n.parse([2, 1])).type<number[]>().equals([2, 1]);
 
-  const error = "duplicate value at index 2 (first seen at 0)";
-  {
-    const issues = throwsIssues(assert, () => unique_s.parse(["a", "b", "a"]));
-    assert(pathsOf(issues)).equals(["/2"]);
-    assert(messagesOf(issues)).equals([error]);
-  }
-  {
-    const issues = throwsIssues(assert, () => unique_n.parse([1, 2, 1]));
-    assert(pathsOf(issues)).equals(["/2"]);
-    assert(messagesOf(issues)).equals([error]);
-  }
+  assert(unique_s).duplicate([["a", "b", "a"]], "/2");
+  assert(unique_n).duplicate([[1, 2, 1]], "/2");
 });
 
 test.case("validator: uniqueBy", assert => {
@@ -195,40 +157,38 @@ test.case("validator: uniqueBy", assert => {
     .equals([["a", 1], ["b", 2]])
     .type<[string, number][]>();
 
-  const issues = throwsIssues(assert, () => o.parse([["a", 1], ["a", 2]]));
-  assert(pathsOf(issues)).equals(["/1"]);
-  assert(messagesOf(issues))
-    .equals(["duplicate value at index 1 (first seen at 0)"]);
+  assert(o).duplicate([[["a", 1], ["a", 2]]], "/1");
+
 });
 
 test.case("validator: min", assert => {
-  throws(assert, Code.min_negative, () => s.min(-10));
-  throws(assert, Code.min_limit_not_finite, () => s.min(Infinity));
-  throws(assert, Code.min_limit_not_finite, () => s.min(NaN));
+  assert(() => s.min(-10)).throws(Code.min_negative);
+  assert(() => s.min(Infinity)).throws(Code.min_limit_not_finite);
+  assert(() => s.min(NaN)).throws(Code.min_limit_not_finite);
   const min = s.min(3);
   assert(min.parse(["a", "b", "c"])).equals(["a", "b", "c"]).type<string[]>();
-  assert(() => min.parse(["a", "b"])).throws("min 3 items");
+  assert(min).too_small([["a", "b"]]);
 });
 
 test.case("validator: max", assert => {
-  throws(assert, Code.max_negative, () => s.max(-10));
-  throws(assert, Code.max_limit_not_finite, () => s.max(Infinity));
-  throws(assert, Code.max_limit_not_finite, () => s.max(NaN));
+  assert(() => s.max(-10)).throws(Code.max_negative);
+  assert(() => s.max(Infinity)).throws(Code.max_limit_not_finite);
+  assert(() => s.max(NaN)).throws(Code.max_limit_not_finite);
   const max = s.max(3);
   assert(max.parse(["a", "b", "c"])).equals(["a", "b", "c"]).type<string[]>();
-  assert(() => max.parse(["a", "b", "c", "d"])).throws("max 3 items");
+  assert(max).too_large([["a", "b", "c", "d"]]);
 });
 
 test.case("validator: length", assert => {
-  throws(assert, Code.length_not_finite, () => s.length(Infinity, 10));
-  throws(assert, Code.length_not_positive, () => s.length(-10, 10));
-  throws(assert, Code.length_not_positive, () => s.length(10, -10));
-  throws(assert, Code.length_from_exceeds_to, () => s.length(5, 3));
+  assert(() => s.length(Infinity, 10)).throws(Code.length_not_finite);
+  assert(() => s.length(-10, 10)).throws(Code.length_not_positive);
+  assert(() => s.length(10, -10)).throws(Code.length_not_positive);
+  assert(() => s.length(5, 3)).throws(Code.length_from_exceeds_to);
   const length = s.length(0, 2);
   assert(length.parse(["a", "b"])).equals(["a", "b"]).type<string[]>();
   assert(length.parse(["a"])).equals(["a"]).type<string[]>();
   assert(length.parse([])).equals([]).type<string[]>();
-  assert(() => length.parse(["a", "b", "c"])).throws("length out of range");
+  assert(length).out_of_range([["a", "b", "c"]]);
 });
 
 test.case("object", assert => {

@@ -10,21 +10,21 @@ import number from "#number";
 import type NumberType from "#NumberType";
 import type ObjectType from "#ObjectType";
 import type OptionalType from "#OptionalType";
+import { Code } from "#schema-errors";
 import string from "#string";
 import type StringType from "#StringType";
+import test from "#test";
 import union from "#union";
 import type UnionType from "#UnionType";
-import test from "@rcompat/test";
 
 test.case("less than 2 members", assert => {
-  const error = "union type must have at least two members";
   // 0 members
   try {
     assert(union()).type<UnionType<[]>>();
   } catch {
     // noop
   }
-  assert(() => union()).throws(error);
+  assert(() => union()).throws(Code.union_at_least_two_members);
 
   // 1 member
   try {
@@ -32,7 +32,7 @@ test.case("less than 2 members", assert => {
   } catch {
     // noop
   }
-  assert(() => union(string)).throws(error);
+  assert(() => union(string)).throws(Code.union_at_least_two_members);
 });
 
 test.case("flat", assert => {
@@ -41,20 +41,17 @@ test.case("flat", assert => {
   assert(bs).type<UnionType<[BooleanType, StringType]>>();
   assert(bs.parse("foo")).equals("foo").type<boolean | string>();
   assert(bs.parse(true)).equals(true).type<boolean | string>();
-  const bs_e = "expected `boolean | string`, got `1` (number)";
-  assert(() => bs.parse(1)).throws(bs_e);
+  assert(bs).invalid_type([1]);
 
   const fb = union("foo", "bar");
   assert(fb).type<UnionType<[LiteralType<"foo">, LiteralType<"bar">]>>();
   assert(fb.parse("foo")).equals("foo").type<"bar" | "foo">();
   assert(fb.parse("bar")).equals("bar").type<"bar" | "foo">();
-  const fb_e = "expected `\"foo\" | \"bar\"`, got `1` (number)";
-  assert(() => fb.parse(1)).throws(fb_e);
+  assert(fb).invalid_type([1]);
 });
 
 test.case("deep", assert => {
   const u = union(string, { bar: "baz", foo: bigint });
-  const u_e = "string | { bar: \"baz\", foo: bigint }";
 
   assert(u).type<UnionType<[StringType, ObjectType<{
     bar: LiteralType<"baz">;
@@ -62,20 +59,18 @@ test.case("deep", assert => {
   }>]>>();
   assert(u.parse("foo")).equals("foo")
     .type<{ bar: "baz"; foo: bigint } | string>();
-  assert(() => u.parse(1)).throws(`expected \`${u_e}\`, got \`1\` (number)`);
+  assert(u).invalid_type([1]);
 });
 
 test.case("classes", assert => {
   class Class { };
   const c = new Class();
-
   const u = union(string, Class);
-  const u_e = "string | constructor";
 
   assert(u).type<UnionType<[StringType, ConstructorType<typeof Class>]>>();
   assert(u.parse("foo")).equals("foo").type<Class | string>();
   assert(u.parse(c)).equals(c).type<Class | string>();
-  assert(() => u.parse(1)).throws(`expected \`${u_e}\`, got \`1\` (number)`);
+  assert(u).invalid_type([1]);
 });
 
 test.case("default", assert => {
@@ -102,7 +97,7 @@ test.case("nullable", assert => {
   assert(sn).type<UnionType<[StringType, NullType]>>();
   assert(sn.parse("foo")).equals("foo").type<string | null>();
   assert(sn.parse(null)).equals(null);
-  assert(() => sn.parse(undefined)).throws();
+  assert(sn).invalid_type([undefined]);
 });
 
 test.case("optional", assert => {

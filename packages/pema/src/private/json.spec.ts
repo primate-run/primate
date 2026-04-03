@@ -1,5 +1,5 @@
 import p from "#index";
-import test from "@rcompat/test";
+import test from "#test";
 
 // p.json() — opaque JSONValue
 test.case("accepts any json value", assert => {
@@ -54,19 +54,19 @@ test.case("accepts null inside array", assert => {
 });
 
 test.case("rejects non-json value (bigint)", assert => {
-  assert(() => p.json().parse({ a: 1n })).throws();
+  assert(p.json()).invalid_type([{ a: 1n }]);
 });
 
 test.case("rejects non-json value (Date)", assert => {
-  assert(() => p.json().parse({ a: new Date() })).throws();
+  assert(p.json()).invalid_type([{ a: new Date() }]);
 });
 
 test.case("rejects non-json value (URL)", assert => {
-  assert(() => p.json().parse({ a: new URL("https://example.com") })).throws();
+  assert(p.json()).invalid_type([{ a: new URL("https://example.com") }]);
 });
 
 test.case("rejects undefined", assert => {
-  assert(() => p.json().parse(undefined)).throws();
+  assert(p.json()).invalid_type([undefined]);
 });
 
 // p.json() datatype
@@ -80,26 +80,23 @@ test.case("p.json(schema) has datatype json", assert => {
 
 // p.json(ObjectType) — strongly typed object
 test.case("json(object schema) validates against inner schema", assert => {
-  const schema = p.json(p({ cart: p.array(p.string) }));
-  assert(schema.parse({ cart: ["a", "b"] }))
+  assert(p.json(p({ cart: p.array(p.string) })).parse({ cart: ["a", "b"] }))
     .equals({ cart: ["a", "b"] })
     .type<{ cart: string[] }>();
 });
 
 test.case("p.json(object schema) rejects invalid inner data", assert => {
-  const schema = p.json(p({ cart: p.array(p.string) }));
-  assert(() => schema.parse({ cart: [1, 2] })).throws();
+  assert(p.json(p({ cart: p.array(p.string) })))
+    .invalid_type([{ cart: [1, 2] }], "/cart/0");
 });
 
 test.case("p.json(object schema) rejects missing required field", assert => {
-  const schema = p.json(p({ cart: p.array(p.string) }));
-  assert(() => schema.parse({})).throws();
+  assert(p.json(p({ cart: p.array(p.string) }))).invalid_type([{}], "/cart");
 });
 
 // p.json(ArrayType) — strongly typed array
 test.case("json(array schema) validates array of strings", assert => {
-  const schema = p.json(p.array(p.string));
-  assert(schema.parse(["a", "b", "c"]))
+  assert(p.json(p.array(p.string)).parse(["a", "b", "c"]))
     .equals(["a", "b", "c"])
     .type<string[]>();
 });
@@ -113,36 +110,31 @@ test.case("json(array schema) validates array of objects", assert => {
 });
 
 test.case("json(array schema) rejects invalid elements", assert => {
-  const schema = p.json(p.array(p.string));
-  assert(() => schema.parse([1, 2, 3])).throws();
+  assert(p.json(p.array(p.string))).invalid_type([1, 2, 3]);
 });
 
 test.case("json(array schema) accepts empty array", assert => {
-  const schema = p.json(p.array(p.string));
-  assert(schema.parse([])).equals([]).type<string[]>();
+  assert(p.json(p.array(p.string)).parse([])).equals([]).type<string[]>();
 });
 
 // p.json(string) — typed primitive
 test.case("json(p.string) validates string", assert => {
-  const schema = p.json(p.string);
-  assert(schema.parse("hello")).equals("hello").type<string>();
+  assert(p.json(p.array(p.string)).parse(["hello"])).equals(["hello"])
+    .type<string[]>();
 });
 
 test.case("json(p.string) rejects non-string", assert => {
-  const schema = p.json(p.string);
-  assert(() => schema.parse(42)).throws();
+  assert(p.json(p.string)).invalid_type([42]);
 });
 
 // p.json(number) — typed primitive
 test.case("json(p.number) validates number", assert => {
-  const schema = p.json(p.number);
-  assert(schema.parse(42)).equals(42).type<number>();
+  assert(p.json(p.number).parse(42)).equals(42).type<number>();
 });
 
 // p.json(boolean) — typed primitive
 test.case("json(p.boolean) validates boolean", assert => {
-  const schema = p.json(p.boolean);
-  assert(schema.parse(true)).equals(true).type<boolean>();
+  assert(p.json(p.boolean).parse(true)).equals(true).type<boolean>();
 });
 
 // optional and default

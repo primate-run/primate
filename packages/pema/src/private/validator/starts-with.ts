@@ -1,12 +1,10 @@
-import ParseError from "#ParseError";
 import type Validator from "#Validator";
+import E from "#errors";
 
-export default (prefix: string): Validator<string> => (x: string) => {
-  if (!x.startsWith(prefix)) {
-    throw new ParseError([{
-      input: x,
-      message: `"${x}" does not start with "${prefix}"`,
-      path: "",
-    }]);
-  }
-};
+export default function starts_with(prefix: string): Validator<string> {
+  return (x: string) => {
+    if (!x.startsWith(prefix)) {
+      throw E.invalid_format(x, `"${x}" does not start with "${prefix}"`);
+    }
+  };
+}

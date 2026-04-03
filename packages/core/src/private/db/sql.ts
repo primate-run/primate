@@ -3,7 +3,7 @@ import type ReadRelationsArgs from "#db/ReadRelationsArgs";
 import type Sort from "#db/Sort";
 import type Types from "#db/Types";
 import type With from "#db/With";
-import E from "#db/error";
+import E from "#db/errors";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
@@ -138,7 +138,7 @@ const sql = {
     for (const [key, value] of Object.entries(row)) {
       if (value === null) continue;
 
-      assert.true(key in types, `unexpected column: ${key}`);
+      assert.true(key in types, E.field_unknown(key, "unbind"));
 
       out[key] = unbinder(types[key], value);
     }

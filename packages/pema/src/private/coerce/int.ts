@@ -1,6 +1,11 @@
 import is from "@rcompat/is";
 
-export default function coerceInt(x: unknown) {
-  if (is.numeric(x)) return Number(x);
+export default function coerce_int(x: unknown) {
+  // normalize from string to number; other types unaffected
+  const n = is.numeric(x) ? Number(x) : x;
+
+  // if is integer, return it
+  if (typeof n === "number" && is.int(n)) return n;
+
   return x;
 }

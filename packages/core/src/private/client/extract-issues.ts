@@ -8,6 +8,7 @@ export default function extractIssues(
   // scalar: { message, messages }
   if ("messages" in payload) {
     return payload.messages.map(m => ({
+      type: payload.type,
       message: m,
       // for forms, defaultPath is "", but Issue.path expects a JSONPointer
       // so we cast here; form-level errors are handled separately anyway
@@ -19,7 +20,7 @@ export default function extractIssues(
   const issues: Issue[] = [];
   for (const [path, bundle] of Object.entries(payload)) {
     for (const message of bundle.messages) {
-      issues.push({ message, path: path as JSONPointer });
+      issues.push({ type: bundle.type, message, path: path as JSONPointer });
     }
   }
   return issues;

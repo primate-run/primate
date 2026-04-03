@@ -1,6 +1,6 @@
 export type { default as As } from "#db/As";
 export type { default as DataDict } from "#db/DataDict";
-export type { default as DB, SchemaDiff } from "#db/DB";
+export type { default as DB, Schema } from "#db/DB";
 export type { default as PK } from "#db/PK";
 export type { default as ReadArgs } from "#db/ReadArgs";
 export type { default as ReadRelationsArgs } from "#db/ReadRelationsArgs";

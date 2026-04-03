@@ -1,37 +1,36 @@
-import fail from "#error/fail";
-import E from "#schema-error";
+import E from "#errors";
+import S from "#schema-errors";
 import type Validator from "#Validator";
 import is from "@rcompat/is";
 
-type Lengthed = { length: number };
 type Limit = bigint | number;
 type Input = bigint | number | string | unknown[];
 
 export default function min(limit: Limit): Validator<Input> {
   // validate limit once
-  if (typeof limit === "number") {
-    if (!is.finite(limit)) throw E.min_limit_not_finite(limit);
+  if (is.number(limit)) {
+    if (!is.finite(limit)) throw S.min_limit_not_finite(limit);
 
     return (x: unknown) => {
-      if (typeof x === "number") {
-        if (x < limit) throw fail(x, `${x} is lower than min (${limit})`);
-      } else if (typeof x === "string" || Array.isArray(x)) {
-        if ((x as Lengthed).length < limit) {
-          const unit = typeof x === "string" ? "characters" : "items";
-          throw fail(x, `min ${limit} ${unit}`);
+      if (is.number(x)) {
+        if (x < limit) throw E.too_small(x, `${x} is lower than ${limit}`);
+      } else if (is.string(x) || is.array(x)) {
+        if (x.length < limit) {
+          const unit = is.string(x) ? "characters" : "items";
+          throw E.too_small(x, `min ${limit} ${unit}`);
         }
       } else {
-        throw fail(x, "invalid type");
+        throw E.invalid_type(x, "number");
       }
     };
   }
 
   // bigint
   return (x: unknown) => {
-    if (typeof x === "bigint") {
-      if (x < limit) throw fail(x, `${x} is lower than min (${limit})`);
+    if (is.bigint(x)) {
+      if (x < limit) throw E.too_small(x, `${x} is lower than ${limit}`);
     } else {
-      throw fail(x, "invalid type");
+      throw E.invalid_type(x, "bigint");
     }
   };
 }

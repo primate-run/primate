@@ -1,7 +1,7 @@
 import CoerceKey from "#CoerceKey";
 import type FloatDataType from "#FloatDataType";
 import NumericType from "#NumericType";
-import coerce from "#coerce/int";
+import coerce from "#coerce/float";
 
 export default class NumberType<T extends FloatDataType = "f64">
   extends NumericType<T, number, "NumberType"> {

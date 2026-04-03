@@ -161,7 +161,7 @@ export default function createForm(init: FormInit): FormController {
       setErrors(issues);
     } catch (error) {
       // network error
-      setErrors([{ message: (error as Error).message, path: "" }]);
+      setErrors([{ type: "network_error", message: (error as Error).message, path: "" }]);
     } finally {
       setSubmitting(false);
     }

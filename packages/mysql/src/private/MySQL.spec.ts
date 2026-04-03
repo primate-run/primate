@@ -21,9 +21,9 @@ const json_as_raw = {
 test.ended(() => db.close());
 
 async function $(body: () => Promise<void>) {
-  await db.schema.create(json_as, {
-    id: p.string,
-    data: p.json(),
+  await db.schema.create("json_test", { name: "id", generate: false }, {
+    id: p.string.datatype,
+    data: p.json().datatype,
   });
   try {
     await body();

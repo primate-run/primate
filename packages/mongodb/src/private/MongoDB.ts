@@ -1,18 +1,17 @@
 import typemap from "#typemap";
 import type {
   As, DataDict, DB, PK,
-  SchemaDiff, Sort, With,
+  Schema, Sort, With,
 } from "@primate/core/db";
 import base from "@primate/core/db";
-import E from "@primate/core/db/error";
+import E from "@primate/core/db/errors";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
 import { MongoClient } from "mongodb";
-import type { DataKey, StoreSchema } from "pema";
+import type { DataKey } from "pema";
 import p from "pema";
 
-type MaybeTable = Dict<DataKey[]> | null;
 type FieldRow = { name: string; type: string };
 
 const schema = p({
@@ -192,22 +191,22 @@ export default class MongoDB implements DB {
     await this.#client?.close();
   }
 
-  get schema() {
+  get schema(): Schema {
     return {
-      create: async (as: As, _store: StoreSchema) => {
+      create: async collection => {
         const client = this.#client ??= await this.#factory();
         const db = client.db(this.#database);
         // ignore if already exists
-        await db.createCollection(as.table).catch(() => { });
+        await db.createCollection(collection).catch(() => { });
       },
-      delete: async (name: string) => {
+      delete: async collection => {
         const client = this.#client ??= await this.#factory();
         const db = client.db(this.#database);
 
         // ignore if doesn't exist
-        await db.dropCollection(name).catch(() => { });
+        await db.dropCollection(collection).catch(() => { });
       },
-      introspect: async (name: string, pk: PK): Promise<MaybeTable> => {
+      introspect: async (name, pk) => {
         const client = (this.#client ??= await this.#factory());
         const db = client.db(this.#database);
         const collections = await db.listCollections({ name }).toArray();
@@ -226,7 +225,7 @@ export default class MongoDB implements DB {
 
         const result: Dict<DataKey[]> = {};
         for (const row of rows) {
-          if (row.name === "_id") {
+          if (pk !== undefined && row.name === "_id") {
             if (pk !== null) result[pk] = columns_to_types(row);
             continue;
           }
@@ -235,7 +234,7 @@ export default class MongoDB implements DB {
         return result;
       },
 
-      alter: async (name: string, diff: SchemaDiff) => {
+      alter: async (name, diff) => {
         const client = this.#client ??= await this.#factory();
         const db = client.db(this.#database);
         const collections = await db.listCollections({ name }).toArray();

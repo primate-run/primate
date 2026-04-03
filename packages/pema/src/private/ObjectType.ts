@@ -1,12 +1,14 @@
-import fail from "#fail";
+import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import type InferInputSchema from "#InferInputSchema";
+import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
 import next from "#path/next";
-import SE from "#schema-error";
+import SE from "#schema-errors";
 import type Serialized from "#Serialized";
+import type OptionalTrait from "#trait/Optional";
 import is from "@rcompat/is";
 import type { Dict, Newable, Unpack } from "@rcompat/type";
 
@@ -17,7 +19,8 @@ type ObjectInfer<P extends Dict<Parsed<unknown>>> = {
 export default class ObjectType<
   P extends Dict<Parsed<unknown>>,
   I = ObjectInfer<P>,
-> extends GenericType<P, I, "ObjectType"> {
+> extends GenericType<P, I, "ObjectType">
+  implements OptionalTrait {
   #properties: P;
   #options: ParseOptions;
 
@@ -50,6 +53,10 @@ export default class ObjectType<
     return new Constructor(this.#properties, { ...this.#options, ...options });
   }
 
+  optional() {
+    return new OptionalType(this);
+  }
+
   shape<T>() {
     return new ObjectType<P, T>(this.#properties, this.#options);
   }
@@ -70,7 +77,7 @@ export default class ObjectType<
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     const $options = { ...this.#options, ...options };
 
-    if (is.defined(x) && !is.dict(x)) throw fail("object", x, $options);
+    if (is.defined(x) && !is.dict(x)) throw E.invalid_type(x, "object", $options);
 
     const input = x ?? {};
     const out: Dict = {};

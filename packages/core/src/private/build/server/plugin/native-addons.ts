@@ -1,5 +1,5 @@
 import type BuildApp from "#build/App";
-import E from "#error";
+import E from "#errors";
 import log from "#log";
 import fs from "@rcompat/fs";
 import type { Plugin } from "esbuild";

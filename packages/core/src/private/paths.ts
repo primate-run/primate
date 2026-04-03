@@ -1,4 +1,4 @@
-import E from "#error";
+import E from "#errors";
 import log from "#log";
 import type { FileRef } from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";

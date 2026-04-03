@@ -1,5 +1,5 @@
 import type App from "#App";
-import E from "#error";
+import E from "#errors";
 import type Target from "#target/Target";
 
 const web: Target = {

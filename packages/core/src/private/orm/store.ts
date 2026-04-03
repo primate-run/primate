@@ -1,5 +1,5 @@
 import type DB from "#db/DB";
-import E from "#db/error";
+import E from "#db/errors";
 import type PK from "#db/PK";
 import type Types from "#db/Types";
 import type DBWith from "#db/With";
@@ -229,6 +229,8 @@ type Init<
   db: DB;
   schema: S;
   relations?: R;
+  migrate?: boolean;
+  extend?: Dict;
 };
 
 /**
@@ -252,19 +254,22 @@ export class Store<
   #generate_pk: boolean;
   #fks: Map<string, ForeignKey<AllowedFKType>>;
   #relations: R;
+  #migrate: boolean;
 
   declare readonly Schema: Schema<T>;
 
   constructor(init: Init<T, R>) {
     const { pk, generate_pk, fks, schema } = parse(init.schema);
 
-    const { name, db } = init;
+    const { name, db, migrate } = init;
 
     if (name === undefined) throw E.store_name_required();
     assert.string(name);
     if (!VALID_IDENTIFIER.test(name)) throw E.identifier_invalid(name);
     assert.defined(db, E.db_missing as any);
     assert.dict(schema);
+    assert.maybe.boolean(migrate);
+    assert.maybe.dict(init.extend);
 
     this.#schema = schema;
     this.#type = new StoreType(schema as ExtractSchema<T>, pk);
@@ -277,6 +282,7 @@ export class Store<
     this.#generate_pk = generate_pk;
     this.#fks = fks;
     this.#relations = init.relations ?? {} as R;
+    this.#migrate = migrate ?? true;
 
     for (const relation of Object.keys(this.#relations)) {
       if (relation in schema) throw E.relation_conflicts_with_field(relation);
@@ -287,6 +293,13 @@ export class Store<
         .filter(([, v]) => v.nullable)
         .map(([k]) => k),
     );
+
+    if (init.extend !== undefined) {
+      for (const [k, v] of Object.entries(init.extend)) {
+        if (k in this) throw E.key_duplicate(k);
+        (this as any)[k] = v;
+      }
+    }
 
     registry.set(init.schema, this);
   }
@@ -302,12 +315,13 @@ export class Store<
 
   get table() {
     const db = this.db;
-    const name = this.name;
-    const schema = this.#schema;
-    const as = this.#as;
+    const pk = {
+      name: this.#pk,
+      generate: this.#generate_pk,
+    };
     return {
-      create: () => db.schema.create(as, schema),
-      delete: () => db.schema.delete(name),
+      create: () => db.schema.create(this.#name, pk, this.#types),
+      delete: () => db.schema.delete(this.#name),
     };
   }
 
@@ -321,6 +335,10 @@ export class Store<
 
   get type() {
     return this.#type;
+  }
+
+  get migrate() {
+    return this.#migrate;
   }
 
   get name() {
@@ -593,7 +611,7 @@ export class Store<
     });
 
     const n = records.length;
-    assert.true(n <= 1, `got ${n} records instead of 0 or 1`);
+    assert.true(n <= 1, E.record_number_invalid(n, "get"));
 
     if (n === 0) {
       const err = E.record_not_found(pk, pkv);
@@ -713,7 +731,7 @@ export class Store<
     const pk = this.#parse_pk(pkv);
     const n = await this.db.update(this.#as, { set, where: { [pk]: pkv } });
 
-    assert.true(n === 1, `${n} records updated instead of 1`);
+    assert.true(n === 1, E.record_number_invalid(n, "update"));
   }
 
   async #update_n(where: Where<T>, set: $Set<T>) {
@@ -744,7 +762,7 @@ export class Store<
   async #delete_1(pkv: PKV<T>) {
     const pk = this.#parse_pk(pkv);
     const n = await this.db.delete(this.#as, { where: { [pk]: pkv } });
-    assert.true(n === 1, `${n} records deleted instead of 1`);
+    assert.true(n === 1, E.record_number_invalid(n, "delete"));
   }
 
   async #delete_n(where: Where<T>) {
@@ -787,13 +805,14 @@ export class Store<
   }
 
   extend<A extends Dict>(extensor: (This: this) => A): this & A {
-    const extensions = extensor(this);
-    const keys = Object.keys(extensions);
-
-    for (const k of keys) if (k in this) throw E.key_duplicate(k);
-
-    Object.assign(this, extensions);
-    return this as this & A;
+    return new Store({
+      name: this.name,
+      db: this.db,
+      schema: this.#schema,
+      relations: this.#relations,
+      migrate: false,
+      extend: extensor(this),
+    }) as this & A;
   }
 }
 

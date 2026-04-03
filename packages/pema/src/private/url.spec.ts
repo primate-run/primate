@@ -1,13 +1,12 @@
 import type DefaultType from "#DefaultType";
-import expect from "#expect";
+import test from "#test";
 import url from "#url";
 import type URLType from "#URLType";
-import test from "@rcompat/test";
 
 const address = "https://primate.run";
 
 test.case("fail", assert => {
-  assert(() => url.parse(address)).throws(expect("ur", address));
+  assert(url).invalid_type([address]);
 });
 
 test.case("pass", assert => {
@@ -26,7 +25,7 @@ test.case("default", assert => {
     assert(d.parse(undefined)).equals(u).type<URL>();
     assert(d.parse(u)).equals(u).type<URL>();
     assert(d.parse(u1)).equals(u1).type<URL>();
-    assert(() => d.parse(1)).throws(expect("ur", 1));
+    assert(url).invalid_type([1]);
   });
 });
 

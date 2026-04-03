@@ -1,5 +1,5 @@
 import DefaultType from "#DefaultType";
-import fail from "#fail";
+import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import isParsedType from "#is-parsed-type";
@@ -9,6 +9,7 @@ import type Parsed from "#Parsed";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
 import type Schema from "#Schema";
+import S from "#schema-errors";
 import type DefaultTrait from "#trait/Default";
 import type OptionalTrait from "#trait/Optional";
 import assert from "@rcompat/assert";
@@ -56,7 +57,7 @@ export default class UnionType<T extends Parsed<unknown>[]>
   #of: T;
 
   constructor(of: T) {
-    assert.true(of.length > 1, "union type must have at least two members");
+    assert.true(of.length > 1, S.union_at_least_two_members());
     super();
     this.#of = of;
   }
@@ -83,15 +84,13 @@ export default class UnionType<T extends Parsed<unknown>[]>
         type.parse(x, options);
         return x as never;
       } catch (e) {
-        if (!(e instanceof ParseError)) {
-          throw e;
-        }
+        if (!ParseError.is(e)) throw e;
         // continue to next
       }
     }
 
     // all types failed
-    throw fail(union_error(this.#of), x, options);
+    throw E.invalid_type(x, union_error(this.#of), options);
   }
 
   toJSON() {

@@ -1,17 +1,17 @@
 import typemap from "#typemap";
 import type {
   As, DataDict, DB, PK, ReadArgs, ReadRelationsArgs,
-  SchemaDiff, Sort, Types, With,
+  Schema, Sort, Types, With,
 } from "@primate/core/db";
 import base from "@primate/core/db";
-import E from "@primate/core/db/error";
+import E from "@primate/core/db/errors";
 import sql from "@primate/core/db/sql";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { PrimitiveParam } from "@rcompat/sqlite";
 import Client from "@rcompat/sqlite";
 import type { Dict } from "@rcompat/type";
-import type { DataKey, StoreSchema } from "pema";
+import type { DataKey } from "pema";
 import p from "pema";
 
 type Binds = Dict<PrimitiveParam>;
@@ -197,31 +197,32 @@ export default class SQLite implements DB {
     return this.#explain;
   }
 
-  get schema() {
+  get schema(): Schema {
     return {
-      create: (as: As, store: StoreSchema) => {
+      create: (table, pk, types) => {
         const columns: string[] = [];
 
-        for (const [key, value] of Object.entries(store)) {
-          const column_type = get_column(value.datatype);
+        for (const [key, value] of Object.entries(types)) {
+          const column_type = get_column(value);
           const column = `${sql.quote(key)} ${column_type}`;
           const is_int = column_type === "INTEGER";
-          if (key === as.pk) {
-            const generate = as.generate_pk && is_int ? " AUTOINCREMENT" : "";
+          if (key === pk.name) {
+            const generate = pk.generate && is_int ? " AUTOINCREMENT" : "";
             columns.push(`${column} PRIMARY KEY${generate}`);
           } else {
             columns.push(column);
           }
         }
 
-        this.#sql(Q`CREATE TABLE IF NOT EXISTS ${as.table} (${columns})`).run();
+        this.#sql(Q`CREATE TABLE IF NOT EXISTS ${table} (${columns})`).run();
       },
       delete: (table: string) => {
         this.#sql(Q`DROP TABLE IF EXISTS ${table}`).run();
       },
-      introspect: (name: string): Dict<DataKey[]> | null => {
+      introspect: (table): Dict<DataKey[]> | null => {
         type PragmaRow = { name: string; type: string };
-        const rows = this.#sql(`PRAGMA table_info(${sql.quote(name)})`).all() as PragmaRow[];
+        const rows = this.#sql(`PRAGMA table_info(${sql.quote(table)})`)
+          .all() as PragmaRow[];
         if (rows.length === 0) return null;
 
         const result: Dict<DataKey[]> = {};
@@ -231,21 +232,21 @@ export default class SQLite implements DB {
         }
         return result;
       },
-      alter: (name: string, diff: SchemaDiff) => {
-        const existing = this.schema.introspect(name);
-        if (existing === null) throw E.table_not_found(name);
+      alter: (table, diff) => {
+        const existing = this.schema.introspect(table);
+        if (existing === null) throw E.table_not_found(table);
 
         for (const [from, to] of diff.rename) {
-          this.#sql(Q`ALTER TABLE ${name}
+          this.#sql(Q`ALTER TABLE ${table}
             RENAME COLUMN ${[sql.quote(from)]} TO ${[sql.quote(to)]}`).run();
         }
 
         for (const field of diff.drop) {
-          this.#sql(Q`ALTER TABLE ${name}
+          this.#sql(Q`ALTER TABLE ${table}
             DROP COLUMN ${[sql.quote(field)]}`).run();
         }
         for (const [field, type] of Object.entries(diff.add)) {
-          this.#sql(Q`ALTER TABLE ${name}
+          this.#sql(Q`ALTER TABLE ${table}
             ADD COLUMN ${[`${sql.quote(field)} ${get_column(type)}`]}`).run();
         }
       },
@@ -473,11 +474,11 @@ export default class SQLite implements DB {
 
     const rows = this.#sql(query).all(binds) as { n: bigint }[];
 
-    assert.true(rows.length === 1,
-      `COUNT(*) must return 1 row (got ${rows.length})`);
+    const length = rows.length;
+    assert.true(length === 1, E.record_number_invalid(length, "count"));
 
     const n = rows[0].n;
-    assert.bigint(n, `COUNT returned non-bigint: ${typeof n}`);
+    assert.bigint(n, E.return_invalid(n, "bigint", "count"));
 
     if (n > BigInt(Number.MAX_SAFE_INTEGER)) throw E.count_overflow(table, n);
 
@@ -511,11 +512,12 @@ export default class SQLite implements DB {
     },
   ) {
     const relation = args.relation;
+    const reverse = assert.maybe.boolean(relation.reverse) ?? false;
 
-    const by = relation.reverse ? relation.as.pk : relation.fk;
+    const by = reverse ? relation.as.pk : relation.fk;
     if (by === null) throw E.relation_requires_pk("target");
 
-    const parent_by = relation.reverse ? relation.fk : as.pk;
+    const parent_by = reverse ? relation.fk : as.pk;
     if (parent_by === null) throw E.relation_requires_pk("parent");
 
     const join_values = [...new Set(
@@ -633,12 +635,13 @@ export default class SQLite implements DB {
   }
 
   #join(as: As, aliases: Dict<string>, relation: NonNullable<With[string]>) {
+    const reverse = assert.maybe.boolean(relation.reverse) ?? false;
     const parent_alias = aliases[as.table];
     const alias = aliases[relation.as.table];
     const table = sql.quote(relation.as.table);
 
-    const by = relation.reverse ? relation.as.pk : relation.fk;
-    const parent_by = relation.reverse ? relation.fk : as.pk;
+    const by = reverse ? relation.as.pk : relation.fk;
+    const parent_by = reverse ? relation.fk : as.pk;
 
     if (by === null) throw E.relation_requires_pk("target");
     if (parent_by === null) throw E.relation_requires_pk("parent");

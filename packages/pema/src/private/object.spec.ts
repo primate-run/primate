@@ -2,22 +2,19 @@ import array from "#array";
 import type ArrayType from "#ArrayType";
 import boolean from "#boolean";
 import type BooleanType from "#BooleanType";
-import expect from "#expect";
 import fn from "#function";
 import type FunctionType from "#FunctionType";
 import number from "#number";
 import type NumberType from "#NumberType";
 import object from "#object";
 import type ObjectType from "#ObjectType";
-import { Code, throws } from "#schema-error";
+import type OptionalType from "#OptionalType";
+import { Code } from "#schema-errors";
 import string from "#string";
 import type StringType from "#StringType";
-import messagesOf from "#test/messages-of";
-import pathsOf from "#test/paths-of";
-import throwsIssues from "#test/throws-issues";
+import test from "#test";
 import tuple from "#tuple";
 import type TupleType from "#TupleType";
-import test from "@rcompat/test";
 import type { EmptyObject } from "@rcompat/type";
 
 test.case("empty", assert => {
@@ -128,35 +125,23 @@ test.case("deep coerce errors", assert => {
     tupled: tuple(string, boolean),
   });
 
-  {
-    const issues = throwsIssues(assert, () => s.coerce({
-      user: { age: "oops" },
-      scores: ["1"],
-      tupled: ["ok", "true"],
-    }));
-    assert(pathsOf(issues)).equals(["/user/age"]);
-    assert(messagesOf(issues)).equals([expect("n", "oops")]);
-  }
+  assert(s).coerce_invalid_type([{
+    user: { age: "oops" },
+    scores: ["1"],
+    tupled: ["ok", "true"],
+  }], "/user/age");
 
-  {
-    const issues = throwsIssues(assert, () => s.coerce({
-      user: { age: "1" },
-      scores: ["oops"],
-      tupled: ["ok", "true"],
-    }));
-    assert(pathsOf(issues)).equals(["/scores/0"]);
-    assert(messagesOf(issues)).equals([expect("n", "oops")]);
-  }
+  assert(s).coerce_invalid_type([{
+    user: { age: "1" },
+    scores: ["oops"],
+    tupled: ["ok", "true"],
+  }], "/scores/0");
 
-  {
-    const issues = throwsIssues(assert, () => s.coerce({
-      user: { age: "1" },
-      scores: ["1"],
-      tupled: ["ok", "nope"],
-    }));
-    assert(pathsOf(issues)).equals(["/tupled/1"]);
-    assert(messagesOf(issues)).equals([expect("b", "nope")]);
-  }
+  assert(s).coerce_invalid_type([{
+    user: { age: "1" },
+    scores: ["1"],
+    tupled: ["ok", "nope"],
+  }], "/tupled/1");
 });
 
 test.case("input type with nested defaults", assert => {
@@ -203,11 +188,9 @@ test.case("input type with nested defaults", assert => {
 });
 
 test.case("non-object input throws", assert => {
-  const o = object({ foo: string.default("bar") });
-
-  assert(() => o.parse(null)).throws("expected object, got null");
-  assert(() => o.parse(42)).throws("expected object, got `42` (number)");
-  assert(() => o.parse("str")).throws("expected object, got `str` (string)");
+  assert(object({ foo: string.default("bar") })).invalid_type([
+    null, 42, "str",
+  ]);
 });
 
 type Expected = ObjectType<{
@@ -236,8 +219,8 @@ test.case("extend: preserves options (coerce)", assert => {
 test.case("extend: key collision", assert => {
   const base = object({ spa: boolean, ssr: boolean });
 
-  throws(assert, Code.extend_key_collision, () =>
-    base.extend({ ssr: string } as any));
+  assert(() => base.extend({ ssr: string } as any))
+    .throws(Code.extend_key_collision);
   assert<Parameters<typeof base.extend>[0]>().type<never>();
 });
 
@@ -256,7 +239,7 @@ test.case("extend: ObjectType key collision", assert => {
   const base = object({ spa: boolean, ssr: boolean });
   const extra = object({ ssr: string } as any);
 
-  throws(assert, Code.extend_key_collision, () => base.extend(extra));
+  assert(() => base.extend(extra)).throws(Code.extend_key_collision);
 });
 
 type Setup = {
@@ -329,4 +312,43 @@ test.case("shape: preserves parsing/coercion", assert => {
     name: "Bob",
     age: 42,
   }).type<User>();
+});
+
+test.case("optional: type and undefined passthrough", assert => {
+  const s = object({ table: string, port: number }).optional();
+
+  assert(s)
+    .type<OptionalType<ObjectType<{ table: StringType; port: NumberType }>>>();
+
+  const result = s.parse(undefined);
+  assert(result).equals(undefined);
+});
+
+test.case("optional: parses valid object", assert => {
+  const s = object({ table: string, port: number }).optional();
+
+  assert(s.parse({ table: "migrations", port: 5432 }))
+    .equals({ table: "migrations", port: 5432 });
+});
+
+test.case("optional: still validates when present", assert => {
+  const s = object({ table: string }).optional();
+
+  assert(s).invalid_type([{ table: 42 }], "/table");
+});
+
+test.case("optional: nested — outer object becomes optional via all-optional rule", assert => {
+  const s = object({
+    migrations: object({ table: string }).optional(),
+  });
+
+  // omit nested entirely
+  assert(s.parse({})).equals({});
+
+  // provide it
+  assert(s.parse({ migrations: { table: "m" } }))
+    .equals({ migrations: { table: "m" } });
+
+  // explicitly undefined
+  assert(s.parse({ migrations: undefined })).equals({});
 });

@@ -21,7 +21,7 @@
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build",
-    "test": "npm run build && npx proby"
+    "test": "npx proby"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
@@ -35,12 +35,13 @@
   },
   "imports": {
     "#*": {
-      "apekit": "./src/private/*.ts",
+      "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
     }
   },
   "exports": {
     ".": {
+      "@primate/source": "./src/public/default.ts",
       "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"

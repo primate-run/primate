@@ -1,7 +1,7 @@
+import E from "#errors";
 import type { Input } from "#module";
 import module from "#module";
 import type { Module } from "@primate/core";
-import fail from "@primate/core/fail";
 import log from "@primate/core/log";
 import verbs from "@primate/core/request/verbs";
 import server from "@primate/core/server";
@@ -21,23 +21,6 @@ function detect_routes(code: string): string[] {
   return found;
 }
 
-function gem_not_found() {
-  const command = `gem install ${GEM} -v "~> ${server.TAG}.0"`;
-  return fail`missing ${GEM}, run ${command}`;
-}
-
-function pkg_mismatch(major: number, minor: number) {
-  const range = `~> ${server.TAG}.x`;
-  const version = `${major}.${minor}.x`;
-  return fail`installed ${GEM} gem version ${version} not in range ${range}`;
-}
-
-function pkg_not_found() {
-  const add = `bundle add ${GEM} -v "~> ${server.TAG}.0`;
-  const install = "bundle install";
-  return fail`gem not found in bundle - run ${add} and ${install}`;
-}
-
 async function gem_version(root: FileRef): Promise<string | void> {
   const gemfile = root.join("Gemfile").path;
   const cmd =
@@ -51,11 +34,11 @@ async function gem_version(root: FileRef): Promise<string | void> {
 
 async function check_version(root: FileRef) {
   const version = await gem_version(root);
-  if (version === undefined) throw pkg_not_found();
+  if (version === undefined) throw E.package_not_found();
   const version_match = version.match(/^(\d+)\.(\d+)\.(\d+)/);
-  if (version_match === null) throw gem_not_found();
+  if (version_match === null) throw E.gem_not_found();
   const [, major, minor] = version_match.map(Number);
-  if (major !== MAJOR || minor !== MINOR) throw pkg_mismatch(major, minor);
+  if (major !== MAJOR || minor !== MINOR) throw E.package_mismatch(major, minor);
   log.info("using %s gem %d.%d.x", GEM, major, minor);
 }
 
@@ -81,11 +64,11 @@ export default function default_module(input: Input = {}): Module {
         await check_version(app.root);
 
         app.bind(extension, async (file, { context }) => {
-          assert.true(context === "routes", "ruby: only route files are supported");
+          assert.true(context === "routes", E.only_route_files());
 
           const source = await file.text();
           const routes = detect_routes(source);
-          if (routes.length === 0) throw fail`no routes detected in ${file}`;
+          if (routes.length === 0) throw E.no_routes_detected(file);
           log.info("found routes in {0}: {1}", file, routes.join(", "));
 
           const id = file.debase(app.path.routes).path

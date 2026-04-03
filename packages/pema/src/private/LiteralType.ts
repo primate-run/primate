@@ -1,7 +1,9 @@
-import fail from "#fail";
+import DefaultType from "#DefaultType";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
+import OptionalType from "#OptionalType";
 import type ParseOptions from "#ParseOptions";
+import E from "#errors";
 
 type Literal = string | boolean | number;
 
@@ -26,8 +28,16 @@ export default class LiteralType<T extends Literal> extends
     return JSON.stringify(this.#literal);
   }
 
+  optional() {
+    return new OptionalType(this);
+  }
+
+  default(value: (() => T) | T) {
+    return new DefaultType(this, value);
+  }
+
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (x !== this.#literal) throw fail(this.name, x, options);
+    if (x !== this.#literal) throw E.invalid_type(x, this.name, options);
 
     return x as never;
   }

@@ -1,6 +1,8 @@
 import type Infer from "#Infer";
 import PrimitiveType from "#PrimitiveType";
 import Storable from "#Storable";
+import E from "#errors";
+import is from "@rcompat/is";
 
 const re = /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/i;
 
@@ -17,8 +19,8 @@ export default class UUIDV4Type
   }
 
   parse(x: unknown): Infer<this> {
-    if (typeof x !== "string" || !re.test(x)) {
-      throw new Error(`"${x}" is not a valid UUID v4`);
+    if (!is.string(x) || !re.test(x)) {
+      throw E.invalid_format(x, `"${x}" is not a valid UUID v4`);
     }
     return x as Infer<this>;
   }

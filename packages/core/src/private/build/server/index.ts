@@ -47,6 +47,8 @@ export default async function build_server(app: BuildApp) {
   app.plugin("server", plugin_wasm(app));
   app.plugin("server", plugin_app_request(app));
 
+  const runtime_name = runtime.name as keyof typeof externals;
+
   const tsconfig = app.root.join("tsconfig.json");
   const options: esbuild.BuildOptions = {
     entryPoints: [app.path.build.join("serve.js").path],
@@ -55,7 +57,7 @@ export default async function build_server(app: BuildApp) {
     platform: "node",
     format: "esm",
     packages: app.mode === "development" ? "external" : undefined,
-    external: [...externals[runtime]],
+    external: [...externals[runtime_name]],
     loader: {
       ".json": "json",
     },
@@ -70,7 +72,7 @@ export default async function build_server(app: BuildApp) {
     absWorkingDir: app.root.path,
     ...await tsconfig.exists() ? { tsconfig: tsconfig.path } : {},
     conditions: [
-      ...conditions[runtime],
+      ...conditions[runtime_name],
       "module", "import", "runtime", "default",
       ...app.conditions],
     plugins: app.plugins("server"),

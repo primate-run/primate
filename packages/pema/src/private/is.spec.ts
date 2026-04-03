@@ -1,9 +1,8 @@
 import type DefaultType from "#DefaultType";
-import expect from "#expect";
 import is from "#is";
 import type IsType from "#IsType";
 import type OptionalType from "#OptionalType";
-import test from "@rcompat/test";
+import test from "#test";
 
 class Foo { }
 
@@ -12,9 +11,7 @@ const is_foo = (x: unknown): x is Foo => x instanceof Foo;
 test.case("fail", assert => {
   const t = is(is_foo);
 
-  assert(() => t.parse("1")).throws(expect("is", "1"));
-  assert(() => t.parse(null)).throws(expect("is", null));
-  assert(() => t.parse(1)).throws(expect("is", 1));
+  assert(t).invalid_type(["1", null, 1]);
 });
 
 test.case("pass", assert => {
@@ -43,6 +40,6 @@ test.case("default", assert => {
     assert(d.parse(undefined)).equals(f).type<Foo>();
     assert(d.parse(f)).equals(f).type<Foo>();
     assert(d.parse(f1)).equals(f1).type<Foo>();
-    assert(() => d.parse(1)).throws(expect("is", 1));
+    assert(d).invalid_type(["1", null, 1]);
   });
 });

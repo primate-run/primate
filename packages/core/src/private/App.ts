@@ -1,6 +1,6 @@
 import type BuildApp from "#build/App";
 import type Config from "#config/Config";
-import E from "#error";
+import E from "#errors";
 import type Flags from "#Flags";
 import location from "#location";
 import type Mode from "#Mode";

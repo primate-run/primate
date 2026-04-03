@@ -1,3 +1,4 @@
+import E from "#i18n/errors";
 import is from "@rcompat/is";
 
 export default function validate(
@@ -15,14 +16,8 @@ export default function validate(
   if (!is.dict(key)) return;
 
   for (const [k, v] of Object.entries(key)) {
-    if (k.includes(".")) {
-      const at = path ? `${path}.${k}` : k;
-      throw new Error(
-        "[i18n] Dots are not allowed in catalog key names. " +
-        `Found "${k}" at "${at}" (locale "${locale}").`,
-      );
-    }
-    const next = path ? `${path}.${k}` : k;
-    validate(v, locale, next);
+    const at = path ? `${path}.${k}` : k;
+    if (k.includes(".")) throw E.no_dots_catalog_keys(k, at, locale);
+    validate(v, locale, at);
   }
 }

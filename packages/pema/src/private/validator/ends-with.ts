@@ -1,12 +1,10 @@
-import ParseError from "#ParseError";
 import type Validator from "#Validator";
+import E from "#errors";
 
-export default (suffix: string): Validator<string> => (x: string) => {
-  if (!x.endsWith(suffix)) {
-    throw new ParseError([{
-      input: x,
-      message: `"${x}" does not end with "${suffix}"`,
-      path: "",
-    }]);
-  }
-};
+export default function ends_with(suffix: string): Validator<string> {
+  return (x: string) => {
+    if (!x.endsWith(suffix)) {
+      throw E.invalid_format(x, `"${x}" does not end with "${suffix}"`);
+    }
+  };
+}

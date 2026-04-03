@@ -21,18 +21,18 @@
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build",
-    "test": "npm run build && npx proby",
-    "test:bun": "npm run build && bun x --bun proby",
-    "test:deno": "npm run build && deno run -A npm:proby"
+    "test": "npx proby",
+    "test:bun": "bunx --bun proby",
+    "test:deno": "deno run -A npm:proby"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.6.1",
-    "@rcompat/is": "^0.4.4",
-    "@rcompat/sqlite": "^0.9.0"
+    "@rcompat/assert": "^0.8.1",
+    "@rcompat/is": "^0.6.1",
+    "@rcompat/sqlite": "^0.11.1"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.9.0",
+    "@rcompat/type": "^0.11.1",
     "pema": "workspace:^"
   },
   "peerDependencies": {
@@ -40,13 +40,13 @@
   },
   "imports": {
     "#*": {
-      "apekit": "./src/private/*.ts",
+      "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
     }
   },
   "exports": {
     ".": {
-      "apekit": "./src/public/index.ts",
+      "@primate/source": "./src/public/index.ts",
       "default": "./lib/public/index.js"
     }
   }

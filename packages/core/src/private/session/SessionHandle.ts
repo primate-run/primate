@@ -1,3 +1,4 @@
+import E from "#errors";
 import kSerialize from "#session/k-serialize";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
@@ -14,9 +15,7 @@ export default class SessionHandle<Data> {
     assert.maybe.dict(data);
     assert.maybe.object(schema);
     assert.maybe.function(schema?.parse);
-    assert.true((id === undefined) === (data === undefined),
-      "both `id` and `data` must be defined or undefined",
-    );
+    assert.true((id === undefined) === (data === undefined), E.session_id_data());
 
     this.#id = id;
     this.#data = data;

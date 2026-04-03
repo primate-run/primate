@@ -1,4 +1,4 @@
-import E from "#db/error";
+import E from "#db/errors";
 import type PK from "#db/PK";
 import ForeignKey from "#orm/ForeignKey";
 import type { AllowedFKType } from "#orm/ForeignKey";

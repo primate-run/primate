@@ -1,3 +1,4 @@
+import { Code } from "#errors";
 import RequestBag from "#request/RequestBag";
 import test from "@rcompat/test";
 import any from "@rcompat/test/any";
@@ -54,8 +55,8 @@ test.case("get: returns value when defined; throws when absent or undefined", as
 
   assert(b.get("present")).equals("yes");
 
-  assert(() => b.get("missing")).throws();
-  assert(() => b.get("undef")).throws();
+  assert(() => b.get("missing")).throws(Code.request_bag_missing_key);
+  assert(() => b.get("undef")).throws(Code.request_bag_missing_key);
 });
 
 test.case("try: returns value or undefined (no throw)", assert => {

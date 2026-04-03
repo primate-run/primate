@@ -1,7 +1,7 @@
 import type BuildApp from "#build/App";
 import build_client from "#build/client/index";
 import build_server from "#build/server/index";
-import E from "#error";
+import E from "#errors";
 import location from "#location";
 import log from "#log";
 import $router from "#request/router";

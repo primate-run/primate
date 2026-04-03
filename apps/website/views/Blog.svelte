@@ -22,7 +22,9 @@
       {#each posts as post}
         <li class="entry">
           <a href={"/blog/" + post.href}>
-            <h2 class="entry__title">{post.meta.title}</h2>
+            <h2 class="entry__title">
+              {@html post.meta.title.replace(/`([^`]+)`/g, "<code>$1</code>")}
+            </h2>
 
             <p class="entry__excerpt">{@html toExcerpt(post)}</p>
 

@@ -1,4 +1,4 @@
-import E from "#error";
+import E from "#errors";
 import type RequestHook from "#module/RequestHook";
 import type Verb from "#request/Verb";
 import type RouteHandler from "#route/Handler";

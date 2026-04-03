@@ -1,4 +1,4 @@
-import E from "#error";
+import E from "#errors";
 import create from "#module/create";
 import type { Store } from "#orm/store";
 import type Config from "#session/Config";

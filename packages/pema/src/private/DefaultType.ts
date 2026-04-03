@@ -2,11 +2,7 @@ import type Infer from "#Infer";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
 import VirtualType from "#VirtualType";
-import type { UnknownFunction } from "@rcompat/type";
-
-function isDefaultFunction(x: unknown): x is UnknownFunction {
-  return typeof x === "function";
-};
+import is from "@rcompat/is";
 
 export default class DefaultType<
   S extends Parsed<unknown>,
@@ -36,8 +32,8 @@ export default class DefaultType<
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
     let $x = x;
     // default fallback
-    if ($x === undefined) {
-      $x = isDefaultFunction(this.#default) ? this.#default() : this.#default;
+    if (is.undefined($x)) {
+      $x = is.function(this.#default) ? this.#default() : this.#default;
     }
 
     return this.#schema.parse($x, options);

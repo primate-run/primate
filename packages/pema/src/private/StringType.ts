@@ -1,5 +1,5 @@
 import PrimitiveType from "#PrimitiveType";
-import E from "#schema-error";
+import E from "#schema-errors";
 import Storable from "#Storable";
 import email from "#validator/email";
 import ends_with from "#validator/ends-with";

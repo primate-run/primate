@@ -1,12 +1,10 @@
-import AppError from "#AppError";
-import bye from "#bye";
 import cookie from "#cookie";
 import type Config from "#i18n/Config";
 import COOKIE_NAME from "#i18n/constant/COOKIE_NAME";
 import PERSIST_HEADER from "#i18n/constant/PERSIST_HEADER";
+import E from "#i18n/errors";
 import type PersistMode from "#i18n/PersistMode";
 import storage from "#i18n/storage";
-import log from "#log";
 import create from "#module/create";
 import { Status } from "@rcompat/http";
 
@@ -30,13 +28,6 @@ function pick(client: Locale[], server: Locale[]): string | undefined {
   return undefined;
 }
 
-function fail(message: string, ...params: unknown[]) {
-  const error = new AppError(`{0} ${message}`, "[i18n]", ...params);
-  log.error(error);
-  bye();
-  process.exit(1);
-}
-
 export default function i18n_module(config: Config) {
   const default_locale = config.defaultLocale;
   const locales = Object.keys(config.locales);
@@ -44,9 +35,11 @@ export default function i18n_module(config: Config) {
   const currency = config.currency ?? "USD";
   let secure = false;
 
-  if (locales.length < 1) fail("must have at least 1 locale");
-  if (default_locale === undefined) fail("must have a default locale");
-  if (!locales.includes(default_locale)) fail("default locale not in locales");
+  if (locales.length < 1) throw E.at_least_one_locale();
+  if (default_locale === undefined) throw E.missing_default_locale(locales);
+  if (!locales.includes(default_locale)) {
+    throw E.unused_default_locale(default_locale, locales);
+  }
 
   return create({
     name: "builtin/i18n",

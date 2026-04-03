@@ -21,30 +21,30 @@
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build",
-    "test": "npm run build && npx proby"
+    "test": "npx proby"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.6.1",
-    "@rcompat/is": "^0.4.4",
+    "@rcompat/assert": "^0.8.1",
+    "@rcompat/is": "^0.6.1",
     "pema": "workspace:",
     "postgres": "^3.4.8"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.9.0"
+    "@rcompat/type": "^0.11.1"
   },
   "peerDependencies": {
     "primate": "workspace:^"
   },
   "imports": {
     "#*": {
-      "apekit": "./src/private/*.ts",
+      "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
     }
   },
   "exports": {
     ".": {
-      "apekit": "./src/public/index.ts",
+      "@primate/source": "./src/public/index.ts",
       "default": "./lib/public/index.js"
     }
   }

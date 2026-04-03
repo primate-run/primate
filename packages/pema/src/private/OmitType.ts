@@ -1,4 +1,4 @@
-import fail from "#fail";
+import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import type ObjectType from "#ObjectType";
@@ -7,6 +7,7 @@ import ParsedKey from "#ParsedKey";
 import type ParseOptions from "#ParseOptions";
 import join from "#path/join";
 import type Serialized from "#Serialized";
+import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
 
 export default class OmitType<
@@ -33,7 +34,7 @@ export default class OmitType<
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (typeof x !== "object" || x === null) throw fail("object", x, options);
+    if (!is.dict(x)) throw E.invalid_type(x, "object", options);
 
     const out: Dict = {};
     const props = this.#properties as Dict<Parsed<unknown>>;

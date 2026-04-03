@@ -1,4 +1,4 @@
-import E from "#db/error";
+import E from "#db/errors";
 import type { Storable } from "pema";
 
 export type Options = {

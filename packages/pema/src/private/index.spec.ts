@@ -5,7 +5,6 @@ import blob from "#blob";
 import boolean from "#boolean";
 import type BooleanType from "#BooleanType";
 import date from "#date";
-import expect from "#expect";
 import file from "#file";
 import schema from "#index";
 import type LiteralType from "#LiteralType";
@@ -18,28 +17,28 @@ import type PartialType from "#PartialType";
 import string from "#string";
 import type StringType from "#StringType";
 import symbol from "#symbol";
+import test from "#test";
 import tuple from "#tuple";
 import type TupleType from "#TupleType";
 import type UndefinedType from "#UndefinedType";
-import test from "@rcompat/test";
 import type { EmptyObject } from "@rcompat/type";
 
 const types = [
-  [bigint, 0n, 0, "bi"],
-  [blob, new Blob(), 0, "bb"],
-  [boolean, false, "0", "b"],
-  [date, new Date(), "0", "d"],
-  [number, 0, "0", "n"],
-  [string, "0", 0, "s"],
-  [symbol, Symbol(), 0, "sy"],
-  [file, new File([""], ""), 0, "f"],
+  [bigint, 0n, 0],
+  [blob, new Blob(), 0],
+  [boolean, false, "0"],
+  [date, new Date(), "0"],
+  [number, 0, "0"],
+  [string, "0", 0],
+  [symbol, Symbol(), 0],
+  [file, new File([""], ""), 0],
 ] as const;
 
 test.case("primitive validators", assert => {
-  types.forEach(([parsed, good, bad, type]) => {
+  types.forEach(([parsed, good, bad]) => {
     const s = schema(parsed);
     assert(s.parse(good)).equals(good);
-    assert(() => s.parse(bad)).throws(expect(type, bad));
+    assert(s).invalid_type([bad]);
   });
 });
 
@@ -50,11 +49,11 @@ test.case("literals", assert => {
   const t = schema(true);
   assert(t).type<LiteralType<true>>();
   assert(t.parse(true)).equals(true).type<true>();
-  assert(() => t.parse(false)).throws();
+  assert(t).invalid_type([false]);
   const f = schema(false);
   assert(f).type<LiteralType<false>>();
   assert(f.parse(false)).equals(false).type<false>();
-  assert(() => f.parse(true)).throws();
+  assert(f).invalid_type([true]);
 });
 
 test.case("empty []", assert => {
@@ -100,22 +99,15 @@ test.case("array", assert => {
   const s = schema(array(string));
   const si = schema([string]);
 
-  assert(s).type<ArrayType<StringType>>();
-  assert(s.parse(g0)).equals(g0).type<string[]>();
-  assert(s.parse(g1)).equals(g1).type<string[]>();
-  assert(s.parse(g2)).equals(g2).type<string[]>();
-
-  assert(si).type<ArrayType<StringType>>();
-  assert(si.parse(g0)).equals(g0).type<string[]>();
-  assert(si.parse(g1)).equals(g1).type<string[]>();
-  assert(si.parse(g2)).equals(g2).type<string[]>();
-
-  assert(() => s.parse(b0)).throws(expect("s", false, 0));
-  assert(() => s.parse(b1)).throws(expect("s", 0, 1));
-  assert(() => si.parse(b0)).throws(expect("s", false, 0));
-  assert(() => si.parse(b1)).throws(expect("s", 0, 1));
-  assert(() => s.parse(1)).throws(expect("a", 1));
-  assert(() => si.parse(1)).throws(expect("a", 1));
+  for (const type of [s, si]) {
+    assert(type).type<ArrayType<StringType>>();
+    assert(type.parse(g0)).equals(g0).type<string[]>();
+    assert(type.parse(g1)).equals(g1).type<string[]>();
+    assert(type.parse(g2)).equals(g2).type<string[]>();
+    assert(type).invalid_type([b0], "/0");
+    assert(type).invalid_type([b1], "/1");
+    assert(type).invalid_type([1]);
+  }
 });
 
 test.case("tuple", assert => {
@@ -138,15 +130,10 @@ test.case("tuple", assert => {
 
   assert(snb).type<TupleType<[StringType, NumberType, BooleanType]>>();
 
-  assert(() => s.parse(b0)).throws(expect("s", undefined, 0));
-  assert(() => s.parse(b1)).throws(expect("n", undefined, 1));
-  assert(() => s.parse(b2)).throws(expect("s", 0, 0));
-  assert(() => s.parse(b3)).throws(expect("s", 0, 0));
-
-  assert(() => si.parse(b0)).throws(expect("s", undefined, 0));
-  assert(() => si.parse(b1)).throws(expect("n", undefined, 1));
-  assert(() => si.parse(b2)).throws(expect("s", 0, 0));
-  assert(() => si.parse(b3)).throws(expect("s", 0, 0));
+  for (const type of [s, si]) {
+    assert(type).invalid_type([b0, b2, b3], "/0");
+    assert(type).invalid_type([b1], "/1");
+  }
 });
 
 test.case("complex", assert => {
@@ -175,26 +162,22 @@ test.case("complex", assert => {
     tupled: TupleType<[StringType, BooleanType]>;
   }>;
 
-  assert(complex).type<ExpectSchema>();
-  assert(complex.parse(valid)).equals(valid).type<Expected>;
-  assert(() => complex.parse(invalid))
-    .throws(expect("n", "oops", "scores.0"));
+  for (const type of [complex, complexi]) {
+    assert(type).type<ExpectSchema>();
+    assert(type.parse(valid)).equals(valid).type<Expected>;
+    assert(type).invalid_type([invalid], "/scores/0");
 
-  assert(complexi).type<ExpectSchema>();
-  assert(complexi.parse(valid)).equals(valid).type<Expected>();
-  assert(() => complexi.parse(invalid))
-    .throws(expect("n", "oops", "scores.0"));
+  }
 });
 
 test.case("null/undefined", assert => {
   assert(schema(null)).type<NullType>();
   assert(schema(null).parse(null)).equals(null).type<null>();
-  assert(() => schema(null).parse("null")).throws(expect("nl", "null"));
-
+  assert(schema(null)).invalid_type(["null"]);
   assert(schema(undefined)).type<UndefinedType>();
   assert(schema(undefined).parse(undefined)).equals(undefined)
     .type<undefined>();
-  assert(() => schema(undefined).parse(null)).throws(expect("u", null));
+  assert(schema(undefined)).invalid_type([null]);
 });
 
 test.case("partial", assert => {
@@ -203,8 +186,7 @@ test.case("partial", assert => {
   assert(p.parse({ foo: "foo" })).equals({ foo: "foo" });
   assert(p.parse({ bar: 1 })).equals({ bar: 1 });
   assert(p.parse({ bar: 1, foo: "foo" })).equals({ bar: 1, foo: "foo" });
-  assert(() => p.parse({ bar: "foo", foo: 1 })).throws(expect("n", "foo", "bar"));
-
+  assert(p).invalid_type([{ bar: "foo", foo: 1 }], "/bar");
   assert(p).type<PartialType<{ foo: StringType; bar: NumberType }>>();
 });
 
@@ -236,12 +218,11 @@ test.case("coerce", assert => {
   const parsed = { name: "John", scores: [1, 2], tupled: ["yes", true] };
   const invalid = { name: "Bob", scores: ["oops"], tupled: ["ok", "nope"] };
 
-  assert(s).type<ExpectSchema>();
-  assert(s.coerce(valid)).equals(parsed).type<Expected>;
-
-  assert(si).type<ExpectSchema>();
-  assert(si.coerce(valid)).equals(parsed).type<Expected>();
-  assert(() => s.coerce(invalid)).throws(expect("n", "oops", "scores.0"));
+  for (const type of [s, si]) {
+    assert(type).type<ExpectSchema>();
+    assert(type.coerce(valid)).equals(parsed).type<Expected>;
+    assert(type).invalid_type([invalid], "/scores/0");
+  }
 });
 
 test.case("deep shorthand coerce", assert => {

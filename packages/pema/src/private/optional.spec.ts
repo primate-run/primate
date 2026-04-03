@@ -8,7 +8,7 @@ import optional from "#optional";
 import type OptionalType from "#OptionalType";
 import string from "#string";
 import type StringType from "#StringType";
-import test from "@rcompat/test";
+import test from "#test";
 
 const b = optional(boolean);
 

@@ -1,19 +1,16 @@
-import ParseError from "#ParseError";
 import type Validator from "#Validator";
+import E from "#errors";
 
 type ErrorFunction = (x: string) => string;
 
-export default function validateRegex(regex: RegExp, error?: ErrorFunction):
-  Validator<string> {
+export default function regex(
+  format: RegExp,
+  error?: ErrorFunction): Validator<string> {
   return (x: string) => {
-    if (!regex.test(x)) {
+    if (!format.test(x)) {
       const message = (error ?? ((y: string) =>
-        `"${y}" is not a valid ${String(regex)}`))(x);
-      throw new ParseError([{
-        input: x,
-        message,
-        path: "",            // root; the calling type should rebase if needed
-      }]);
+        `"${y}" is not a valid ${String(format)}`))(x);
+      throw E.invalid_format(x, message);
     }
   };
 };
