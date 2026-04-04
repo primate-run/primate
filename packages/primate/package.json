@@ -34,7 +34,7 @@
     "@rcompat/fs": "^0.28.1",
     "@rcompat/http": "~0.25.1",
     "@rcompat/runtime": "^0.11.1",
-    "@rcompat/test": "^0.12.1"
+    "@rcompat/test": "^0.12.2"
   },
   "devDependencies": {
     "@rcompat/type": "^0.11.1"

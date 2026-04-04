@@ -9,7 +9,7 @@ export default store({
   schema: {
     id: key.primary(p.u32),
     name: p.string,
-    age2: p.u8.range(0, 120),
+    age: p.u8.range(0, 120),
     lastname: p.string.optional(),
   },
 });

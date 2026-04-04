@@ -15,8 +15,8 @@
   },
   "dependencies": {
     "@rcompat/fs": "^0.28.1",
-    "@rcompat/test": "^0.12.1",
-    "happy-dom": "^20.8.4",
+    "@rcompat/test": "^0.12.2",
+    "happy-dom": "^20.8.9",
     "primate": "workspace:^"
   },
   "devDependencies": {

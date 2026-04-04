@@ -27,7 +27,7 @@
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.8.1",
     "@rcompat/string": "^0.16.1",
-    "marked": "^17.0.3",
+    "marked": "^17.0.5",
     "pema": "workspace:^"
   },
   "devDependencies": {

@@ -25,12 +25,12 @@
     "test": "npx proby"
   },
   "dependencies": {
-    "@angular/common": "^21.2.0",
-    "@angular/compiler": "^21.2.0",
-    "@angular/core": "^21.2.0",
-    "@angular/platform-browser": "^21.2.0",
-    "@angular/platform-server": "^21.2.0",
-    "@angular/ssr": "^21.2.0",
+    "@angular/common": "^21.2.7",
+    "@angular/compiler": "^21.2.7",
+    "@angular/core": "^21.2.7",
+    "@angular/platform-browser": "^21.2.7",
+    "@angular/platform-server": "^21.2.7",
+    "@angular/ssr": "^21.2.6",
     "@primate/core": "workspace:^",
     "typescript": "^5.9.3"
   },

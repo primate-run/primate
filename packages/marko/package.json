@@ -24,10 +24,10 @@
     "test": "npx proby"
   },
   "dependencies": {
-    "@marko/compiler": "^5.39.56",
+    "@marko/compiler": "^5.39.62",
     "@primate/core": "workspace:^",
     "@rcompat/fs": "^0.28.1",
-    "marko": "^5.38.25"
+    "marko": "^5.38.35"
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
