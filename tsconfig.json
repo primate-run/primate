@@ -3,6 +3,9 @@
   "compilerOptions": {
     "customConditions": [
       "@primate/source"
+    ],
+    "types": [
+      "node"
     ]
   }
 }
