@@ -29,6 +29,7 @@
     "@rcompat/cli": "^0.18.1",
     "@rcompat/crypto": "^0.16.1",
     "@rcompat/dict": "^0.5.1",
+    "@rcompat/env": "^0.17.2",
     "@rcompat/error": "^0.3.1",
     "@rcompat/fn": "^0.5.1",
     "@rcompat/fs": "^0.28.1",
@@ -54,6 +55,11 @@
     }
   },
   "exports": {
+    "./AppFacade": {
+      "@primate/source": "./src/public/AppFacade.ts",
+      "browser": "./lib/private/app/Facade.browser.js",
+      "default": "./lib/public/AppFacade.js"
+    },
     "./*": {
       "@primate/source": "./src/public/*.ts",
       "default": "./lib/public/*.js"

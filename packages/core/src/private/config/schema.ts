@@ -1,6 +1,8 @@
 import type DB from "#db/DB";
 import type Module from "#Module";
 import fs from "@rcompat/fs";
+import type { Dict } from "@rcompat/type";
+import type { ObjectType, Parsed } from "pema";
 import p from "pema";
 
 export default p({
@@ -28,6 +30,9 @@ export default p({
       db: p.pure<DB>(),
       blocking: p.boolean.default(true),
     }).optional(),
+  },
+  env: {
+    schema: p.pure<ObjectType<Dict<Parsed<unknown>>>>().optional(),
   },
   modules: p.array(p.object({
     name: p.string,

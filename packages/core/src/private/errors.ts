@@ -1,5 +1,6 @@
 import error from "@rcompat/error";
 import type { FileRef } from "@rcompat/fs";
+import type ParseError from "pema/ParseError";
 
 const t = error.template;
 
@@ -203,6 +204,21 @@ const VIEW = error.coded({
   view_error,
 });
 
+function env_invalid_schema(cause: ParseError) {
+  const issues = cause.issues
+    .map(i => `  ${i.path.replace(/^\//, "")}: ${i.message}`)
+    .join("\n");
+  return t`environment variables failed validation:\n${issues}`;
+}
+function env_missing_key(key: string) {
+  return t`environment variable ${key} is not defined`;
+}
+
+const ENV = error.coded({
+  env_invalid_schema,
+  env_missing_key,
+});
+
 const errors = {
   ...APP,
   ...BUILD,
@@ -215,6 +231,7 @@ const errors = {
   ...SESSION,
   ...TARGET,
   ...VIEW,
+  ...ENV,
 };
 
 export type Code = keyof typeof errors;
