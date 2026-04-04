@@ -5,7 +5,7 @@ export default function coerce_int(x: unknown) {
   const n = is.numeric(x) ? Number(x) : x;
 
   // if is integer, return it
-  if (typeof n === "number" && is.int(n)) return n;
+  if (is.int(n)) return n;
 
   return x;
 }

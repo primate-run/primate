@@ -1,21 +1,20 @@
 import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
+import is from "@rcompat/is";
 import type { JSONPointer } from "@rcompat/type";
 
 function print_got(x: unknown) {
-  if (x === undefined) return "undefined";
-  if (x === null) return "null";
-  return `\`${x?.toString() ?? x}\` (${typeof x})`;
+  if (is.undefined(x)) return "undefined";
+  if (is.null(x)) return "null";
+  return `\`${x.toString()}\` (${typeof x})`;
 }
 
 function invalid_type(
   input: unknown,
   expected: string,
   options: ParseOptions<any> | JSONPointer = "") {
-  const path = typeof options === "string"
-    ? options
-    : options[ParsedKey] ?? "";
+  const path = is.string(options) ? options : options[ParsedKey] ?? "";
   return new ParseError([{
     type: "invalid_type",
     input,

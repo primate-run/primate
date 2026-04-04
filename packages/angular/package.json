@@ -32,7 +32,7 @@
     "@angular/platform-server": "^21.2.7",
     "@angular/ssr": "^21.2.6",
     "@primate/core": "workspace:^",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   },
   "devDependencies": {
     "@primate/test": "workspace:^",

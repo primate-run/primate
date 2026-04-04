@@ -5,6 +5,7 @@ import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
 import type ParseOptions from "#ParseOptions";
 import type OptionalTrait from "#trait/Optional";
+import is from "@rcompat/is";
 
 type Literal = string;
 
@@ -31,7 +32,7 @@ export default class EnumType<T extends readonly Literal[]>
   }
 
   parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (typeof x !== "string" || !this.#values.includes(x as T[number])) {
+    if (!is.string(x) || !this.#values.includes(x as T[number])) {
       throw E.invalid_type(x, this.name, options);
     }
     return x as never;

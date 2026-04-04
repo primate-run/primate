@@ -1,9 +1,5 @@
 import GenericType from "#GenericType";
-import type Storable from "#Storable";
-import is from "@rcompat/is";
-
-const storable = (x: unknown): x is Storable =>
-  !!x && typeof x === "object" && "datatype" in x;
+import Storable from "#Storable";
 
 export default abstract class VirtualType<
   Type,
@@ -14,7 +10,7 @@ export default abstract class VirtualType<
   abstract get schema(): Type;
 
   get datatype() {
-    if (storable(this.schema)) return this.schema.datatype;
+    if (Storable.is(this.schema)) return this.schema.datatype;
 
     throw new Error("cannot be used in a store");
   }

@@ -24,11 +24,11 @@
     "@rcompat/io": "^0.5.1",
     "@rcompat/test": "^0.12.2",
     "@types/node": "^25.5.2",
-    "apekit": "^0.0.50",
+    "apekit": "^0.0.51",
     "esbuild": "^0.28.0",
     "eslint": "^9.39.2",
-    "knip": "^5.86.0",
+    "knip": "^6.3.0",
     "proby": "^0.13.3",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   }
 }

@@ -20,7 +20,7 @@
     "@rcompat/http": "^0.25.1",
     "@rcompat/string": "^0.16.1",
     "primate": "workspace:^",
-    "shiki": "^3.21.0",
+    "shiki": "^4.0.2",
     "svelte": "^5.55.1"
   },
   "devDependencies": {

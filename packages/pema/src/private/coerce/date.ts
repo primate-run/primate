@@ -1,3 +1,5 @@
+import is from "@rcompat/is";
+
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 // time with optional :ss and .ms, but TZ is REQUIRED (Z or ±HH:MM)
 const ISO_DATETIME_TZ =
@@ -53,14 +55,9 @@ export default function coerceDate(x: unknown) {
   if (x instanceof Date) return x;
 
   // numbers are treated as epochs
-  if (typeof x === "number" && Number.isFinite(x)) {
-    return fromNumber(x);
-  }
+  if (is.finite(x)) return fromNumber(x as number);
 
-  // strings
-  if (typeof x === "string") {
-    return fromString(x);
-  }
+  if (is.string(x)) return fromString(x);
 
   return x;
 }

@@ -2,7 +2,7 @@ import DefaultType from "#DefaultType";
 import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
-import isParsedType from "#is-parsed-type";
+import is_parsed from "#is-parsed";
 import type NormalizeSchema from "#NormalizeSchema";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
@@ -23,7 +23,7 @@ type InferUnion<T extends Schema[]> = TupleToUnion<{
 }>;
 
 const print = (type: unknown) => {
-  const parsed = isParsedType(type);
+  const parsed = is_parsed(type);
 
   if (parsed) {
     return type.name;
@@ -49,7 +49,7 @@ const print = (type: unknown) => {
 };
 
 const union_error = (types: Schema[]) =>
-  `\`${types.map(t => isParsedType(t) ? t.name : print(t)).join(" | ")}\``;
+  `\`${types.map(t => is_parsed(t) ? t.name : print(t)).join(" | ")}\``;
 
 export default class UnionType<T extends Parsed<unknown>[]>
   extends GenericType<T, InferUnion<T>, "UnionType">
