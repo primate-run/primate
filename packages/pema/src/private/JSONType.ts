@@ -4,6 +4,7 @@ import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
+import type Serialized from "#Serialized";
 import Storable from "#Storable";
 import is from "@rcompat/is";
 import type { JSONValue } from "@rcompat/type";
@@ -57,6 +58,6 @@ export default class JSONType<S extends JSONInput = undefined>
       type: "json" as const,
       datatype: "json" as const,
       ...(this.#inner !== undefined && { of: this.#inner.toJSON() }),
-    };
+    } as { type: "json"; datatype: "json"; of?: Serialized };
   }
 }
