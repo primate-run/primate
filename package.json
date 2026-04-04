@@ -25,7 +25,7 @@
     "@rcompat/test": "^0.12.2",
     "@types/node": "^25.5.2",
     "apekit": "^0.0.50",
-    "esbuild": "^0.27.4",
+    "esbuild": "^0.28.0",
     "eslint": "^9.39.2",
     "knip": "^5.86.0",
     "proby": "^0.13.3",

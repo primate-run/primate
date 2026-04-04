@@ -40,7 +40,7 @@
     "@rcompat/runtime": "^0.11.1",
     "@rcompat/string": "^0.16.1",
     "@rcompat/type": "^0.11.1",
-    "esbuild": "^0.27.4",
+    "esbuild": "^0.28.0",
     "pema": "workspace:^"
   },
   "imports": {

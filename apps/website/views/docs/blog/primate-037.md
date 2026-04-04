@@ -1,12 +1,12 @@
 ---
-title: Primate 0.37: Revised modules, database migrations, typed environment access and ZZZ
+title: Primate 0.37: Revised modules, database migrations, and typed environment access
 epoch: 0
 author: terrablue
 ---
 
 Today we're announcing the availability of the Primate 0.37 preview release.
-This release revises the module system, adds database migrations, introduces
-typed environment access, and ZZZ.
+This release revises the module system, adds database migrations, and
+introduces typed environment access.
 
 !!!
 If you're new to Primate, we recommend reading the [quickstart] page to get
