@@ -236,7 +236,7 @@ function migration_store_conflict(message: string) {
 function unapplied_migrations() {
   return t`You have unapplied migrations.
 — Show migration status ${"npx primate migrate:status"}
-- Apply pending migrations ${"npx primate:apply"}`;
+- Apply pending migrations ${"npx primate migrate:apply"}`;
 }
 
 const MISC = error.coded({

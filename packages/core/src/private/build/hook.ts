@@ -13,47 +13,48 @@ const core_pkg = await fs.project.package(import.meta.dirname);
 const { version } = await core_pkg.json() as { version: string };
 
 async function pre(app: BuildApp) {
-  const dot_primate = app.path.build.join(".primate");
+  const build_json = app.path.build.join("build.json");
   const build_path = app.path.build;
-
-  if (await build_path.exists() && !await dot_primate.exists()) {
+  if (await build_path.exists() && !await build_json.exists()) {
     throw E.build_previous_build_exists(build_path);
   }
-  // remove build directory if exists
   await app.path.build.remove();
   await app.path.build.create();
-  // touch a .primate file to indicate this is a Primate build directory
-  await dot_primate.write(version);
-
   await app.runpath(location.client).create();
   const stamp = app.runpath("client", "server-stamp.js");
   await stamp.write("export default 0;\n");
-
-  // this has to occur before post, so that layout depth is available for
-  // compiling root views
-  // bindings should have been registered during `init`
   const router = await $router(app.path.routes, app.extensions);
   app.set(s_layout_depth, router.depth("layout"));
-
   const i18n_ts = app.path.config.join("i18n.ts");
   const i18n_js = app.path.config.join("i18n.js");
   app.i18n_active = await i18n_ts.exists() || await i18n_js.exists();
-
   const session_ts = app.path.config.join("session.ts");
   const session_js = app.path.config.join("session.js");
   app.session_active = await session_ts.exists() || await session_js.exists();
-};
+}
 
 async function post(app: BuildApp) {
   await build_client(app);
   await build_server(app);
 
+  // write build.json with version and migration_version
+  const migrations_dir = app.root.join("migrations");
+  let migration_version = 0;
+  if (await migrations_dir.exists()) {
+    const files = await migrations_dir.files({ filter: /\d+-.*\.[jt]s$/ });
+    migration_version = files.length === 0 ? 0 : Math.max(
+      ...files.map(f => parseInt(f.name.split("-")[0])),
+    );
+  }
+  await app.path.build.join("build.json").writeJSON({
+    version,
+    migration_version,
+  });
+
   log.print(`✓ build path  ${c.dim(app.path.build.path)}\n`);
-
   app.cleanup();
-
   return app;
-};
+}
 
 export default async function run_build_hooks(app: BuildApp) {
   await pre(app);

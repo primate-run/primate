@@ -60,8 +60,8 @@ export default class AppFacade<T extends EnvSchema = EnvSchema> {
     return this.#app;
   }
 
-  view<T = ServerView>(name: string) {
-    return this.#with.loadView<T>(name);
+  view<SV = ServerView>(name: string) {
+    return this.#with.loadView<SV>(name);
   };
 
   get root() {
