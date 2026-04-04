@@ -104,7 +104,7 @@ distinction — it has to be correct. Any type/runtime boundary bug that was
 accidentally masked by the compiler will be caught the first time you run
 `npx proby`.
 
-## What's new
+## What's new otherwise
 
 ### `test.group`
 
@@ -269,3 +269,11 @@ npx proby                        # run all tests
 npx proby math.spec.ts           # run a single file
 npx proby math.spec.ts addition  # run a single group within a file
 ```
+
+## Fin
+
+If you like Primate, consider [joining our Discord server][discord] or starring
+us on [GitHub].
+
+[discord]: https://discord.gg/RSg4NNwM4f
+[GitHub]: https://github.com/primate-run/primate
