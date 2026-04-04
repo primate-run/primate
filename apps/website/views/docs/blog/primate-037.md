@@ -1,11 +1,11 @@
 ---
-title: Primate 0.37: Revised modules, XXX, YYY and ZZZ
+title: Primate 0.37: Revised modules, database migrations, YYY and ZZZ
 epoch: 0
 author: terrablue
 ---
 
 Today we're announcing the availability of the Primate 0.37 preview release.
-This release revises the module system, XXX, YYY, and ZZZ.
+This release revises the module system, adds database migrations, YYY, and ZZZ.
 
 !!!
 If you're new to Primate, we recommend reading the [quickstart] page to get
@@ -63,6 +63,65 @@ export default (): Module => {
 ```
 
 See the new [modules] page in the docs for a full reference.
+
+## Database migrations
+
+Primate 0.37 adds an opt-in migration system for store-backed schemas.
+
+Once enabled, Primate can compare your current stores to the live database,
+generate numbered migration files into `migrations/`, and apply them in order.
+That keeps schema changes explicit and reviewable without forcing you to
+hand-write every migration from scratch.
+
+Enable it in `config/app.ts` by telling Primate which database should track
+applied migrations and which table to use:
+
+```ts
+import config from "primate/config";
+import db from "./db/index.ts";
+
+export default config({
+  db: {
+    migrations: {
+      table: "migration",
+      db,
+    },
+  },
+});
+```
+
+Migrations are entirely opt-in. If you do not configure `db.migrations`,
+Primate behaves as before.
+
+Once configured, the workflow is:
+
+```bash
+npx primate migrate:create --name="add posts"
+npx primate migrate:status
+npx primate migrate:apply
+```
+
+`migrate:create` inspects the current database schema, compares it to your
+stores, and writes a new numbered migration file. It handles both new tables
+and table alterations, and when a change looks like a rename rather than a
+drop-and-add, Primate will ask you to confirm it.
+
+`migrate:status` shows which migrations have already been applied and which are
+still pending. `migrate:apply` runs pending migrations in order and records
+them in the migration table.
+
+Primate is deliberately strict here. If you have generated migrations that
+have not yet been applied, it will refuse to generate another one on top. And
+when serving a built app, Primate now checks that the database is up to date
+with the migration version captured at build time and errors on startup if it
+is not. In practice, that means unapplied migrations fail fast instead of
+surfacing later as confusing runtime schema errors.
+
+!!!
+As part of this change, build metadata now uses `build.json` instead of
+`.primate` in the build directory. If you are upgrading an existing app, remove
+your current build directory once before rebuilding.
+!!!
 
 ## `app:FRONTEND` and deprecation of magical request props
 
@@ -417,3 +476,4 @@ us on [GitHub].
 [discord]: https://discord.gg/RSg4NNwM4f
 [GitHub]: https://github.com/primate-run/primate
 [upcoming features]: https://github.com/primate-run/primate/milestone/10
+

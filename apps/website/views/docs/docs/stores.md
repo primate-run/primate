@@ -29,6 +29,10 @@ Stores have:
 Create a file under `stores` and export a store. Every store requires three
 fields: `name`, `db`, and `schema`.
 
+Stores may also define `migrate`, which defaults to `true`. Set
+`migrate: false` for stores that should not participate in migration
+generation.
+
 ```ts
 // stores/Post.ts
 import p from "pema";
@@ -89,14 +93,8 @@ id: key.primary(p.u32, { generate: false })
 ```
 
 Supported PK types:
-- **Integers**: `u8`, `u16`, `u32`, `i8`, `i16`, `i32` — auto-increment
-- **Bigints**: `u64`, `u128`, `i64`, `i128` — manual generation via MAX+1
-- **Strings**: `string` — UUID generation
-
-!!!
-MongoDB only supports `string` primary keys for auto-generation due to its
-native ObjectId system.
-!!!
+- **Unsigned integers**: `u8`, `u16`, `u32`, `u64`, `u128`
+- **UUIDs**: `p.uuid`, `p.uuid.v4()`, `p.uuid.v7()`
 
 ### Foreign keys
 
@@ -115,6 +113,9 @@ export default store({
   },
 });
 ```
+
+Foreign keys should use the same scalar type as the referenced primary key,
+for example `key.foreign(p.u32)` or `key.foreign(p.uuid)`.
 
 ## Relations
 
@@ -248,6 +249,48 @@ database file.
 Name the file freely. For the main driver, use `index.ts` or `default.ts`.
 Import it into your stores as `db` from `#db`.
 
+## Migrations
+
+Primate can manage schema changes for database stores through an opt-in
+migration system.
+
+Enable it in `config/app.ts` by telling Primate which database should track
+applied migrations and which table to use:
+
+```ts
+import config from "primate/config";
+import db from "#db";
+
+export default config({
+  db: {
+    migrations: {
+      table: "migration",
+      db,
+    },
+  },
+});
+```
+
+If `db.migrations` is not configured, migrations are disabled.
+
+Once enabled, the workflow is:
+
+```bash
+npx primate migrate:create --name="add posts"
+npx primate migrate:status
+npx primate migrate:apply
+```
+
+`migrate:create` compares your current stores to the live database and writes a
+new numbered migration file into `migrations/`. `migrate:status` shows which
+migrations are applied and which are pending. `migrate:apply` runs pending
+migrations in order and records them in the migration table.
+
+Primate is strict about unapplied migrations. If migration files exist that
+have not yet been applied, `migrate:create` refuses to generate another one on
+top. And when serving a built app, Primate checks the migration version
+captured at build time and errors on startup if the database is behind.
+
 ## Lifecycle
 
 Create tables or collections at app startup, e.g. in a route file.
@@ -261,7 +304,8 @@ await Post.table.create();
 ```
 
 You can safely call `create()` multiple times; drivers treat it as idempotent.
-Good for prototyping. In production, create them ahead of time.
+Good for prototyping. In production, prefer migrations to manage schema changes
+ahead of time.
 
 ## Usage in routes
 
@@ -326,6 +370,9 @@ export default store({
   },
 }));
 ```
+
+Extended stores are excluded from migration generation automatically; migrations
+operate on the base store definitions.
 
 ### Modular extensions
 
