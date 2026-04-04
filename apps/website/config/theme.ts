@@ -50,6 +50,10 @@ export default {
           title: "Views",
         },
         {
+          href: "/application",
+          title: "Application",
+        },
+        {
           href: "/validation",
           title: "Validation",
         },

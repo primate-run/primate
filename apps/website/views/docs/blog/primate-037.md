@@ -1,11 +1,12 @@
 ---
-title: Primate 0.37: Revised modules, database migrations, YYY and ZZZ
+title: Primate 0.37: Revised modules, database migrations, typed environment access and ZZZ
 epoch: 0
 author: terrablue
 ---
 
 Today we're announcing the availability of the Primate 0.37 preview release.
-This release revises the module system, adds database migrations, YYY, and ZZZ.
+This release revises the module system, adds database migrations, introduces
+typed environment access, and ZZZ.
 
 !!!
 If you're new to Primate, we recommend reading the [quickstart] page to get
@@ -122,6 +123,52 @@ As part of this change, build metadata now uses `build.json` instead of
 `.primate` in the build directory. If you are upgrading an existing app, remove
 your current build directory once before rebuilding.
 !!!
+
+## Typed environment access
+
+Primate 0.37 adds `AppFacade#env(key)`, a small but important improvement for
+server-side configuration.
+
+Until now, reading environment variables usually meant reaching for
+`Deno.env.get()`, `process.env`, or another runtime-specific API directly. In
+0.37, Primate exposes a single app-level `env()` method instead:
+
+```ts
+import app from "../config/app.ts";
+const token = app.env("API_TOKEN");
+```
+
+You can also make environment access fully typed by declaring a schema in
+`config/app.ts`:
+
+```ts
+import config from "primate/config";
+import p from "pema";
+
+export default config({
+  env: {
+    schema: p({
+      API_TOKEN: p.string,
+      PORT: p.u16,
+    }),
+  },
+});
+```
+
+With a schema in place, Primate parses and validates environment variables at
+startup, and `app.env()` becomes type-aware:
+
+```ts
+const token = app.env("API_TOKEN"); // string
+const port = app.env("PORT");       // number
+```
+
+If a required key is missing, or a value fails schema validation, Primate
+errors immediately instead of letting misconfiguration surface later at
+runtime.
+
+`app.env()` is server-only. It is available through the app facade in backend
+code, and intentionally throws if used in frontend bundles.
 
 ## `app:FRONTEND` and deprecation of magical request props
 

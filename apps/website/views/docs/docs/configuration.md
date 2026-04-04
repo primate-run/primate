@@ -14,10 +14,15 @@ into the defaults.
 ## `app.ts`
 [s=configuration/app-ts]
 
+`config/app.ts` exports the application facade for your app. For using that
+value at runtime — including `app.config()`, `app.env()`, `app.view()`, and
+`app.root` — see the [Application] page.
+
 ### App options
 
 |Option|Default|Description|
 |-|-|-|
+|[db.migrations](#db-migrations)|`undefined`|database migration configuration|
 |[http.csp](#http-csp)|`{}`|
 |[http.headers](#http-headers)|`{}`|default HTTP response headers|
 |[http.host](#http-host)|`"localhost"`|server host|
@@ -25,8 +30,29 @@ into the defaults.
 |[http.ssl.cert](#http-ssl-cert)|`undefined`|path to SSL certificate|
 |[http.ssl.key](#http-ssl-key)|`undefined`|path to SSL private key|
 |[http.static.root](#http-static-root)|`"/"`|web path of static assets|
+|[env.schema](#env-schema)|`undefined`|schema for typed environment variables|
 |[modules](#modules)|`[]`|extension modules|
 |[request.body.parse](#request-body-parse)|`true`|parse request body|
+
+### `db.migrations`
+
+Configuration for Primate's opt-in migration system.
+
+```ts
+import config from "primate/config";
+import db from "#db";
+
+export default config({
+  db: {
+    migrations: {
+      table: "migration",
+      db,
+    },
+  },
+});
+```
+
+See the [Stores] page for the migration workflow.
 
 ### `http.csp`
 The Content Security Policy (CSP) to use.
@@ -71,6 +97,27 @@ valid key/certificate pair, Primate uses https instead of http.
 The path at which to serve static assets (those located in the `static`
 directory). Static assets take precedence over routes. This option allows you
 to have all static assets served at a subpath, like `/public`.
+
+### `env.schema`
+A Pema object schema used to validate and type environment variables exposed
+through the application facade.
+
+```ts
+import config from "primate/config";
+import p from "pema";
+
+export default config({
+  env: {
+    schema: p({
+      API_TOKEN: p.string,
+      PORT: p.u16,
+    }),
+  },
+});
+```
+
+With `env.schema` configured, `app.env(key)` validates values when the app
+starts serving and becomes type-aware. See the [Application] page for usage.
 
 ### `modules`
 Additional modules to load at runtime.
@@ -150,3 +197,5 @@ Locale persistance mode.
 ## `db/*.ts`
 
 [s=configuration/db-ts]
+[Application]: /docs/application
+[Stores]: /docs/stores

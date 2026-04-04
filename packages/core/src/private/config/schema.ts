@@ -28,7 +28,6 @@ export default p({
     migrations: p.object({
       table: p.string,
       db: p.pure<DB>(),
-      blocking: p.boolean.default(true),
     }).optional(),
   },
   env: {
