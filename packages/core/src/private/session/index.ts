@@ -1,3 +1,4 @@
+import E from "#errors";
 import type { Store } from "#orm/store";
 import configSchema from "#session/schema";
 import type SessionFacade from "#session/SessionFacade";
@@ -34,7 +35,7 @@ export default function session<S extends StoreSchema>(
 
   const current = () => {
     const s = storage.getStore();
-    if (!s) throw new Error("Session handle not available in this context");
+    if (s === undefined) throw E.session_handle_unavailable();
     return s;
   };
 

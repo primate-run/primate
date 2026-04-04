@@ -145,11 +145,15 @@ function session_id_string() {
 function session_id_data() {
   return t`"both ${"id"} and ${"data"} must be defined or undefined`;
 }
+function session_handle_unavailable() {
+  return t`session handle not available in this context`;
+}
 
 const SESSION = error.coded({
   session_missing_id,
   session_id_string,
   session_id_data,
+  session_handle_unavailable,
 });
 
 function target_missing(target: string, targets: string[]) {
