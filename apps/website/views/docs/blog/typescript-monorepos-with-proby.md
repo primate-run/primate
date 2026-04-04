@@ -139,7 +139,7 @@ untouched:
 ```ts
 import test from "@rcompat/test";
 
-await using telegram = test.intercept("https://api.telegram.org", setup => {
+using telegram = test.intercept("https://api.telegram.org", setup => {
   setup.post("/sendMessage", () => ({
     ok: true,
     result: { message_id: 42 },
@@ -154,8 +154,8 @@ test.case("notifies user on signup", async assert => {
 });
 ```
 
-`await using` restores the original fetch automatically when the scope exits.
-For long-lived intercepts, use `test.ended`:
+`using` restores the original fetch automatically when the scope exits. For
+long-lived intercepts, use `test.ended`:
 
 ```ts
 const telegram = test.intercept("https://api.telegram.org", setup => {
