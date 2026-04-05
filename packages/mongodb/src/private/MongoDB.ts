@@ -171,9 +171,24 @@ export default class MongoDB implements DB {
   #client?: MongoClient;
 
   constructor(config?: typeof schema.input) {
-    const { host, port, database } = schema.parse(config);
-    const params = "directConnection=true&replicaSet=rs0";
-    const client = new MongoClient(`mongodb://${host}:${port}?${params}`);
+    const {
+      host,
+      port,
+      database,
+      username,
+      password,
+    } = schema.parse(config);
+
+    const uri = new URL(`mongodb://${host}:${port}/${database}`);
+    uri.searchParams.set("directConnection", "true");
+
+    if (username !== undefined) {
+      uri.username = username;
+      uri.password = password ?? "";
+      uri.searchParams.set("authSource", database);
+    }
+
+    const client = new MongoClient(uri.toString());
 
     this.#database = database;
     this.#factory = async () => {
@@ -188,7 +203,9 @@ export default class MongoDB implements DB {
   }
 
   async close() {
-    await this.#client?.close();
+    const client = this.#client;
+    this.#client = undefined;
+    await client?.close();
   }
 
   get schema(): Schema {
