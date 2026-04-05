@@ -5,12 +5,15 @@ import p from "pema";
 
 type Work = () => Promise<unknown>;
 
-core_test(new PostgreSQL({ database: "primate", username: "primate" }));
+const config = {
+  database: "primate",
+  username: "primate",
+  password: "primate",
+};
 
-const db = new PostgreSQL(
-  { database: "primate", username: "primate" },
-  { debug: true },
-);
+core_test(new PostgreSQL(config));
+
+const db = new PostgreSQL(config, { debug: true });
 
 const dt = {
   u8: p.u8.datatype,

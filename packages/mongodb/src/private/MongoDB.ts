@@ -163,7 +163,7 @@ function columns_to_types(row: FieldRow): DataKey[] {
   }
 }
 
-export default class MongoDB implements DB {
+export default class MongoDB implements DB<MongoClient> {
   static config: typeof schema.input;
 
   #factory: () => Promise<MongoClient>;
@@ -200,6 +200,10 @@ export default class MongoDB implements DB {
   async #collection(name: string) {
     this.#client ??= await this.#factory();
     return this.#client.db(this.#database).collection(name);
+  }
+
+  get client() {
+    return this.#client!;
   }
 
   async close() {

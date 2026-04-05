@@ -37,7 +37,7 @@ const typemap: TypeMap<ColumnTypes> = {
     },
   },
   boolean: identity("BOOLEAN"),
-  datetime: identity("TIMESTAMP"),
+  datetime: identity("TIMESTAMPTZ"),
   f32: identity("REAL"),
   f64: identity("FLOAT8"),
   i128: {

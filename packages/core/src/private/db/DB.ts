@@ -25,10 +25,12 @@ export type Schema = {
   alter(name: string, diff: SchemaDiff): MaybePromise<void>;
 };
 
-export default interface DB {
+export default interface DB<Client = unknown> {
   schema: Schema;
 
   close(): MaybePromise<void>;
+
+  readonly client: Client;
 
   create<O extends Dict>(as: As, record: Dict): MaybePromise<O>;
 

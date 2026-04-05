@@ -152,7 +152,7 @@ function columns_to_types(type: string): DataKey[] {
   return [];
 }
 
-export default class SQLite implements DB {
+export default class SQLite implements DB<Client> {
   #factory: () => Client;
   #client?: Client;
   #debug = false;
@@ -168,6 +168,10 @@ export default class SQLite implements DB {
 
   get #db() {
     return this.#client ??= this.#factory();
+  }
+
+  get client() {
+    return this.#db;
   }
 
   #sql(query: string) {

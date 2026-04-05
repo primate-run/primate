@@ -86,7 +86,7 @@ const schema = p({
   username: p.string.optional(),
 });
 
-export default class MySQL implements DB {
+export default class MySQL implements DB<Pool> {
   static config: typeof schema.input;
 
   #factory: () => Pool;
@@ -111,6 +111,10 @@ export default class MySQL implements DB {
 
   get #db() {
     return this.#client ??= this.#factory();
+  }
+
+  get client() {
+    return this.#db;
   }
 
   async #sql<T = RowDataPacket[]>(query: string, params?: Dict) {

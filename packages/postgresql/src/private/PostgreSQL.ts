@@ -152,7 +152,7 @@ const schema = p({
   password: p.string.optional(),
 });
 
-export default class PostgreSQL implements DB {
+export default class PostgreSQL implements DB<Sql> {
   static config: typeof schema.input;
 
   #factory: () => Sql;
@@ -176,6 +176,10 @@ export default class PostgreSQL implements DB {
 
   get #db() {
     return (this.#client ??= this.#factory());
+  }
+
+  get client(): Sql {
+    return this.#db;
   }
 
   async #sql<Out = unknown>(q: string, params?: unknown[]) {

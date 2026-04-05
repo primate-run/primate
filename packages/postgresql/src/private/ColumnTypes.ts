@@ -27,7 +27,7 @@ type ColumnTypes = Validate<{
   SMALLINT: number;
   TEXT: string;
   TIME: string;
-  TIMESTAMP: Date;
+  TIMESTAMPTZ: Date;
   UUID: string;
   JSONB: JSONValue;
 }>;

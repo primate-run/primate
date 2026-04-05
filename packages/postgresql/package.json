@@ -21,17 +21,18 @@
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build",
-    "test": "npx proby"
+    "test": "npm run db && npx proby",
+    "db": "scripts/db.sh"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.8.1",
     "@rcompat/is": "^0.6.1",
     "pema": "workspace:",
-    "postgres": "^3.4.8"
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.11.1"
+    "@rcompat/type": "^0.12.3"
   },
   "peerDependencies": {
     "primate": "workspace:^"

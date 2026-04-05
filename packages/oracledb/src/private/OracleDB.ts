@@ -107,7 +107,7 @@ const schema = p({
   password: p.string.optional(),
 });
 
-export default class OracleDB implements DB {
+export default class OracleDB implements DB<oracledb.Connection> {
   static config: typeof schema.input;
 
   #connection?: oracledb.Connection;
@@ -118,6 +118,10 @@ export default class OracleDB implements DB {
   constructor(config?: typeof schema.input, options?: { debug?: boolean }) {
     this.#config = schema.parse(config);
     this.#debug = options?.debug ?? false;
+  }
+
+  get client() {
+    return this.#connection!;
   }
 
   get #db() {

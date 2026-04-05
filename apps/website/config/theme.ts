@@ -120,8 +120,8 @@ export default {
         title: "Intro",
       }].concat(...[
         "MongoDB",
-        "OracleDB",
         "MySQL",
+        "Oracle",
         "PostgreSQL",
         "SQLite",
       ].toSorted().map(title => ({
