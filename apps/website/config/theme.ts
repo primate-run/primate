@@ -120,6 +120,7 @@ export default {
         title: "Intro",
       }].concat(...[
         "MongoDB",
+        "OracleDB",
         "MySQL",
         "PostgreSQL",
         "SQLite",

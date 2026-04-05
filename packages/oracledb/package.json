@@ -1,0 +1,53 @@
+{
+  "name": "@primate/oracledb",
+  "version": "0.1.0-pre",
+  "description": "OracleDB databases for Primate",
+  "homepage": "https://primate.run/docs/database/oracledb",
+  "bugs": "https://github.com/primate-run/primate/issues",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primate-run/primate",
+    "directory": "packages/oracledb"
+  },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
+  ],
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf ./lib",
+    "lint": "eslint .",
+    "prepublishOnly": "npm run build",
+    "test": "npm run db && npx proby",
+    "db": "scripts/db.sh"
+  },
+  "devDependencies": {
+    "@rcompat/type": "^0.12.3",
+    "@types/oracledb": "^6.10.2"
+  },
+  "dependencies": {
+    "@primate/core": "workspace:^",
+    "@rcompat/assert": "^0.8.1",
+    "@rcompat/is": "^0.6.1",
+    "oracledb": "^6.10.0",
+    "pema": "workspace:"
+  },
+  "peerDependencies": {
+    "primate": "workspace:^"
+  },
+  "imports": {
+    "#*": {
+      "@primate/source": "./src/private/*.ts",
+      "default": "./lib/private/*.js"
+    }
+  },
+  "exports": {
+    ".": {
+      "@primate/source": "./src/public/index.ts",
+      "default": "./lib/public/index.js"
+    }
+  }
+}

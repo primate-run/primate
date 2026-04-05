@@ -38,7 +38,7 @@
     "@primate/sqlite": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@primate/vue": "workspace:^",
-    "marked": "^17.0.5",
+    "marked": "^17.0.6",
     "pema": "workspace:^"
   }
 }
