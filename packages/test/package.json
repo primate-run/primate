@@ -21,7 +21,7 @@
     "happy-dom": "^20.8.9"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.11.1"
+    "@rcompat/type": "^0.12.3"
   },
   "imports": {
     "#*": {
