@@ -1,6 +1,6 @@
+import build from "@primate/core/build";
 import fs from "@rcompat/fs";
 import { Browser } from "happy-dom";
-import build from "primate/build";
 
 type Server = {
   url: string;
@@ -23,10 +23,20 @@ export default function setup(dirname: string) {
     return { server, browser };
   })();
 
+  async function close() {
+    const { server, browser } = await ready;
+    await browser.close();
+    server.stop();
+  }
+
   return {
     async open() {
       const { server, browser } = await ready;
       const page = browser.newPage();
+
+      function basefetch(url: string, options?: RequestInit) {
+        return globalThis.fetch(`${server.url}${url}`, options ?? {});
+      }
 
       return {
         async goto(url: string) {
@@ -36,9 +46,11 @@ export default function setup(dirname: string) {
         select(selector: string): any {
           return page.mainFrame.document.querySelector(selector);
         },
-        async fetch(url: string) {
-          const res = await globalThis.fetch(`${server.url}${url}`);
-          return res.json();
+        async fetch(url: string, options?: RequestInit) {
+          return basefetch(url, options);
+        },
+        async json(url: string) {
+          return basefetch(url).then(r => r.json());
         },
         async click(selector: string) {
           (page.mainFrame.document.querySelector(selector) as any)?.click();
@@ -73,10 +85,10 @@ export default function setup(dirname: string) {
       };
     },
     async close() {
-      const { server, browser } = await ready;
-      await browser.close();
-      server.stop();
+      await close();
     },
-
+    async [Symbol.asyncDispose]() {
+      await close();
+    },
   };
 }

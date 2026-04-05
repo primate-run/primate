@@ -1,8 +1,6 @@
 import test from "@primate/test";
 
-test.frontend(import.meta.dirname);
-
-const browser = test.setup(import.meta.dirname);
+const browser = test.frontend(import.meta.dirname);
 
 test.case("/style", async assert => {
   await using tab = await browser.open();

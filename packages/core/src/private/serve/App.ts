@@ -472,7 +472,9 @@ export default class ServeApp extends App {
       .toReversed()
       .flatMap(v => router.getHooks(v));
     const verbs = router.get(route.path)!;
-    const route_path = verbs[verb];
+    const is_head = verb === "head";
+    const actual_verb = is_head && verbs["head"] === undefined ? "get" : verb;
+    const route_path = verbs[actual_verb];
 
     if (route_path === undefined) throw E.route_missing_verb(route.path, verb);
 
@@ -489,6 +491,6 @@ export default class ServeApp extends App {
       }),
     });
 
-    return { errors, hooks, layouts, handler, request: refined };
+    return { errors, hooks, layouts, handler, request: refined, is_head };
   }
 }

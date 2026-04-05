@@ -1,7 +1,7 @@
 import setup from "#setup";
 import test from "@rcompat/test";
 
-export default function framework(dirname: string) {
+export default function frontend(dirname: string) {
   const browser = setup(dirname);
 
   test.ended(async () => {

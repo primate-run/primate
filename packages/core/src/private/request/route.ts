@@ -67,7 +67,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
       return response_error()(app, {}, partial_request) as Response;
     }
 
-    const { errors, hooks, layouts, handler } = route;
+    const { errors, hooks, layouts, handler, is_head } = route;
 
     errorRoute = errors[0];
 
@@ -80,9 +80,13 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
       [...internal_hooks, ...route_hooks, last],
       route.request);
 
-    return await respond(response)(app, {
+    const full = await respond(response)(app, {
       layouts: await Promise.all(layouts.map(layout => layout(request))),
     }, request) as Response;
+
+    return is_head
+      ? new Response(null, { headers: full.headers, status: full.status })
+      : full;
   } catch (error) {
     const request = partial_request;
     if (error instanceof ParseError) {

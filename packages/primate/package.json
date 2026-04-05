@@ -37,6 +37,7 @@
     "@rcompat/test": "^0.12.2"
   },
   "devDependencies": {
+    "@primate/test": "workspace:^",
     "@rcompat/type": "^0.11.1"
   },
   "engines": {

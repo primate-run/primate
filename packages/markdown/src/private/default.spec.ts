@@ -12,7 +12,7 @@ test.case("renders heading", async assert => {
 
 test.case("toc", async assert => {
   await using tab = await browser.open();
-  const doc = await tab.fetch("/data");
+  const doc = await tab.json("/data");
   assert(doc.toc).equals([
     { depth: 1, slug: "hello", text: "Hello" },
     { depth: 2, slug: "section-one", text: "Section one" },
@@ -22,19 +22,19 @@ test.case("toc", async assert => {
 
 test.case("meta", async assert => {
   await using tab = await browser.open();
-  const doc = await tab.fetch("/data");
+  const doc = await tab.json("/data");
   assert(doc.meta).equals({ title: "Hi" });
 });
 
 test.case("md", async assert => {
   await using tab = await browser.open();
-  const doc = await tab.fetch("/data");
+  const doc = await tab.json("/data");
   assert(doc.md).equals("# Hello\n\n## Section one\n\n## Section two\n");
 });
 
 test.case("html", async assert => {
   await using tab = await browser.open();
-  const doc = await tab.fetch("/data");
+  const doc = await tab.json("/data");
   assert(doc.html).equals(`<h1>Hello</h1>
 <h2>Section one</h2>
 <h2>Section two</h2>
