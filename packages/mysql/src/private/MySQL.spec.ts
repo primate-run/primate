@@ -3,9 +3,15 @@ import core_test from "@primate/core/db/test";
 import test from "@rcompat/test";
 import p from "pema";
 
-core_test(new MySQL({ database: "primate", username: "primate" }));
+const config = {
+  database: "primate",
+  username: "primate",
+  password: "primate",
+};
 
-const db = new MySQL({ database: "primate", username: "primate" });
+core_test(new MySQL(config));
+
+const db = new MySQL(config);
 const json_as = {
   table: "json_test",
   pk: "id",
@@ -39,7 +45,7 @@ test.case("json column rejects invalid json", async assert => {
       await db.create(json_as_raw, { id: "1", data: "not valid json{{{" });
       assert(false).true(); // should not reach here
     } catch (e) {
-      assert((e as any).code).equals("ER_INNODB_AUTOEXTEND_SIZE_OUT_OF_RANGE");
+      assert((e as any).code).equals("ER_INVALID_JSON_TEXT");
     }
   });
 });

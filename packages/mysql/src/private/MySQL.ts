@@ -1,9 +1,9 @@
 import typemap from "#typemap";
 import type {
-    As, DataDict, DB,
-    ReadArgs, ReadRelationsArgs,
-    Schema,
-    Sort, Types, With,
+  As, DataDict, DB,
+  ReadArgs, ReadRelationsArgs,
+  Schema,
+  Sort, Types, With,
 } from "@primate/core/db";
 import base from "@primate/core/db";
 import E from "@primate/core/db/errors";
