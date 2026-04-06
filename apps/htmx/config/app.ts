@@ -5,5 +5,9 @@ export default config({
   http: {
     port: 10006,
   },
-  modules: [htmx()],
+  modules: [htmx({
+    clientSideTemplates: {
+      engine: "mustache",
+    },
+  })],
 });

@@ -1,38 +1,47 @@
 import init from "#init";
 import frontend from "@primate/core/frontend";
-import is from "@rcompat/is";
 import string from "@rcompat/string";
 
-const htmx_esm = "htmx-esm";
+const CLIENT_SIDE_TEMPLATES = {
+  mustache: {
+    package: "mustache",
+    global: "Mustache",
+  },
+  handlebars: {
+    package: "handlebars",
+    global: "Handlebars",
+  },
+  nunjucks: {
+    package: "nunjucks",
+    global: "nunjucks",
+  },
+} as const;
 
 function server(text: string) {
   return string.dedent`
     import render from "@primate/htmx/render";
-
     export default props => render(${JSON.stringify(text)}, props);`;
 }
 
 export default frontend({
   ...init,
-  onBuild(app, { htmxExtensions, templates }) {
-    app.entrypoint(`export { default as htmx } from "${htmx_esm}";`);
+  onBuild(app, options) {
+    const templates = options.clientSideTemplates;
+    const lines = [
+      `import htmx from "htmx.org";`,
+      "globalThis.htmx = htmx;",
+    ];
 
-    htmxExtensions.forEach(extension => {
-      app.entrypoint(`
-        export * from "${htmx_esm}/${extension}";
-      `);
-    });
+    if (templates !== undefined) {
+      const engine = CLIENT_SIDE_TEMPLATES[templates.engine];
 
-    const has_templates = htmxExtensions.includes("client-side-templates")
-      && !is.empty(templates);
-
-    if (has_templates) {
-      templates
-        .filter(template => template !== "xslt")
-        .forEach(template => {
-          app.entrypoint(`export * from "${htmx_esm}/templates/${template}";`);
-        });
+      lines.push(
+        `import ${engine.global} from "${engine.package}";`,
+        `globalThis.${engine.global} = ${engine.global};`,
+        `import "htmx-ext-client-side-templates";`,
+      );
     }
+    app.entrypoint(lines.join("\n"));
   },
   compile: {
     server,

@@ -11,10 +11,16 @@ const errors = error.coded({
   could_not_find_app_js_in_assets,
 });
 
-const TEMPLATES = ["handlebars", "mustache", "nunjucks", "xslt"] as const;
+const CLIENT_SIDE_TEMPLATE_ENGINES = [
+  "mustache",
+  "handlebars",
+  "nunjucks",
+] as const;
+
 const schema = p({
-  htmxExtensions: p.array(p.string).default([]),
-  templates: p.array(p.enum(TEMPLATES)).unique().default([]),
+  clientSideTemplates: p({
+    engine: p.enum(CLIENT_SIDE_TEMPLATE_ENGINES),
+  }).optional(),
 });
 
 const init: Init<any, typeof schema> = {

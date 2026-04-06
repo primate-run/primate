@@ -11,7 +11,11 @@
   },
   "dependencies": {
     "@primate/htmx": "workspace:^",
-    "htmx-esm": "^0.2.1910",
+    "handlebars": "^4.7.9",
+    "htmx-ext-client-side-templates": "^2.0.2",
+    "htmx.org": "^2.0.8",
+    "mustache": "^4.2.0",
+    "nunjucks": "^3.2.4",
     "pema": "workspace:^",
     "primate": "workspace:^"
   }

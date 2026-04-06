@@ -29,13 +29,13 @@
     "@rcompat/error": "^0.3.1",
     "@rcompat/is": "^0.6.1",
     "@rcompat/string": "^0.16.1",
-    "htmx-esm": "^0.2.1910",
     "pema": "workspace:^"
   },
   "devDependencies": {
     "@primate/test": "workspace:^"
   },
   "peerDependencies": {
+    "htmx.org": "2",
     "primate": "workspace:^"
   },
   "imports": {
