@@ -1,5 +1,6 @@
 import type ColumnTypes from "#ColumnTypes";
 import type { TypeMap } from "@primate/core/db";
+import oracledb from "oracledb";
 
 function identity<C extends keyof ColumnTypes>(column: C): {
   bind: (value: ColumnTypes[C]) => ColumnTypes[C];
@@ -76,7 +77,13 @@ const typemap: TypeMap<ColumnTypes> = {
   uuid: identity("VARCHAR2(36)"),
   uuid_v4: identity("VARCHAR2(36)"),
   uuid_v7: identity("VARCHAR2(36)"),
-  json: identity("JSON"),
+  json: {
+    bind(value) {
+      return { val: value, type: oracledb.DB_TYPE_JSON } as any;
+    },
+    column: "JSON",
+    unbind(value) { return value; },
+  },
 };
 
 export default typemap;

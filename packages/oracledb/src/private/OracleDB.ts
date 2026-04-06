@@ -27,10 +27,6 @@ function get_column(key: DataKey) {
 async function bind_value(key: DataKey, value: unknown) {
   if (value === null) return null;
 
-  if (key === "json") {
-    return { val: value, type: oracledb.DB_TYPE_JSON };
-  }
-
   return typemap[key].bind(value as never);
 }
 
