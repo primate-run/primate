@@ -9,6 +9,10 @@ type Options = {
   status?: ValidStatus;
 };
 
+const sse_reload = `<script>
+  new EventSource("/esbuild").addEventListener("change", () => location.reload());
+</script>`;
+
 /**
  * Render an error page.
  *
@@ -20,6 +24,7 @@ type Options = {
 export default function error(options?: Options): ResponseFunction {
   return app => app.view({
     body: options?.body ?? "Not Found",
+    head: app.mode === "development" ? sse_reload : undefined,
     page: options?.page ?? location.error_html,
     status: options?.status ?? Status.NOT_FOUND,
   });
