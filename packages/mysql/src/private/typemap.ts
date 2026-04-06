@@ -88,7 +88,7 @@ const typemap: TypeMap<ColumnTypes> = {
     },
     column: "JSON",
     unbind(value) {
-      return value;
+      return JSON.parse(value);
     },
   },
   string: identity("TEXT"),

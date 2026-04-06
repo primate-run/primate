@@ -1,9 +1,9 @@
 import typemap from "#typemap";
 import type {
-  As, DataDict, DB,
-  ReadArgs, ReadRelationsArgs,
-  Schema,
-  Sort, Types, With,
+    As, DataDict, DB,
+    ReadArgs, ReadRelationsArgs,
+    Schema,
+    Sort, Types, With,
 } from "@primate/core/db";
 import base from "@primate/core/db";
 import E from "@primate/core/db/errors";
@@ -84,6 +84,7 @@ const schema = p({
   database: p.string,
   password: p.string.optional(),
   username: p.string.optional(),
+  jsonStrings: p.boolean.default(true),
 });
 
 export default class MySQL implements DB<Pool> {
@@ -105,6 +106,7 @@ export default class MySQL implements DB<Pool> {
       namedPlaceholders: true,
       bigNumberStrings: true,
       supportBigNumbers: true,
+      jsonStrings: parsed.jsonStrings,
     });
     this.#debug = options?.debug ?? false;
   }

@@ -21,8 +21,11 @@
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build",
-    "db": "scripts/db.sh",
-    "test": "npm run db && npx proby"
+    "mysql": "scripts/mysql.sh",
+    "mariadb": "scripts/mariadb.sh",
+    "test:mysql": "npm run mysql && npx proby",
+    "test:mariadb": "npm run mariadb && npx proby",
+    "test": "npm run test:mysql"
   },
   "devDependencies": {
     "@rcompat/type": "^0.12.3"
