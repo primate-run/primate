@@ -36,7 +36,25 @@
   },
   "peerDependencies": {
     "htmx.org": "2",
+    "htmx-ext-client-side-templates": "2",
+    "mustache": "4",
+    "handlebars": "4",
+    "nunjucks": "3",
     "primate": "workspace:^"
+  },
+  "peerDependenciesMeta": {
+    "htmx-ext-client-side-templates": {
+      "optional": true
+    },
+    "mustache": {
+      "optional": true
+    },
+    "handlebars": {
+      "optional": true
+    },
+    "nunjucks": {
+      "optional": true
+    }
   },
   "imports": {
     "#*": {
