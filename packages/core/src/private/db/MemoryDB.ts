@@ -11,6 +11,8 @@ import entries from "@rcompat/dict/entries";
 import is from "@rcompat/is";
 import type { Dict, MaybePromise, PartialDict } from "@rcompat/type";
 
+type Tables = PartialDict<Dict[]>;
+
 function escape_re(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -134,13 +136,17 @@ function toSorted<T extends Dict>(d1: T, d2: T, sort: Sort) {
     }, 0);
 }
 
-export default class MemoryDB implements DB {
-  #tables: PartialDict<Dict[]> = {};
+export default class MemoryDB implements DB<Tables> {
+  #tables: Tables = {};
   #types: PartialDict<Types> = {};
 
   #use(name: string) {
     this.#tables[name] ??= [];
     return this.#tables[name];
+  }
+
+  get client() {
+    return this.#tables;
   }
 
   get schema(): Schema {
