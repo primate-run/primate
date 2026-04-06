@@ -503,6 +503,13 @@ export default <D extends DB>(db: D) => {
     });
   });
 
+  $store("insert: explicit undefined on optional field is allowed", User, async assert => {
+    const u = await User.insert({ name: "Test", lastname: undefined });
+    assert(await User.has(u.id)).true();
+    const [got] = await User.find({ where: { id: u.id } });
+    assert(got.lastname).undefined();
+  });
+
   $user("find: empty object equals no options", async assert => {
     const a = await User.find();
     const b = await User.find({});

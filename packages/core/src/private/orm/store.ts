@@ -546,12 +546,15 @@ export class Store<
     }
   }
 
-  #parse_insert(record: Dict) {
+  #prepare_insert(record: Dict): Dict {
+    const out: Dict = {};
     for (const [k, v] of Object.entries(record)) {
       if (!(k in this.#types)) throw E.field_unknown(k, "insert");
-      if (v === undefined) throw E.field_undefined(k, "insert");
+      if (v === undefined) continue; // treat as omission
       if (v === null) throw E.null_not_allowed(k);
+      out[k] = v;
     }
+    return out;
   }
 
   /**
@@ -669,14 +672,9 @@ export class Store<
   async insert(record: Insertable<T>): Promise<Schema<T>> {
     assert.dict(record);
 
-    this.#parse_insert(record);
+    const prepared = this.#prepare_insert(record);
 
-    const entries = Object.entries(record);
-    const to_parse = Object.fromEntries(
-      entries.filter(([k, v]) => !(v === null && this.#nullables.has(k))),
-    );
-
-    return this.db.create(this.#as, this.#type.parse(to_parse));
+    return this.db.create(this.#as, this.#type.parse(prepared));
   }
 
   /**
