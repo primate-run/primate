@@ -16,13 +16,13 @@ import location from "#location";
 import log from "#log";
 import create from "#module/create";
 import handle from "#request/handle";
+import type { Method } from "#request/methods";
 import parse from "#request/parse";
 import RequestBag from "#request/RequestBag";
 import RequestBody from "#request/RequestBody";
 import type RequestFacade from "#request/RequestFacade";
 import route from "#request/route";
 import request_storage from "#request/storage";
-import type Verb from "#request/Verb";
 import type RouteHandler from "#route/Handler";
 import router from "#route/router";
 import dev_module from "#serve/dev-module";
@@ -458,25 +458,25 @@ export default class ServeApp extends App {
       return;
     }
 
-    const verb = original.method.toLowerCase() as Verb;
+    const method = original.method.toLowerCase() as Method;
     const specials = route.specials;
     const errors = (specials.error ?? [])
-      .map(v => router.get(v)[verb]?.handler)
+      .map(v => router.get(v)[method]?.handler)
       .filter(Boolean)
       .toReversed() as RouteHandler[];
     const layouts = (specials.layout ?? [])
-      .map(v => router.get(v)[verb]?.handler)
+      .map(v => router.get(v)[method]?.handler)
       .filter(Boolean)
       .toReversed() as RouteHandler[];
     const hooks = (specials.hook ?? [])
       .toReversed()
       .flatMap(v => router.getHooks(v));
-    const verbs = router.get(route.path)!;
-    const is_head = verb === "head";
-    const actual_verb = is_head && verbs["head"] === undefined ? "get" : verb;
-    const route_path = verbs[actual_verb];
+    const methods = router.get(route.path)!;
+    const is_head = method === "head";
+    const actual_method = is_head && methods["head"] === undefined ? "get" : method;
+    const route_path = methods[actual_method];
 
-    if (route_path === undefined) throw E.route_missing_verb(route.path, verb);
+    if (route_path === undefined) throw E.route_missing_method(route.path, method);
 
     const handler = route_path.handler;
     const parse_body = route_path.options.parseBody;

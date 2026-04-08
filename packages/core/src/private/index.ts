@@ -9,12 +9,12 @@ export type {
   RouteHook,
   ServeHook, default as Setup
 } from "#module/Setup";
+export type { Method as RequestMethod } from "#request/methods";
 export type { default as RequestBag } from "#request/RequestBag";
 export type { default as RequestBody } from "#request/RequestBody";
 export type { default as RequestFacade } from "#request/RequestFacade";
 export type { default as RequestPublic } from "#request/RequestPublic";
 export type { default as RequestView } from "#request/RequestView";
-export type { default as RequestVerb } from "#request/Verb";
 export type { default as ServeApp } from "#serve/App";
 export type { default as Target } from "#target/Target";
 

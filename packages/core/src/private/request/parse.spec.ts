@@ -2,17 +2,17 @@ import config from "#config/index";
 import parse from "#request/parse";
 import dict from "@rcompat/dict";
 import { s_config } from "#app/Facade";
+import methods from "#request/methods";
 
 const app = {
   get: (config_key: string) => dict.get(config()[s_config], config_key),
 };
-const verbs = ["get", "post", "put", "delete"];
 const _r = await (async () => {
   const p = "https://primate.run";
   const request = (method: string, path = "/", options = {}) =>
     new Request(`${p}${path}`, { method, ...options });
-  return Object.fromEntries(verbs.map(verb => [verb, (...params: string[]) =>
-    (parse(app as any) as any)(request(verb.toUpperCase(), ...params))]));
+  return Object.fromEntries(methods.map(m => [m, (...params: string[]) =>
+    (parse(app as any) as any)(request(m.toUpperCase(), ...params))]));
 })();
 
 // test.case("no body => {}", async assert => {

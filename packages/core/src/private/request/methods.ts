@@ -1,4 +1,4 @@
-export default [
+const methods = [
   "get",
   "post",
   "put",
@@ -9,3 +9,7 @@ export default [
   "trace",
   "patch",
 ] as const;
+
+export type Method = typeof methods[number];
+
+export default methods;

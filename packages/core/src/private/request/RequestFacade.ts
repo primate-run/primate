@@ -3,12 +3,12 @@ import type RequestBody from "#request/RequestBody";
 import type RequestContext from "#request/RequestContext";
 import type RequestView from "#request/RequestView";
 import type sContext from "#request/sContext";
-import type Verb from "#request/Verb";
+import type { Method } from "#request/methods";
 import type { Dict } from "@rcompat/type";
 
 type RequestFacade = {
   [sContext]: RequestContext;
-  method: Verb;
+  method: Method;
   body: RequestBody;
   cookies: RequestBag;
   forward(to: string, headers?: Dict<string>): Promise<Response>;

@@ -1,6 +1,6 @@
 import E from "#errors";
 import type RequestHook from "#module/RequestHook";
-import type Verb from "#request/Verb";
+import type { Method } from "#request/methods";
 import type RouteHandler from "#route/Handler";
 import type RouteOptions from "#route/Options";
 import type RoutePath from "#route/Path";
@@ -24,8 +24,8 @@ class Router {
 
   get active() { return stack.at(-1); }
 
-  add(verb: Verb, handler: RouteHandler, options?: RouteOptions) {
-    assert.string(verb);
+  add(method: Method, handler: RouteHandler, options?: RouteOptions) {
+    assert.string(method);
     assert.function(handler);
     assert.maybe.dict(options);
     assert.maybe.boolean(options?.parseBody);
@@ -35,7 +35,7 @@ class Router {
 
     const _routes = this.#routes;
     if (!(active in _routes)) _routes[active] = {};
-    _routes[active][verb] = { handler, options: options ?? {} };
+    _routes[active][method] = { handler, options: options ?? {} };
   }
 
   addHook(fn: RequestHook) {
