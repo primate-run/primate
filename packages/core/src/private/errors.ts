@@ -1,3 +1,4 @@
+import type { Method } from "#request/methods";
 import error from "@rcompat/error";
 import type { FileRef } from "@rcompat/fs";
 import type ParseError from "pema/ParseError";
@@ -168,8 +169,8 @@ const TARGET = error.coded({
   target_duplicate,
 });
 
-function route_missing_verb(route: string, verb: string) {
-  return t`${route} has no verb ${verb}`;
+function route_missing_method(route: string, method: Method) {
+  return t`${route} has no method ${method}`;
 }
 function route_invalid_special_file(route: string) {
   return t`${route} is not a valid special file`;
@@ -182,7 +183,7 @@ function route_invalid_characters(route: string, regexp: RegExp) {
 }
 
 const ROUTE = error.coded({
-  route_missing_verb,
+  route_missing_method,
   route_invalid_special_file,
   route_invalid_parameter,
   route_invalid_characters,
@@ -223,6 +224,14 @@ const ENV = error.coded({
   env_missing_key,
 });
 
+function openapi_no_operation_for(method: Method, path: string) {
+  return t`no operation for ${path} (${method}`;
+}
+
+const OPENAPI = error.coded({
+  openapi_no_operation_for,
+});
+
 const errors = {
   ...APP,
   ...BUILD,
@@ -236,6 +245,7 @@ const errors = {
   ...TARGET,
   ...VIEW,
   ...ENV,
+  ...OPENAPI,
 };
 
 export type Code = keyof typeof errors;
