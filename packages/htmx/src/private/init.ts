@@ -1,15 +1,7 @@
+import E from "#errors";
 import type { Init } from "@primate/core/frontend";
 import transform_html from "@primate/html/transform";
-import error from "@rcompat/error";
 import p from "pema";
-
-function could_not_find_app_js_in_assets() {
-  return error.template`could not find app.js in assets`;
-}
-
-const errors = error.coded({
-  could_not_find_app_js_in_assets,
-});
 
 const CLIENT_SIDE_TEMPLATE_ENGINES = [
   "mustache",
@@ -45,7 +37,7 @@ const init: Init<any, typeof schema> = {
       src !== undefined && src.includes("app") && src.endsWith(".js"),
     );
 
-    if (app_js === undefined) throw errors.could_not_find_app_js_in_assets();
+    if (app_js === undefined) throw E.could_not_find_app_js_in_assets();
 
     const script = `<script type="module" src="${app_js.src}"></script>`;
 

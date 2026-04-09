@@ -28,6 +28,7 @@
     "@primate/html": "workspace:^",
     "@rcompat/error": "^0.3.1",
     "@rcompat/is": "^0.6.1",
+    "@rcompat/runtime": "^0.11.1",
     "@rcompat/string": "^0.16.1",
     "pema": "workspace:^"
   },
@@ -35,10 +36,10 @@
     "@primate/test": "workspace:^"
   },
   "peerDependencies": {
-    "htmx.org": "2",
-    "htmx-ext-client-side-templates": "2",
-    "mustache": "4",
     "handlebars": "4",
+    "htmx-ext-client-side-templates": "2",
+    "htmx.org": "2",
+    "mustache": "4",
     "nunjucks": "3",
     "primate": "workspace:^"
   },
