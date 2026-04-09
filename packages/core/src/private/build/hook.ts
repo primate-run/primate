@@ -20,6 +20,8 @@ async function pre(app: BuildApp) {
   }
   await app.path.build.remove();
   await app.path.build.create();
+  // early stub in case of build errors
+  await app.path.build.join("build.json").writeJSON({});
   await app.runpath(location.client).create();
   const stamp = app.runpath("client", "server-stamp.js");
   await stamp.write("export default 0;\n");
@@ -46,6 +48,7 @@ async function post(app: BuildApp) {
       ...files.map(f => parseInt(f.name.split("-")[0])),
     );
   }
+  // overwrite stub
   await app.path.build.join("build.json").writeJSON({
     version,
     migration_version,
