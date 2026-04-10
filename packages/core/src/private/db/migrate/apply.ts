@@ -33,4 +33,5 @@ export default async function apply_migration() {
 
   const plural = files.length === 1 ? "" : "s";
   print(`Done. Applied ${files.length} migration${plural}.\n`);
+  process.exit();
 }
