@@ -1,9 +1,10 @@
 import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 import get_flag from "./get-flag.js";
 
 const load = async () => {
   try {
-    return await fs.project.root();
+    return await runtime.projectRoot();
   } catch {
     return fs.resolve();
   }

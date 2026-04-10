@@ -1,4 +1,4 @@
-import type { Method } from "#request/methods";
+import type { Method } from "@rcompat/http";
 import error from "@rcompat/error";
 import type { FileRef } from "@rcompat/fs";
 import type ParseError from "pema/ParseError";

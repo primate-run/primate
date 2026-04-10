@@ -25,12 +25,12 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/html": "^0.11.1",
-    "@rcompat/string": "^0.16.1"
+    "@rcompat/html": "^0.13.0",
+    "@rcompat/string": "^0.18.0"
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
-    "@rcompat/type": "^0.12.3"
+    "@rcompat/type": "^0.14.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"

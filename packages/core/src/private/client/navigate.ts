@@ -1,10 +1,10 @@
-import http from "#client/http";
 import root from "#client/root";
 import storage from "#client/storage";
-import { MIME } from "@rcompat/http";
+import transport from "#client/transport";
+import http from "@rcompat/http";
 
 const headers = {
-  Accept: MIME.APPLICATION_JSON,
+  Accept: http.MIME.APPLICATION_JSON,
 };
 
 const get_by_id_or_name = (name: string) =>
@@ -27,9 +27,9 @@ async function goto(target: Location, state = false, after?: () => void) {
   try {
     const { scrollTop } = globalThis.document.scrollingElement!;
     const { location } = globalThis;
-    const { requested, response } = await http.refetch(target.pathname, { headers });
+    const { requested, response } = await transport.refetch(target.pathname, { headers });
 
-    if (http.is_json(response)) {
+    if (transport.is_json(response)) {
       if (response.ok) root.update(await response.json());
       if (state) {
         storage.new({ hash: location.hash, pathname: location.pathname, scrollTop });

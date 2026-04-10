@@ -13,11 +13,10 @@ function compile(text) {
         loader: "tsx",
         target: "esnext",
       }).code,
-      { presets: [solid] }
+      { presets: [solid] },
     )?.code ?? ""
   );
 }
-
 
 const files = await fs.ref(import.meta.dirname)
   .join("../lib/private/i18n")

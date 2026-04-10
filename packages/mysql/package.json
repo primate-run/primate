@@ -28,12 +28,12 @@
     "test": "npm run test:mysql"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.12.3"
+    "@rcompat/type": "^0.14.0"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.8.1",
-    "@rcompat/is": "^0.6.1",
+    "@rcompat/assert": "^0.10.0",
+    "@rcompat/is": "^0.8.0",
     "mysql2": "^3.20.0",
     "pema": "workspace:"
   },

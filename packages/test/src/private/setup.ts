@@ -1,5 +1,5 @@
 import build from "@primate/core/build";
-import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 import { Browser } from "happy-dom";
 
 type Server = {
@@ -9,7 +9,7 @@ type Server = {
 
 export default function setup(dirname: string) {
   const ready = (async () => {
-    const fixtures = (await fs.project.root(dirname)).join("fixtures");
+    const fixtures = (await runtime.projectRoot(dirname)).join("fixtures");
     await build(fixtures, { mode: "production" });
     const server = await fixtures
       .join("build/server.js")

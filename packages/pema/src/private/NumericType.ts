@@ -7,7 +7,7 @@ import max from "#validator/max";
 import min from "#validator/min";
 import range from "#validator/range";
 import values from "#validator/values";
-import type { Newable } from "@rcompat/type";
+import type { Dict, Newable } from "@rcompat/type";
 
 type Next<T> = {
   options?: ParseOptions;
@@ -40,7 +40,7 @@ export default abstract class NumericType<
     );
   }
 
-  values(anyof: Record<string, T>) {
+  values(anyof: Dict<T>) {
     return this.derive({ validators: [values(anyof)] });
   }
 

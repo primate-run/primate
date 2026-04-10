@@ -24,12 +24,12 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/crypto": "^0.16.1",
-    "@rcompat/error": "^0.3.1",
-    "@rcompat/fs": "^0.28.1"
+    "@rcompat/crypto": "^0.18.0",
+    "@rcompat/error": "^0.5.0",
+    "@rcompat/fs": "^0.30.0"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.12.3"
+    "@rcompat/type": "^0.14.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"

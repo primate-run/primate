@@ -1,6 +1,6 @@
-import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 
 const wasm_path = "node_modules/@ruby/head-wasm-wasi/dist/ruby+stdlib.wasm";
-const wasm = (await fs.project.root()).join(wasm_path);
+const wasm = await (await runtime.projectRoot()).join(wasm_path).arrayBuffer();
 
-export default await WebAssembly.compile(await fs.arrayBuffer(wasm));
+export default await WebAssembly.compile(wasm);

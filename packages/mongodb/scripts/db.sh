@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 CONTAINER="${CONTAINER:-mongodb}"
-IMAGE="${IMAGE:-docker.io/library/mongo:8.0}"
+IMAGE="${IMAGE:-docker.io/library/mongo:8.2}"
 HOST_PORT="${HOST_PORT:-27017}"
 
 ROOT_USER="${ROOT_USER:-root}"

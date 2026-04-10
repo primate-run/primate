@@ -3,7 +3,7 @@ import type { Updater } from "#client/root";
 import root from "#client/root";
 import storage from "#client/storage";
 import submit from "#client/submit";
-import { MIME } from "@rcompat/http";
+import http from "@rcompat/http";
 import type { Dict } from "@rcompat/type";
 
 export default <T extends Dict>(u: Updater<T>) => {
@@ -63,7 +63,7 @@ export default <T extends Dict>(u: Updater<T>) => {
     const action = target.action ?? location.pathname;
     const url = new URL(action);
     const data = new FormData(target);
-    const form = enctype === MIME.MULTIPART_FORM_DATA
+    const form = enctype === http.MIME.MULTIPART_FORM_DATA
       ? data
       : new URLSearchParams(data as any);
     try {

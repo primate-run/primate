@@ -1,4 +1,4 @@
-import { MIME } from "@rcompat/http";
+import http from "@rcompat/http";
 
 const sameorigin = (url: URL) => url.origin === globalThis.location.origin;
 
@@ -47,7 +47,7 @@ async function refetch(
 
 function is_json(response: Response) {
   const raw = response.headers.get("content-type") ?? "";
-  return raw.split(";")[0].trim() === MIME.APPLICATION_JSON;
+  return raw.split(";")[0].trim() === http.MIME.APPLICATION_JSON;
 }
 
 async function submit(pathname: string, body: any, method: string) {
@@ -62,10 +62,6 @@ async function submit(pathname: string, body: any, method: string) {
   return response;
 }
 
-const http = {
-  refetch,
-  is_json,
-  submit,
-};
+const transport = { refetch, is_json, submit };
 
-export default http;
+export default transport;

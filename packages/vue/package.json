@@ -25,11 +25,12 @@
     "test": "npx proby"
   },
   "dependencies": {
-    "@primate/core": "workspace:^"
+    "@primate/core": "workspace:^",
+    "@rcompat/fs": "^0.30.0"
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
-    "@rcompat/type": "^0.12.3"
+    "@rcompat/type": "^0.14.0"
   },
   "peerDependencies": {
     "primate": "workspace:^",

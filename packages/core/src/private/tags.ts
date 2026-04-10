@@ -1,7 +1,8 @@
 import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
-import dict, { type Dict } from "@rcompat/dict";
+import dict from "@rcompat/dict";
+import type { Dict } from "@rcompat/type";
 
 const attribute = (attributes: Dict<string>) => dict.empty(attributes)
   ? ""

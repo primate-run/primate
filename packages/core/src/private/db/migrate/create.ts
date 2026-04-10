@@ -8,7 +8,7 @@ import c from "@rcompat/cli/color";
 import print from "@rcompat/cli/print";
 import is_cancel from "@rcompat/cli/prompts/is-cancel";
 import text from "@rcompat/cli/prompts/text";
-import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 import string from "@rcompat/string";
 
 type MigrationDiff =
@@ -44,7 +44,7 @@ function generate_migration(diffs: MigrationDiff[]): string {
 }
 
 export default async function create_migration(desc: string) {
-  const root = await fs.project.root();
+  const root = await runtime.projectRoot();
   const migrations = root.join("migrations");
 
   // discover store files
@@ -77,6 +77,7 @@ export default async function create_migration(desc: string) {
     `import s${i} from "${f.path}";`,
   ).join("\n") + `\nexport default [
     ${store_files.map((_, i) => `s${i}`).join(",\n ")}\n];`;
+  console.log("entry", entry);
   const stores: Store<any>[] = await bundle(entry);
 
   const diffs: MigrationDiff[] = [];

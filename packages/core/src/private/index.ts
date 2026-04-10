@@ -7,9 +7,8 @@ export type {
   HandleHook,
   InitHook,
   RouteHook,
-  ServeHook, default as Setup
+  ServeHook, default as Setup,
 } from "#module/Setup";
-export type { Method as RequestMethod } from "#request/methods";
 export type { default as RequestBag } from "#request/RequestBag";
 export type { default as RequestBody } from "#request/RequestBody";
 export type { default as RequestFacade } from "#request/RequestFacade";

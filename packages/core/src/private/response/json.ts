@@ -1,5 +1,5 @@
 import response from "#response";
-import { MIME } from "@rcompat/http";
+import http from "@rcompat/http";
 
 /**
  * Issue a JSON response
@@ -7,4 +7,4 @@ import { MIME } from "@rcompat/http";
  * @param options response options
  * @return Response rendering function
  */
-export default response<unknown>(MIME.APPLICATION_JSON, JSON.stringify);
+export default response<unknown>(http.MIME.APPLICATION_JSON, JSON.stringify);

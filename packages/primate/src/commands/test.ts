@@ -1,8 +1,9 @@
-import { tests, type Body, type MockedResponse } from "#test";
+import type { Body, MockedResponse } from "#test";
+import { tests } from "#test";
 import build from "@primate/core/build";
 import color from "@rcompat/cli/color";
-import entries from "@rcompat/dict/entries";
-import fs from "@rcompat/fs";
+import dict from "@rcompat/dict";
+import runtime from "@rcompat/runtime";
 import equals from "@rcompat/test/equals";
 import includes from "@rcompat/test/includes";
 import type { Dict, MaybePromise } from "@rcompat/type";
@@ -25,10 +26,11 @@ const first_error = (left: string, right: string) => {
 };
 
 export default async () => {
-  await build(await fs.project.root(), { mode: "testing" });
+  const root = await runtime.projectRoot();
+  await build(root, { mode: "testing" });
   const app = (await serve()).default;
 
-  const files = await (await fs.project.root()).join(directory)
+  const files = await root.join(directory)
     .list({ filter: f => f.path.endsWith(".ts") || f.path.endsWith(".js") });
 
   // side effects
@@ -99,8 +101,7 @@ export default async () => {
         includes(expected: Dict<string>) {
           checks.push(() => {
             const actual = Object.fromEntries(response.headers.entries());
-            const lowercased = entries(expected)
-              .keymap(([key]) => key.toLowerCase()).get();
+            const lowercased = dict.mapKey(expected, key => key.toLowerCase());
             return [includes(actual, lowercased), lowercased, actual];
           });
         },

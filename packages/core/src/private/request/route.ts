@@ -8,7 +8,7 @@ import respond from "#response/respond";
 import type ResponseLike from "#response/ResponseLike";
 import type RouteHandler from "#route/Handler";
 import type ServeApp from "#serve/App";
-import { Status } from "@rcompat/http";
+import http from "@rcompat/http";
 import type { MaybePromise } from "@rcompat/type";
 import ParseError from "pema/ParseError";
 
@@ -91,7 +91,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
     const request = partial_request;
     if (error instanceof ParseError) {
       return response_json(error.toJSON(),
-        { status: Status.BAD_REQUEST })(app) as Response;
+        { status: http.Status.BAD_REQUEST })(app) as Response;
     }
     log.error(error);
     // the +error.js page itself could fail

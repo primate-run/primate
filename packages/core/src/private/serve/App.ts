@@ -16,7 +16,6 @@ import location from "#location";
 import log from "#log";
 import create from "#module/create";
 import handle from "#request/handle";
-import type { Method } from "#request/methods";
 import parse from "#request/parse";
 import RequestBag from "#request/RequestBag";
 import RequestBody from "#request/RequestBody";
@@ -33,8 +32,8 @@ import assert from "@rcompat/assert";
 import type { FileRef } from "@rcompat/fs";
 import fs from "@rcompat/fs";
 import FileRouter from "@rcompat/fs/FileRouter";
-import type { Actions, Conf, Server } from "@rcompat/http";
-import { MIME, Status } from "@rcompat/http";
+import type { Actions, Conf, Method, Server } from "@rcompat/http";
+import http from "@rcompat/http";
 import serve from "@rcompat/http/serve";
 import is from "@rcompat/is";
 import utf8 from "@rcompat/string/utf8";
@@ -130,15 +129,15 @@ export default class ServeApp extends App {
     this.#serve_assets = init.assets;
     this.#pages = init.pages;
 
-    const http = this.#init.facade[s_config].http;
+    const http_config = this.#init.facade[s_config].http;
     this.#i18n_config = init.i18n;
 
     this.set(s_http, {
-      host: http.host,
-      port: http.port,
+      host: http_config.host,
+      port: http_config.port,
       ssl: this.secure ? {
-        cert: this.root.join(http.ssl.cert!),
-        key: this.root.join(http.ssl.key!),
+        cert: this.root.join(http_config.ssl.cert!),
+        key: this.root.join(http_config.ssl.key!),
       } : {},
     });
 
@@ -261,12 +260,12 @@ export default class ServeApp extends App {
   respond(body: BodyInit | null, init?: ResponseInit) {
     const { headers, status } = p({
       headers: p.dict(),
-      status: p.uint.values(Status).default(Status.OK),
+      status: p.uint.values(http.Status).default(http.Status.OK),
     }).parse(init);
     const body_length = this.body_length(body);
     return new Response(body, {
       headers: {
-        "Content-Type": MIME.TEXT_HTML,
+        "Content-Type": http.MIME.TEXT_HTML,
         ...this.headers(),
         ...body_length ? {
           ...headers, "Content-Length": String(body_length),
@@ -277,14 +276,14 @@ export default class ServeApp extends App {
 
   view(options: FullViewOptions) {
     // split render and respond options
-    const { headers = {}, status = Status.OK, statusText, ...rest } = options;
+    const { headers = {}, status = http.Status.OK, statusText, ...rest } = options;
     return this.respond(this.render(rest), { headers, status });
   };
 
   media(content_type: string, response: ResponseInit = {}): ResponseInit {
     return {
       headers: { ...response.headers, "Content-Type": content_type },
-      status: response.status ?? Status.OK,
+      status: response.status ?? http.Status.OK,
     };
   };
 
@@ -331,10 +330,10 @@ export default class ServeApp extends App {
     if (await ref.exists() && await ref.kind() === "file") {
       return new Response(ref.stream(), {
         headers: {
-          "Content-Type": MIME.resolve(ref.name),
+          "Content-Type": http.MIME.resolve(ref.name),
           "Content-Length": String(await ref.size()),
         },
-        status: Status.OK,
+        status: http.Status.OK,
       });
     }
   }
@@ -371,7 +370,7 @@ export default class ServeApp extends App {
         "Content-Type": asset.mime,
         "Content-Length": String(bytes.length),
       },
-      status: Status.OK,
+      status: http.Status.OK,
     });
   }
 
@@ -426,7 +425,7 @@ export default class ServeApp extends App {
             "Content-Length": String(0),
             "Cache-Control": "no-cache",
           },
-          status: Status.INTERNAL_SERVER_ERROR,
+          status: http.Status.INTERNAL_SERVER_ERROR,
         });
       }
     }, {
@@ -452,14 +451,14 @@ export default class ServeApp extends App {
   async route(request: RequestFacade) {
     const { original, url } = request;
     const pathname = normalize(url.pathname);
-    const route = this.router.match(original);
-    if (route === undefined) {
+    const matched_route = this.router.match(original);
+    if (matched_route === undefined) {
       log.info("no {0} route to {1}", original.method, pathname);
       return;
     }
 
     const method = original.method.toLowerCase() as Method;
-    const specials = route.specials;
+    const specials = matched_route.specials;
     const errors = (specials.error ?? [])
       .map(v => router.get(v)[method]?.handler)
       .filter(Boolean)
@@ -471,12 +470,12 @@ export default class ServeApp extends App {
     const hooks = (specials.hook ?? [])
       .toReversed()
       .flatMap(v => router.getHooks(v));
-    const methods = router.get(route.path)!;
+    const methods = router.get(matched_route.path)!;
     const is_head = method === "head";
     const actual_method = is_head && methods["head"] === undefined ? "get" : method;
     const route_path = methods[actual_method];
 
-    if (route_path === undefined) throw E.route_missing_method(route.path, method);
+    if (route_path === undefined) throw E.route_missing_method(matched_route.path, method);
 
     const handler = route_path.handler;
     const parse_body = route_path.options.parseBody;
@@ -485,7 +484,7 @@ export default class ServeApp extends App {
       : RequestBody.none();
     const refined = Object.assign(Object.create(request), {
       body,
-      path: new RequestBag(route.params as PartialDict<string>, "path", {
+      path: new RequestBag(matched_route.params as PartialDict<string>, "path", {
         normalize: k => k.toLowerCase(),
         raw: url.pathname,
       }),

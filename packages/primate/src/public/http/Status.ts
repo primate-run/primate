@@ -1,1 +1,3 @@
-export { Status as default } from "@rcompat/http";
+import http from "@rcompat/http";
+
+export default http.Status;

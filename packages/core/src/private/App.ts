@@ -9,7 +9,6 @@ import create from "#module/create";
 import type ServeApp from "#serve/App";
 import TargetManager from "#target/Manager";
 import dict from "@rcompat/dict";
-import entries from "@rcompat/dict/entries";
 import type { FileRef } from "@rcompat/fs";
 import p from "pema";
 
@@ -37,10 +36,10 @@ export default class App {
     this.#root = root;
     this.#config = config;
     for (const module of config.modules) this.register(create(module));
-    this.#path = entries({
+    this.#path = dict.map({
       ...location,
       build: flags.dir,
-    }).valmap(([, path]) => root.join(path)).get();
+    }, (_, path) => root.join(path));
     this.#mode = flags.mode;
     this.#target = new TargetManager(this);
     this.#target_name = flags.target;

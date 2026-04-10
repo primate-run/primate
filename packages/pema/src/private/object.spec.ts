@@ -15,12 +15,12 @@ import type StringType from "#StringType";
 import test from "#test";
 import tuple from "#tuple";
 import type TupleType from "#TupleType";
-import type { EmptyObject } from "@rcompat/type";
+import type { EmptyDict } from "@rcompat/type";
 
 test.case("empty", assert => {
   const o = object({});
-  assert(o).type<ObjectType<EmptyObject>>();
-  assert(o.parse({})).equals({}).type<EmptyObject>();
+  assert(o).type<ObjectType<EmptyDict>>();
+  assert(o.parse({})).equals({}).type<EmptyDict>();
 });
 
 test.case("object", assert => {

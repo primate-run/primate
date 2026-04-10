@@ -1,10 +1,10 @@
-import http from "#client/http";
 import root from "#client/root";
 import storage from "#client/storage";
-import { MIME } from "@rcompat/http";
+import transport from "#client/transport";
+import http from "@rcompat/http";
 
 const headers = {
-  Accept: MIME.APPLICATION_JSON,
+  Accept: http.MIME.APPLICATION_JSON,
 };
 
 export default async function submit(
@@ -12,7 +12,7 @@ export default async function submit(
   body: any,
   method: string,
 ): Promise<Response> {
-  const { requested, response } = await http.refetch(pathname, {
+  const { requested, response } = await transport.refetch(pathname, {
     body, headers, method,
   });
 
@@ -20,7 +20,7 @@ export default async function submit(
     const { location, document, history } = globalThis;
     const scrollTop = document.scrollingElement?.scrollTop ?? 0;
 
-    if (http.is_json(response)) root.update(await response.json());
+    if (transport.is_json(response)) root.update(await response.json());
 
     storage.new({
       hash: location.hash,
@@ -33,7 +33,7 @@ export default async function submit(
     return response;
   }
 
-  if (http.is_json(response)) {
+  if (transport.is_json(response)) {
     if (response.ok) {
       root.update(await response.json());
       history.replaceState({}, "", requested.pathname + requested.search);

@@ -1,4 +1,4 @@
-import type { Method } from "#request/methods";
+import type { Method } from "@rcompat/http";
 import type RouteHandler from "#route/Handler";
 import type RouteOptions from "#route/Options";
 

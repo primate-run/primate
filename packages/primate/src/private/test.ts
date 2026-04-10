@@ -1,4 +1,4 @@
-import methods from "@primate/core/request/methods";
+import http from "@rcompat/http";
 import type { Dict, JSONValue } from "@rcompat/type";
 
 export type Body = JSONValue;
@@ -20,7 +20,7 @@ export type MockedResponse = {
   };
 };
 
-type Verb = typeof methods[number];
+type Verb = typeof http.methods[number];
 
 type Tester = (response: MockedResponse) => void;
 
@@ -35,7 +35,7 @@ type Test = {
 export const tests: Test[] = [];
 
 export default {
-  ...Object.fromEntries(methods.map(verb =>
+  ...Object.fromEntries(http.methods.map(verb =>
     [verb, (route: Request | Route, tester: Tester) => {
       tests.push({ route, tester, verb });
     }],

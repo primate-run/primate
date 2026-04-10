@@ -3,11 +3,11 @@ import bundle from "#db/migrate/bundle";
 import E from "#errors";
 import key from "#orm/key";
 import store from "#orm/store";
-import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 import p from "pema";
 
 export default async function migration_store() {
-  const root = await fs.project.root();
+  const root = await runtime.projectRoot();
   const { path } = await (async () => {
     const ts = root.join("config", "app.ts");
     if (await ts.exists()) return ts;

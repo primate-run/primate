@@ -26,10 +26,12 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@primate/html": "workspace:^",
-    "@rcompat/error": "^0.3.1",
-    "@rcompat/is": "^0.6.1",
-    "@rcompat/runtime": "^0.11.1",
-    "@rcompat/string": "^0.16.1",
+    "@rcompat/assert": "^0.10.0",
+    "@rcompat/error": "^0.5.0",
+    "@rcompat/fs": "^0.30.0",
+    "@rcompat/is": "^0.8.0",
+    "@rcompat/runtime": "^0.13.0",
+    "@rcompat/string": "^0.18.0",
     "pema": "workspace:^"
   },
   "devDependencies": {

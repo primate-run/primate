@@ -3,7 +3,7 @@ import type RequestBody from "#request/RequestBody";
 import type RequestContext from "#request/RequestContext";
 import type RequestView from "#request/RequestView";
 import type sContext from "#request/sContext";
-import type { Method } from "#request/methods";
+import type { Method } from "@rcompat/http";
 import type { Dict } from "@rcompat/type";
 
 type RequestFacade = {

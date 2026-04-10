@@ -1,7 +1,7 @@
 import location from "#location";
 import type ResponseFunction from "#response/ResponseFunction";
 import type { ValidStatus } from "@rcompat/http";
-import { Status } from "@rcompat/http";
+import http from "@rcompat/http";
 
 type Options = {
   body?: string;
@@ -26,6 +26,6 @@ export default function error(options?: Options): ResponseFunction {
     body: options?.body ?? "Not Found",
     head: app.mode === "development" ? sse_reload : undefined,
     page: options?.page ?? location.error_html,
-    status: options?.status ?? Status.NOT_FOUND,
+    status: options?.status ?? http.Status.NOT_FOUND,
   });
 }

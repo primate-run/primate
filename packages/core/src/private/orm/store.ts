@@ -12,7 +12,7 @@ import type { ManyRelation, OneRelation, Relation } from "#orm/relation";
 import type StoreInput from "#orm/StoreInput";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
-import type { Dict, EmptyObject, Serializable } from "@rcompat/type";
+import type { Dict, EmptyDict, Serializable } from "@rcompat/type";
 import type { DataKey, DefaultType, InferStore, Storable } from "pema";
 import StoreType from "pema/StoreType";
 
@@ -242,7 +242,7 @@ type Init<
  */
 export class Store<
   T extends StoreInput,
-  R extends Dict<Relation> = EmptyObject,
+  R extends Dict<Relation> = EmptyDict,
 > implements Serializable {
   #schema: Dict<Storable<DataKey>>;
   #type: StoreType<ExtractSchema<T>>;
@@ -816,7 +816,7 @@ export class Store<
 
 function store<
   T extends StoreInput,
-  R extends Dict<Relation> = EmptyObject,
+  R extends Dict<Relation> = EmptyDict,
 >(init: Init<T, R>) {
   return new Store(init);
 }

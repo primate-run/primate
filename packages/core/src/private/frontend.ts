@@ -18,7 +18,7 @@ import hash from "@rcompat/crypto/hash";
 import fn from "@rcompat/fn";
 import type { FileRef } from "@rcompat/fs";
 import fs from "@rcompat/fs";
-import { MIME, Status } from "@rcompat/http";
+import http from "@rcompat/http";
 import type { Dict, MaybePromise, Unpack } from "@rcompat/type";
 import type { ObjectType } from "pema";
 import p from "pema";
@@ -138,7 +138,7 @@ export default function frontend_module<
 
       const app_script = `<script type="module" src="${app_asset.src}"></script>`;
       const props = JSON.stringify({ frontend: init.name, ...client });
-      const hydrated = await inline(props, MIME.APPLICATION_JSON, "hydration");
+      const hydrated = await inline(props, http.MIME.APPLICATION_JSON, "hydration");
       const script_src = [hydrated.integrity];
 
       return {
@@ -172,16 +172,16 @@ export default function frontend_module<
           ...$props,
         };
 
-        if (spa && request.headers.try("Accept") === MIME.APPLICATION_JSON) {
+        if (spa && request.headers.try("Accept") === http.MIME.APPLICATION_JSON) {
           const json_body = JSON.stringify(client);
           return new Response(json_body, {
             headers: {
               ...app.headers(),
-              "Content-Type": MIME.APPLICATION_JSON,
+              "Content-Type": http.MIME.APPLICATION_JSON,
               "Content-Length": String(app.body_length(json_body)),
               "Cache-Control": "no-store",
             },
-            status: options.status ?? Status.OK,
+            status: options.status ?? http.Status.OK,
           });
         }
         if (!ssr()) {

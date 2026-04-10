@@ -1,8 +1,9 @@
 import fs from "@rcompat/fs";
 import io from "@rcompat/io";
+import runtime from "@rcompat/runtime";
 
 const EXCLUDE = ["website", "native"];
-const monoroot = await fs.project.root();
+const monoroot = await runtime.projectRoot();
 const apps = monoroot.join("apps");
 const org_base = (a: string) => `git@github.com:primate-run/${a}-template.git`;
 const templates = monoroot.join("../templates");

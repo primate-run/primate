@@ -1,9 +1,9 @@
-import type { Method } from "#request/methods";
 import RequestBag from "#request/RequestBag";
 import RequestBody from "#request/RequestBody";
 import RequestContext from "#request/RequestContext";
 import type RequestFacade from "#request/RequestFacade";
 import sContext from "#request/sContext";
+import type { Method } from "@rcompat/http";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
 

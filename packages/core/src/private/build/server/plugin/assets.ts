@@ -1,6 +1,6 @@
 import type BuildApp from "#build/App";
 import location from "#location";
-import { MIME } from "@rcompat/http";
+import http from "@rcompat/http";
 import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
 
@@ -34,7 +34,7 @@ export default function plugin_server_assets(app: BuildApp): Plugin {
             const bytes = await file.bytes();
             const base64 = bytes2base64(bytes);
             client_assets[pathname] = {
-              mime: MIME.resolve(file.name),
+              mime: http.MIME.resolve(file.name),
               data: base64,
             };
           }
@@ -50,7 +50,7 @@ export default function plugin_server_assets(app: BuildApp): Plugin {
             const bytes = await file.bytes();
             const base64 = bytes2base64(bytes);
             static_assets[pathname] = {
-              mime: MIME.resolve(file.name),
+              mime: http.MIME.resolve(file.name),
               data: base64,
             };
           }

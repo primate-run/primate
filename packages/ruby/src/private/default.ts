@@ -3,10 +3,10 @@ import type { Input } from "#module";
 import module from "#module";
 import type { Module } from "@primate/core";
 import log from "@primate/core/log";
-import verbs from "@primate/core/request/verbs";
 import server from "@primate/core/server";
 import assert from "@rcompat/assert";
 import type { FileRef } from "@rcompat/fs";
+import http from "@rcompat/http";
 import io from "@rcompat/io";
 
 const GEM = "primate-run";
@@ -14,9 +14,9 @@ const [MAJOR, MINOR] = server.TAG.split(".").map(Number);
 
 function detect_routes(code: string): string[] {
   const found: string[] = [];
-  for (const verb of verbs) {
-    const rx = new RegExp(`\\bRoute\\.${verb.toLowerCase()}\\s*do\\b`);
-    if (rx.test(code)) found.push(verb);
+  for (const method of http.methods) {
+    const rx = new RegExp(`\\bRoute\\.${method.toLowerCase()}\\s*do\\b`);
+    if (rx.test(code)) found.push(method);
   }
   return found;
 }

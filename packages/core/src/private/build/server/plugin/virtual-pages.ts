@@ -1,10 +1,10 @@
 import type BuildApp from "#build/App";
 import type { FileRef } from "@rcompat/fs";
-import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
 
-const core_pkg = await fs.project.root(import.meta.dirname);
+const core = await runtime.projectRoot(import.meta.dirname);
 
 export default function plugin_server_virtual_pages(app: BuildApp): Plugin {
   return {
@@ -16,7 +16,7 @@ export default function plugin_server_virtual_pages(app: BuildApp): Plugin {
 
       build.onLoad({ filter: /.*/, namespace: "primate-pages" }, async () => {
         const filter = /^.*\.html$/ui;
-        const defaults = core_pkg.join("lib", "private", "defaults");
+        const defaults = core.join("lib", "private", "defaults");
         const pages: Dict<FileRef> = {};
 
         for (const file of await defaults.files({ filter })) {

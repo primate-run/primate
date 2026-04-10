@@ -6,7 +6,8 @@ import E from "#i18n/errors";
 import type PersistMode from "#i18n/PersistMode";
 import storage from "#i18n/storage";
 import create from "#module/create";
-import { Status } from "@rcompat/http";
+import http from "@rcompat/http";
+import is from "@rcompat/is";
 
 type Locale = string;
 
@@ -18,7 +19,7 @@ function pick(client: Locale[], server: Locale[]): string | undefined {
   const lower = server.map(toLowerCase);
   for (const raw of client.map(toLowerCase)) {
     const locale = raw.trim();
-    if (!locale) continue;
+    if (!is.text(locale)) continue;
     const exact = lower.indexOf(locale);
     if (exact !== -1) return server[exact];
     const base = locale.split("-")[0];
@@ -72,7 +73,7 @@ export default function i18n_module(config: Config) {
             headers: {
               "Content-Length": String(0),
             },
-            status: Status.NO_CONTENT,
+            status: http.Status.NO_CONTENT,
           });
 
         // only accept existing locales
@@ -81,7 +82,7 @@ export default function i18n_module(config: Config) {
             headers: {
               "Content-Length": String(0),
             },
-            status: Status.NO_CONTENT,
+            status: http.Status.NO_CONTENT,
           });
 
         const header = cookie(COOKIE_NAME, requested, {
@@ -95,7 +96,7 @@ export default function i18n_module(config: Config) {
             "Set-Cookie": header,
             "Content-Length": String(0),
           },
-          status: Status.NO_CONTENT,
+          status: http.Status.NO_CONTENT,
         });
       });
 

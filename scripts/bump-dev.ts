@@ -1,6 +1,6 @@
-import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 
-const packages = await (await fs.project.root()).join("packages").dirs();
+const packages = await (await runtime.projectRoot()).join("packages").dirs();
 
 // check all first
 for (const pkg of packages) {

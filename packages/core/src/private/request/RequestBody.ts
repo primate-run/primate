@@ -1,5 +1,5 @@
 import E from "#errors";
-import { MIME } from "@rcompat/http";
+import http from "@rcompat/http";
 import is from "@rcompat/is";
 import type { Dict, JSONValue } from "@rcompat/type";
 
@@ -12,9 +12,6 @@ type Parsed =
   | { type: "none"; value: null }
   | { type: "text"; value: string }
   ;
-
-type ParseReturn<S> =
-  S extends { parse: (v: unknown) => infer R } ? R : never;
 
 async function anyform(request: Request) {
   const form: Dict<string> = Object.create(null);
@@ -38,16 +35,16 @@ async function parse(request: Request, url: URL): Promise<RequestBody> {
 
   try {
     switch (type) {
-      case MIME.APPLICATION_OCTET_STREAM:
+      case http.MIME.APPLICATION_OCTET_STREAM:
         return new RequestBody({ type: "binary", value: await request.blob() });
-      case MIME.APPLICATION_X_WWW_FORM_URLENCODED:
-      case MIME.MULTIPART_FORM_DATA: {
+      case http.MIME.APPLICATION_X_WWW_FORM_URLENCODED:
+      case http.MIME.MULTIPART_FORM_DATA: {
         const { form, files } = await anyform(request);
         return new RequestBody({ type: "form", value: form }, files);
       }
-      case MIME.APPLICATION_JSON:
+      case http.MIME.APPLICATION_JSON:
         return new RequestBody({ type: "json", value: await request.json() });
-      case MIME.TEXT_PLAIN:
+      case http.MIME.TEXT_PLAIN:
         return new RequestBody({ type: "text", value: await request.text() });
       case "none":
         return RequestBody.none();

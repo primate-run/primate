@@ -1,10 +1,10 @@
 import E from "#errors";
 import type RequestHook from "#module/RequestHook";
-import type { Method } from "#request/methods";
 import type RouteHandler from "#route/Handler";
 import type RouteOptions from "#route/Options";
 import type RoutePath from "#route/Path";
 import assert from "@rcompat/assert";
+import type { Method } from "@rcompat/http";
 import type { Dict } from "@rcompat/type";
 
 const stack: string[] = [];

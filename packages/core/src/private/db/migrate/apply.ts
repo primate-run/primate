@@ -2,7 +2,7 @@ import E from "#db/errors";
 import store from "#db/migrate/store";
 import color from "@rcompat/cli/color";
 import print from "@rcompat/cli/print";
-import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 
 export default async function apply_migration() {
   const Migration = await store();
@@ -10,7 +10,7 @@ export default async function apply_migration() {
   const last = await Migration.find({ limit: 1, sort: { id: "desc" } });
   const last_id = last.length === 0 ? 0 : last[0].id;
 
-  const root = await fs.project.root();
+  const root = await runtime.projectRoot();
   const migrations_dir = root.join("migrations");
   if (!await migrations_dir.exists()) throw E.migration_directory_missing();
 

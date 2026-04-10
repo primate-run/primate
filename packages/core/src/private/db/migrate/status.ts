@@ -1,10 +1,10 @@
 import store from "#db/migrate/store";
 import c from "@rcompat/cli/color";
 import print from "@rcompat/cli/print";
-import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 
 export default async function status_migration() {
-  const root = await fs.project.root();
+  const root = await runtime.projectRoot();
   const migrations_dir = root.join("migrations");
 
   const Migration = await store();

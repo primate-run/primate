@@ -6,11 +6,12 @@ import location from "#location";
 import log from "#log";
 import $router from "#request/router";
 import s_layout_depth from "#symbol/layout-depth";
+import assert from "@rcompat/assert";
 import c from "@rcompat/cli/color";
-import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 
-const core_pkg = await fs.project.package(import.meta.dirname);
-const { version } = await core_pkg.json() as { version: string };
+const package_json = await runtime.packageJSON(import.meta.dirname);
+const version = assert.string(package_json.version);
 
 async function pre(app: BuildApp) {
   const build_json = app.path.build.join("build.json");

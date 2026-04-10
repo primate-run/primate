@@ -7,7 +7,7 @@ import type Types from "#db/Types";
 import type With from "#db/With";
 import E from "#db/errors";
 import assert from "@rcompat/assert";
-import entries from "@rcompat/dict/entries";
+import dict from "@rcompat/dict";
 import is from "@rcompat/is";
 import type { Dict, MaybePromise, PartialDict } from "@rcompat/type";
 
@@ -113,27 +113,17 @@ function filter(record: Dict, fields: string[]) {
     .filter(([key]) => fields.includes(key)));
 }
 
-function toSorted<T extends Dict>(d1: T, d2: T, sort: Sort) {
-  return [...entries(sort).valmap(([, value]) => value === "asc" ? 1 : -1)]
+function to_sorted<T extends Dict>(d1: T, d2: T, sort: Sort) {
+  return (dict.entries(sort)
+    .map(([k, value]) => [k, value === "asc" ? 1 : -1] as const)
     .reduce((sorting, [field, direction]) => {
       const left = d1[field] as T[keyof T];
       const right = d2[field] as typeof left;
-
-      // if sorting has been established, it stays fixed
-      if (sorting !== 0) {
-        return sorting;
-      }
-      // equal, sorting doesn't change
-      if (left === right) {
-        return sorting;
-      }
-
-      if (left < right) {
-        return -1 * direction;
-      }
-
+      if (sorting !== 0) return sorting;
+      if (left === right) return sorting;
+      if (left < right) return -1 * direction;
       return direction;
-    }, 0);
+    }, 0));
 }
 
 export default class MemoryDB implements DB<Tables> {
@@ -254,7 +244,7 @@ export default class MemoryDB implements DB<Tables> {
     const sort = args.sort ?? {};
     const sorted = Object.keys(sort).length === 0
       ? matches
-      : matches.toSorted((a, b) => toSorted(a, b, sort));
+      : matches.toSorted((a, b) => to_sorted(a, b, sort));
 
     const limit = args.limit ?? sorted.length;
     const base_rows = sorted.slice(0, limit);
@@ -318,7 +308,7 @@ export default class MemoryDB implements DB<Tables> {
           );
 
           if (r_sort !== undefined && Object.keys(r_sort).length > 0) {
-            candidates = candidates.toSorted((a, b) => toSorted(a, b, r_sort));
+            candidates = candidates.toSorted((a, b) => to_sorted(a, b, r_sort));
           }
 
           if (r_limit !== undefined) candidates = candidates.slice(0, r_limit);
@@ -354,7 +344,7 @@ export default class MemoryDB implements DB<Tables> {
         let rows = grouped.get(key) ?? [];
 
         if (r_sort !== undefined && Object.keys(r_sort).length > 0) {
-          rows = rows.toSorted((a, b) => toSorted(a, b, r_sort));
+          rows = rows.toSorted((a, b) => to_sorted(a, b, r_sort));
         }
 
         if (kind === "one") {
@@ -380,9 +370,8 @@ export default class MemoryDB implements DB<Tables> {
     const pk = as.pk;
 
     return matched.map(record => {
-      const changed = entries({ ...record, ...args.set })
-        .filter(([, value]) => value !== null)
-        .get();
+      const changed = dict.filter({ ...record, ...args.set },
+        (_, value) => !is.null(value));
       const index = pk !== null
         ? table.findIndex(stored => stored[pk] === record[pk])
         : table.findIndex(stored => stored === record);

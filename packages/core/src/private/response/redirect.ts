@@ -1,5 +1,6 @@
 import type ResponseFunction from "#response/ResponseFunction";
-import { Status } from "@rcompat/http";
+import http from "@rcompat/http";
+import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
 
 type Redirection =
@@ -72,7 +73,7 @@ function toSearch(query?: RedirectObject["query"]) {
     .toString()
     ;
 
-  return search ? "?" + search : "";
+  return is.text(search) ? "?" + search : "";
 }
 
 function toNormalized(relative: string, base?: string | URL): string {
@@ -104,5 +105,5 @@ export default (location: string, status?: Redirection): ResponseFunction =>
       Location: location,
       "Cache-Control": "no-cache",
     },
-    status: status ?? Status.FOUND,
+    status: status ?? http.Status.FOUND,
   });

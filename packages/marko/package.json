@@ -26,7 +26,7 @@
   "dependencies": {
     "@marko/compiler": "^5.39.62",
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.28.1",
+    "@rcompat/fs": "^0.30.0",
     "marko": "^5.38.35"
   },
   "devDependencies": {

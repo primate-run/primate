@@ -13,7 +13,7 @@
   "dependencies": {
     "@primate/solid": "workspace:^",
     "@primate/sqlite": "workspace:^",
-    "@rcompat/assert": "^0.8.1",
+    "@rcompat/assert": "^0.10.0",
     "babel-preset-solid": "^1.9.12",
     "pema": "workspace:^",
     "primate": "workspace:^",

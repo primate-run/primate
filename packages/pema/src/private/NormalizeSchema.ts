@@ -7,12 +7,12 @@ import type Parsed from "#Parsed";
 import type Schema from "#Schema";
 import type TupleType from "#TupleType";
 import type UndefinedType from "#UndefinedType";
-import type { AbstractNewable } from "@rcompat/type";
+import type { AbstractNewable, Dict } from "@rcompat/type";
 
 type NormalizeSchemaArray<T extends Schema[]> =
   { [K in keyof T]: NormalizeSchema<T[K]> };
 
-export type NormalizeSchemaObject<T extends Record<string, unknown>> =
+export type NormalizeSchemaObject<T extends Dict> =
   { -readonly [K in keyof T]: NormalizeSchema<T[K]> };
 
 type NormalizeSchema<S> =
@@ -23,7 +23,7 @@ type NormalizeSchema<S> =
   S extends AbstractNewable ? ConstructorType<S> :
   S extends [Schema] ? ArrayType<NormalizeSchema<S[0]>> :
   S extends Schema[] ? TupleType<NormalizeSchemaArray<S>> :
-  S extends Record<string, unknown> ? ObjectType<NormalizeSchemaObject<S>> :
+  S extends Dict ? ObjectType<NormalizeSchemaObject<S>> :
   never;
 
 export type { NormalizeSchema as default };

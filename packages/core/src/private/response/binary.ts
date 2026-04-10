@@ -1,7 +1,7 @@
 import type ServeApp from "#serve/App";
-import Streamable from "@rcompat/fs/Streamable";
-import type { StreamSource } from "@rcompat/fs";
-import { MIME } from "@rcompat/http";
+import type { Streamable } from "@rcompat/fs";
+import fs from "@rcompat/fs";
+import http from "@rcompat/http";
 import is from "@rcompat/is";
 
 const encodeRFC5987 = (s: string) =>
@@ -38,18 +38,21 @@ function toContentDisposition(filename: string) {
  * @param options response options
  * @return Response rendering function
  */
-export default function binary(source: StreamSource, init?: ResponseInit) {
+export default function binary(source: Streamable, init?: ResponseInit) {
   return (app: ServeApp) => {
-    const { headers, ...rest } = app.media(MIME.APPLICATION_OCTET_STREAM, init);
-    const name = Streamable.named(source) ? source.name : "default.bin";
+    const {
+      headers,
+      ...rest
+    } = app.media(http.MIME.APPLICATION_OCTET_STREAM, init);
+    const name = fs.isNamedStream(source) ? source.name : "default.bin";
     const out = new Headers(headers);
     out.set("Content-Disposition", toContentDisposition(name));
 
     if (is.blob(source)) {
-      source.type && out.set("Content-Type", source.type);
+      is.text(source.type) && out.set("Content-Type", source.type);
       out.set("Content-Length", String(source.size));
     }
-    return app.respond(Streamable.stream(source), {
+    return app.respond(fs.stream(source), {
       ...rest, headers: Object.fromEntries(out.entries()),
     });
   };

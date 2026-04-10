@@ -1,8 +1,9 @@
+import assert from "@rcompat/assert";
 import error from "@rcompat/error";
-import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 
-const pkg_json = await (await fs.project.package(import.meta.dirname)).json() as any;
-const peer_deps = pkg_json.peerDependencies;
+const pkg_json = await runtime.packageJSON(import.meta.dirname);
+const peer_deps = assert.dict(pkg_json.peerDependencies);
 
 const t = error.template;
 

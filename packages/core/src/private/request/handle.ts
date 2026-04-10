@@ -1,9 +1,10 @@
 import type RequestFacade from "#request/RequestFacade";
 import type ServeApp from "#serve/App";
-import { Status } from "@rcompat/http";
+import http from "@rcompat/http";
+import type { MaybePromise } from "@rcompat/type";
 
 type Next = (request: RequestFacade) => Promise<Response>;
-type Hook = (request: RequestFacade, next: Next) => Response | Promise<Response>;
+type Hook = (request: RequestFacade, next: Next) => MaybePromise<Response>;
 
 async function run(
   hooks: Hook[],
@@ -17,7 +18,7 @@ async function run(
         "Content-Length": String(0),
         "Cache-Control": "no-cache",
       },
-      status: Status.INTERNAL_SERVER_ERROR,
+      status: http.Status.INTERNAL_SERVER_ERROR,
     });
   }
 
