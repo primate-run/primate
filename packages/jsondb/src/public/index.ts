@@ -1,3 +1,3 @@
-import JsonDB from "#JsonDB";
+import JSONDB from "#JSONDB";
 
-export default (config?: typeof JsonDB.config) => new JsonDB(config);
+export default (config?: typeof JSONDB.config) => new JSONDB(config);

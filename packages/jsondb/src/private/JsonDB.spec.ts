@@ -1,16 +1,16 @@
-import JsonDB from "#JsonDB";
+import JSONDB from "#JSONDB";
 import core_test from "@primate/core/db/test";
 import fs from "@rcompat/fs";
 import test from "@rcompat/test";
 import p from "pema";
 
 // Core test suite
-core_test(new JsonDB());
+core_test(new JSONDB());
 
 // Custom tests for JSON-specific behavior
 
 const tmp_path = `/tmp/primate-jsondb-test-${Date.now()}`;
-const db = new JsonDB({ directory: tmp_path });
+const db = new JSONDB({ directory: tmp_path });
 
 const dt = {
   u8: p.u8.datatype,
@@ -104,7 +104,7 @@ test.case("survives reload from disk", async assert => {
   await db.create(reload_as, { id: 1, name: "persisted" });
 
   // create a new instance pointing to the same directory
-  const db2 = new JsonDB({ directory: tmp_path });
+  const db2 = new JSONDB({ directory: tmp_path });
   await db2.schema.create("reload_test", { name: "id", generate: true },
     reload_types);
 
@@ -123,7 +123,7 @@ test.case("deserializes BigInt from JSON on reload", async assert => {
     bi_types);
   await db.create(bi_as, { id: 1, value: 12345678901234n });
 
-  const db2 = new JsonDB({ directory: tmp_path });
+  const db2 = new JSONDB({ directory: tmp_path });
   await db2.schema.create("bigint_reload", { name: "id", generate: true },
     bi_types);
 
@@ -145,7 +145,7 @@ test.case("deserializes Blob from JSON on reload", async assert => {
   });
   await db.create(bl_as, { id: 1, data: original });
 
-  const db2 = new JsonDB({ directory: tmp_path });
+  const db2 = new JSONDB({ directory: tmp_path });
   await db2.schema.create("blob_reload", { name: "id", generate: true },
     bl_types);
 

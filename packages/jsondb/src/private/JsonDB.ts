@@ -22,14 +22,14 @@ function comparable(x: unknown) {
 function like_re(pattern: string, flags = "") {
   return new RegExp(
     "^" +
-      escape_re(pattern)
-        .replace(/\\%/g, "<<PERCENT>>")
-        .replace(/\\_/g, "<<UNDERSCORE>>")
-        .replace(/%/g, "[\\s\\S]*")
-        .replace(/_/g, "[\\s\\S]")
-        .replace(/<<PERCENT>>/g, "%")
-        .replace(/<<UNDERSCORE>>/g, "_") +
-      "$",
+    escape_re(pattern)
+      .replace(/\\%/g, "<<PERCENT>>")
+      .replace(/\\_/g, "<<UNDERSCORE>>")
+      .replace(/%/g, "[\\s\\S]*")
+      .replace(/_/g, "[\\s\\S]")
+      .replace(/<<PERCENT>>/g, "%")
+      .replace(/<<UNDERSCORE>>/g, "_") +
+    "$",
     flags,
   );
 }
@@ -186,7 +186,7 @@ const config_schema = p({
   directory: p.string.default("data"),
 });
 
-export default class JsonDB implements DB<Tables> {
+export default class JSONDB implements DB<Tables> {
   static config: typeof config_schema.input;
   #directory: FileRef;
   #tables: Tables = {};
