@@ -2,20 +2,19 @@ import command from "#command";
 import type { NativeTarget } from "#targets";
 import targets from "#targets";
 import type { Module } from "@primate/core";
-import log from "@primate/core/log";
 import color from "@rcompat/cli/color";
 import io from "@rcompat/io";
 import p from "pema";
 
-const schema = p({
+const Schema = p({
   debug: p.boolean.default(false),
   start: p.string.default("/"),
 });
 
 const names = new Set([...targets.map(t => t.name)]);
 
-export default function module(input: typeof schema.input = {}): Module {
-  const options = schema.parse(input);
+export default function module(input: typeof Schema.input = {}): Module {
+  const options = Schema.parse(input);
 
   return {
     name: module.name,
@@ -43,7 +42,7 @@ export default function module(input: typeof schema.input = {}): Module {
               files: ["server.js", "worker.js"],
               flags,
             }));
-            log.system("executable written to {0}", executable_path);
+            app.log.system`executable written to ${executable_path}`;
           });
         }
       });

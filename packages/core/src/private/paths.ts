@@ -1,10 +1,8 @@
+import type BuildApp from "#build/App";
 import E from "#errors";
-import log from "#log";
-import type { FileRef } from "@rcompat/fs";
-import type { Dict } from "@rcompat/type";
 
-async function resolve(root: FileRef, config_paths?: Dict<string[]>) {
-  const tsconfig_path = root.join("tsconfig.json");
+async function resolve(app: BuildApp) {
+  const tsconfig_path = app.root.join("tsconfig.json");
 
   if (await tsconfig_path.exists()) {
     try {
@@ -17,20 +15,15 @@ async function resolve(root: FileRef, config_paths?: Dict<string[]>) {
         .replace(/,(\s*[}\]])/g, "$1");
 
       const config = JSON.parse(text);
-      const ts_paths = config.compilerOptions?.paths ?? {};
-      if (config_paths !== undefined && Object.keys(ts_paths).length > 0) {
-        return E.config_tsconfig_has_paths();
-      }
+      const paths = config.compilerOptions?.paths ?? {};
 
       // merge with defaults (user paths override)
-      return { ...ts_paths };
+      return { ...paths };
 
-    } catch {
-      log.warn("failed to parse tsconfig.json, falling back to config");
+    } catch (cause) {
+      throw E.config_failed_to_parse_tsconfig(tsconfig_path, cause as Error);
     }
   }
-
-  if (config_paths !== undefined) return config_paths;
 
   return {};
 }

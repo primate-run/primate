@@ -1,6 +1,5 @@
 import type BuildApp from "#build/App";
 import E from "#errors";
-import log from "#log";
 import fs from "@rcompat/fs";
 import type { Plugin } from "esbuild";
 import { createRequire } from "node:module";
@@ -46,7 +45,7 @@ export default function plugin_server_store(app: BuildApp): Plugin {
               await dest.directory.create();
               await node_files[0].copy(dest);
 
-              log.info("copied native addon {0}", addon_name);
+              app.log.info`copied native addon ${addon_name}`;
 
               return {
                 path: `./native/${addon_name}`,

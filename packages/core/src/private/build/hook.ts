@@ -3,7 +3,6 @@ import build_client from "#build/client/index";
 import build_server from "#build/server/index";
 import E from "#errors";
 import location from "#location";
-import log from "#log";
 import $router from "#request/router";
 import s_layout_depth from "#symbol/layout-depth";
 import assert from "@rcompat/assert";
@@ -55,7 +54,7 @@ async function post(app: BuildApp) {
     migration_version,
   });
 
-  log.print(`✓ build path  ${c.dim(app.path.build.path)}\n`);
+  app.log.print`✓ build path  ${c.dim(app.path.build.path)}\n`;
   app.cleanup();
   return app;
 }

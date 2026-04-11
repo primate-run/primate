@@ -1,8 +1,7 @@
 import E from "#errors";
 import type { Input } from "#module";
 import module from "#module";
-import type { Module } from "@primate/core";
-import log from "@primate/core/log";
+import type { BuildApp, Module } from "@primate/core";
 import server from "@primate/core/server";
 import assert from "@rcompat/assert";
 import type { FileRef } from "@rcompat/fs";
@@ -32,14 +31,14 @@ async function gem_version(root: FileRef): Promise<string | void> {
   } catch { }
 }
 
-async function check_version(root: FileRef) {
-  const version = await gem_version(root);
-  if (version === undefined) throw E.package_not_found();
+async function check_version(app: BuildApp) {
+  const version = await gem_version(app.root);
+  if (version === undefined) throw E.pkg_not_found();
   const version_match = version.match(/^(\d+)\.(\d+)\.(\d+)/);
   if (version_match === null) throw E.gem_not_found();
   const [, major, minor] = version_match.map(Number);
-  if (major !== MAJOR || minor !== MINOR) throw E.package_mismatch(major, minor);
-  log.info("using %s gem %d.%d.x", GEM, major, minor);
+  if (major !== MAJOR || minor !== MINOR) throw E.pkg_mismatch(major, minor);
+  app.log.info`using ${GEM} gem ${major}.${minor}.x`;
 }
 
 function wrap(source: string, id: string) {
@@ -61,7 +60,7 @@ export default function default_module(input: Input = {}): Module {
 
     setup({ onBuild }) {
       onBuild(async app => {
-        await check_version(app.root);
+        await check_version(app);
 
         app.bind(extension, async (file, { context }) => {
           assert.true(context === "routes", E.only_route_files());
@@ -69,7 +68,7 @@ export default function default_module(input: Input = {}): Module {
           const source = await file.text();
           const routes = detect_routes(source);
           if (routes.length === 0) throw E.no_routes_detected(file);
-          log.info("found routes in {0}: {1}", file, routes.join(", "));
+          app.log.info`found routes in ${file}: ${routes.join(", ")}`;
 
           const id = file.debase(app.path.routes).path
             .replace(/^\//, "")

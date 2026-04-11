@@ -1,5 +1,4 @@
 import E from "#errors";
-import log from "#log";
 import type RequestHook from "#module/RequestHook";
 import type RequestFacade from "#request/RequestFacade";
 import response_error from "#response/error";
@@ -93,7 +92,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
       return response_json(error.toJSON(),
         { status: http.Status.BAD_REQUEST })(app) as Response;
     }
-    log.error(error);
+    app.log.error(error);
     // the +error.js page itself could fail
     try {
       return respond(await errorRoute!(request))(app, {}, request) as Response;

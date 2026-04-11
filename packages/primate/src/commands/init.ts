@@ -1,3 +1,4 @@
+import core from "@primate/core";
 import color from "@rcompat/cli/color";
 import cancel from "@rcompat/cli/prompts/cancel";
 import intro from "@rcompat/cli/prompts/intro";
@@ -8,7 +9,9 @@ import select from "@rcompat/cli/prompts/select";
 import text from "@rcompat/cli/prompts/text";
 import type { FileRef } from "@rcompat/fs";
 import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 import type { Dict } from "@rcompat/type";
+import type Command from "./Command.js";
 
 function abort() {
   return cancel("Aborted");
@@ -82,11 +85,13 @@ const FRONTEND_PEER_DEPS: Record<Frontend, string[]> = {
   "webc": [],
 };
 
-export default async function init() {
+const command_init: Command = async () => {
   intro("Create a new Primate app");
 
   let directory: string;
   let target: FileRef;
+
+  const log = core.logger(runtime.flags.get("--log"));
 
   while (true) {
     const ans = await text({
@@ -101,7 +106,7 @@ export default async function init() {
     }
 
     // directory not empty, show error but continue loop
-    console.log("Directory not empty, choose another.");
+    log.error("Directory not empty, choose another.");
   }
 
   const frontends = await multiselect<Frontend>({
@@ -118,7 +123,7 @@ export default async function init() {
   });
   if (typeof backends === "symbol" || is_cancel(backends)) return abort();
 
-  const runtime = await select<Runtime>({
+  const selected_runtime = await select<Runtime>({
     message: "Choose runtime",
     options: [
       { label: "Node", value: "node" },
@@ -127,7 +132,7 @@ export default async function init() {
     ],
     initial: 0,
   });
-  if (typeof runtime === "symbol" || is_cancel(runtime)) return abort();
+  if (typeof selected_runtime === "symbol" || is_cancel(selected_runtime)) return abort();
 
   const dbs = await multiselect<Database>({
     message: "Choose a database (press Enter to skip)",
@@ -167,19 +172,19 @@ export default async function init() {
   // files
   await gitignore(target);
   await tsconfig_json(target, { frontends });
-  await app_config(target, { frontends: frontends, backends: backends, runtime });
+  await app_config(target, { frontends: frontends, backends: backends, runtime: selected_runtime });
   if (with_i18n) await i18n_config(target);
   if (withSessions) await session_config(target);
   if (db) await database_config(target, db);
-  await package_json(target, { directory, runtime });
+  await package_json(target, { directory, runtime: selected_runtime });
 
   const packages = compute_packages({ frontends: frontends, backends: backends, db });
-  const install = build_install_command(runtime, packages, directory);
+  const install = build_install_command(selected_runtime, packages, directory);
 
   outro(`${color.green("done, now run")} ${color.dim(install.print)}`);
 
   process.exit();
-}
+};
 
 async function empty(directory: FileRef) {
   try {
@@ -413,7 +418,7 @@ function build_install_command(runtime: Runtime, packages: {
 async function tsconfig_json(root: FileRef, opts: { frontends: Frontend[] }) {
   const is_react = opts.frontends.includes("react");
   const is_svelte = opts.frontends.includes("svelte");
-  const tsconfig: any = {
+  const ts_config: any = {
     extends: "primate/tsconfig",
     compilerOptions: {
       baseUrl: "${configDir}",
@@ -440,8 +445,10 @@ async function tsconfig_json(root: FileRef, opts: { frontends: Frontend[] }) {
     ],
     exclude: ["node_modules"],
   };
-  if (is_react) tsconfig.compilerOptions.jsx = "react-jsx";
-  if (is_svelte) tsconfig.compilerOptions.plugins = [{ name: "@plsp/svelte" }];
+  if (is_react) ts_config.compilerOptions.jsx = "react-jsx";
+  if (is_svelte) ts_config.compilerOptions.plugins = [{ name: "@plsp/svelte" }];
 
-  await root.join("tsconfig.json").writeJSON(tsconfig);
+  await root.join("tsconfig.json").writeJSON(ts_config);
 }
+
+export default command_init;

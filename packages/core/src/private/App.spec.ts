@@ -23,7 +23,8 @@ class TestApp extends BuildApp {
     super(root, test_config, {
       mode: "testing",
       target: "web",
-      dir: "build",
+      outdir: "build",
+      log: "warn",
     });
     this.bind(".component.ts", () => "");
     this.bind(".vue", () => "");

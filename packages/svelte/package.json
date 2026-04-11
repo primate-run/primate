@@ -26,12 +26,12 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.30.0",
+    "@rcompat/fs": "^0.31.0",
     "esbuild": "^0.28.0"
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
-    "@rcompat/type": "^0.14.0"
+    "@rcompat/type": "^0.15.0"
   },
   "peerDependencies": {
     "primate": "workspace:^",

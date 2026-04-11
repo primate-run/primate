@@ -1,8 +1,7 @@
 import E from "#errors";
 import type { Input } from "#module";
 import module from "#module";
-import type { Module } from "@primate/core";
-import log from "@primate/core/log";
+import type { BuildApp, Module } from "@primate/core";
 import server from "@primate/core/server";
 import assert from "@rcompat/assert";
 import fs from "@rcompat/fs";
@@ -26,17 +25,17 @@ async function show_package(): Promise<string | null> {
   return null;
 }
 
-async function check_version() {
+async function check_version(app: BuildApp) {
   const output = await show_package();
-  if (output === null) throw E.package_not_found();
+  if (output === null) throw E.pkg_not_found();
 
   const version_match = output.match(/Version:\s*(\d+)\.(\d+)\.(\d+)/);
-  if (version_match === null) throw E.package_not_found();
+  if (version_match === null) throw E.pkg_not_found();
 
   const [major, minor] = version_match.slice(1).map(Number);
-  if (major !== MAJOR || minor !== MINOR) throw E.package_mismatch(major, minor);
+  if (major !== MAJOR || minor !== MINOR) throw E.pkg_mismatch(major, minor);
 
-  log.info("using {0} package {1}.{2}.x", PACKAGE, major, minor);
+  app.log.info`using ${PACKAGE} package ${major}.${minor}.x`;
 }
 
 export default function default_module(input: Input = {}): Module {
@@ -47,7 +46,7 @@ export default function default_module(input: Input = {}): Module {
 
     setup({ onBuild }) {
       onBuild(async app => {
-        await check_version();
+        await check_version(app);
 
         const requirements_txt = app.root.join("requirements.txt");
         let packages: string[] = [];

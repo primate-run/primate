@@ -25,15 +25,15 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.10.0",
-    "@rcompat/error": "^0.5.0",
-    "@rcompat/fs": "^0.30.0",
-    "@rcompat/io": "^0.7.0",
+    "@rcompat/assert": "^0.11.0",
+    "@rcompat/error": "^0.6.1",
+    "@rcompat/fs": "^0.31.0",
+    "@rcompat/io": "^0.8.0",
     "pema": "workspace:^",
     "pyodide": "^0.29.3"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.14.0"
+    "@rcompat/type": "^0.15.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"

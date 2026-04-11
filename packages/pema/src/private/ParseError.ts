@@ -2,6 +2,7 @@ import type JSONIssue from "#json/JSONIssue";
 import type JSONPayload from "#json/JSONPayload";
 import type ParseIssue from "#ParseIssue";
 import assert from "@rcompat/assert";
+import is from "@rcompat/is";
 import type { JSONPointer, Serializable } from "@rcompat/type";
 
 function humanize(path: JSONPointer): string {
@@ -25,14 +26,14 @@ function stringify(issue: ParseIssue) {
     ;
 }
 
-const brand = Symbol.for("pema/error/parse/v0");
+const brand = Symbol.for("pema/ParseError/v0");
 
 export default class ParseError extends Error implements Serializable {
   [brand] = true;
   #issues: ParseIssue[] = [];
 
-  static is(error: unknown): error is ParseError {
-    return typeof error === "object" && error !== null && brand in error;
+  static is(x: unknown): x is ParseError {
+    return is.branded(x, brand);
   }
 
   constructor(issues: ParseIssue[]) {
@@ -61,18 +62,18 @@ export default class ParseError extends Error implements Serializable {
       } as JSONIssue;
     }
 
-    const dict: Partial<Record<JSONPointer, JSONIssue>> = {};
+    const payload: Partial<Record<JSONPointer, JSONIssue>> = {};
     for (const i of issues) {
       const key = i.path;
-      if (!(key in dict)) dict[key] = {
+      if (!(key in payload)) payload[key] = {
         type: i.type,
         message: i.message,
         messages: [],
       };
-      const entry = dict[key]!;
+      const entry = payload[key]!;
       entry.messages.push(i.message);
     }
-    return dict as JSONPayload;
+    return payload as JSONPayload;
 
   }
 }

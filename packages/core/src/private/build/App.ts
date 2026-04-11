@@ -2,6 +2,7 @@ import App from "#App";
 import type Binder from "#Binder";
 import build from "#build/hook";
 import resolve_paths from "#paths";
+import type ServeApp from "#serve/App";
 import s_layout_depth from "#symbol/layout-depth";
 import type { FileRef } from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";
@@ -10,8 +11,8 @@ import type { Plugin } from "esbuild";
 type PluginType = "server" | "client";
 
 export default class BuildApp extends App {
-  frontends: Map<string, string[]> = new Map();
-  conditions = new Set<string>();
+  #frontends: Map<string, string[]> = new Map();
+  #conditions = new Set<string>();
   #postbuild: (() => void)[] = [];
   #roots: Dict<string> = {};
   #id = crypto.randomUUID().slice(0, 8);
@@ -26,7 +27,7 @@ export default class BuildApp extends App {
   #entrypoint_imports: string[] = [];
 
   async buildInit() {
-    this.#paths = await resolve_paths(this.root, this.config("paths"));
+    this.#paths = await resolve_paths(this);
 
     await build(this);
   }
@@ -45,7 +46,15 @@ export default class BuildApp extends App {
   }
 
   get frontendExtensions() {
-    return [...this.frontends.values()].flat();
+    return [...this.#frontends.values()].flat();
+  }
+
+  get frontends() {
+    return this.#frontends;
+  }
+
+  get conditions() {
+    return this.#conditions;
   }
 
   addRoot(name: string, source: string) {
@@ -127,5 +136,9 @@ export default class BuildApp extends App {
 
   set session_active(active: boolean) {
     this.#session_active = active;
+  }
+
+  async serve(): Promise<ServeApp> {
+    return this.root.join("build/server.js").import("default");
   }
 }

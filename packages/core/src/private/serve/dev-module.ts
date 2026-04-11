@@ -1,4 +1,3 @@
-import log from "#log";
 import create from "#module/create";
 import c from "@rcompat/cli/color";
 
@@ -23,7 +22,7 @@ export default function dev() {
         const assets = app.assets.map(asset => asset.src);
         reload = `http://${host}:${port}`;
         paths = ["/esbuild"].concat(assets as string[]);
-        log.print(`↻ live reload ${c.dim(reload)}\n`);
+        app.log.print`↻ live reload ${c.dim(reload)}\n`;
       });
 
       onHandle((request, next) => {

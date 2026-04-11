@@ -28,17 +28,17 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/cli": "^0.20.0",
-    "@rcompat/dict": "^0.7.1",
-    "@rcompat/error": "^0.5.0",
-    "@rcompat/fs": "^0.30.0",
-    "@rcompat/http": "~0.27.1",
-    "@rcompat/runtime": "^0.13.0",
-    "@rcompat/test": "^0.14.0"
+    "@rcompat/cli": "^0.21.0",
+    "@rcompat/dict": "^0.8.0",
+    "@rcompat/error": "^0.6.1",
+    "@rcompat/fs": "^0.31.0",
+    "@rcompat/http": "~0.28.0",
+    "@rcompat/runtime": "^0.14.0",
+    "@rcompat/test": "^0.15.0"
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
-    "@rcompat/type": "^0.14.0"
+    "@rcompat/type": "^0.15.0"
   },
   "engines": {
     "node": ">=24"

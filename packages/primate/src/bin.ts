@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import runtime from "@rcompat/runtime";
-import init from "./init.js";
+import find from "./commands/index.js";
 
-await init(...runtime.args);
+const [command] = runtime.args;
+find(command)();

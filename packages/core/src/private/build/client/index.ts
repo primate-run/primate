@@ -8,7 +8,7 @@ import plugin_app_request from "#build/shared/plugin/app-request";
 import location from "#location";
 import * as esbuild from "esbuild";
 
-const write_bootstrap = async (app: BuildApp, mode: string) => {
+const write_bootstrap = async (app: BuildApp) => {
   const build_start_script = `
     import serve from "primate/serve";
     import views from "app:views";
@@ -37,10 +37,11 @@ const write_bootstrap = async (app: BuildApp, mode: string) => {
       routes,
       views,
       pages,
-      mode: "${mode}",
       session: session_config,
       i18n: i18n_config,
+      mode: "${app.mode}",
       target: "${app.target.name}",
+      log: "${app.log.level}"
     });
 
     export default app;
@@ -106,5 +107,5 @@ export default async function build_client(app: BuildApp) {
     await esbuild.build(options);
   }
 
-  await write_bootstrap(app, app.mode);
+  await write_bootstrap(app);
 }

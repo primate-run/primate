@@ -1,5 +1,6 @@
 import type { Body, MockedResponse } from "#test";
 import { tests } from "#test";
+import core from "@primate/core";
 import build from "@primate/core/build";
 import color from "@rcompat/cli/color";
 import dict from "@rcompat/dict";
@@ -7,7 +8,7 @@ import runtime from "@rcompat/runtime";
 import equals from "@rcompat/test/equals";
 import includes from "@rcompat/test/includes";
 import type { Dict, MaybePromise } from "@rcompat/type";
-import serve from "./serve.js";
+import type Command from "./Command.js";
 
 const directory = "test";
 
@@ -25,10 +26,10 @@ const first_error = (left: string, right: string) => {
   }
 };
 
-export default async () => {
+const command_test: Command = async () => {
   const root = await runtime.projectRoot();
-  await build(root, { mode: "testing" });
-  const app = (await serve()).default;
+  const build_app = await build(root, { mode: "testing" });
+  const app = await build_app.serve();
 
   const files = await root.join(directory)
     .list({ filter: f => f.path.endsWith(".ts") || f.path.endsWith(".js") });
@@ -116,11 +117,12 @@ export default async () => {
     };
     test.tester(mocked_response);
 
+    const log = core.logger("error");
     const results = await Promise.all(checks.map(async check => {
       try {
         return await check();
-      } catch (error) {
-        console.log(error);
+      } catch (cause) {
+        log.error(cause);
         return [
           false, "()", "test execution failed",
         ];
@@ -147,3 +149,5 @@ export default async () => {
 
   await app.stop();
 };
+
+export default command_test;

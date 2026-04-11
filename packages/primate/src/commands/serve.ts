@@ -1,6 +1,6 @@
 import fs from "@rcompat/fs";
 import runtime from "@rcompat/runtime";
-import get_flag from "./get-flag.js";
+import type Command from "./Command.js";
 
 const load = async () => {
   try {
@@ -10,8 +10,10 @@ const load = async () => {
   }
 };
 
+const command_serve: Command = async () => {
+  const outdir = runtime.flags.get("--outdir");
+  return (await load()).join(`./${outdir}/server.js`).import();
+};
+
 // serve from build directory
-export default async function app(flags: string[] = []) {
-  const dir = get_flag(flags, "dir") ?? "build";
-  return (await load()).join(`./${dir}/server.js`).import();
-}
+export default command_serve;

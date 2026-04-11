@@ -1,6 +1,5 @@
 import { s_attach, s_config } from "#app/Facade";
 import E from "#db/errors";
-import log from "#log";
 import key from "#orm/key";
 import store from "#orm/store";
 import ServeApp from "#serve/App";
@@ -42,6 +41,6 @@ export default async (root: string, options: ServeInit) => {
     }
     return serve_hook(app);
   } catch (cause) {
-    log.error(cause);
+    app.log.error(cause);
   }
 };

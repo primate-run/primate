@@ -17,3 +17,18 @@ export type { default as RequestView } from "#request/RequestView";
 export type { default as ServeApp } from "#serve/App";
 export type { default as Target } from "#target/Target";
 
+import logger from "#logger";
+
+const core = {
+  logger,
+  async try(fn: () => Promise<unknown>) {
+    try {
+      await fn();
+    } catch (cause) {
+      logger("error").error(cause);
+    }
+  },
+};
+
+export default core;
+

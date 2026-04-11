@@ -1,11 +1,9 @@
 import { s_config } from "#app/Facade";
 import BuildApp from "#build/App";
-import bye from "#bye";
 import type Config from "#config/Config";
 import default_config from "#config/index";
 import E from "#errors";
 import Flags from "#Flags";
-import log from "#log";
 import dict from "@rcompat/dict";
 import type { FileRef } from "@rcompat/fs";
 
@@ -33,16 +31,13 @@ async function get_config(root: FileRef): Promise<Config> {
   }
 };
 
-export default async (root: FileRef, input: typeof Flags.input) => {
-  try {
-    const flags = Flags.parse(input);
-    const config = await get_config(root);
-    const app = await new BuildApp(root, config, flags).init();
+async function build(root: FileRef, input: typeof Flags.input) {
+  const flags = Flags.parse(input);
+  const config = await get_config(root);
+  const app = await new BuildApp(root, config, flags).init();
 
-    await (app as BuildApp).buildInit();
-    return true;
-  } catch (error) {
-    log.error(error);
-    bye();
-  }
+  await (app as BuildApp).buildInit();
+  return app;
 };
+
+export default build;

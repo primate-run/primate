@@ -27,14 +27,14 @@
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
-    "@rcompat/type": "^0.14.0",
+    "@rcompat/type": "^0.15.0",
     "@types/babel__core": "^7.20.5"
   },
   "dependencies": {
     "@babel/core": "^7.28.6",
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.30.0",
-    "@rcompat/runtime": "^0.13.0",
+    "@rcompat/fs": "^0.31.0",
+    "@rcompat/runtime": "^0.14.0",
     "babel-preset-solid": "^1.9.12"
   },
   "peerDependencies": {

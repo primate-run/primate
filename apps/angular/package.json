@@ -18,7 +18,7 @@
     "@angular/platform-browser": "^21.2.7",
     "@primate/angular": "workspace:^",
     "@primate/sqlite": "workspace:^",
-    "@rcompat/assert": "^0.10.0",
+    "@rcompat/assert": "^0.11.0",
     "pema": "workspace:^",
     "primate": "workspace:^"
   }

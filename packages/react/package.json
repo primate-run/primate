@@ -26,13 +26,13 @@
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
-    "@rcompat/type": "^0.14.0",
+    "@rcompat/type": "^0.15.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/runtime": "^0.13.0"
+    "@rcompat/runtime": "^0.14.0"
   },
   "peerDependencies": {
     "@types/react": "19",

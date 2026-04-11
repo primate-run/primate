@@ -1,4 +1,8 @@
 import build from "./build.js";
+import type Command from "./Command.js";
 
-// build for development
-export default () => build([], "development");
+const command_dev: Command = () => {
+  build("development");
+};
+
+export default command_dev;

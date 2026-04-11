@@ -4,8 +4,8 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "@rcompat/fs": "^0.30.0",
-    "@rcompat/io": "^0.7.0",
-    "@rcompat/runtime": "^0.13.0"
+    "@rcompat/fs": "^0.31.0",
+    "@rcompat/io": "^0.8.0",
+    "@rcompat/runtime": "^0.14.0"
   }
 }

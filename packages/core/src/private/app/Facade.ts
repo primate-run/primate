@@ -67,4 +67,8 @@ export default class AppFacade<T extends EnvSchema = EnvSchema> {
   get root() {
     return this.#with.root;
   }
+
+  get log() {
+    return this.#with.log;
+  }
 }

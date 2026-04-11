@@ -13,7 +13,6 @@ import hash from "#hash";
 import type I18NConfig from "#i18n/Config";
 import i18n_module from "#i18n/module";
 import location from "#location";
-import log from "#log";
 import create from "#module/create";
 import handle from "#request/handle";
 import parse from "#request/parse";
@@ -119,7 +118,8 @@ export default class ServeApp extends App {
     super(dir, init.facade[s_config], {
       mode: init.mode,
       target: init.target,
-      dir: dir.path,
+      outdir: dir.path,
+      log: init.log,
     });
 
     this.#init = init;
@@ -327,7 +327,7 @@ export default class ServeApp extends App {
   }
 
   async #try_serve(ref: FileRef) {
-    if (await ref.exists() && await ref.kind() === "file") {
+    if (await ref.exists() && await ref.type() === "file") {
       return new Response(ref.stream(), {
         headers: {
           "Content-Type": http.MIME.resolve(ref.name),
@@ -419,7 +419,7 @@ export default class ServeApp extends App {
       try {
         return await handle(this, parse(request));
       } catch (error) {
-        log.error(error);
+        this.log.error(error);
         return new Response(null, {
           headers: {
             "Content-Length": String(0),
@@ -436,12 +436,12 @@ export default class ServeApp extends App {
     function bright(x: unknown) {
       return `\x1b[38;2;0;200;255m${x}\x1b[0m`;
     }
-    log.print(`» app url     ${bright(this.url)}\n`);
+    this.log.print`» app url     ${bright(this.url)}\n`;
   };
 
   stop() {
     this.#server!.stop();
-    log.system("stopped {0}", this.url);
+    this.log.system`stopped ${this.url}`;
   };
 
   upgrade(request: Request, actions: Actions) {
@@ -453,7 +453,7 @@ export default class ServeApp extends App {
     const pathname = normalize(url.pathname);
     const matched_route = this.router.match(original);
     if (matched_route === undefined) {
-      log.info("no {0} route to {1}", original.method, pathname);
+      this.log.info`no ${original.method} route to ${pathname}`;
       return;
     }
 

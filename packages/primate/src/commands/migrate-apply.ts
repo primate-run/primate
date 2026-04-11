@@ -1,10 +1,11 @@
+import core from "@primate/core";
 import migrate from "@primate/core/db/migrate";
-import log from "@primate/core/log";
+import type Command from "./Command.js";
 
-export default async function command_migrate_apply() {
-  try {
+const command_migrate_apply: Command = async () => {
+  core.try(async () => {
     await migrate.apply();
-  } catch (cause) {
-    log.error(cause);
-  }
-};
+  });
+};;
+
+export default command_migrate_apply;

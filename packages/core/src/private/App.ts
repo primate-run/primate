@@ -3,6 +3,7 @@ import type Config from "#config/Config";
 import E from "#errors";
 import type Flags from "#Flags";
 import location from "#location";
+import logger from "#logger";
 import type Mode from "#Mode";
 import type { Created, Hooks } from "#module/create";
 import create from "#module/create";
@@ -12,10 +13,13 @@ import dict from "@rcompat/dict";
 import type { FileRef } from "@rcompat/fs";
 import p from "pema";
 
+type Logger = ReturnType<typeof logger>;
+
 export default class App {
   #path: { [K in keyof typeof location]: FileRef } & { build: FileRef };
   #root: FileRef;
   #config: Config;
+  #log: Logger;
   #hooks: Hooks = {
     init: [],
     build: [],
@@ -30,19 +34,24 @@ export default class App {
   #target_name: string;
 
   constructor(root: FileRef, config: Config, flags: typeof Flags.infer) {
-    if (Object.values(location).includes(flags.dir as any)) {
-      throw E.app_reserved_directory(flags.dir);
+    if (Object.values(location).includes(flags.outdir as any)) {
+      throw E.app_reserved_directory(flags.outdir);
     }
     this.#root = root;
     this.#config = config;
     for (const module of config.modules) this.register(create(module));
     this.#path = dict.map({
       ...location,
-      build: flags.dir,
+      build: flags.outdir,
     }, (_, path) => root.join(path));
     this.#mode = flags.mode;
     this.#target = new TargetManager(this);
     this.#target_name = flags.target;
+    this.#log = logger(flags.log);
+  }
+
+  get log() {
+    return this.#log;
   }
 
   async init() {

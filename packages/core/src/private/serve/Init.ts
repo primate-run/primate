@@ -1,5 +1,6 @@
 import type AppFacade from "#app/Facade";
 import type I18NConfig from "#i18n/Config";
+import type { Schema as LogSchema } from "#logger";
 import type Mode from "#Mode";
 import type SessionConfig from "#session/Config";
 import type { Dict } from "@rcompat/type";
@@ -19,6 +20,7 @@ type ServeInit = {
   routes: [string, { default: any }][];
   mode: Mode;
   target: string;
+  log: typeof LogSchema.infer;
   pages: Dict<string>;
   session?: SessionConfig;
   i18n?: I18NConfig;

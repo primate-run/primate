@@ -26,13 +26,13 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.10.0",
-    "@rcompat/is": "^0.8.0",
+    "@rcompat/assert": "^0.11.0",
+    "@rcompat/is": "^0.9.0",
     "pema": "workspace:",
     "postgres": "^3.4.9"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.14.0"
+    "@rcompat/type": "^0.15.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"

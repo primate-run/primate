@@ -1,6 +1,6 @@
-import type { Method } from "@rcompat/http";
 import error from "@rcompat/error";
 import type { FileRef } from "@rcompat/fs";
+import type { Method } from "@rcompat/http";
 import type ParseError from "pema/ParseError";
 
 const t = error.template;
@@ -23,10 +23,6 @@ function build_missing_binary_addon() {
 function build_missing_route(route: string, file: FileRef) {
   return t`cannot find route source for ${route} under ${file.path}`;
 }
-function build_multiple_db_drivers(drivers: string[]) {
-  const defaults = ["index.ts", "index.js", "default.ts", "default.js"];
-  return t`multiple database drivers ${drivers}, add one of ${defaults}`;
-}
 function build_live_reload_failed(filename: string, cause: Error) {
   return t`failed to live-reload ${filename}: ${cause}`;
 }
@@ -37,14 +33,10 @@ function build_previous_build_exists(file: FileRef) {
 const BUILD = error.coded({
   build_missing_binary_addon,
   build_missing_route,
-  build_multiple_db_drivers,
   build_live_reload_failed,
   build_previous_build_exists,
 });
 
-function config_tsconfig_has_paths() {
-  return t`tsconfig.json exists with paths, remove config paths`;
-}
 function config_file_missing() {
   return t`missing ${"config/app.ts"}`;
 }
@@ -57,13 +49,16 @@ function config_file_error(file: FileRef, cause: Error) {
 function config_missing(property: string) {
   return t`${property} not configured`;
 }
+function config_failed_to_parse_tsconfig(path: FileRef, cause: Error) {
+  return t`failed to parse tsconfig at ${path}: ${cause}`;
+}
 
 const CONFIG = error.coded({
   config_file_missing,
   config_missing,
-  config_tsconfig_has_paths,
   config_file_empty,
   config_file_error,
+  config_failed_to_parse_tsconfig,
 });
 
 function frontend_missing(view: string, module?: string) {
