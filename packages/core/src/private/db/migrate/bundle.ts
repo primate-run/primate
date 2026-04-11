@@ -16,6 +16,7 @@ export default async (contents: string) => {
       format: "esm",
       platform: "node",
       tsconfig: root.join("tsconfig.json").path,
+      packages: "external",
     });
   } finally {
     await entrypoint.remove();
