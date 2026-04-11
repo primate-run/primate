@@ -227,6 +227,7 @@ type Init<
 > = {
   name: string;
   db: DB;
+  id?: symbol;
   schema: S;
   relations?: R;
   migrate?: boolean;
@@ -244,6 +245,7 @@ export class Store<
   T extends StoreInput,
   R extends Dict<Relation> = EmptyDict,
 > implements Serializable {
+  #input: StoreInput;
   #schema: Dict<Storable<DataKey>>;
   #type: StoreType<ExtractSchema<T>>;
   #types: Types;
@@ -255,13 +257,13 @@ export class Store<
   #fks: Map<string, ForeignKey<AllowedFKType>>;
   #relations: R;
   #migrate: boolean;
+  #id: symbol;
 
   declare readonly Schema: Schema<T>;
 
   constructor(init: Init<T, R>) {
+    const { name, db, migrate, id } = init;
     const { pk, generate_pk, fks, schema } = parse(init.schema);
-
-    const { name, db, migrate } = init;
 
     if (name === undefined) throw E.store_name_required();
     assert.string(name);
@@ -270,7 +272,9 @@ export class Store<
     assert.dict(schema);
     assert.maybe.boolean(migrate);
     assert.maybe.dict(init.extend);
+    assert.maybe.symbol(id);
 
+    this.#id = id ?? Symbol();
     this.#schema = schema;
     this.#type = new StoreType(schema as ExtractSchema<T>, pk);
     this.#types = Object.fromEntries(
@@ -281,6 +285,7 @@ export class Store<
     this.#pk = pk;
     this.#generate_pk = generate_pk;
     this.#fks = fks;
+    this.#input = init.schema as StoreInput;
     this.#relations = init.relations ?? {} as R;
     this.#migrate = migrate ?? true;
 
@@ -339,6 +344,10 @@ export class Store<
 
   get migrate() {
     return this.#migrate;
+  }
+
+  get id() {
+    return this.#id;
   }
 
   get name() {
@@ -806,11 +815,12 @@ export class Store<
     return new Store({
       name: this.name,
       db: this.db,
-      schema: this.#schema,
+      schema: this.#input,
       relations: this.#relations,
-      migrate: false,
+      migrate: this.#migrate,
+      id: this.#id,
       extend: extensor(this),
-    }) as this & A;
+    }) as unknown as this & A;
   }
 }
 
