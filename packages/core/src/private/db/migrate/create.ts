@@ -1,7 +1,7 @@
 import type { SchemaDiff } from "#db/DB";
 import E from "#db/errors";
 import bundle from "#db/migrate/bundle";
-import store from "#db/migrate/store";
+import toMigrationStore from "#db/migrate/store";
 import type Types from "#db/Types";
 import type { Store } from "#orm/store";
 import c from "@rcompat/cli/color";
@@ -60,7 +60,7 @@ export default async function create_migration(desc: string) {
 
   let next = 1;
   if (await migrations.exists()) {
-    const Migration = await store();
+    const Migration = await toMigrationStore();
     await Migration.table.create();
     const last = await Migration.find({ limit: 1, sort: { id: "desc" } });
     const last_id = last.length === 0 ? 0 : last[0].id;
@@ -81,19 +81,23 @@ export default async function create_migration(desc: string) {
 
   const diffs: MigrationDiff[] = [];
 
-  const migration_stores = stores.filter(s => s.migrate);
+  const seen = new Set<symbol>();
+  const migration_stores: Store<any>[] = [];
   const names = new Map<string, string[]>();
 
   for (let i = 0; i < store_files.length; i++) {
     const file = store_files[i];
-    const store = stores[i] as Store<any>;
+    const store = stores[i];
     if (!store.migrate) continue;
+    if (seen.has(store.id)) continue;
+    seen.add(store.id);
+    migration_stores.push(store);
+
     const existing = names.get(store.name) ?? [];
     names.set(store.name, [...existing, file.name]);
   }
 
-  const conflicts = [...names.entries()].filter(([, files]) => files.length > 1);
-
+  const conflicts = [...names].filter(([, files]) => files.length > 1);
   if (conflicts.length > 0) {
     const messages = conflicts
       .map(([name, files]) => `table "${name}" claimed by: ${files.join(", ")}`)
