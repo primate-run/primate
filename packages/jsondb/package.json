@@ -1,0 +1,53 @@
+{
+  "name": "@primate/jsondb",
+  "version": "0.1.0-pre",
+  "description": "JSON file databases for Primate",
+  "homepage": "https://primate.run/docs/database/jsondb",
+  "bugs": "https://github.com/primate-run/primate/issues",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/primate-run/primate",
+    "directory": "packages/jsondb"
+  },
+  "files": [
+    "/lib/**/*.js",
+    "/lib/**/*.d.ts",
+    "!/**/*.spec.*"
+  ],
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf ./lib",
+    "lint": "eslint .",
+    "prepublishOnly": "npm run build",
+    "test": "npx proby",
+    "test:bun": "bunx --bun proby",
+    "test:deno": "deno run -A npm:proby"
+  },
+  "dependencies": {
+    "@primate/core": "workspace:^",
+    "@rcompat/assert": "^0.10.0",
+    "@rcompat/fs": "^0.25.2",
+    "@rcompat/is": "^0.8.0"
+  },
+  "devDependencies": {
+    "@rcompat/type": "^0.14.0",
+    "pema": "workspace:^"
+  },
+  "peerDependencies": {
+    "primate": "workspace:^"
+  },
+  "imports": {
+    "#*": {
+      "@primate/source": "./src/private/*.ts",
+      "default": "./lib/private/*.js"
+    }
+  },
+  "exports": {
+    ".": {
+      "@primate/source": "./src/public/index.ts",
+      "default": "./lib/public/index.js"
+    }
+  }
+}
