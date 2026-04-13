@@ -170,6 +170,7 @@ export default class PostgreSQL implements DB<Sql> {
         port: parsed.port,
         user: parsed.username,
         pass: parsed.password,
+        onnotice: () => { },
       });
     this.#debug = options?.debug ?? false;
   }
