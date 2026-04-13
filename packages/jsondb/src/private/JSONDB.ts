@@ -1,4 +1,6 @@
-import type { As, DataDict, DB, Schema, Sort, Types, With } from "@primate/core/db";
+import type {
+  As, DataDict, DB, Schema, Sort, Types, With,
+} from "@primate/core/db";
 import E from "@primate/core/db/errors";
 import assert from "@rcompat/assert";
 import type { FileRef } from "@rcompat/fs";
@@ -123,7 +125,6 @@ function to_sorted<T extends Dict>(d1: T, d2: T, sort: Sort) {
 }
 
 // JSON serialization for types that JSON can't represent natively
-
 async function prepare_for_json(rows: Dict[]): Promise<unknown[]> {
   return Promise.all(rows.map(async row => {
     const out: Dict = {};
@@ -131,10 +132,7 @@ async function prepare_for_json(rows: Dict[]): Promise<unknown[]> {
       if (typeof value === "bigint") {
         out[key] = { __type: "bigint", value: String(value) };
       } else if (value instanceof Blob) {
-        const bytes = new Uint8Array(await value.arrayBuffer());
-        let binary = "";
-        for (const byte of bytes) binary += String.fromCharCode(byte);
-        out[key] = { __type: "blob", value: btoa(binary) };
+        out[key] = { __type: "blob", value: (await value.bytes()).toBase64() };
       } else if (is.date(value)) {
         out[key] = { __type: "datetime", value: value.toISOString() };
       } else if (is.url(value)) {
@@ -157,12 +155,8 @@ function revive_from_json(rows: unknown[]): Dict[] {
             out[key] = BigInt(value.value as string);
             break;
           case "blob": {
-            const binary = atob(value.value as string);
-            const bytes = Uint8Array.from(
-              { length: binary.length },
-              (_, i) => binary.charCodeAt(i),
-            );
-            out[key] = new Blob([bytes], { type: "application/octet-stream" });
+            out[key] = new Blob([Uint8Array.fromBase64(value.value as string)],
+              { type: "application/octet-stream" });
             break;
           }
           case "datetime":
