@@ -217,10 +217,10 @@ export default class ServeApp extends App {
     const f = fs.ref(name).path;
     const frontends = Object.keys(this.frontends);
     const extension = frontends.find(client => f.endsWith(client));
-    const base = extension === undefined ? name : f.slice(0, -extension.length);
+    const base = is.undefined(extension) ? name : f.slice(0, -extension.length);
     const view = this.#views[base];
-    if (view === undefined) throw E.view_missing(name);
-    if (view.default === undefined) throw E.view_missing_default_export(name);
+    if (is.undefined(view)) throw E.view_missing(name);
+    if (is.undefined(view.default)) throw E.view_missing_default_export(name);
     return view.default as T;
   };
 
@@ -242,7 +242,7 @@ export default class ServeApp extends App {
     const { body, head, page, partial, placeholders = {} } = content;
     ["body", "head"].forEach(key => assert.undefined(placeholders[key]));
 
-    return partial ? body : Object.entries(placeholders)
+    return partial === true ? body : Object.entries(placeholders)
       // replace given placeholders, defaulting to ""
       .reduce((rendered, [key, value]) => rendered
         .replaceAll(`%${key}%`, value?.toString() ?? ""), this.page(page))
@@ -357,7 +357,7 @@ export default class ServeApp extends App {
 
     const assets = this.#serve_assets;
     const asset = assets.client[pathname] ?? assets.static[pathname];
-    if (asset === undefined) return undefined;
+    if (is.undefined(asset)) return undefined;
 
     const binary = atob(asset.data);
     const bytes = new Uint8Array(binary.length);
@@ -451,14 +451,14 @@ export default class ServeApp extends App {
   async route(request: RequestFacade) {
     const { original, url } = request;
     const pathname = normalize(url.pathname);
-    const matched_route = this.router.match(original);
-    if (matched_route === undefined) {
-      this.log.info`no ${original.method} route to ${pathname}`;
-      return;
+    const matched = this.router.match(original);
+    if (is.undefined(matched)) {
+      this.log.trace`no ${original.method} route to ${pathname}`;
+      return undefined;
     }
 
     const method = original.method.toLowerCase() as Method;
-    const specials = matched_route.specials;
+    const specials = matched.specials;
     const errors = (specials.error ?? [])
       .map(v => router.get(v)[method]?.handler)
       .filter(Boolean)
@@ -470,12 +470,16 @@ export default class ServeApp extends App {
     const hooks = (specials.hook ?? [])
       .toReversed()
       .flatMap(v => router.getHooks(v));
-    const methods = router.get(matched_route.path)!;
+    const methods = router.get(matched.path)!;
     const is_head = method === "head";
-    const actual_method = is_head && methods["head"] === undefined ? "get" : method;
+    const actual_method = is_head && is.undefined(methods.head) ? "get" : method;
+
     const route_path = methods[actual_method];
 
-    if (route_path === undefined) throw E.route_missing_method(matched_route.path, method);
+    if (is.undefined(route_path)) {
+      this.log.trace`${matched.path} has no method ${method}`;
+      return undefined;
+    }
 
     const handler = route_path.handler;
     const parse_body = route_path.options.parseBody;
@@ -484,7 +488,7 @@ export default class ServeApp extends App {
       : RequestBody.none();
     const refined = Object.assign(Object.create(request), {
       body,
-      path: new RequestBag(matched_route.params as PartialDict<string>, "path", {
+      path: new RequestBag(matched.params as PartialDict<string>, "path", {
         normalize: k => k.toLowerCase(),
         raw: url.pathname,
       }),

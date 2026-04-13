@@ -29,7 +29,7 @@
     "@rcompat/fs": "^0.31.0"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.15.0"
+    "@rcompat/type": "^0.15.1"
   },
   "peerDependencies": {
     "primate": "workspace:^"

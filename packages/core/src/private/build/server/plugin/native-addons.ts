@@ -1,10 +1,10 @@
 import type BuildApp from "#build/App";
 import E from "#errors";
 import fs from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 import type { Plugin } from "esbuild";
-import { createRequire } from "node:module";
 
-const requirer = createRequire(import.meta.url);
+const requirer = runtime.toRequire(import.meta.url);
 
 export default function plugin_server_store(app: BuildApp): Plugin {
   return {
@@ -31,13 +31,12 @@ export default function plugin_server_store(app: BuildApp): Plugin {
             });
 
             if (node_files.length > 0) {
-              const platform = process.platform;
-              const arch = process.arch;
+              const { os, arch } = runtime;
 
               let node_file = node_files.find(f =>
-                f.path.includes(`${platform}-${arch}`),
+                f.path.includes(`${os}-${arch}`),
               );
-              node_file ??= node_files.find(f => f.path.includes(platform));
+              node_file ??= node_files.find(f => f.path.includes(os!));
               if (node_file === undefined) throw E.build_missing_binary_addon();
 
               const addon_name = node_files[0].name;

@@ -63,6 +63,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
     const route = await app.route(partial_request);
 
     if (route === undefined) {
+      app.log.trace`no route for pathname ${partial_request.url.pathname}`;
       return response_error()(app, {}, partial_request) as Response;
     }
 

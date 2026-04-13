@@ -32,7 +32,7 @@
     "@rcompat/sqlite": "^0.14.0"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.15.0",
+    "@rcompat/type": "^0.15.1",
     "pema": "workspace:^"
   },
   "peerDependencies": {

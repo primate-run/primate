@@ -185,5 +185,5 @@ export default async function create_migration(desc: string) {
   const filename = `${next}-${string.toSlug(desc)}.ts`;
   await migrations.join(filename).write(content);
   print(`Created ${c.bold(`migrations/${filename}`)}.\n`);
-  process.exit();
+  runtime.exit();
 };

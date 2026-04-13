@@ -33,12 +33,12 @@
     "@rcompat/error": "^0.6.1",
     "@rcompat/fs": "^0.31.0",
     "@rcompat/http": "~0.28.0",
-    "@rcompat/runtime": "^0.14.0",
+    "@rcompat/runtime": "^0.14.2",
     "@rcompat/test": "^0.15.0"
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
-    "@rcompat/type": "^0.15.0"
+    "@rcompat/type": "^0.15.1"
   },
   "engines": {
     "node": ">=24"

@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
-    "@rcompat/type": "^0.15.0"
+    "@rcompat/type": "^0.15.1"
   },
   "peerDependencies": {
     "primate": "workspace:^"

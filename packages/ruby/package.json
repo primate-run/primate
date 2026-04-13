@@ -30,13 +30,13 @@
     "@rcompat/fs": "^0.31.0",
     "@rcompat/http": "^0.28.0",
     "@rcompat/io": "^0.8.0",
-    "@rcompat/runtime": "^0.14.0",
+    "@rcompat/runtime": "^0.14.2",
     "@ruby/head-wasm-wasi": "^2.7.2",
     "@ruby/wasm-wasi": "^2.7.2",
     "pema": "workspace:^"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.15.0"
+    "@rcompat/type": "^0.15.1"
   },
   "peerDependencies": {
     "primate": "workspace:^"

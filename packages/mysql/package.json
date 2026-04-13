@@ -28,7 +28,7 @@
     "test": "npm run test:mysql"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.15.0"
+    "@rcompat/type": "^0.15.1"
   },
   "dependencies": {
     "@primate/core": "workspace:^",

@@ -1,10 +1,9 @@
 import type BuildApp from "#build/App";
 import runtime from "@rcompat/runtime";
 import type { Plugin } from "esbuild";
-import { createRequire } from "node:module";
 
 const root = (await runtime.projectRoot(import.meta.dirname)).path;
-const requirer = createRequire(import.meta.url);
+const requirer = runtime.toRequire(import.meta.url);
 
 export default function plugin_server_node_imports(_app: BuildApp): Plugin {
   return {
