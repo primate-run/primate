@@ -114,16 +114,16 @@ writing driver-specific code, and the type system reflects that.
 
 ## Breaking changes
 
-### PostgreSQL: `datetime` now uses `TIMESTAMPTZ`
+### PostgreSQL: `date` now uses `TIMESTAMPTZ`
 
-The `datetime` pema type previously mapped to `TIMESTAMP` (without timezone)
+The `date` Pema type previously mapped to `TIMESTAMP` (without timezone)
 in PostgreSQL. In 0.38 it maps to `TIMESTAMPTZ` (timestamp with timezone).
 
 This is the correct default — `TIMESTAMP` is a naive datetime that produces
 incorrect results when the database server and application are in different
 timezones. `TIMESTAMPTZ` stores the absolute moment in time unambiguously.
 
-If you have existing `datetime` columns in PostgreSQL, create a migration with
+If you have existing `date` columns in PostgreSQL, create a migration with
 the next number in your `migrations/` directory:
 ```ts
 export default async db => {
@@ -135,7 +135,7 @@ export default async db => {
 };
 ```
 
-Repeat the `ALTER TABLE` block for each table that has a `datetime` column.
+Repeat the `ALTER TABLE` block for each table that has a `date` column.
 
 ## What's next
 
