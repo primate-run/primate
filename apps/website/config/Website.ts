@@ -1,6 +1,6 @@
-import type { Module } from "primate";
 import fs from "@rcompat/fs";
-import { Status } from "@rcompat/http";
+import http from "@rcompat/http";
+import type { Module } from "primate";
 
 const cookie = (name: string, value: string, secure: boolean) =>
   `${name}=${value};HttpOnly;Path=/;${secure};SameSite=Strict`;
@@ -32,7 +32,7 @@ const website: () => Module = () => {
         const base = views.join("docs", "guides");
         const guides = await base.files({
           recursive: true,
-          filter: info => info.kind === "file",
+          filter: info => info.type === "file",
         });
         const categories = new Map<string, { name: string; path: string }[]>();
         for (const guide of guides) {
@@ -63,7 +63,7 @@ const website: () => Module = () => {
             headers: {
               "set-cookie": cookie(cookie_name, color_scheme, secure),
             },
-            status: Status.OK,
+            status: http.Status.OK,
           });
         }
 

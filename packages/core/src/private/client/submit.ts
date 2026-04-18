@@ -7,7 +7,7 @@ const headers = {
   Accept: http.MIME.APPLICATION_JSON,
 };
 
-export default async function submit(
+async function submit(
   pathname: string,
   body: any,
   method: string,
@@ -49,3 +49,5 @@ export default async function submit(
   globalThis.location.assign(target);
   return response;
 }
+
+export default submit;

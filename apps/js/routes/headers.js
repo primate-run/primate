@@ -1,3 +1,7 @@
 import route from "primate/route";
 
-route.get(request => request.headers.toJSON());
+export default route({
+  get(request) {
+    return request.headers.toJSON();
+  },
+});

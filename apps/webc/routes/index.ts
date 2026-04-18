@@ -6,4 +6,8 @@ const posts = [{
   title: "First post",
 }];
 
-route.get(() => response.view("PostIndex.webc", { posts }));
+export default route({
+  get() {
+    return response.view("PostIndex.webc", { posts });
+  },
+});

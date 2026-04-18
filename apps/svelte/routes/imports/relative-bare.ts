@@ -1,5 +1,9 @@
-import Hello from "../../views/Hello";
 import response from "primate/response";
 import route from "primate/route";
+import Hello from "../../views/Hello";
 
-route.get(() => response.view(Hello, { world: "world" }));
+export default route({
+  get() {
+    return response.view(Hello, { world: "world" });
+  },
+});

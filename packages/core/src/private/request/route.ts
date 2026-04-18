@@ -1,4 +1,4 @@
-import E from "#errors";
+import E, { Code } from "#errors";
 import type RequestHook from "#module/RequestHook";
 import type RequestFacade from "#request/RequestFacade";
 import response_error from "#response/error";
@@ -7,6 +7,7 @@ import respond from "#response/respond";
 import type ResponseLike from "#response/ResponseLike";
 import type RouteHandler from "#route/Handler";
 import type ServeApp from "#serve/App";
+import { CodeError } from "@rcompat/error";
 import http from "@rcompat/http";
 import type { MaybePromise } from "@rcompat/type";
 import ParseError from "pema/ParseError";
@@ -67,7 +68,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
       return response_error()(app, {}, partial_request) as Response;
     }
 
-    const { errors, hooks, layouts, handler, is_head } = route;
+    const { errors, hooks = [], layouts, handler, is_head } = route;
 
     errorRoute = errors[0];
 
@@ -89,9 +90,15 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
       : full;
   } catch (error) {
     const request = partial_request;
-    if (error instanceof ParseError) {
+    if (ParseError.is(error)) {
       return response_json(error.toJSON(),
         { status: http.Status.BAD_REQUEST })(app) as Response;
+    }
+    if (CodeError.matches(error, Code.request_content_type_mismatch)) {
+      return response_json(
+        { error: error.message },
+        { status: http.Status.UNSUPPORTED_MEDIA_TYPE },
+      )(app) as Response;
     }
     app.log.error(error);
     // the +error.js page itself could fail

@@ -6,6 +6,7 @@ import type { ObjectType, Parsed } from "pema";
 import p from "pema";
 
 export default p({
+  conditions: p.array(p.string).unique().default([]),
   http: {
     csp: p.dict(p.array(p.string)).optional(),
     headers: p.dict().optional(),
@@ -39,9 +40,4 @@ export default p({
   }).shape<Module>())
     .uniqueBy(member => member.name)
     .default([]),
-  request: {
-    body: {
-      parse: p.boolean.default(true),
-    },
-  },
 });

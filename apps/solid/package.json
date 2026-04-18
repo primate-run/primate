@@ -6,17 +6,24 @@
     "start": "npx primate",
     "build": "npx primate build",
     "serve": "npx primate serve",
-    "test": "npx primate test",
-    "test:deno": "deno run -A npm:primate test",
-    "test:bun": "bun x --bun primate test"
+    "test:csr": "SSR=0 CSR=1 npx proby test/test.spec.ts",
+    "test:ssr": "SSR=1 CSR=0 npx proby test/test.spec.ts",
+    "test:hydration": "SSR=1 CSR=1 npx proby test/test.spec.ts",
+    "test": "npm run test:ssr && npm run test:csr && npm run test:hydration",
+    "test:deno": "deno run -A npm:proby",
+    "test:bun": "bunx --bun proby"
   },
   "dependencies": {
     "@primate/solid": "workspace:^",
     "@primate/sqlite": "workspace:^",
     "@rcompat/assert": "^0.11.0",
+    "@rcompat/env": "^0.20.1",
     "babel-preset-solid": "^1.9.12",
     "pema": "workspace:^",
     "primate": "workspace:^",
     "solid-js": "^1.9.12"
+  },
+  "devDependencies": {
+    "@primate/test": "workspace:^"
   }
 }

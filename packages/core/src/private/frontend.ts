@@ -27,7 +27,7 @@ export type { Module };
 
 const base_schema = p({
   extensions: p.array(p.string).optional(),
-  spa: p.boolean.default(true),
+  csr: p.boolean.default(true),
   ssr: p.boolean.default(true),
 });
 
@@ -99,7 +99,7 @@ export default function frontend_module<
 
   return (input?: MergedInput<E>): Module => {
     const options = schema.parse(input);
-    const spa = options.spa;
+    const csr = options.csr;
     const extensions = options.extensions ?? init.extensions;
     let mode: Mode = "development";
 
@@ -129,6 +129,10 @@ export default function frontend_module<
         }
         return { body, head, headers };
       }
+
+      const interactive = !ssr() || csr;
+
+      if (!interactive) return { body, head, headers };
 
       const app_asset = app.assets.find(asset =>
         asset.src?.includes("app") && asset.src.endsWith(".js"),
@@ -166,13 +170,13 @@ export default function frontend_module<
           : { props, request: $request };
         const client: ClientData = {
           view: init.layouts ? "root" : await normalize(view),
-          spa: spa,
+          csr,
           ssr: ssr(),
           mode: app.mode,
           ...$props,
         };
 
-        if (spa && request.headers.try("Accept") === http.MIME.APPLICATION_JSON) {
+        if (csr && request.headers.try("Accept") === http.MIME.APPLICATION_JSON) {
           const json_body = JSON.stringify(client);
           return new Response(json_body, {
             headers: {

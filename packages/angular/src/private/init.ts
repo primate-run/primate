@@ -38,7 +38,7 @@ const module: Init<Type<any>> = {
     });
 
     const headMatch = html.match(/<head>(.*?)<\/head>/s);
-    const bodyRegex = new RegExp(`<${root}>([\\s\\S]*?)<\\/${root}>`);
+    const bodyRegex = new RegExp(`(<${root}(?:\\s[^>]*)?>[\\s\\S]*?<\\/${root}>)`);
     const bodyMatch = html.match(bodyRegex);
 
     return {

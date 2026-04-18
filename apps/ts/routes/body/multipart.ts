@@ -1,3 +1,7 @@
 import route from "primate/route";
 
-route.post(request => request.body.form());
+export default route({
+  async post(request) {
+    return (await request.body.multipart()).form;
+  },
+});

@@ -1,15 +1,17 @@
 import User from "#store/User";
 import route from "primate/route";
 
-route.get(async () => {
-  await User.table.delete();
-  await User.table.create();
+export default route({
+  async get() {
+    await User.table.delete();
+    await User.table.create();
 
-  const { id } = await User.insert({ age: 30, name: "Donald" });
+    const { id } = await User.insert({ age: 30, name: "Donald" });
 
-  await User.update(id, { set: { age: 35 } });
+    await User.update(id, { set: { age: 35 } });
 
-  const { id: _id, ...updated } = await User.get(id);
+    const { id: _id, ...updated } = await User.get(id);
 
-  return updated;
+    return updated;
+  },
 });

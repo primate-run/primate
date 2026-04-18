@@ -1,4 +1,4 @@
-export type { ServeApp } from "@primate/core";
+export type { ServeApp, ResponseFunction } from "@primate/core";
 export type { ViewResponse } from "@primate/core/client";
-export { default, type ResponseFunction } from "@primate/core/response";
+export { default } from "@primate/core/response";
 

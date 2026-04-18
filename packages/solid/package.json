@@ -22,11 +22,9 @@
     "postbuild": "node scripts/compile-jsx.js",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build",
-    "test": "npx proby"
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@primate/test": "workspace:^",
     "@rcompat/type": "^0.15.1",
     "@types/babel__core": "^7.20.5"
   },
@@ -34,7 +32,7 @@
     "@babel/core": "^7.28.6",
     "@primate/core": "workspace:^",
     "@rcompat/fs": "^0.31.0",
-    "@rcompat/runtime": "^0.14.2",
+    "@rcompat/runtime": "^0.14.4",
     "babel-preset-solid": "^1.9.12"
   },
   "peerDependencies": {
@@ -42,6 +40,10 @@
     "solid-js": "1"
   },
   "imports": {
+    "#i18n/Bridge.default": {
+      "@primate/source": "./src/private/i18n/Bridge.default.tsx",
+      "default": "./lib/private/i18n/Bridge.default.js"
+    },
     "#*": {
       "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
@@ -55,6 +57,7 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
+      "@primate/runtime": "./src/public/runtime.ts",
       "@primate/source": "./src/public/default.ts",
       "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",

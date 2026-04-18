@@ -1,4 +1,8 @@
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("Layout.vue"));
+export default route({
+  get() {
+    return response.view("Layout.vue");
+  },
+});

@@ -1,5 +1,5 @@
 require 'primate/route'
 
-Route.post do |request|
-  request.body.form
+Route.post(content_type: "multipart/form-data") do |request|
+  request.body.multipart.form
 end

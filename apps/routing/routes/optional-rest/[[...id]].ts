@@ -1,3 +1,7 @@
 import route from "primate/route";
 
-route.get(request => request.path.try("id") ?? "index");
+export default route({
+  get(request) {
+    return request.path.try("id") ?? "index";
+  },
+});

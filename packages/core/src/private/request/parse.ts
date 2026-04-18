@@ -54,7 +54,7 @@ function path_bag(url: URL) {
 function parse(request: Request): RequestFacade {
   const url = new URL(request.url);
   const facade: RequestFacade = {
-    body: RequestBody.none(),
+    body: new RequestBody(request),
     method: request.method.toLowerCase() as Method,
     cookies: cookie_bag(request),
     forward(to: string, headers?: Dict<string>) {

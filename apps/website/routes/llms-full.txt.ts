@@ -10,4 +10,8 @@ const names = views
     return `Source: ${source}${(view[1] as any).default.md}`;
   }).join("\n\n\n");
 
-route.get(() => names);
+export default route({
+  get() {
+    return names;
+  },
+});

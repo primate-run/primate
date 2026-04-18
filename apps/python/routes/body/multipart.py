@@ -1,6 +1,6 @@
 from primate import Route
 
 
-@Route.post
+@Route.post(content_type="multipart/form-data")
 def handle_post(request):
-    return request.body.form()
+    return request.body.multipart().form

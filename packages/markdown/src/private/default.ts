@@ -88,8 +88,8 @@ export default frontend({
       name: "markdown",
       setup(build) {
         build.onResolve({ filter: /^markdown:/ }, ({ path }) => {
-          const filePath = path.slice("markdown:".length);
-          return { path: filePath, namespace: "markdown" };
+          const file_path = path.slice("markdown:".length);
+          return { path: file_path, namespace: "markdown" };
         });
         build.onLoad({ filter: /.*/, namespace: "markdown" }, async args => {
           const text = await fs.text(args.path);

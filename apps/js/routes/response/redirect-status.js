@@ -1,5 +1,9 @@
-import Status from "primate/http/Status";
+import http from "@rcompat/http";
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.redirect("/redirected", Status.MOVED_PERMANENTLY));
+export default route({
+  get() {
+    return response.redirect("/redirected", http.Status.MOVED_PERMANENTLY);
+  },
+});

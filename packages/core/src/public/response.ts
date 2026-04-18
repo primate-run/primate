@@ -6,11 +6,9 @@ import sse from "#response/sse";
 import text from "#response/text";
 import view from "#response/view";
 import ws from "#response/ws";
+import $null from "#response/null";
 
-export type { default as ResponseFunction } from "#response/ResponseFunction";
-export type { default as ResponseLike } from "#response/ResponseLike";
-
-export default {
+const response = {
   binary,
   error,
   json,
@@ -19,4 +17,7 @@ export default {
   text,
   view,
   ws,
+  null: $null,
 };
+
+export default response;

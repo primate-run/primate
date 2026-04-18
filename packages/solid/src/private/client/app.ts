@@ -22,11 +22,15 @@ SolidHead.clear();
 
 export default class SolidApp {
   static mount(_view: string, data: Data) {
+    const interactive = !data.ssr || data.csr;
+
+    if (!interactive) return;
+
     const mount = () => Root(root.toProps(data));
 
     let dispose = root[data.ssr ? "ssr" : "csr"](mount, body);
 
-    if (data.spa) {
+    if (data.csr) {
       const start = () =>
         client.boot<Payload>((_data, update) => {
           dispose();

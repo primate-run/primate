@@ -1,5 +1,7 @@
 import route from "primate/route";
 
-route.get(() => {
-  return "hi";
+export default route({
+  get() {
+    return "hi";
+  },
 });

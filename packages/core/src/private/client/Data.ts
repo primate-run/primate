@@ -5,7 +5,7 @@ import type { Dict } from "@rcompat/type";
 type ClientData<T extends Dict = Dict> = {
   view: string;
   request: RequestView;
-  spa: boolean;
+  csr: boolean;
   ssr: boolean;
   mode: Mode;
 } & T;

@@ -2,4 +2,8 @@ import Hello from "#view/Hello.svelte";
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view(Hello, { world: "world" }));
+export default route({
+  get() {
+    return response.view(Hello, { world: "world" });
+  },
+});

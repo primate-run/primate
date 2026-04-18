@@ -5,10 +5,14 @@ import client from "@primate/core/client";
 
 export default class VueApp {
   static mount(_view: string, data: Data) {
+    const interactive = !data.ssr || data.csr;
+
+    if (!interactive) return;
+
     let app = root[data.ssr ? "ssr" : "csr"](root.toProps(data));
     app.mount("#app");
 
-    if (data.spa) {
+    if (data.csr) {
       const start = () =>
         client.boot<Payload>((next, update) => {
           app.unmount();

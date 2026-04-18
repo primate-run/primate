@@ -25,7 +25,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/crypto": "^0.19.0",
-    "@rcompat/error": "^0.6.1",
+    "@rcompat/error": "^0.6.2",
     "@rcompat/fs": "^0.31.0"
   },
   "devDependencies": {

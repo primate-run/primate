@@ -3,8 +3,12 @@ import svelte from "@primate/svelte";
 import config from "primate/config";
 
 export default config({
+  conditions: ["@primate/source"],
   http: {
-    port: 10003,
+    port: 10046, // 100GO
   },
-  modules: [go(), svelte()],
+  modules: [
+    go(),
+    svelte(),
+  ],
 });

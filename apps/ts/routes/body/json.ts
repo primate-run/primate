@@ -1,3 +1,7 @@
 import route from "primate/route";
 
-route.post(request => JSON.stringify(request.body.json()));
+export default route({
+  async post(request) {
+    return JSON.stringify(await request.body.json());
+  },
+});

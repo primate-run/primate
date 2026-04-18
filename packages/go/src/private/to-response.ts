@@ -1,4 +1,7 @@
-import response, { type ResponseLike } from "@primate/core/response";
+import type { ResponseLike } from "@primate/core";
+import response from "@primate/core/response";
+import is from "@rcompat/is";
+import type { Dict } from "@rcompat/type";
 
 const { error, redirect, view } = response;
 
@@ -8,21 +11,21 @@ type Handler = keyof typeof handlers;
 const is_handler = (handler: unknown): handler is Handler =>
   typeof handler === "string" && Object.keys(handlers).includes(handler);
 
-export default (response: any): ResponseLike => {
-  if (typeof response === "string") {
+function to_response(args: Dict | string): ResponseLike {
+  if (is.string(args)) {
     try {
-      response = JSON.parse(response);
+      args = JSON.parse(args);
     } catch {
-      return response;
+      return args;
     }
   }
 
-  if (response && typeof response === "object") {
-    const handler = response.handler;
+  if (is.dict(args)) {
+    const handler = args.handler;
 
     if (is_handler(handler)) {
       if (handler === "view") {
-        const { component, props, options } = response;
+        const { component, props, options } = args as any;
         return view(
           component,
           props ? JSON.parse(props) : {},
@@ -31,14 +34,16 @@ export default (response: any): ResponseLike => {
       }
 
       if (handler === "redirect") {
-        const { location, status } = response;
+        const { location, status } = args as any;
         return redirect(location, status);
       }
 
-      const { options } = response;
+      const { options } = args as any;
       return error(options ? JSON.parse(options) : {});
     }
   }
 
-  return response;
+  return args;
 };
+
+export default to_response;

@@ -21,18 +21,16 @@
     "build": "npm run clean && tsc && cp src/types/{index,app}.d.ts lib",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build",
-    "test": "npx proby"
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@primate/test": "workspace:^",
     "@rcompat/type": "^0.15.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/runtime": "^0.14.2"
+    "@rcompat/runtime": "^0.14.4"
   },
   "peerDependencies": {
     "@types/react": "19",
@@ -42,6 +40,14 @@
     "react-dom": "19"
   },
   "imports": {
+    "#i18n/Bridge.default": {
+      "@primate/source": "./src/private/i18n/Bridge.default.tsx",
+      "default": "./lib/private/i18n/Bridge.default.js"
+    },
+    "#request/default": {
+      "@primate/source": "./src/private/request/default.tsx",
+      "default": "./lib/private/request/default.js"
+    },
     "#*": {
       "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
@@ -50,6 +56,7 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
+      "@primate/runtime": "./src/public/runtime.ts",
       "@primate/source": "./src/public/default.ts",
       "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",

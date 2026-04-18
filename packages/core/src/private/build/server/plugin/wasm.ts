@@ -23,14 +23,15 @@ export default function plugin_server_wasm(app: BuildApp): Plugin {
 
       build.onLoad({ filter: /.*/, namespace: "wasm-dev" }, async args => {
         const wasm_file = app.runpath("wasm", args.path + ".wasm");
+        const fs_path = import.meta.resolve("@rcompat/fs");
 
         return {
           contents: `
-            import fs from "@rcompat/fs";
+            const { default: fs } = await import("${fs_path}");
             export default await fs.ref("${wasm_file.path}").bytes();
           `,
           loader: "js",
-          resolveDir: app.root.path,
+          resolveDir: new URL(".", import.meta.url).pathname,
         };
       });
     },

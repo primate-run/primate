@@ -22,6 +22,10 @@ export default class AngularApp {
   static #root: ComponentRef<RootInstance>;
 
   static async mount(_view: string, data: Data) {
+    const interactive = !data.ssr || data.csr;
+
+    if (!interactive) return;
+
     if (data.mode === "production") enableProdMode();
 
     const providers = [];
@@ -45,7 +49,7 @@ export default class AngularApp {
       this.#root.instance.p = props;
       this.#app.tick();
 
-      if (data.spa) {
+      if (data.csr) {
         const start = () =>
           client.boot<Payload>((next, update) => {
             this.#root.instance.p = root.toProps(next, update);

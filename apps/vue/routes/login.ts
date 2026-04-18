@@ -7,12 +7,15 @@ const LoginSchema = p({
   password: p.string.min(8),
 });
 
-route.get(() => response.view("LoginForm.vue"));
+export default route({
+  get() {
+    return response.view("LoginForm.vue");
+  },
+  async post(request) {
+    const body = LoginSchema.parse(await request.body.json());
 
-route.post(async request => {
-  const body = request.body.json(LoginSchema);
+    console.log("Login attempt:", (body as any).email);
 
-  console.log("Login attempt:", (body as any).email);
-
-  return null;
+    return null;
+  },
 });

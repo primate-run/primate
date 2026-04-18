@@ -1,30 +1,10 @@
 {
-  "extends": "primate/tsconfig",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "${configDir}",
-    "paths": {
-      "#config/*": ["config/*"],
-      "#session": ["config/session"],
-      "#i18n": ["config/i18n"],
-      "#view/*": ["views/*"],
-      "#component/*": ["components/*"],
-      "#store/*": ["stores/*"],
-      "#locale/*": ["locales/*"],
-      "#static/*": ["static/*"]
-    },
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "types": ["solid-js"]
-  },
-  "include": [
-    "${configDir}/config",
-    "${configDir}/views",
-    "${configDir}/components",
-    "${configDir}/routes",
-    "${configDir}/stores",
-    "${configDir}/locales",
-    "${configDir}/static",
-    "${configDir}/test"
-  ],
-  "exclude": ["node_modules"]
+    "types": [
+      "solid-js"
+    ]
+  }
 }

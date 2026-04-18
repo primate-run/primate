@@ -7,8 +7,12 @@ const FORM = p({
   email: p.string.email(),
 });
 
-route.get(() => response.view(SubmitForm));
-route.post(request => {
-  request.body.form(FORM);
-  return null;
+export default route({
+  get() {
+    return response.view(SubmitForm);
+  },
+  post(request) {
+    FORM.parse(request.body.form());
+    return null;
+  },
 });

@@ -27,8 +27,7 @@ const errors = error.coded({
   dependency_not_found,
 });
 
+export const Code = error.names(errors);
 export type Code = keyof typeof errors;
-export const Code = Object.fromEntries(
-  Object.keys(errors).map(k => [k, k])) as { [K in Code]: K };
 
 export default errors;

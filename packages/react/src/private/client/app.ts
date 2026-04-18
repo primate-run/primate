@@ -11,12 +11,16 @@ ReactHead.clear();
 
 export default class ReactApp {
   static mount(_view: string, data: Data) {
+    const interactive = !data.ssr || data.csr;
+
+    if (!interactive) return;
+
     const Root = root[data.ssr ? "ssr" : "csr"](
       body,
       createElement(RootView, root.toProps(data)),
     );
 
-    if (data.spa) {
+    if (data.csr) {
       const start = () =>
         client.boot<Payload>((_data, update) => {
           Root.render(createElement(RootView, root.toProps(_data)));

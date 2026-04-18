@@ -8,12 +8,16 @@ const LoginSchema = p({
   password: p.string.min(8),
 });
 
-route.get(() => response.view(LoginForm));
+export default route({
+  get() {
+    return response.view(LoginForm);
+  },
+  async post(request) {
+    const body = LoginSchema.parse(await request.body.json());
 
-route.post(request => {
-  const body = request.body.json(LoginSchema);
+    console.log("Login attempt:", body.email);
 
-  console.log("Login attempt:", body.email);
+    return null;
 
-  return null;
+  },
 });

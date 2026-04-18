@@ -7,9 +7,6 @@ import assert from "@rcompat/assert";
 import type { Method } from "@rcompat/http";
 import type { Dict } from "@rcompat/type";
 
-const stack: string[] = [];
-export const routes = stack;
-
 function is_hook_file(p: string) {
   const basename = p.split("/").at(-1) ?? p;
   return basename === "+hook" || basename.startsWith("+hook.");
@@ -19,32 +16,24 @@ class Router {
   #routes: Dict<RoutePath> = {};
   #hooks: Dict<RequestHook[]> = {};
 
-  push(route: string) { stack.push(route); }
-  pop() { stack.pop(); }
-
-  get active() { return stack.at(-1); }
-
-  add(method: Method, handler: RouteHandler, options?: RouteOptions) {
+  add(path: string, method: Method, handler: RouteHandler, options?: RouteOptions) {
+    assert.string(path);
     assert.string(method);
     assert.function(handler);
     assert.maybe.dict(options);
-    assert.maybe.boolean(options?.parseBody);
 
-    const active = assert.defined(this.active);
-    if (is_hook_file(active)) throw E.hook_route_functions_not_allowed(active);
+    if (is_hook_file(path)) throw E.hook_route_functions_not_allowed(path);
 
-    const _routes = this.#routes;
-    if (!(active in _routes)) _routes[active] = {};
-    _routes[active][method] = { handler, options: options ?? {} };
+    if (!(path in this.#routes)) this.#routes[path] = {};
+    this.#routes[path][method] = { handler, options: options ?? {} };
   }
 
-  addHook(fn: RequestHook) {
+  addHook(path: string, fn: RequestHook) {
+    assert.string(path);
     assert.function(fn);
 
-    const active = assert.defined(this.active);
-    if (!is_hook_file(active)) throw E.hook_not_allowed(active);
-
-    (this.#hooks[active] ??= []).push(fn);
+    if (!is_hook_file(path)) throw E.hook_not_allowed(path);
+    (this.#hooks[path] ??= []).push(fn);
   }
 
   getHooks(path: string) {

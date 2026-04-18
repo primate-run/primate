@@ -11,7 +11,7 @@ const load = async () => {
 };
 
 const command_serve: Command = async () => {
-  const outdir = runtime.flags.get("--outdir");
+  const outdir = runtime.flags.try("--outdir") ?? "build";
   return (await load()).join(`./${outdir}/server.js`).import();
 };
 

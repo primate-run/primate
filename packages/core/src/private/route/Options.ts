@@ -1,5 +1,5 @@
 type RouteOptions = {
-  parseBody?: boolean;
+  contentType?: string;
 };
 
 export type { RouteOptions as default };

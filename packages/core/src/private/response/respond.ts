@@ -1,12 +1,12 @@
 import E from "#errors";
 import binary from "#response/binary";
 import json from "#response/json";
+import $null from "#response/null";
 import redirect from "#response/redirect";
 import type ResponseFunction from "#response/ResponseFunction";
 import type ResponseLike from "#response/ResponseLike";
 import text from "#response/text";
 import fs from "@rcompat/fs";
-import http from "@rcompat/http";
 import is from "@rcompat/is";
 import type { UnknownFunction } from "@rcompat/type";
 
@@ -29,7 +29,7 @@ function match<T extends ReadonlyFunctions>(m: MatchResult<T>): MatchResult<T> {
 }
 // [if, then]
 const guesses = match([
-  [is.null, () => () => new Response(null, { status: http.Status.NO_CONTENT })],
+  [is.null, $null],
   [is.url, value => redirect(value.toString())],
   [fs.isStream, value => binary(value)],
   [is.response, value => _ => value],

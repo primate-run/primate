@@ -1,3 +1,7 @@
 import route from "primate/route";
 
-route.post(request => request.body.text());
+export default route({
+  post(request) {
+    return request.body.text();
+  },
+});

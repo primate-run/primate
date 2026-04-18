@@ -1,3 +1,7 @@
 import route from "primate/route";
 
-route.get(request => "right");
+export default route({
+  get() {
+    return "right";
+  },
+});

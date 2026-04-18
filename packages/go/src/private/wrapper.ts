@@ -1,7 +1,9 @@
+import type {
+  RequestContentType,
+} from "@primate/core";
 import env from "@primate/go/env";
-import toRequest from "@primate/go/to-request";
+import to_request from "@primate/go/to-request";
 import to_response from "@primate/go/to-response";
-import route from "primate/route";
 
 declare global {
   var Go: {
@@ -20,14 +22,13 @@ export default async function wrapper(
   bytes: Uint8Array,
   route_id: string,
   context: { i18n?: any; session?: any },
-): Promise<void> {
+): Promise<Record<string, (request: any) => Promise<any>>> {
   if (!globalThis.__primate_go_initialized) {
     globalThis.__primate_go_initialized = new Set();
   }
 
   if (context.session !== undefined) {
     const session = context.session;
-
     globalThis.PRMT_SESSION = {
       get exists() { return session.exists; },
       get id() { return session.id; },
@@ -42,7 +43,6 @@ export default async function wrapper(
 
   if (context.i18n !== undefined) {
     const i18n = context.i18n;
-
     globalThis.PRMT_I18N = {
       get locale() { return i18n.locale.get(); },
       t(key: string, params?: string) {
@@ -77,18 +77,23 @@ export default async function wrapper(
 
   const registry_fn = (globalThis as any)[registry_name];
   const registry = registry_fn();
-  const verbs: string[] = registry?.length
-    ? Array.from({ length: registry.length }, (_, i) => registry[i])
+  type Route = { verb: string; contentType: RequestContentType };
+
+  const routes: Route[] = registry?.length
+    ? Array.from({ length: registry.length }, (_, i) => ({
+      verb: registry[i].verb,
+      contentType: registry[i].contentType,
+    }))
     : [];
 
-  for (const verb of verbs) {
-    (route as any)[verb.toLowerCase()](async (request: any) => {
-      const requested = await toRequest(request);
+  globalThis.__primate_go_initialized.add(route_id);
+
+  return Object.fromEntries(
+    routes.map(({ verb, contentType }) => [verb.toLowerCase(), async (request: any) => {
+      const requested = await to_request(request, contentType);
       const callFn = (globalThis as any)[call_go];
       const response = callFn(verb, requested);
       return to_response(response);
-    });
-  }
-
-  globalThis.__primate_go_initialized.add(route_id);
+    }]),
+  );
 }

@@ -6,9 +6,12 @@
     "start": "npx primate",
     "build": "npx primate build",
     "serve": "npx primate serve",
-    "test": "npx primate test",
-    "test:deno": "deno run -A npm:primate test",
-    "test:bun": "bun x --bun primate test"
+    "test:csr": "SSR=0 CSR=1 npx proby test/test.spec.ts",
+    "test:ssr": "SSR=1 CSR=0 npx proby test/test.spec.ts",
+    "test:hydration": "SSR=1 CSR=1 npx proby test/test.spec.ts",
+    "test": "npm run test:ssr && npm run test:csr && npm run test:hydration",
+    "test:deno": "deno run -A npm:proby",
+    "test:bun": "bunx --bun proby"
   },
   "dependencies": {
     "@lucide/svelte": "^1.7.0",
@@ -16,10 +19,14 @@
     "@primate/sqlite": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@rcompat/assert": "^0.11.0",
+    "@rcompat/env": "^0.20.1",
     "bits-ui": "^2.17.2",
     "mode-watcher": "^1.1.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
     "svelte": "^5.55.1"
+  },
+  "devDependencies": {
+    "@primate/test": "workspace:^"
   }
 }

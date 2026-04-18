@@ -1,42 +1,45 @@
+import type { RequestContentType } from "@primate/core/index";
 import helpers from "@primate/ruby/helpers";
 import ruby from "@primate/ruby/ruby";
 import to_request from "@primate/ruby/to-request";
 import to_response from "@primate/ruby/to-response";
 import wasi from "@primate/ruby/wasi";
 import type { RbValue, RubyVM } from "@ruby/wasm-wasi/dist/vm";
-import route from "primate/route";
 import type { WASI } from "wasi";
 
 type VMBundle = { vm: RubyVM; wasi: WASI; instance: WebAssembly.Instance };
+type RouteEntry = {
+  verb: string;
+  content_type: RequestContentType | "";
+};
 
-let _vm_ready: Promise<VMBundle> | null = null;
+let vm_bundle: VMBundle | null = null;
 let _gems_loaded = false;
 let _runtime_loaded = false;
 let _runner: RbValue | null = null;
 const installed = new Set<string>();
 
-async function getVM(): Promise<VMBundle> {
-  if (!_vm_ready) {
-    _vm_ready = wasi(ruby, {
+async function get_vm(root: string): Promise<VMBundle> {
+  if (vm_bundle === null) {
+    vm_bundle = await wasi(ruby, {
       env: {
         BUNDLE_GEMFILE: "/app/Gemfile",
         BUNDLE_PATH: "/app/vendor/bundle",
       },
       preopens: {
-        "/app": process.cwd(),
+        "/app": root,
       },
     });
   }
-  const bundle = await _vm_ready;
   if (!_gems_loaded) {
     _gems_loaded = true;
-    await bundle.vm.evalAsync(`
+    await vm_bundle.vm.evalAsync(`
       Dir.glob("/app/vendor/bundle/ruby/*/gems/*/lib").each do |lib_path|
         $LOAD_PATH << lib_path unless $LOAD_PATH.include?(lib_path)
       end
     `);
   }
-  return bundle;
+  return vm_bundle;
 }
 
 async function ensure_runtime(vm: RubyVM) {
@@ -59,11 +62,16 @@ async function get_runner(vm: RubyVM): Promise<RbValue> {
   return _runner;
 }
 
-async function get_verbs(vm: RubyVM, routeId: string): Promise<string[]> {
-  const verbs = await vm.evalAsync(`
-    Route.registry(${JSON.stringify(routeId)}).keys
+async function get_entries(vm: RubyVM, routeId: string): Promise<RouteEntry[]> {
+  const result = await vm.evalAsync(`
+    Route.registry(${JSON.stringify(routeId)}).map do |verb, entry|
+      { verb: verb, content_type: entry[:content_type].to_s }
+    end
   `);
-  return verbs.toJS().map((v: string) => v.toUpperCase());
+  return result.toJS().map((e: any) => ({
+    verb: e.verb.toString(),
+    content_type: e.content_type.toString(),
+  }));
 }
 
 function wrap_session(session: any) {
@@ -91,12 +99,13 @@ function wrap_i18n(i18n: any) {
   };
 }
 
-export default async function wrapper(
+async function wrapper(
   source: string,
   route_id: string,
   context: { i18n?: any; session?: any } = {},
-) {
-  const { vm } = await getVM();
+  root: string,
+): Promise<Record<string, (request: any) => Promise<any>>> {
+  const { vm } = await get_vm(root);
   await ensure_runtime(vm);
 
   await vm.evalAsync(`
@@ -105,38 +114,45 @@ export default async function wrapper(
   `);
   await vm.evalAsync(source);
 
-  const verbs = await get_verbs(vm, route_id);
+  const entries = await get_entries(vm, route_id);
   const runner = await get_runner(vm);
 
   const wrapped_session = wrap_session(context.session);
   const wrapped_i18n = wrap_i18n(context.i18n);
 
-  for (const ucverb of verbs) {
-    const key = `${route_id}:${ucverb}`;
-    if (installed.has(key)) continue;
-    installed.add(key);
-    const verb = ucverb.toLowerCase();
-
-    (route as any)[verb](async (request: any) => {
-      const jsReq = await to_request(request);
-      try {
-        const r = await runner.callAsync(
-          "call",
-          vm.wrap(jsReq),
-          vm.wrap(helpers),
-          vm.wrap(wrapped_session),
-          vm.wrap(wrapped_i18n),
-          vm.wrap(ucverb),
-          vm.wrap(route_id),
-        );
-        const js_result = (typeof r === "object" && r !== null && "toJS" in r)
-          ? r.toJS()
-          : r;
-        return to_response(js_result);
-      } catch (e: any) {
-        console.error(`ruby error (${verb})`, e);
-        return { status: 500, body: "Ruby execution error: " + e.message };
-      }
-    });
-  }
+  return Object.fromEntries(
+    entries
+      .filter(({ verb }) => {
+        const key = `${route_id}:${verb}`;
+        if (installed.has(key)) return false;
+        installed.add(key);
+        return true;
+      })
+      .map(({ verb, content_type }) => [
+        verb.toLowerCase(),
+        async (request: any) => {
+          const jsReq = await to_request(request, content_type);
+          try {
+            const r = await runner.callAsync(
+              "call",
+              vm.wrap(jsReq),
+              vm.wrap(helpers),
+              vm.wrap(wrapped_session),
+              vm.wrap(wrapped_i18n),
+              vm.wrap(verb),
+              vm.wrap(route_id),
+            );
+            const js_result = (typeof r === "object" && r !== null && "toJS" in r)
+              ? r.toJS()
+              : r;
+            return to_response(js_result);
+          } catch (e: any) {
+            console.error(`ruby error (${verb.toLowerCase()})`, e);
+            return { status: 500, body: "Ruby execution error: " + e.message };
+          }
+        },
+      ]),
+  );
 }
+
+export default wrapper;

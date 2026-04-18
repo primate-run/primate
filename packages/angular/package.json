@@ -21,8 +21,7 @@
     "build": "npm run clean && tsc && cp src/types/{app,index}.d.ts lib",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build",
-    "test": "npx proby"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@angular/common": "^21.2.7",
@@ -35,7 +34,6 @@
     "typescript": "^6.0.2"
   },
   "devDependencies": {
-    "@primate/test": "workspace:^",
     "@rcompat/type": "^0.15.1"
   },
   "peerDependencies": {
@@ -50,6 +48,7 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
+      "@primate/runtime": "./src/public/runtime.ts",
       "@primate/source": "./src/public/default.ts",
       "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",

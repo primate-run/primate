@@ -9,7 +9,7 @@ mix them in the same app.
 
 ## Overview
 
-| Frontend                    | SSR | Hydration | SPA | Layouts | Head | Validation | i18n |
+| Frontend                    | SSR | Hydration | CSR | Layouts | Head | Validation | i18n |
 | --------------------------- | --- | --------- | --- | ------- | ---- | ---------- | ---- |
 | *Reactive frontends*        |     |           |     |         |      |            |      |
 | [Angular]                   | ✓   | ✓         | ✓   | ✓       | ✓    | ✓          | ✓    |
@@ -46,7 +46,7 @@ mix them in the same app.
 
 * **SSR** — render HTML on the server and send as the initial response
 * **Hydration** — attach client code to SSR output for interaction
-* **SPA** — client routing that swaps views without full page reloads
+* **CSR** — client routing that swaps views without full page reloads
 * **Layouts** — recursive wrappers with slots
 * **Head** — programmatic control of `<head>` (title, meta, scripts)
 * **Validation** — value/schema validation on client and server
@@ -63,7 +63,7 @@ one model. Suited for complex state and frequent interactions.
 
 *HTML*, *HTMX*, *Marko*, *Voby*, *Web Components*
 
-Components without SPA routing. Works well for server-driven pages and simple
+Components without CSR. Works well for server-driven pages and simple
 dashboards with minimal client JS.
 
 ## Template engines

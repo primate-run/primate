@@ -81,18 +81,22 @@ function request_unsupported_mime(path: string, mime: string) {
 function request_unparsable_mime(path: string, mime: string, cause: Error) {
   return t`${path}: unparsable MIME type ${mime} (${cause})`;
 }
-function request_unexpected_body(expected: string, actual: string) {
-  return t`request body: expected ${expected}, got ${actual}`;
+function request_body_already_parsed() {
+  return t`body is already parsed`;
 }
 function request_bag_missing_key(bag: string, key: string) {
   return t`${bag} has no key ${key}`;
+}
+function request_content_type_mismatch(expected: string, actual: string) {
+  return t`content-type mismatch: expected ${expected}, got ${actual}`;
 }
 
 const REQUEST = error.coded({
   request_unsupported_mime,
   request_unparsable_mime,
-  request_unexpected_body,
+  request_body_already_parsed,
   request_bag_missing_key,
+  request_content_type_mismatch,
 });
 
 function response_invalid_body(body: string) {
@@ -243,8 +247,7 @@ const errors = {
   ...OPENAPI,
 };
 
+export const Code = error.names(errors);
 export type Code = keyof typeof errors;
-export const Code = Object.fromEntries(
-  Object.keys(errors).map(k => [k, k])) as { [K in Code]: K };
 
 export default errors;

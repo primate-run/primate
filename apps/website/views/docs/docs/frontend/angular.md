@@ -501,9 +501,11 @@ export default class Page implements OnInit {
 
 ## Configuration
 
-| Option     | Type       | Default             | Description                |
-| -----------| ---------- | ------------------- | -------------------------- |
-| extensions | `string[]` | `[".component.ts"]` | Associated file extensions |
+| Option     | Type       | Default       | Description                  |
+| ---------- | ---------- | ------------- | ---------------------------- |
+| extensions | `string[]` | `[".svelte"]` | Associated file extensions   |
+| ssr        | `boolean`  | `true`        | Enable server-side rendering |
+| csr        | `boolean`  | `true`        | Enable client-side rendering |
 
 ### Example
 

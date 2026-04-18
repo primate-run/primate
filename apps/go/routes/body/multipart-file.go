@@ -1,3 +1,5 @@
+//go:build js && wasm
+
 package main
 
 import (
@@ -5,39 +7,29 @@ import (
 	"strconv"
 )
 
-var _ = route.Post(func(request route.Request) any {
-	form, err := request.Body.Form()
-	// plain fields (baz, foo, greeting meta already in form JSON)
+var _ = route.With{ContentType: route.Multipart}.Post(func(request route.Request) any {
+	multipart, err := request.Body.Multipart()
 	if err != nil {
 		return map[string]any{"error": err.Error()}
 	}
 
-	// baz: "1" -> 1 (match TS pema u8 coercion)
 	var baz int64
-	if s, ok := form["baz"].(string); ok {
+	if s, ok := multipart.Form["baz"].(string); ok {
 		if v, err := strconv.ParseInt(s, 10, 64); err == nil {
 			baz = v
 		}
 	}
 
-	// foo stays string
-	foo, _ := form["foo"].(string)
+	foo, _ := multipart.Form["foo"].(string)
 
-	// 2) File bytes (from filesSync)
-	files, err := request.Body.Files()
-	if err != nil {
-		return map[string]any{"error": err.Error()}
-	}
-
-	// Find the "greeting" file
 	var name, typ, content string
 	var size int64
-	for _, f := range files {
+	for _, f := range multipart.Files {
 		if f.Field == "greeting" {
 			name = f.Name
 			typ = f.Type
 			size = f.Size
-			content = string(f.Bytes) // UTF-8 text file for this test
+			content = string(f.Bytes)
 			break
 		}
 	}

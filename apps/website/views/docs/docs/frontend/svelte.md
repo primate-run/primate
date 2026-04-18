@@ -415,8 +415,8 @@ Use Svelte's `<svelte:head>` to manage document head elements.
 | Option     | Type       | Default       | Description                  |
 | ---------- | ---------- | ------------- | ---------------------------- |
 | extensions | `string[]` | `[".svelte"]` | Associated file extensions   |
-| ssr        | `boolean`  | `true`        | Active server-side rendering |
-| spa        | `boolean`  | `true`        | Active client-browsing       |
+| ssr        | `boolean`  | `true`        | Enable server-side rendering |
+| csr        | `boolean`  | `true`        | Enable client-side rendering |
 
 ### Example
 

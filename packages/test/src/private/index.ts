@@ -1,3 +1,4 @@
+import backend from "#backend";
 import frontend from "#frontend";
 import setup from "#setup";
 import template from "#template";
@@ -9,6 +10,7 @@ type Ended = (fn: () => Promise<void>) => void;
 
 type Test = {
   frontend: typeof frontend;
+  backend: typeof backend;
   template: typeof template;
   setup: typeof setup;
   case: Case;
@@ -16,6 +18,7 @@ type Test = {
 };
 
 const test: Test = {
+  backend,
   frontend,
   template,
   setup,

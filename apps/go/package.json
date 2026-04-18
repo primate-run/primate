@@ -1,14 +1,14 @@
 {
   "name": "@primate/app/go",
-  "description": "Primate Go template",
   "type": "module",
   "scripts": {
     "start": "npx primate",
     "build": "npx primate build",
     "serve": "npx primate serve",
-    "test": "npx primate test",
-    "test:deno": "deno run -A npm:primate test",
-    "test:bun": "bun x --bun primate test"
+    "pretest": "go mod download github.com/primate-run/go",
+    "test": "npx proby",
+    "test:deno": "deno run -A npm:proby",
+    "test:bun": "bunx --bun proby"
   },
   "dependencies": {
     "@primate/go": "workspace:^",
@@ -16,5 +16,8 @@
     "pema": "workspace:^",
     "primate": "workspace:^",
     "svelte": "^5.55.1"
+  },
+  "devDependencies": {
+    "@primate/test": "workspace:^"
   }
 }

@@ -1,11 +1,28 @@
 import setup from "#setup";
+import env from "@rcompat/env";
 import test from "@rcompat/test";
 
-export default function frontend(dirname: string) {
+const ssr = env.try("SSR") !== "0";
+const csr = env.try("CSR") !== "0";
+
+function frontend(dirname: string) {
   const browser = setup(dirname);
 
   test.ended(async () => {
     await browser.close();
+  });
+
+  test.case("pure ssr does not emit hydration payload", async assert => {
+    if (!(ssr && !csr)) return;
+
+    await using tab = await browser.open();
+
+    const html = await tab.text("/submit");
+    assert(html.includes('id="hydration"')).equals(false);
+    assert(html.includes('type="module"')).equals(false);
+
+    await tab.goto("/submit");
+    assert(tab.select("#hydration")).equals(null);
   });
 
   test.case("renders h1", async assert => {
@@ -36,14 +53,18 @@ export default function frontend(dirname: string) {
     await using tab = await browser.open();
     await tab.goto("/submit");
     await tab.click("button");
-    assert(tab.select("#submitted")).not.null();
+    if (csr) {
+      assert(tab.select("#submitted")).not.null();
+    } else {
+      assert(tab.select("#submitted")).equals(null);
+    }
   });
 
   test.case("redirect navigates to new page", async assert => {
     await using tab = await browser.open();
     await tab.goto("/redirect");
     await tab.click("button");
-    await tab.waitfor(() => tab.select("h1")?.textContent === "Redirected");
+    csr && await tab.waitfor(() => tab.select("h1")?.textContent === "Redirected");
     assert(tab.select("h1")?.textContent).equals("Redirected");
   });
 
@@ -51,10 +72,10 @@ export default function frontend(dirname: string) {
     await using tab = await browser.open();
     await tab.goto("/redirect");
     await tab.click("button");
-    await tab.waitfor(() => tab.select("h1")?.textContent === "Redirected");
+    csr && await tab.waitfor(() => tab.select("h1")?.textContent === "Redirected");
     await tab.back();
-    await tab.waitfor(() => tab.pathname() === "/redirect");
-    await tab.waitfor(() => tab.select("form") !== null);
+    csr && await tab.waitfor(() => tab.pathname() === "/redirect");
+    csr && await tab.waitfor(() => tab.select("form") !== null);
     assert(tab.pathname()).equals("/redirect");
     assert(tab.select("form")).not.null();
     assert(tab.select("h1")).null();
@@ -64,17 +85,17 @@ export default function frontend(dirname: string) {
     await using tab = await browser.open();
     await tab.goto("/redirect");
     await tab.click("button");
-    await tab.waitfor(() =>
+    csr && await tab.waitfor(() =>
       tab.pathname() === "/redirected" &&
       tab.select("h1")?.textContent === "Redirected",
     );
     await tab.back();
-    await tab.waitfor(() =>
+    csr && await tab.waitfor(() =>
       tab.pathname() === "/redirect" &&
       tab.select("form") !== null,
     );
     await tab.forward();
-    await tab.waitfor(() =>
+    csr && await tab.waitfor(() =>
       tab.pathname() === "/redirected" &&
       tab.select("h1")?.textContent === "Redirected",
     );
@@ -91,3 +112,5 @@ export default function frontend(dirname: string) {
 
   return browser;
 }
+
+export default frontend;

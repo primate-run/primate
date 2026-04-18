@@ -7,8 +7,12 @@ const FORM = p({
   email: p.string.email(),
 });
 
-route.get(() => response.view(RedirectForm));
-route.post(request => {
-  request.body.form(FORM);
-  return response.redirect("/form/redirected");
+export default route({
+  get() {
+    return response.view(RedirectForm);
+  },
+  post(request) {
+    FORM.parse(request.body.form());
+    return response.redirect("/form/redirected");
+  },
 });

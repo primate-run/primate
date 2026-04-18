@@ -19,8 +19,9 @@ const ENV = {
 const REPO = "github.com/primate-run/go";
 const [MAJOR, MINOR] = server.TAG.split(".").map(Number);
 
-const run = (wasm: FileRef, go: FileRef) =>
-  `${COMMAND} build -o ${wasm.name} ${go.name}`;
+function run(wasm: FileRef, go: FileRef) {
+  return `${COMMAND} build -o ${wasm.name} ${go.name}`;
+}
 
 function postlude(app: BuildApp, code: string, route_id: string) {
   if (!code.includes(`${REPO}/route`)) {
@@ -37,7 +38,10 @@ func main() {
 
 async function check_version(app: BuildApp) {
   try {
-    const version = (await io.run(`go list -m -f '{{.Version}}' ${REPO}`)).trim();
+    const version = (await io.run(
+      `go list -m -f '{{.Version}}' ${REPO}`,
+      { cwd: app.root.path },
+    )).trim();
 
     const version_match = version.match(/^v?(\d+)\.(\d+)\.(\d+)/);
     if (version_match == null) throw E.invalid_version_format(version);
@@ -58,12 +62,14 @@ async function check_version(app: BuildApp) {
 
 function wrap(route_id: string) {
   return `
-  import wrapper from "@primate/go/wrapper";
-  import bytes from "app:wasm/${route_id}.wasm" with { type: "bytes" };
-  import i18n from "app:config:i18n";
-  import session from "app:config:session";
-  await wrapper(bytes, ${JSON.stringify(route_id)}, { i18n, session });
-`;
+    import route from "primate/route";
+    import wrapper from "@primate/go/wrapper";
+    import bytes from "app:wasm/${route_id}.wasm" with { type: "bytes" };
+    import i18n from "app:config:i18n";
+    import session from "app:config:session";
+    const handlers = await wrapper(bytes, ${JSON.stringify(route_id)}, { i18n, session });
+    export default route(handlers);
+  `;
 }
 
 export default function default_module(input: Input = {}): Module {
@@ -87,9 +93,8 @@ export default function default_module(input: Input = {}): Module {
           await build_go_file.write(postlude(app, await route.text(), route_id));
 
           const wasm = app.runpath("wasm", `${route_id}.wasm`);
-
           try {
-            app.log.info`compiling ${route} to WebAssembly`;
+            app.log.info`compiling ${(route.debase(app.root.path))} to WebAssembly`;
             await io.run(run(wasm, build_go_file), {
               cwd: build_go_file.directory.path,
               env: ENV,

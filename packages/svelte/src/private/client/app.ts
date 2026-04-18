@@ -11,11 +11,16 @@ type MountedRoot = {
 
 export default class SvelteApp {
   static mount(_view: string, data: Data) {
+    const interactive = !data.ssr || data.csr;
+
+    if (!interactive) return;
+
     const Root = root[data.ssr ? "ssr" : "csr"](RootView, {
       props: { p: root.toProps(data) },
       target: document.body,
     }) as MountedRoot;
-    if (data.spa) {
+
+    if (data.csr) {
       const start = () =>
         client.boot<Payload>((_data, update) => {
           Root.p = { ...root.toProps(_data), update };

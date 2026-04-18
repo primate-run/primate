@@ -1,124 +1,71 @@
 import E from "#errors";
+import assert from "@rcompat/assert";
 import http from "@rcompat/http";
 import is from "@rcompat/is";
 import type { Dict, JSONValue } from "@rcompat/type";
 
 type Form = Dict<string>;
+type Files = Dict<File>;
 
-type Parsed =
-  | { type: "binary"; value: Blob }
-  | { type: "form"; value: Dict<string> }
-  | { type: "json"; value: JSONValue }
-  | { type: "none"; value: null }
-  | { type: "text"; value: string }
-  ;
-
-async function anyform(request: Request) {
-  const form: Dict<string> = Object.create(null);
-  const files: Dict<File> = Object.create(null);
-
-  for (const [key, value] of (await request.formData()).entries()) {
-    if (is.string(value)) {
-      form[key] = value;
-    } else {
-      files[key] = value;
-    }
-  }
-
-  return { form, files };
-};
-
-async function parse(request: Request, url: URL): Promise<RequestBody> {
-  const raw = request.headers.get("content-type") ?? "none";
-  const type = raw.split(";")[0].trim().toLowerCase();
-  const path = url.pathname;
-
-  try {
-    switch (type) {
-      case http.MIME.APPLICATION_OCTET_STREAM:
-        return new RequestBody({ type: "binary", value: await request.blob() });
-      case http.MIME.APPLICATION_X_WWW_FORM_URLENCODED:
-      case http.MIME.MULTIPART_FORM_DATA: {
-        const { form, files } = await anyform(request);
-        return new RequestBody({ type: "form", value: form }, files);
-      }
-      case http.MIME.APPLICATION_JSON:
-        return new RequestBody({ type: "json", value: await request.json() });
-      case http.MIME.TEXT_PLAIN:
-        return new RequestBody({ type: "text", value: await request.text() });
-      case "none":
-        return RequestBody.none();
-      default:
-        throw E.request_unsupported_mime(path, type);
-    }
-  } catch (cause) {
-    throw E.request_unparsable_mime(path, type, cause as Error);
-  }
-}
-
-function none() {
-  return new RequestBody({ type: "none", value: null });
-}
+type MIMES = typeof http.MIME;
+type MIME = MIMES[keyof MIMES];
 
 export default class RequestBody {
-  #parsed: Parsed;
-  #files: Dict<File>;
+  #request: Request;
+  #parsed: boolean = false;
 
-  static parse = parse;
-  static none = none;
-
-  constructor(parsed: Parsed, files: Dict<File> = {}) {
-    this.#parsed = parsed;
-    this.#files = files;
+  constructor(request: Request) {
+    this.#request = request;
   }
 
-  get type() {
-    return this.#parsed.type;
+  #parse(mime: MIME) {
+    if (this.#parsed) throw E.request_body_already_parsed();
+    const raw = this.#request.headers.get("content-type") ?? "none";
+    const content_type = raw.split(";")[0].trim().toLowerCase();
+    assert.true(mime === content_type);
+    this.#parsed = true;
   }
 
-  #value<T extends Parsed["value"]>() {
-    return this.#parsed.value as T;
+  json(): Promise<JSONValue> {
+    this.#parse(http.MIME.APPLICATION_JSON);
+    return this.#request.json();
   }
 
-  #unexpected_body(expected: string) {
-    throw E.request_unexpected_body(expected, this.type);
-  }
+  async form(): Promise<Form> {
+    this.#parse(http.MIME.APPLICATION_X_WWW_FORM_URLENCODED);
+    const form: Form = Object.create(null);
 
-  json() {
-    if (this.type !== "json") this.#unexpected_body("JSON");
-
-    return this.#value<JSONValue>();
-  }
-
-  form() {
-    if (this.type !== "form") this.#unexpected_body("form");
-
-    return this.#value<Form>();
-  }
-
-  files(): Dict<File> {
-    if (this.type !== "form") this.#unexpected_body("form");
-
-    return this.#files;
-  }
-
-  text() {
-    if (this.type !== "text") this.#unexpected_body("plaintext");
-
-    return this.#value<string>();
-  }
-
-  binary() {
-    if (this.type !== "binary") {
-      this.#unexpected_body("binary");
+    for (const [key, value] of (await this.#request.formData()).entries()) {
+      form[key] = assert.string(value);
     }
-    return this.#value<Blob>();
+
+    return form;
   }
 
-  none() {
-    if (this.type !== "none") {
-      this.#unexpected_body("none");
+  async multipart(): Promise<{ form: Form; files: Files }> {
+    this.#parse(http.MIME.MULTIPART_FORM_DATA);
+
+    const form: Form = Object.create(null);
+    const files: Files = Object.create(null);
+
+    for (const [key, value] of (await this.#request.formData()).entries()) {
+      if (is.string(value)) {
+        form[key] = value;
+      } else {
+        files[key] = value;
+      }
     }
-    return null;
+
+    return { form, files };
+  }
+
+  text(): Promise<string> {
+    this.#parse(http.MIME.TEXT_PLAIN);
+    return this.#request.text();
+  }
+
+  blob(): Promise<Blob> {
+    this.#parse(http.MIME.APPLICATION_OCTET_STREAM);
+    return this.#request.blob();
   }
 }

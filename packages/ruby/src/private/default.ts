@@ -14,7 +14,7 @@ const [MAJOR, MINOR] = server.TAG.split(".").map(Number);
 function detect_routes(code: string): string[] {
   const found: string[] = [];
   for (const method of http.methods) {
-    const rx = new RegExp(`\\bRoute\\.${method.toLowerCase()}\\s*do\\b`);
+    const rx = new RegExp(`\\bRoute\\.${method.toLowerCase()}\\s*(\\([^)]*\\)\\s*)?do\\b`);
     if (rx.test(code)) found.push(method);
   }
   return found;
@@ -41,14 +41,16 @@ async function check_version(app: BuildApp) {
   app.log.info`using ${GEM} gem ${major}.${minor}.x`;
 }
 
-function wrap(source: string, id: string) {
+function wrap(source: string, id: string, root: FileRef) {
   return `
+    import route from "primate/route";
     import wrapper from "@primate/ruby/wrapper";
     import i18n from "app:config:i18n";
     import session from "app:config:session";
-    await wrapper(${JSON.stringify(source)}, ${JSON.stringify(id)}, {
+    const handlers = await wrapper(${JSON.stringify(source)}, ${JSON.stringify(id)}, {
       i18n, session,
-    });
+    }, ${JSON.stringify(root.path)});
+    export default route(handlers);
   `;
 }
 
@@ -74,7 +76,7 @@ export default function default_module(input: Input = {}): Module {
             .replace(/^\//, "")
             .replace(/\.rb$/, "");
 
-          return wrap(source, id);
+          return wrap(source, id, app.root);
         });
       });
     },

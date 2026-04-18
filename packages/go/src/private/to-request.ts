@@ -1,85 +1,78 @@
-import type { RequestBody, RequestFacade } from "@primate/core";
-import type { Dict } from "@rcompat/type";
+import type {
+  RequestBody,
+  RequestContentType,
+  RequestFacade,
+} from "@primate/core";
+import is from "@rcompat/is";
 
-async function bridge_form(body: RequestBody) {
-  const meta: Dict = Object.create(null);
-  const files: Array<{
-    bytes: Uint8Array;
-    field: string;
-    name: string;
-    size: number;
-    type: string;
-  }> = [];
+type FileEntry = {
+  bytes: Uint8Array;
+  field: string;
+  name: string;
+  size: number;
+  type: string;
+};
 
-  const pending: Promise<void>[] = [];
+type BridgedBody =
+  | { type: "json"; jsonSync: () => string }
+  | { type: "text"; textSync: () => string }
+  | { type: "form"; formSync: () => string }
+  | { type: "multipart"; formSync: () => string; filesSync: () => FileEntry[] }
+  | { type: "blob"; blobSync: () => Uint8Array; blobTypeSync: () => string }
+  | { type: "none" };
 
-  for (const [k, v] of Object.entries(body.form())) {
-    meta[k] = v;
-  }
-
-  for (const [k, v] of Object.entries(body.files())) {
-    const name = v.name;
-    const type = v.type;
-    const size = v.size;
-    meta[k] = { name, size, type };
-
-    // precompute bytes so Go can call a sync getter
-    pending.push(
-      v.arrayBuffer().then(buffer => {
-        files.push({
-          bytes: new Uint8Array(buffer),
-          field: k,
-          name,
-          size,
-          type,
-        });
-      }),
-    );
-  }
-
-  await Promise.all(pending);
-  const jsonStr = JSON.stringify(meta);
-
-  return {
-    formSync: () => jsonStr,
-    filesSync: () => files,
-    type: "form" as const,
-  };
-}
-
-async function bridgeBody(body: RequestBody) {
-  const type = body.type;
-
-  switch (type) {
-    case "text": {
-      const s: string = body.text();
-      return { textSync: () => s, type };
+async function bridgeBody(body: RequestBody, contentType: RequestContentType | ""): Promise<BridgedBody> {
+  switch (contentType) {
+    case "text/plain": {
+      const s = await body.text();
+      return { type: "text", textSync: () => s };
     }
-    case "json": {
-      const val = body.json();
-      const jsonStr = JSON.stringify(val);
-      return { jsonSync: () => jsonStr, type };
+    case "application/json": {
+      const val = await body.json();
+      return { type: "json", jsonSync: () => JSON.stringify(val) };
     }
-    case "form": {
-      return await bridge_form(body);
+    case "application/x-www-form-urlencoded": {
+      const form = await body.form();
+      return { type: "form", formSync: () => JSON.stringify(form) };
     }
-    case "binary": {
-      const blob: Blob = body.binary();
+    case "multipart/form-data": {
+      const result = await body.multipart();
+      const pending: Promise<void>[] = [];
+      const bridgedFiles: FileEntry[] = [];
+
+      for (const [field, file] of Object.entries(result.files)) {
+        const name = file.name;
+        const type = file.type;
+        const size = file.size;
+        pending.push(
+          file.arrayBuffer().then(buffer => {
+            bridgedFiles.push({
+              bytes: new Uint8Array(buffer),
+              field,
+              name,
+              size,
+              type,
+            });
+          }),
+        );
+      }
+
+      await Promise.all(pending);
+      return { type: "multipart", formSync: () => JSON.stringify(result.form), filesSync: () => bridgedFiles };
+    }
+    case "application/octet-stream": {
+      const blob = await body.blob();
       const buf = new Uint8Array(await blob.arrayBuffer());
-      const mime = blob.type || "application/octet-stream";
-      return {
-        binarySync: () => buf,
-        binaryTypeSync: () => mime,
-        type,
-      };
+      const mime = is.text(blob.type) ? blob.type : "application/octet-stream";
+      return { type: "blob", blobSync: () => buf, blobTypeSync: () => mime };
     }
     default:
-      return { type: "none" as const };
+      return { type: "none" };
   }
 }
 
-export default async function toRequest(request: RequestFacade) {
-  const body = await bridgeBody(request.body);
+export default async function toRequest(request: RequestFacade, contentType: RequestContentType | "") {
+  const body = await bridgeBody(request.body, contentType);
 
   return {
     body,
@@ -87,7 +80,6 @@ export default async function toRequest(request: RequestFacade) {
     headers: JSON.stringify(request.headers.toJSON()),
     path: JSON.stringify(request.path.toJSON()),
     query: JSON.stringify(request.query.toJSON()),
-    searchParams: JSON.stringify(request.url.searchParams),
     url: request.url,
   };
 }

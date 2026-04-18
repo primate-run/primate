@@ -17,7 +17,6 @@ import create from "#module/create";
 import handle from "#request/handle";
 import parse from "#request/parse";
 import RequestBag from "#request/RequestBag";
-import RequestBody from "#request/RequestBody";
 import type RequestFacade from "#request/RequestFacade";
 import route from "#request/route";
 import request_storage from "#request/storage";
@@ -480,14 +479,19 @@ export default class ServeApp extends App {
       this.log.trace`${matched.path} has no method ${method}`;
       return undefined;
     }
-
     const handler = route_path.handler;
-    const parse_body = route_path.options.parseBody;
-    const body = parse_body ?? this.config("request.body.parse")
-      ? await RequestBody.parse(original, url)
-      : RequestBody.none();
+
+    const { contentType } = route_path.options;
+
+    if (contentType !== undefined) {
+      const raw = original.headers.get("content-type") ?? "";
+      const actual = raw.split(";")[0].trim().toLowerCase();
+      if (actual !== contentType) {
+        throw E.request_content_type_mismatch(contentType, actual);
+      }
+    }
+
     const refined = Object.assign(Object.create(request), {
-      body,
       path: new RequestBag(matched.params as PartialDict<string>, "path", {
         normalize: k => k.toLowerCase(),
         raw: url.pathname,

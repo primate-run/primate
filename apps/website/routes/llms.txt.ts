@@ -15,8 +15,9 @@ const guides = names
   .join("\n")
   ;
 
-route.get(() => {
-  return `# Primate
+export default route({
+  get() {
+    return `# Primate
 
 ## Docs
 
@@ -25,4 +26,5 @@ ${docs}
 ## Guides
 
 ${guides}`;
+  },
 });

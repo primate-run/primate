@@ -4,8 +4,8 @@ import { Browser } from "happy-dom";
 
 export default function setup(dirname: string) {
   const ready = (async () => {
-    const fixtures = (await runtime.projectRoot(dirname)).join("fixtures");
-    const build_app = await build(fixtures, { mode: "production" });
+    const root = await runtime.projectRoot(dirname);
+    const build_app = await build(root, { mode: "production" });
     const app = await build_app.serve();
     const browser = new Browser({
       settings: {
@@ -36,7 +36,7 @@ export default function setup(dirname: string) {
           await page.goto(`${server.url}${url}`);
           await page.waitUntilComplete();
         },
-        select(selector: string): any {
+        select(selector: string) {
           return page.mainFrame.document.querySelector(selector);
         },
         async fetch(url: string, options?: RequestInit) {
@@ -44,6 +44,9 @@ export default function setup(dirname: string) {
         },
         async json(url: string) {
           return basefetch(url).then(r => r.json());
+        },
+        async text(url: string) {
+          return basefetch(url).then(r => r.text());
         },
         async click(selector: string) {
           (page.mainFrame.document.querySelector(selector) as any)?.click();

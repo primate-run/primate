@@ -1,13 +1,14 @@
+import pkg_json from "#pkg-json" with { type: "json" };
 import assert from "@rcompat/assert";
 import error from "@rcompat/error";
-import runtime from "@rcompat/runtime";
 
-const pkg_json = await runtime.packageJSON(import.meta.dirname);
 const peer_deps = assert.dict(pkg_json.peerDependencies);
+
+type PeerDep = keyof typeof peer_deps;
 
 const t = error.template;
 
-function version(pkg: string) {
+function version(pkg: PeerDep) {
   return `${pkg}@${peer_deps[pkg]}`;
 }
 
@@ -25,7 +26,7 @@ function htmx_package_required() {
   return t`${version("htmx.org")} must be installed`;
 };
 
-function template_engine_required(engine: string, pkg: string) {
+function template_engine_required(engine: string, pkg: PeerDep) {
   const option = "clientSideTemplates.engine";
   return t`${option} is set to ${engine}, but ${version(pkg)} is not installed`;
 }

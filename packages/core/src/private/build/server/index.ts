@@ -49,7 +49,7 @@ export default async function build_server(app: BuildApp) {
 
   const runtime_name = runtime.name as keyof typeof externals;
 
-  const tsconfig = app.root.join("tsconfig.json");
+  const tsconfig_json = app.root.join("tsconfig.json");
   const options: esbuild.BuildOptions = {
     entryPoints: [app.path.build.join("serve.js").path],
     outfile: app.path.build.join("server.js").path,
@@ -70,11 +70,13 @@ export default async function build_server(app: BuildApp) {
     nodePaths: [app.root.join("node_modules").path],
     resolveExtensions: app.extensions,
     absWorkingDir: app.root.path,
-    ...await tsconfig.exists() ? { tsconfig: tsconfig.path } : {},
+    ...await tsconfig_json.exists() ? { tsconfig: tsconfig_json.path } : {},
     conditions: [
-      ...conditions[runtime_name],
-      "module", "import", "runtime", "default",
-      ...app.conditions],
+      ...conditions[runtime_name],              // node | deno | bun
+      ...app.conditions,                        // set by modules
+      ...app.config("conditions"),              // set by user,
+      "module", "import", "runtime", "default", // defaults
+    ],
     plugins: app.plugins("server"),
     write: app.mode !== "development",
   };

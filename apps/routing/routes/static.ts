@@ -1,3 +1,7 @@
 import route from "primate/route";
 
-route.get(() => "static");
+export default route({
+  get() {
+    return "static";
+  },
+});

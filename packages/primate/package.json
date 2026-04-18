@@ -30,10 +30,10 @@
     "@primate/core": "workspace:^",
     "@rcompat/cli": "^0.21.0",
     "@rcompat/dict": "^0.8.0",
-    "@rcompat/error": "^0.6.1",
+    "@rcompat/error": "^0.6.2",
     "@rcompat/fs": "^0.31.0",
     "@rcompat/http": "~0.28.0",
-    "@rcompat/runtime": "^0.14.2",
+    "@rcompat/runtime": "^0.14.4",
     "@rcompat/test": "^0.15.0"
   },
   "devDependencies": {

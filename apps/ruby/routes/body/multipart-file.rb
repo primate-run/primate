@@ -1,35 +1,23 @@
-# frozen_string_literal: true
-#
 require 'primate/route'
 
-Route.post do |request|
-  form = request.body.form
+Route.post(content_type: "multipart/form-data") do |request|
+  multipart = request.body.multipart
 
   baz = begin
-    Integer(form["baz"].to_s, 10)
+    Integer(multipart.form["baz"].to_s, 10)
   rescue ArgumentError, TypeError
     0
   end
-
-  foo = form["foo"].to_s
-
-  greeting = request.body.files.find { |f| f.field == "greeting" }
-
-  name    = greeting&.filename
-  typ     = greeting&.content_type
-  size    = greeting&.size
-  content = if greeting
-    greeting.io.read.force_encoding("UTF-8")
-  end
-
+  foo = multipart.form["foo"].to_s
+  greeting = multipart.files.find { |f| f.field == "greeting" }
   {
     "baz" => baz,
     "foo" => foo,
     "greeting" => {
-      "name"    => name,
-      "size"    => size,
-      "type"    => typ,
-      "content" => content,
+      "name"    => greeting&.filename,
+      "size"    => greeting&.size,
+      "type"    => greeting&.content_type,
+      "content" => greeting&.io&.read&.force_encoding("UTF-8"),
     },
   }
 end

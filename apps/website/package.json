@@ -18,6 +18,7 @@
     "@primate/svelte": "workspace:^",
     "@rcompat/fs": "^0.31.0",
     "@rcompat/http": "^0.28.0",
+    "@rcompat/runtime": "^0.14.4",
     "@rcompat/string": "^0.19.0",
     "primate": "workspace:^",
     "shiki": "^4.0.2",

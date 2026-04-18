@@ -10,23 +10,27 @@ import io from "@rcompat/io";
 const PACKAGE = "primate-run";
 const [MAJOR, MINOR] = server.TAG.split(".").map(Number);
 
-async function show_package(): Promise<string | null> {
-  const str0 = () => "";
+async function show_package(app: BuildApp): Promise<string | null> {
+  function run(command: string) {
+    return io.run(command, { cwd: app.root.path })
+      .then(out => out.trim())
+      .catch(() => "");
+  }
 
-  let out = await io.run(`pip show ${PACKAGE} 2>/dev/null`).catch(str0);
-  if (out.trim().length > 0) return out;
+  let out = await run(`pip show ${PACKAGE} 2>/dev/null`);
+  if (out.length > 0) return out;
 
-  out = await io.run(`uv pip show ${PACKAGE} 2>/dev/null`).catch(str0);
-  if (out.trim().length > 0) return out;
+  out = await run(`uv pip show ${PACKAGE} 2>/dev/null`);
+  if (out.length > 0) return out;
 
-  out = await io.run(`python -m pip show ${PACKAGE} 2>/dev/null`).catch(str0);
-  if (out.trim().length > 0) return out;
+  out = await run(`python -m pip show ${PACKAGE} 2>/dev/null`);
+  if (out.length > 0) return out;
 
   return null;
 }
 
 async function check_version(app: BuildApp) {
-  const output = await show_package();
+  const output = await show_package(app);
   if (output === null) throw E.pkg_not_found();
 
   const version_match = output.match(/Version:\s*(\d+)\.(\d+)\.(\d+)/);
@@ -36,6 +40,23 @@ async function check_version(app: BuildApp) {
   if (major !== MAJOR || minor !== MINOR) throw E.pkg_mismatch(major, minor);
 
   app.log.info`using ${PACKAGE} package ${major}.${minor}.x`;
+}
+
+function wrap(source: string, id: string, packages_str: string, primate_run: string) {
+  return `
+    import route from "primate/route";
+    import wrapper from "@primate/python/wrapper";
+    import i18n from "app:config:i18n";
+    import session from "app:config:session";
+    const handlers = await wrapper(
+      ${JSON.stringify(source)},
+      ${packages_str},
+      ${JSON.stringify(primate_run)},
+      ${JSON.stringify(id)},
+      { i18n, session }
+    );
+    export default route(handlers);
+  `;
 }
 
 export default function default_module(input: Input = {}): Module {
@@ -65,18 +86,7 @@ export default function default_module(input: Input = {}): Module {
           const relative = file.debase(app.path.routes).path.replace(/^\//, "");
           const source = await file.text();
 
-          return `
-        import wrapper from "@primate/python/wrapper";
-        import i18n from "app:config:i18n";
-        import session from "app:config:session";
-        await wrapper(
-          ${JSON.stringify(source)},
-          ${packages_str},
-          "${PACKAGE}~=${server.TAG}.0",
-          "${relative}",
-          { i18n, session }
-        );
-      `;
+          return wrap(source, relative, packages_str, `${PACKAGE}~=${server.TAG}.0`);
         });
       });
     },

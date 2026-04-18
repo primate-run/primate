@@ -1,7 +1,8 @@
 import handlebars from "@primate/handlebars";
 import markdown from "@primate/markdown";
 import svelte from "@primate/svelte";
-import fs, { type FileRef } from "@rcompat/fs";
+import type { FileRef } from "@rcompat/fs";
+import runtime from "@rcompat/runtime";
 import config from "primate/config";
 import { createHighlighter } from "shiki";
 import website from "./Website.ts";
@@ -196,7 +197,7 @@ export default config({
         let replacement = "";
 
         for (const { folder, fullMatch } of replacements) {
-          const files = await (await fs.project.root())
+          const files = await (await runtime.projectRoot())
             .join("snippets", folder)
             .files({ recursive: true });
           const has_tabs = files.length > 1;

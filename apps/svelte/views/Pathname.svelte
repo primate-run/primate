@@ -2,4 +2,4 @@
   import { request } from "app:svelte";
 </script>
 
-PATHNAME: {$request.url.pathname}
+<span id="pathname">{$request.url.pathname}</span>
