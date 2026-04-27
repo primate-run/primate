@@ -1,0 +1,21 @@
+{
+  "name": "@primate/app/voby",
+  "description": "Primate Voby template",
+  "type": "module",
+  "scripts": {
+    "start": "npx primate",
+    "build": "npx primate build",
+    "test": "npx proby",
+    "test:deno": "deno run -A npm:proby",
+    "test:bun": "bunx --bun proby"
+  },
+  "dependencies": {
+    "@primate/voby": "workspace:^",
+    "linkedom-global": "^1.0.1",
+    "primate": "workspace:^",
+    "voby": "^0.58.1"
+  },
+  "devDependencies": {
+    "@primate/test": "workspace:^"
+  }
+}

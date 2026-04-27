@@ -8,7 +8,9 @@ type EntryOf<Body extends string> =
 
 export type EntriesOf<S extends string> =
   string extends S ? never :
-  S extends `${infer _}{${infer Body}}${infer Rest}`
+  S extends `${infer _}{{${infer _}}}${infer Rest}`
+  ? EntriesOf<Rest>
+  : S extends `${infer _}{${infer Body}}${infer Rest}`
   ? EntryOf<Body> | EntriesOf<Rest>
   : never;
 

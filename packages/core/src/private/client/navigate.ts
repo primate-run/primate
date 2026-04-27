@@ -21,19 +21,21 @@ const scroll_hash = (hash: string) => {
 type Location = {
   hash: string;
   pathname: string;
+  search: string;
 };
 
 async function goto(target: Location, state = false, after?: () => void) {
   try {
     const { scrollTop } = globalThis.document.scrollingElement!;
     const { location } = globalThis;
-    const { requested, response } = await transport.refetch(target.pathname, { headers });
+    const path = target.pathname + target.search;
+    const { requested, response } = await transport.refetch(path, { headers });
 
     if (transport.is_json(response)) {
       if (response.ok) root.update(await response.json());
       if (state) {
         storage.new({ hash: location.hash, pathname: location.pathname, scrollTop });
-        history.pushState({}, "", `${target.pathname}${target.hash}`);
+        history.pushState({}, "", `${path}${target.hash}`);
       }
       after?.();
       return;

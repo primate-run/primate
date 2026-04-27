@@ -172,14 +172,6 @@ HTTP verb. Handlers map requests to responses.
 
 [s=routing/route-handlers]
 
-### Disable body parsing
-Handlers receive a parsed request body based on `Content-Type`. To keep the
-request body unparsed, pass `{ parseBody: false }` in the route options.
-
-[s=routing/route-handlers-unparsed-body]
-
-This lets you forward the incoming request as-is to another backend.
-
 ## Special files
 
 Files whose names start with `+` are **special**: they do **not** map to HTTP
@@ -260,9 +252,11 @@ Read it in nested hooks or route handlers with `request.get()` or `request.try()
 // routes/dashboard/index.ts
 import route from "primate/route";
 
-route.get(request => {
-  const user = request.get<{ id: number; name: string }>("user");
-  return { greeting: `Hello, ${user.name}` };
+export default route({
+  get(request) {
+      const user = request.get<{ id: number; name: string }>("user");
+      return { greeting: `Hello, ${user.name}` };
+  },
 });
 ```
 

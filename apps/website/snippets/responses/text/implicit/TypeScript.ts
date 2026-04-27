@@ -1,3 +1,7 @@
 import route from "primate/route";
 
-route.get(request => "Hello from TypeScript!");
+export default route({
+  get(request) {
+    return "Hello from TypeScript!";
+  },
+});

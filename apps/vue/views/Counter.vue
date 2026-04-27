@@ -1,8 +1,8 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import { computed } from "vue";
-import client from "@primate/vue/client";
+import { client } from "@primate/vue";
 
-interface Props { id: string; counter: number };
+interface Props { id: number; counter: number };
 
 const props = defineProps<Props>();
 const counter = client.field(props.counter).post(`/counter?id=${props.id}`);

@@ -5,27 +5,28 @@ import route from "primate/route";
 
 await Counter.table.create();
 
-route.get(async () => {
-  const counters = await Counter.find({});
+export default route({
+  async get() {
+    const counters = await Counter.find({});
 
-  const counter = counters.length === 0
-    ? await Counter.insert({ value: 10 })
-    : counters[0];
+    const counter = counters.length === 0
+      ? await Counter.insert({ value: 10 })
+      : counters[0];
 
-  return response.view("Counter.jsx", counter);
-});
+    return response.view("Counter.jsx", counter);
+  },
+  async post(request) {
+    // validate that an id was provided
+    // request.query.get() will throw if id is missing
+    const id = p.string.parse(request.query.get("id"));
 
-route.post(async request => {
-  // validate that an id was provided
-  // request.query.get() will throw if id is missing
-  const id = p.string.parse(request.query.get("id"));
+    // validate body as a number, coercing from string first
+    const body = p({ value: p.number }).coerce(await request.body.form());
 
-  // validate body as a number, coercing from string first
-  const body = p({ value: p.number }).coerce(request.body.form());
+    // update the value in the database
+    await Counter.update({ id }, { value: body.value });
 
-  // update the value in the database
-  await Counter.update({ id }, { value: body.value });
-
-  // 204 no response
-  return null;
+    // 204 no response
+    return null;
+  },
 });

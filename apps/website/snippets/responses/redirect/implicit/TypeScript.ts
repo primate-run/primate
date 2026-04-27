@@ -1,3 +1,7 @@
 import route from "primate/route";
 
-route.get(() => new URL("https://example.com/login"));
+export default route({
+  get() {
+    return new URL("https://example.com/login");
+  },
+});

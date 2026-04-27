@@ -56,5 +56,9 @@ Use `response.view` in a route to render the template.
 import route from "primate/route";
 import response from "primate/response";
 
-route.get(() => response.view("welcome.component.ts", { name: "World" }));
+export default route({
+  get() {
+    return response.view("welcome.component.ts", { name: "World" });
+  },
+});
 ```

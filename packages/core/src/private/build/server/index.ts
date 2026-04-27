@@ -15,6 +15,7 @@ import plugin_virtual_pages from "#build/server/plugin/virtual-pages";
 import plugin_virtual_routes from "#build/server/plugin/virtual-routes";
 import plugin_wasm from "#build/server/plugin/wasm";
 import plugin_app_request from "#build/shared/plugin/app-request";
+import plugin_route_client from "#build/server/plugin/route-client";
 import runtime from "@rcompat/runtime";
 import * as esbuild from "esbuild";
 
@@ -36,6 +37,7 @@ export default async function build_server(app: BuildApp) {
   if (app.mode === "development") app.plugin("server", plugin_live_reload(app));
   app.plugin("server", plugin_virtual_pages(app));
   app.plugin("server", plugin_virtual_routes(app));
+  app.plugin("server", plugin_route_client(app));
   app.plugin("server", plugin_route(app));
   app.plugin("server", plugin_roots(app));
   app.plugin("server", plugin_views(app));

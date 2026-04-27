@@ -25,10 +25,12 @@ import route from "primate/route";
 
 const Signup = p({ email: p.string.email() });
 
-route.post(request => {
-  // throws a `ParseError` if the `email` field does not contain a valid email
-  const { email } = Signup.parse(request.body.form());
-  return `Signed up with ${email}`;
+export default route({
+  async post(request) {
+      // throws a `ParseError` if the `email` field does not contain a valid email
+      const { email } = Signup.parse(await request.body.form());
+      return `Signed up with ${email}`;
+  },
 });
 ```
 
@@ -42,18 +44,20 @@ override the default and return a custom response instead.
 ```ts
 import ParseError from "pema/ParseError";
 
-route.post(request => {
-  try {
-    const { email } = Signup.parse(request.body.form());
-    return `Signed up with ${email}`;
-  } catch (error) {
-    if (error instanceof ParseError) {
-      // returned as JSON
-      return { error: "Please provide a valid email address." };
-    }
-    // will show an error page
-    throw error;
-  }
+export default route({
+  async post(request) {
+      try {
+        const { email } = Signup.parse(await request.body.form());
+        return `Signed up with ${email}`;
+      } catch (error) {
+        if (error instanceof ParseError) {
+          // returned as JSON
+          return { error: "Please provide a valid email address." };
+        }
+        // will show an error page
+        throw error;
+      }
+  },
 });
 ```
 
@@ -72,15 +76,17 @@ For frontend routes, you might prefer rendering a page rather than JSON.
 import ParseError from "pema/ParseError";
 import response from "primate/response";
 
-route.post(request => {
-  try {
-    const { email } = Signup.parse(request.body.form());
-    return `Signed up with ${email}`;
-  } catch (error) {
-    if (error instanceof ParseError) {
-      return response.error("error.jsx", { message: "Invalid signup details" });
-    }
-    throw error;
-  }
+export default route({
+  async post(request) {
+      try {
+        const { email } = Signup.parse(await request.body.form());
+        return `Signed up with ${email}`;
+      } catch (error) {
+        if (error instanceof ParseError) {
+          return response.error("error.jsx", { message: "Invalid signup details" });
+        }
+        throw error;
+      }
+  },
 });
 ```

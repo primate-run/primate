@@ -1,4 +1,4 @@
-import client from "@primate/solid/client";
+import { client } from "@primate/solid";
 
 interface Props { counter: number; id: number };
 
@@ -11,11 +11,10 @@ export default function Form(props: Props) {
     id={form.id}
     onSubmit={form.submit}
   >
-    {form.errors.length
+    {form.errors.length > 0
       ? <p style={{ color: "red" }}>{form.errors[0]}</p>
       : ""
     }
-
     <label>
       Counter:
       <input
@@ -24,12 +23,11 @@ export default function Form(props: Props) {
         value={form.field("counter").value}
       />
     </label>
-
     {form.field("counter").error
-      ? <p style={{ color: "red" }} > {form.field("counter").error}</p>
+      ? <p id="counter-error" style={{ color: "red" }}>{form.field("counter").error}</p>
       : ""
     }
-
+    {form.submitted && <span id="submitted">saved</span>}
     <button type="submit" disabled={form.submitting}>Save</button>
   </form >;
 }

@@ -1,7 +1,11 @@
 import error from "@rcompat/error";
 import type { FileRef } from "@rcompat/fs";
+import type http from "@rcompat/http";
 import type { Method } from "@rcompat/http";
 import type ParseError from "pema/ParseError";
+
+type MIME = typeof http.MIME;
+type MIMEValue = MIME[keyof MIME];
 
 const t = error.template;
 
@@ -29,12 +33,23 @@ function build_live_reload_failed(filename: string, cause: Error) {
 function build_previous_build_exists(file: FileRef) {
   return t`${file.path} exists but does not contain a previous build`;
 }
+function build_no_path_schema(route: string) {
+  const example = "route.with({ path: ... })";
+  return t`route ${route} has dynamic segments but no path schema — declare a path schema in ${example} to use this route from a client`;
+}
+function build_body_requires_content_type() {
+  const b = "contentType";
+  const c = "route.with({ contentType: ..., body: ... })";
+  return t`body schema requires ${b} to be set — declare a contentType in ${c}`;
+}
 
 const BUILD = error.coded({
   build_missing_binary_addon,
   build_missing_route,
   build_live_reload_failed,
   build_previous_build_exists,
+  build_no_path_schema,
+  build_body_requires_content_type,
 });
 
 function config_file_missing() {
@@ -87,7 +102,7 @@ function request_body_already_parsed() {
 function request_bag_missing_key(bag: string, key: string) {
   return t`${bag} has no key ${key}`;
 }
-function request_content_type_mismatch(expected: string, actual: string) {
+function request_content_type_mismatch(expected: MIMEValue, actual: string) {
   return t`content-type mismatch: expected ${expected}, got ${actual}`;
 }
 

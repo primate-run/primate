@@ -9,6 +9,7 @@ import select from "@rcompat/cli/prompts/select";
 import text from "@rcompat/cli/prompts/text";
 import type { FileRef } from "@rcompat/fs";
 import fs from "@rcompat/fs";
+import is from "@rcompat/is";
 import runtime from "@rcompat/runtime";
 import type { Dict } from "@rcompat/type";
 import type Command from "./Command.js";
@@ -97,7 +98,7 @@ const command_init: Command = async () => {
     const ans = await text({
       message: "Directory to create app?", initial: ".",
     });
-    if (typeof ans === "symbol" || is_cancel(ans)) return abort();
+    if (is.symbol(ans) || is_cancel(ans)) return abort();
 
     target = fs.ref(ans);
     if (await empty(target)) {

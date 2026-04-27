@@ -30,8 +30,10 @@ Use `try` with a fallback in case the param is `undefined`.
 // routes/user/[[name]].ts
 import route from "primate/route";
 
-route.get(request => {
-  const name = request.path.try("name") ?? "guest";
-  return `Hello, ${name}!`;
+export default route({
+  get(request) {
+      const name = request.path.try("name") ?? "guest";
+      return `Hello, ${name}!`;
+  },
 });
 ```

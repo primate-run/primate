@@ -7,10 +7,12 @@ const CookieSchema = p({
   session: p.uuid.optional(),
 });
 
-route.get(request => {
-  const { session } = request.cookies.parse(CookieSchema);
+export default route({
+  get(request) {
+    const { session } = request.cookies.parse(CookieSchema);
 
-  return response.text(session ? "OK" : "No session", {
-    status: session ? Status.OK : Status.FORBIDDEN,
-  });
+    return response.text(session ? "OK" : "No session", {
+      status: session ? Status.OK : Status.FORBIDDEN,
+    });
+  },
 });

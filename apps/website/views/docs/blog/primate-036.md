@@ -211,9 +211,11 @@ hook((request, next) => {
 // routes/dashboard/index.ts
 import route from "primate/route";
 
-route.get(request => {
-  const greeting = request.get<string>("greeting");
-  return { greeting };
+export default route({
+  get(request) {
+      const greeting = request.get<string>("greeting");
+      return { greeting };
+  },
 });
 ```
 
@@ -282,16 +284,18 @@ The form automatically parses validation errors from Pema's `ParseError`:
 import route from "primate/route";
 import p from "pema";
 
-route.post(async request => {
-  const FormSchema = p({ counter: p.number.coerce });
-  const validated = request.body.form(FormSchema);
-
-  await Counter.update({
-    where: { id: request.query.get("id") },
-    set: { counter: validated.counter },
-  });
-
-  return null;
+export default route({
+  async post(request) {
+      const FormSchema = p({ counter: p.number.coerce });
+      const validated = request.body.form(FormSchema);
+    
+      await Counter.update({
+        where: { id: request.query.get("id") },
+        set: { counter: validated.counter },
+      });
+    
+      return null;
+  },
 });
 ```
 
@@ -357,8 +361,10 @@ export default i18n({
 import t from "#i18n";
 import route from "primate/route";
 
-route.get(() => {
-  return { message: t("greeting", { name: "World" }) };
+export default route({
+  get() {
+      return { message: t("greeting", { name: "World" }) };
+  },
 });
 ```
 
@@ -386,11 +392,13 @@ import app from "#app"; // via tsconfig, or relative import to config/app.ts
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(async () => {
-  const guides = await app.root.join("guides.json").json();
-  const { html } = app.view("docs/home/index.md");
-
-  return response.view(Index, { guides, content: html });
+export default route({
+  async get() {
+      const guides = await app.root.join("guides.json").json();
+      const { html } = app.view("docs/home/index.md");
+    
+      return response.view(Index, { guides, content: html });
+  },
 });
 ```
 
@@ -407,17 +415,20 @@ return value in `app => { ... }`:
 
 ```ts
 // before
-route.get(request => {
-  return async app => {
-    const { html } = app.loadView("docs/index.md");
-    return response.view(Page, { content: html })(app, {}, request);
-  };
-});
 
 // after
-route.get(() => {
-  const { html } = app.view("docs/index.md");
-  return response.view(Page, { content: html });
+
+export default route({
+  get(request) {
+      return async app => {
+        const { html } = app.loadView("docs/index.md");
+        return response.view(Page, { content: html })(app, {}, request);
+      };
+  },
+  get() {
+      const { html } = app.view("docs/index.md");
+      return response.view(Page, { content: html });
+  },
 });
 ```
 
@@ -488,12 +499,6 @@ Guard files have been replaced with hook files. Rename all `+guard.ts` files to
 // before (+guard.ts)
 import route from "primate/route";
 
-route.get(request => {
-  if (request.query.try("password") === "opensesame") {
-    return null;  // pass through
-  }
-  return "wrong";
-});
 
 // after (+hook.ts)
 import hook from "primate/route/hook";
@@ -503,6 +508,15 @@ hook((request, next) => {
     return next(request);  // pass through
   }
   return "wrong";
+});
+
+export default route({
+  get(request) {
+      if (request.query.try("password") === "opensesame") {
+        return null;  // pass through
+      }
+      return "wrong";
+  },
 });
 ```
 

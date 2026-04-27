@@ -317,26 +317,27 @@ import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(async () => {
-  const posts = await Post.find({
-    where: {},
-    sort: { created: "desc" },
-    select: ["id", "title", "created"],
-    limit: 20,
-  });
-
-  return response.view("posts.jsx", { posts });
-});
-
-route.post(async request => {
-  const body = p({
-    title: p.string.max(100),
-    body: p.string,
-  }).coerce(request.body.form());
-
-  const created = await Post.insert(body);
-
-  return response.view("posts/created.jsx", { post: created });
+export default route({
+  async get() {
+      const posts = await Post.find({
+        where: {},
+        sort: { created: "desc" },
+        select: ["id", "title", "created"],
+        limit: 20,
+      });
+    
+      return response.view("posts.jsx", { posts });
+  },
+  async post(request) {
+      const body = p({
+        title: p.string.max(100),
+        body: p.string,
+      }).coerce(await request.body.form());
+    
+      const created = await Post.insert(body);
+    
+      return response.view("posts/created.jsx", { post: created });
+  },
 });
 ```
 

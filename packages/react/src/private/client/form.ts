@@ -1,41 +1,58 @@
-import type { FormInit } from "@primate/core/client";
+import type { ClientMethod, FormInit, MethodMeta } from "@primate/core/client";
 import core from "@primate/core/client";
 import type { Dict } from "@rcompat/type";
 import * as React from "react";
 
-type FormView<TValues extends Dict> = {
+type FormView<Values extends Dict> = {
   id: string;
   submitting: boolean;
   submitted: boolean;
   submit: React.FormEventHandler<HTMLFormElement>;
-  errors: readonly string[];
-  field: <K extends keyof TValues & string>(name: K) => {
+  errors: string[];
+  field: <K extends keyof Values & string>(name: K) => {
     name: string;
-    value: TValues[K];
+    value: Values[K];
     error: string | null;
-    errors: readonly string[];
+    errors: string[];
   };
 };
 
 type Initial<Values extends Dict> = FormInit & { initial?: Values };
 
+function form<Values extends Dict>(
+  action: ClientMethod<Values>,
+  init?: Initial<Values>,
+): FormView<Values>;
 function form<Values extends Dict>(init: Initial<Values>): FormView<Values>;
 function form(init?: FormInit): FormView<Dict>;
 
-function form<Values extends Dict = Dict>(init?: Initial<Values>) {
-  const { initial, ...form_init } = (init ?? {}) as Initial<Values>;
-
-  const controller = React.useMemo(() => core.createForm(form_init), []);
-  const values = React.useMemo(() => (initial ?? {}) as Values, []);
-
+function form<Values extends Dict = Dict>(
+  action_or_init?: ClientMethod | Initial<Values>,
+  maybe_init?: Initial<Values>,
+): FormView<Values> {
+  const is_action = typeof action_or_init === "function";
+  const { initial, ...form_init } = (
+    is_action ? (maybe_init ?? {}) : (action_or_init ?? {})
+  ) as Initial<Values>;
+  const action = is_action ? action_or_init : undefined;
+  const contentType = is_action
+    ? (action_or_init as MethodMeta).contentType
+    : undefined;
+  const controller = React.useMemo(() => core.createForm({
+    ...form_init,
+    ...action !== undefined && {
+      action: action as (args: { body: unknown }) => Promise<Response>,
+      contentType,
+    },
+  }), []);
+  const values = React.useMemo(() => initial ?? {} as Values, []);
   const snapshot = React.useSyncExternalStore(
-    (notify) => controller.subscribe(() => notify()),
+    notify => controller.subscribe(() => notify()),
     controller.read,
     controller.read,
   );
-
   const submit = React.useCallback<React.FormEventHandler<HTMLFormElement>>(
-    (event) => {
+    event => {
       controller.submit({
         preventDefault: () => event.preventDefault(),
         stopPropagation: () => event.stopPropagation(),
@@ -55,7 +72,6 @@ function form<Values extends Dict = Dict>(init?: Initial<Values>) {
       field(name) {
         const key = name as string;
         const errors = snapshot.errors.fields[key] ?? [];
-
         return {
           name: key,
           value: values[name],
@@ -64,7 +80,6 @@ function form<Values extends Dict = Dict>(init?: Initial<Values>) {
         };
       },
     };
-
     return view;
   }, [snapshot, submit, values]);
 }

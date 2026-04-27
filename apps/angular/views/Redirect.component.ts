@@ -1,6 +1,6 @@
-import { Component } from "@angular/core";
 import { NgIf } from "@angular/common";
-import client from "@primate/angular/client";
+import { Component } from "@angular/core";
+import { client } from "@primate/angular";
 
 @Component({
   standalone: true,

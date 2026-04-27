@@ -38,10 +38,12 @@ import response from "primate/response";
 import route from "primate/route";
 import Page from "#view/Page";
 
-route.get(() => {
-  const title = app.config("name");
-
-  return response.view(Page, { title });
+export default route({
+  get() {
+      const title = app.config("name");
+    
+      return response.view(Page, { title });
+  },
 });
 ```
 
@@ -133,9 +135,11 @@ import response from "primate/response";
 import route from "primate/route";
 import Page from "#view/Page";
 
-route.get(() => {
-  const { html } = app.view("docs/home/index.md");
-  return response.view(Page, { content: html });
+export default route({
+  get() {
+      const { html } = app.view("docs/home/index.md");
+      return response.view(Page, { content: html });
+  },
 });
 ```
 

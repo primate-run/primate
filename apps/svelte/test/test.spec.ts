@@ -13,6 +13,6 @@ const browser = test.frontend(import.meta.dirname);
     await using tab = await browser.open();
 
     await tab.goto(`/imports/${route}`);
-    assert(tab.select("h1")?.textContent).equals("Hello, world");
+    assert(tab.get("h1").text()).equals("Hello, world");
   });
 });

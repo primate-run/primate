@@ -5,4 +5,8 @@ import route from "primate/route";
 
 const file = fs.ref("path/to/file.pdf");
 
-route.get(() => response.binary(file));
+export default route({
+  get() {
+    return response.binary(file);
+  },
+});

@@ -1,6 +1,8 @@
 import route from "primate/route";
 
-route.get((request) => {
-  const name = request.path.try("name") ?? "guest";
-  return { name };
+export default route({
+  get(request) {
+    const name = request.path.try("name") ?? "guest";
+    return { name };
+  },
 });

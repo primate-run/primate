@@ -1,5 +1,10 @@
 import route from "primate/route";
 
-route.get(request => "Hello from GET!");
-
-route.post(request => "Hello from POST!");
+export default route({
+  get(request) {
+    return "Hello from GET!";
+  },
+  post(request) {
+    return "Hello from POST!";
+  },
+});

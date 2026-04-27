@@ -32,7 +32,6 @@ value at runtime — including `app.config()`, `app.env()`, `app.view()`, and
 |[http.static.root](#http-static-root)|`"/"`|web path of static assets|
 |[env.schema](#env-schema)|`undefined`|schema for typed environment variables|
 |[modules](#modules)|`[]`|extension modules|
-|[request.body.parse](#request-body-parse)|`true`|parse request body|
 
 ### `db.migrations`
 
@@ -121,15 +120,6 @@ starts serving and becomes type-aware. See the [Application] page for usage.
 
 ### `modules`
 Additional modules to load at runtime.
-
-### `request.body.parse`
-Whether the request body should be parsed according to the content type.
-Turning this off is useful if you're using Primate as a programmable reverse
-proxy and forwarding the requests to another app.
-
-Even if this is turned off, headers, query string and cookies are still parsed
-and available to `request`, and `request.original` then contains the untouched
-original request.
 
 ### Reference
 [s=configuration/app]

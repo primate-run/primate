@@ -90,13 +90,15 @@ component expects.
 // routes/user.ts
 import route from "primate/route";
 
-route.get(request => {
-  // string-based, no type checking
-  return response.view("UserProfile.tsx", {
-    name: "Bob",
-    age: 30,
-    // typos or wrong types go unnoticed
-  });
+export default route({
+  get(request) {
+      // string-based, no type checking
+      return response.view("UserProfile.tsx", {
+        name: "Bob",
+        age: 30,
+        // typos or wrong types go unnoticed
+      });
+  },
 });
 ```
 
@@ -107,13 +109,15 @@ route.get(request => {
 import route from "primate/route";
 import UserProfile from "#view/UserProfile";
 
-route.get(request => {
-  // direct import, fully type-checked
-  return response.view(UserProfile, {
-    name: "Bob",
-    age: 30,
-    // TypeScript will error if props don't match component signature
-  });
+export default route({
+  get(request) {
+      // direct import, fully type-checked
+      return response.view(UserProfile, {
+        name: "Bob",
+        age: 30,
+        // TypeScript will error if props don't match component signature
+      });
+  },
 });
 ```
 
@@ -141,11 +145,13 @@ Now in your route:
 ```ts
 import UserProfile from "#view/UserProfile";
 
-route.get(() => {
-  return response.view(UserProfile, {
-    name: "Bob",
-    age: "thirty", // TypeScript error: Type 'string' is not assignable
-  });              // to type 'number'
+export default route({
+  get() {
+      return response.view(UserProfile, {
+        name: "Bob",
+        age: "thirty", // TypeScript error: Type 'string' is not assignable
+      });              // to type 'number'
+  },
 });
 ```
 
@@ -301,13 +307,15 @@ export default session({
 import session from "#session";
 import route from "primate/route";
 
-route.get(() => {
-  if (!session.exists) {
-    session.create({ user_id: 42 });
-  }
-
-  const data = session.get();
-  return `User ${data.user_id} last active at ${data.last_active}`;
+export default route({
+  get() {
+      if (!session.exists) {
+        session.create({ user_id: 42 });
+      }
+    
+      const data = session.get();
+      return `User ${data.user_id} last active at ${data.last_active}`;
+  },
 });
 ```
 

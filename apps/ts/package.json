@@ -5,15 +5,19 @@
   "scripts": {
     "start": "npx primate",
     "build": "npx primate build",
-    "test": "npx primate test",
-    "test:deno": "deno run -A npm:primate test",
-    "test:bun": "bun x --bun primate test"
+    "test": "npx proby",
+    "test:deno": "deno run -A npm:proby",
+    "test:bun": "bunx --bun proby"
   },
   "dependencies": {
-    "@primate/html": "workspace:^",
+    "@primate/svelte": "workspace:^",
     "@rcompat/fs": "^0.31.0",
     "@rcompat/http": "^0.28.0",
     "pema": "workspace:^",
-    "primate": "workspace:^"
+    "primate": "workspace:^",
+    "svelte": "^5.55.1"
+  },
+  "devDependencies": {
+    "@primate/test": "workspace:^"
   }
 }

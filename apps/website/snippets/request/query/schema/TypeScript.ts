@@ -6,7 +6,9 @@ const QuerySchema = p({
   search: p.string.min(1),
 });
 
-route.get(request => {
-  const { page, search } = request.query.parse(QuerySchema);
-  return `Searching '${search}' (page ${page})`;
+export default route({
+  get(request) {
+    const { page, search } = request.query.parse(QuerySchema);
+    return `Searching '${search}' (page ${page})`;
+  },
 });

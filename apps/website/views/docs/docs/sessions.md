@@ -114,13 +114,15 @@ used in `config/session.ts`.
 import session from "#session";
 import route from "primate/route";
 
-route.get(() => {
-  if (!session.exists) {
-    session.create({ user_id: 42 });
-  }
-
-  const data = session.get();
-  return `User ${data.user_id} last active at ${data.last_active.toISOString()}`;
+export default route({
+  get() {
+      if (!session.exists) {
+        session.create({ user_id: 42 });
+      }
+    
+      const data = session.get();
+      return `User ${data.user_id} last active at ${data.last_active.toISOString()}`;
+  },
 });
 ```
 
@@ -168,9 +170,11 @@ export default store({
 import session from "#session";
 import route from "primate/route";
 
-route.post(() => {
-  // throws if token is shorter than 10 characters
-  session.set({ token: "abc" });
+export default route({
+  post() {
+      // throws if token is shorter than 10 characters
+      session.set({ token: "abc" });
+  },
 });
 ```
 

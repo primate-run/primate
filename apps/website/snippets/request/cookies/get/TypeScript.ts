@@ -2,14 +2,16 @@ import Status from "primate/http/Status";
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(request => {
-  const session = request.cookies.try("session"); // string | undefined
-  if (!session) {
-    return response.error({
-      body: "Unauthorized",
-      status: Status.UNAUTHORIZED,
-    });
-  }
+export default route({
+  get(request) {
+    const session = request.cookies.try("session"); // string | undefined
+    if (!session) {
+      return response.error({
+        body: "Unauthorized",
+        status: Status.UNAUTHORIZED,
+      });
+    }
 
-  return `Hello (session ${session.slice(0, 8)}...)`;
+    return `Hello (session ${session.slice(0, 8)}...)`;
+  },
 });

@@ -39,7 +39,7 @@ function backend(dirname: string) {
     assert(await tab.json("/request/validate-query?foo=bar&baz=1"))
       .equals({ foo: "bar", baz: 1 });
     assert(await tab.text("/request/validate-query?foo=bar&baz=foo"))
-      .equals("parsing failed for field 'baz': cannot parse 'foo' as integer");
+      .throws(Error);
   });
 
   test.case("redirected", async assert => {
@@ -104,7 +104,9 @@ function backend(dirname: string) {
           fd.append("foo", x.foo);
           fd.append(
             "greeting",
-            new File([x.greeting.content], x.greeting.name, { type: x.greeting.type }),
+            new File([x.greeting.content], x.greeting.name, {
+              type: x.greeting.type,
+            }),
           );
           return fd;
         },
@@ -187,9 +189,8 @@ function backend(dirname: string) {
 
     await tab.goto("/response/view");
     const inner = "<h1>View</h1> Hello, world.";
-    assert(tab.select("body")?.textContent).nequals("");
-    assert(tab.select("div")?.innerHTML).equals(inner);
-
+    assert(tab.get("body").text()).nequals("");
+    assert(tab.get("div").html()).equals(inner);
   });
 
   test.case("partial view", async assert => {
@@ -202,12 +203,27 @@ function backend(dirname: string) {
     assert(text.includes("<body>")).false();
   });
 
-  test.case("session", async assert => {
-    await using tab = await browser.open();
-    const response = await tab.fetch("/session");
-    const set_cookie = response.headers.get("Set-Cookie");
-    assert(set_cookie?.includes("session_id=")).true();
-    assert(await response.json()).equals({ foo: "bar" });
+  test.group("session", () => {
+    test.case("create", async assert => {
+      await using tab = await browser.open();
+      const response = await tab.fetch("/session/create");
+      const set_cookie = response.headers.get("Set-Cookie");
+      assert(set_cookie?.includes("session_id=")).true();
+      assert(await response.json()).equals({ foo: "bar" });
+    });
+
+    /*test.case("new", async assert => {
+      await using tab = await browser.open();
+      assert(await tab.text("/session/new")).equals("no session");
+      const response = await tab.fetch("/session/create");
+      const set_cookie = response.headers.get("Set-Cookie");
+      assert(set_cookie).not.null();
+      const json = await tab.json("/session/new");
+      assert(json).equals({
+        id: set_cookie!.slice("session_id=".length),
+        foo: "bar",
+      });
+    });*/
   });
 
   test.group("i18n", () => {
@@ -220,6 +236,11 @@ function backend(dirname: string) {
     test.case("locale", async assert => {
       await using tab = await browser.open();
       assert(await tab.text("/i18n/locale")).equals("en-US");
+    });
+
+    test.case("nested", async assert => {
+      await using tab = await browser.open();
+      assert(await tab.text("/i18n/nested")).equals("baz: 4");
     });
   });
 

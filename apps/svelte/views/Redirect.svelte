@@ -1,5 +1,6 @@
 <script lang="ts">
-  import client from "@primate/svelte/client";
+  import { client } from "@primate/svelte";
+
   const form = client.form({ initial: { email: "" } });
 </script>
 

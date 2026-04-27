@@ -1,5 +1,6 @@
 import type App from "#App";
 import type BuildApp from "#build/App";
+import type { LogEntry } from "#logger";
 import type NextHandle from "#module/NextHandle";
 import type NextRoute from "#module/NextRoute";
 import type RequestFacade from "#request/RequestFacade";
@@ -10,6 +11,7 @@ import type { MaybePromise } from "@rcompat/type";
 export type InitHook = (app: App) => MaybePromise<void>;
 export type BuildHook = (app: BuildApp) => MaybePromise<void>;
 export type ServeHook = (app: ServeApp) => MaybePromise<void>;
+export type LogHook = (entry: LogEntry) => void;
 
 export type HandleHook = (
   request: RequestFacade,
@@ -27,4 +29,5 @@ export default interface Setup {
   onServe(hook: ServeHook): void;
   onHandle(hook: HandleHook): void;
   onRoute(hook: RouteHook): void;
+  onLog(hook: LogHook): void;
 }

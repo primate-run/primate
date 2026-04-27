@@ -1,13 +1,13 @@
 import type { Signal } from "@angular/core";
 import { DestroyRef, computed, inject, signal } from "@angular/core";
-import type { FormInit } from "@primate/core/client";
+import type { ClientMethod, FormInit, MethodMeta } from "@primate/core/client";
 import core from "@primate/core/client";
 import type { Dict } from "@rcompat/type";
 
 type Field<T> = {
   name: string;
   value: T;
-  errors: Signal<readonly string[]>;
+  errors: Signal<string[]>;
   error: Signal<string | null>;
 };
 
@@ -16,9 +16,7 @@ type FormView<Values extends Dict> = {
   submitting: Signal<boolean>;
   submitted: Signal<boolean>;
   submit: (event?: Event) => Promise<void>;
-
-  errors: Signal<readonly string[]>;
-
+  errors: Signal<string[]>;
   field: <K extends keyof Values & string>(name: K) => Field<Values[K]>;
 };
 
@@ -32,38 +30,51 @@ function try_destroy_ref(): DestroyRef | null {
   }
 }
 
+function form<Values extends Dict>(
+  action: ClientMethod<Values>,
+  init?: Initial<Values>,
+): FormView<Values>;
 function form<Values extends Dict>(init: Initial<Values>): FormView<Values>;
 function form(init?: FormInit): FormView<Dict>;
-
-function form<Values extends Dict = Dict>(init?: Initial<Values>) {
-  const { initial, ...form_init } = (init ?? {}) as Initial<Values>;
-  const controller = core.createForm(form_init);
+function form<Values extends Dict = Dict>(
+  action_or_init?: ClientMethod | Initial<Values>,
+  maybe_init?: Initial<Values>,
+): FormView<Values> {
+  const is_action = typeof action_or_init === "function";
+  const { initial, ...form_init } = (
+    is_action ? (maybe_init ?? {}) : (action_or_init ?? {})
+  ) as Initial<Values>;
+  const action = is_action ? action_or_init : undefined;
+  const contentType = is_action
+    ? (action_or_init as MethodMeta).contentType
+    : undefined;
+  const controller = core.createForm({
+    ...form_init,
+    ...(action !== undefined && {
+      action: action as (args: { body: unknown }) => Promise<Response>,
+      contentType,
+    }),
+  });
   const values = (initial ?? {}) as Values;
   const snap = signal(controller.read());
-  const unsub = controller.subscribe((next) => snap.set(next));
-  try_destroy_ref()?.onDestroy(unsub);
-
+  const unsubscribe = controller.subscribe(next => snap.set(next));
+  try_destroy_ref()?.onDestroy(unsubscribe);
   const submitting = computed(() => snap().submitting);
   const submitted = computed(() => snap().submitted);
   const errors = computed(() => snap().errors.form);
-
   const cache = new Map<string, Field<any>>();
 
   function field<K extends keyof Values & string>(name: K): Field<Values[K]> {
-    const key = name as string;
-
-    const cached = cache.get(key);
+    const cached = cache.get(name);
     if (cached) return cached as Field<Values[K]>;
-
-    const form_errors = computed(() => snap().errors.fields[key] ?? []);
+    const form_errors = computed(() => snap().errors.fields[name] ?? []);
     const view: Field<Values[K]> = {
-      name: key,
+      name,
       value: values[name],
       errors: form_errors,
       error: computed(() => form_errors()[0] ?? null),
     };
-
-    cache.set(key, view);
+    cache.set(name, view);
     return view;
   }
 

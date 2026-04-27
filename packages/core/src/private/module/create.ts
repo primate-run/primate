@@ -3,6 +3,7 @@ import type {
   BuildHook,
   HandleHook,
   InitHook,
+  LogHook,
   RouteHook,
   ServeHook,
 } from "#module/Setup";
@@ -13,6 +14,7 @@ type Hooks = {
   serve: ServeHook[];
   handle: HandleHook[];
   route: RouteHook[];
+  log: LogHook[];
 };
 
 type Created = {
@@ -29,6 +31,7 @@ export default function create({ name, setup }: Module): Created {
     serve: [],
     handle: [],
     route: [],
+    log: [],
   };
 
   setup({
@@ -50,6 +53,10 @@ export default function create({ name, setup }: Module): Created {
 
     onRoute(hook) {
       hooks.route.push(hook);
+    },
+
+    onLog(hook) {
+      hooks.log.push(hook);
     },
   });
 

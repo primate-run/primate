@@ -60,6 +60,12 @@
       "browser": "./lib/private/app/Facade.browser.js",
       "default": "./lib/public/AppFacade.js"
     },
+    "./route": {
+      "types": "./lib/public/route.client.js",
+      "@primate/source": "./src/public/route.ts",
+      "browser": "./lib/public/route.client.js",
+      "default": "./lib/public/route.js"
+    },
     "./*": {
       "@primate/source": "./src/public/*.ts",
       "default": "./lib/public/*.js"

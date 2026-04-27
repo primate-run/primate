@@ -162,19 +162,15 @@ end
 #### Binary Data
 
 ```ruby
-# routes/binary.rb
+# routes/blob.rb
 require 'primate/route'
 
-Route.post do |request|
-  readable = request.body.binary
-
-  # Get first 4 bytes for file type detection
-  head = readable.head(4)
-
+Route.post(content_type: "application/octet-stream") do |request|
+  blob = request.body.blob
   {
-    type: readable.content_type,
-    size: readable.size,
-    head: head
+    "type" => blob.type,
+    "size" => blob.size,
+    "head" => blob.head(4),
   }
 end
 ```
@@ -187,13 +183,15 @@ Handle multipart file uploads:
 # routes/upload.rb
 require 'primate/route'
 
-Route.post do |request|
+Route.post(content_type: "multipart/form-data") do |request|
+  multipart = request.body.multipart
+
   begin
     # Get form form
-    form = request.body.form
+    form = multipart.form
 
     # Get uploaded files
-    files = request.body.files
+    files = multipart.files
 
     # Process files
     file_info = files.map do |file|

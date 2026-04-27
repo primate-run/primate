@@ -1,6 +1,8 @@
 import route from "primate/route";
 
-route.post(request => {
-  const received = request.body.form();
-  return { received };
+export default route({
+  async post(request) {
+    const received = await request.body.form();
+    return { received };
+  },
 });

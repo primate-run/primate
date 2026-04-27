@@ -1,10 +1,13 @@
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("Login.jsx"));
+export default route({
+  get() {
+    return response.view("Login.jsx");
+  },
+  post(request) {
+    // do verification work, create session, etc.
 
-route.post(request => {
-  // do verification work, create session, etc.
-
-  return response.redirect(request.query.get("next"));
+    return response.redirect(request.query.get("next"));
+  },
 });

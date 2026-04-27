@@ -20,6 +20,9 @@
       "#view/*": [
         "views/*"
       ],
+      "#route/*": [
+        "routes/*"
+      ],
       "#component/*": [
         "components/*"
       ],

@@ -1,7 +1,9 @@
 // routes/api.ts
 import route from "primate/route";
 
-route.post(request => {
-  const received = request.body.binary();
-  return { received };
+export default route({
+  async post(request) {
+    const blob = await request.body.blob();
+    return { blob };
+  },
 });

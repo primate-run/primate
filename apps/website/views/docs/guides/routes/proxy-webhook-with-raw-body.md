@@ -1,29 +1,24 @@
 ---
-title: Proxy webhook with raw body (no parsing)
+title: Proxy webhook with raw body
 ---
 
-Forward inbound webhooks **unchanged** to an upstream service by disabling body
-parsing and using `request.forward`.
-
-!!!
-With `{ parseBody: false }`, `request.body` is `null` and the original stream
-is forwarded as-is.
-!!!
+Forward inbound webhooks **unchanged** to an upstream service.
 
 ---
 
-### Disable parsing and forward
+### Forward
 
-Pass `{ parseBody: false }` as the second parameter of the route function.
+Use `request.forward` to forward the request as-is.
 
 ```ts
 // routes/webhook.ts
 import route from "primate/route";
 
-route.post(
-  request => request.forward("https://upstream.example.com/webhooks/provider"),
-  { parseBody: false },
-);
+export default route({
+  post(request) {
+    return request.forward("https://upstream.example.com/webhooks/provider"),
+  },
+});
 ```
 
 ---
@@ -36,10 +31,12 @@ Add a check before forwarding upstream.
 // routes/webhook.ts
 import route from "primate/route";
 
-route.post(request => {
-  if (request.headers.get("X-Secret") !== process.env.WEBHOOK_SECRET) {
-    return new Response("unauthorized", { status: 401 });
-  }
-  return request.forward("https://upstream.example.com/webhooks/provider");
-}, { parseBody: false });
+export default route({
+  post(request) {
+    if (request.headers.try("X-Secret") !== process.env.WEBHOOK_SECRET) {
+      return new Response("unauthorized", { status: 401 });
+    }
+    return request.forward("https://upstream.example.com/webhooks/provider");
+  },
+});
 ```

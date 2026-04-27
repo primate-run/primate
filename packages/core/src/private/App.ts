@@ -11,6 +11,7 @@ import type ServeApp from "#serve/App";
 import TargetManager from "#target/Manager";
 import dict from "@rcompat/dict";
 import type { FileRef } from "@rcompat/fs";
+import is from "@rcompat/is";
 import p from "pema";
 
 type Logger = ReturnType<typeof logger>;
@@ -26,6 +27,7 @@ export default class App {
     serve: [],
     handle: [],
     route: [],
+    log: [],
   };
   #module_names = new Set<string>();
   #kv = new Map<symbol, unknown>();
@@ -47,7 +49,7 @@ export default class App {
     this.#mode = flags.mode;
     this.#target = new TargetManager(this);
     this.#target_name = flags.target;
-    this.#log = logger(flags.log);
+    this.#log = logger(flags.log, this.#hooks.log);
   }
 
   get log() {
@@ -72,6 +74,7 @@ export default class App {
     this.#hooks.serve.push(...created.hooks.serve);
     this.#hooks.handle.push(...created.hooks.handle);
     this.#hooks.route.push(...created.hooks.route);
+    this.#hooks.log.push(...created.hooks.log);
   }
 
   async build_hooks(app: BuildApp) {
@@ -112,6 +115,17 @@ export default class App {
 
   get mode() {
     return this.#mode;
+  }
+
+  get secure() {
+    const ssl = this.config("http.ssl");
+
+    return is.defined(ssl.key) && is.defined(ssl.cert);
+  }
+
+  get url() {
+    const { host, port } = this.config("http");
+    return `http${this.secure ? "s" : ""}://${host}:${port}`;
   }
 
   get livereload() {

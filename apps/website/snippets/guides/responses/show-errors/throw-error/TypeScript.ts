@@ -1,6 +1,8 @@
 // routes/api.ts
 import route from "primate/route";
 
-route.get(() => {
-  throw new Error("Something went wrong");
+export default route({
+  get() {
+    throw new Error("Something went wrong");
+  },
 });

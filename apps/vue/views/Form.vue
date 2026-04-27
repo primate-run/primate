@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import client from "@primate/vue/client";
+import { client } from "@primate/vue";
 
-interface Props { counter: number; id: string }
+interface Props { counter: number; id: number }
 const props = defineProps<Props>();
 
 const form = client.form({ initial: { counter: props.counter } });
@@ -26,10 +26,11 @@ const form = client.form({ initial: { counter: props.counter } });
       />
     </label>
 
-    <p v-if="form.field('counter').error" style="color: red">
+    <p v-if="form.field('counter').error" id="counter-error" style="color: red">
       {{ form.field('counter').error }}
     </p>
 
+    <p v-if="form.submitted"><span id="submitted">saved</span></p>
     <button type="submit" :disabled="form.submitting">Save</button>
   </form>
 </template>

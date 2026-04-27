@@ -23,8 +23,7 @@
     "build": "npm run clean && tsc && cp src/app.tsconfig.json lib && cp src/types/app.d.ts lib && cp src/types/index.d.ts lib",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build",
-    "test": "npx proby"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
@@ -33,11 +32,11 @@
     "@rcompat/error": "^0.6.2",
     "@rcompat/fs": "^0.31.0",
     "@rcompat/http": "~0.28.0",
+    "@rcompat/is": "^0.9.0",
     "@rcompat/runtime": "^0.14.4",
     "@rcompat/test": "^0.15.0"
   },
   "devDependencies": {
-    "@primate/test": "workspace:^",
     "@rcompat/type": "^0.15.1"
   },
   "engines": {

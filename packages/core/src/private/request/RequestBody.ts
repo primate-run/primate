@@ -3,19 +3,28 @@ import assert from "@rcompat/assert";
 import http from "@rcompat/http";
 import is from "@rcompat/is";
 import type { Dict, JSONValue } from "@rcompat/type";
+import type { Parsed } from "pema";
 
 type Form = Dict<string>;
 type Files = Dict<File>;
-
 type MIMES = typeof http.MIME;
 type MIME = MIMES[keyof MIMES];
+
+type BodyOptions = {
+  contentType: MIME;
+  schema: Parsed<unknown>;
+};
+
+const patched = Symbol("RequestBody.patch");
 
 export default class RequestBody {
   #request: Request;
   #parsed: boolean = false;
+  #options: BodyOptions | undefined;
 
-  constructor(request: Request) {
+  constructor(request: Request, options?: BodyOptions) {
     this.#request = request;
+    this.#options = options;
   }
 
   #parse(mime: MIME) {
@@ -26,28 +35,34 @@ export default class RequestBody {
     this.#parsed = true;
   }
 
-  json(): Promise<JSONValue> {
+  [patched](options: BodyOptions): RequestBody {
+    return new RequestBody(this.#request, options);
+  }
+
+  async json(): Promise<JSONValue> {
     this.#parse(http.MIME.APPLICATION_JSON);
-    return this.#request.json();
+    const raw = await this.#request.json();
+    return this.#options?.contentType === http.MIME.APPLICATION_JSON
+      ? this.#options.schema.parse(raw) as JSONValue
+      : raw;
   }
 
   async form(): Promise<Form> {
     this.#parse(http.MIME.APPLICATION_X_WWW_FORM_URLENCODED);
     const form: Form = Object.create(null);
-
     for (const [key, value] of (await this.#request.formData()).entries()) {
       form[key] = assert.string(value);
     }
-
-    return form;
+    const raw = form;
+    return this.#options?.contentType === http.MIME.APPLICATION_X_WWW_FORM_URLENCODED
+      ? this.#options.schema.parse(raw) as Form
+      : raw;
   }
 
   async multipart(): Promise<{ form: Form; files: Files }> {
     this.#parse(http.MIME.MULTIPART_FORM_DATA);
-
     const form: Form = Object.create(null);
     const files: Files = Object.create(null);
-
     for (const [key, value] of (await this.#request.formData()).entries()) {
       if (is.string(value)) {
         form[key] = value;
@@ -55,17 +70,27 @@ export default class RequestBody {
         files[key] = value;
       }
     }
-
-    return { form, files };
+    const raw = { form, files };
+    return this.#options?.contentType === http.MIME.MULTIPART_FORM_DATA
+      ? this.#options.schema.parse(raw) as { form: Form; files: Files }
+      : raw;
   }
 
-  text(): Promise<string> {
+  async text(): Promise<string> {
     this.#parse(http.MIME.TEXT_PLAIN);
-    return this.#request.text();
+    const raw = await this.#request.text();
+    return this.#options?.contentType === http.MIME.TEXT_PLAIN
+      ? this.#options.schema.parse(raw) as string
+      : raw;
   }
 
-  blob(): Promise<Blob> {
+  async blob(): Promise<Blob> {
     this.#parse(http.MIME.APPLICATION_OCTET_STREAM);
-    return this.#request.blob();
+    const raw = await this.#request.blob();
+    return this.#options?.contentType === http.MIME.APPLICATION_OCTET_STREAM
+      ? this.#options.schema.parse(raw) as Blob
+      : raw;
   }
 }
+
+export { patched as BodyPatch };

@@ -67,7 +67,9 @@ function wrap(route_id: string) {
     import bytes from "app:wasm/${route_id}.wasm" with { type: "bytes" };
     import i18n from "app:config:i18n";
     import session from "app:config:session";
-    const handlers = await wrapper(bytes, ${JSON.stringify(route_id)}, { i18n, session });
+    const handlers = await wrapper(bytes, ${JSON.stringify(route_id)}, {
+      i18n, session,
+    });
     export default route(handlers);
   `;
 }
@@ -88,22 +90,22 @@ export default function default_module(input: Input = {}): Module {
           const relative = route.debase(app.path.routes);
           const route_id = relative.path.slice(1, -relative.extension.length);
 
-          const build_go_file = app.runpath("wasm", `${route_id}.go`);
-          await build_go_file.directory.create();
-          await build_go_file.write(postlude(app, await route.text(), route_id));
+          const build_file = app.runpath("wasm", `${route_id}.go`);
+          await build_file.directory.create();
+          await build_file.write(postlude(app, await route.text(), route_id));
 
           const wasm = app.runpath("wasm", `${route_id}.wasm`);
           try {
-            app.log.info`compiling ${(route.debase(app.root.path))} to WebAssembly`;
-            await io.run(run(wasm, build_go_file), {
-              cwd: build_go_file.directory.path,
+            app.log.info`compiling ${(route.debase(app.root))} to WebAssembly`;
+            await io.run(run(wasm, build_file), {
+              cwd: build_file.directory.path,
               env: ENV,
             });
           } catch (error) {
             throw E.backend_error(route, error as Error);
           }
 
-          await build_go_file.remove();
+          await build_file.remove();
 
           return wrap(route_id);
         });

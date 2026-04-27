@@ -7,14 +7,12 @@ import migrate_apply from "./migrate-apply.js";
 import migrate_create from "./migrate-create.js";
 import migrate_status from "./migrate-status.js";
 import serve from "./serve.js";
-import test from "./test.js";
 
 const commands = {
   build,
   dev,
   init,
   serve,
-  test,
   migrate_apply,
   migrate_create,
   migrate_status,

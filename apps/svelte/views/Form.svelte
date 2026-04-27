@@ -1,5 +1,5 @@
 <script lang="ts">
-  import client from "@primate/svelte/client";
+  import { client } from "@primate/svelte";
   const props: { id: number; counter: number } = $props();
 
   const form = client.form({ initial: { counter: props.counter } });
@@ -25,8 +25,9 @@
   </label>
 
   {#if $form.field("counter").error}
-    <p style="color: red">{$form.field("counter").error}</p>
+    <p id="counter-error" style="color: red">{$form.field("counter").error}</p>
   {/if}
 
+  {#if $form.submitted}<span id="submitted">saved</span>{/if}
   <button type="submit" disabled={$form.submitting}>Save</button>
 </form>

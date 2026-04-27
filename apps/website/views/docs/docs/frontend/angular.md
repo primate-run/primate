@@ -76,19 +76,21 @@ Serve the component from a route.
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => {
-  const posts = [
-    {
-      title: "First Post",
-      excerpt: "Introduction to Primate with Angular"
-    },
-    {
-      title: "Second Post",
-      excerpt: "Building reactive applications"
-    },
-  ];
-
-  return response.view("PostIndex.component.ts", { title: "Blog", posts });
+export default route({
+  get() {
+      const posts = [
+        {
+          title: "First Post",
+          excerpt: "Introduction to Primate with Angular"
+        },
+        {
+          title: "Second Post",
+          excerpt: "Building reactive applications"
+        },
+      ];
+    
+      return response.view("PostIndex.component.ts", { title: "Blog", posts });
+  },
 });
 ```
 
@@ -103,10 +105,14 @@ Pass props from a route:
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("User.component.ts", {
-  user: { name: "John", role: "Developer" },
-  permissions: ["read", "write"],
-}));
+export default route({
+  get() {
+    return response.view("User.component.ts", {
+      user: { name: "John", role: "Developer" },
+      permissions: ["read", "write"],
+    });
+  },
+});
 ```
 
 These props become `@Input()` properties in the component:
@@ -244,25 +250,28 @@ import p from "pema";
 await Counter.table.create();
 
 // GET page
-route.get(async () => {
-  const [existing] = await Counter.find({});
-  const counter = existing ?? await Counter.insert({ value: 10 });
-
-  return response.view("Counter.component.ts", {
-    id: counter.id,
-    counter: counter.value
-  });
-});
 
 // POST updates (called by validate().post)
-route.post(async request => {
-  // Ensure id is present
-  const id = p.string.parse(request.query.get("id"));
-  // Validate and coerce
-  const body = p({ value: p.number }).coerce(request.body.form());
-  // Persist changes
-  await Counter.update(id, { set: { value: body.value } });
-  return null; // 204
+
+export default route({
+  async get() {
+      const [existing] = await Counter.find({});
+      const counter = existing ?? await Counter.insert({ value: 10 });
+    
+      return response.view("Counter.component.ts", {
+        id: counter.id,
+        counter: counter.value
+      });
+  },
+  async post(request) {
+      // Ensure id is present
+      const id = p.string.parse(request.query.get("id"));
+      // Validate and coerce
+      const body = p({ value: p.number }).coerce(await request.body.form());
+      // Persist changes
+      await Counter.update(id, { set: { value: body.value } });
+      return null; // 204
+  },
 });
 ```
 
@@ -337,14 +346,17 @@ const LoginSchema = p({
   password: p.string.min(8),
 });
 
-route.get(() => response.view("LoginForm.component.ts"));
-
-route.post(request => {
-  const body = LoginSchema.parse(request.body.json());
-
-  // implement authentication logic
-
-  return null; // 204 or redirect/response
+export default route({
+  get() {
+    return response.view("LoginForm.component.ts");
+  },
+  async post(request) {
+      const body = LoginSchema.parse(await request.body.json());
+    
+      // implement authentication logic
+    
+      return null; // 204 or redirect/response
+  },
 });
 ```
 
@@ -389,7 +401,11 @@ Next, register the layout using a `+layout.ts` file:
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("Layout.component.ts"));
+export default route({
+  get() {
+    return response.view("Layout.component.ts");
+  },
+});
 ```
 
 This layout applies to all pages under this route subtree, rendering them
@@ -431,9 +447,13 @@ Then update the layout registration to pass the props:
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("Layout.component.ts", {
-  brand: "Primate Angular Demo"
-}));
+export default route({
+  get() {
+    return response.view("Layout.component.ts", {
+      brand: "Primate Angular Demo"
+    });
+  },
+});
 ```
 
 ## Internationalization

@@ -68,13 +68,15 @@ Serve the component from a route:
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => {
-  const posts = [
-    { title: "First Post", excerpt: "Introduction to Primate with React" },
-    { title: "Second Post", excerpt: "Building reactive applications" },
-  ];
-
-  return response.view("PostIndex.tsx", { title: "Blog", posts });
+export default route({
+  get() {
+      const posts = [
+        { title: "First Post", excerpt: "Introduction to Primate with React" },
+        { title: "Second Post", excerpt: "Building reactive applications" },
+      ];
+    
+      return response.view("PostIndex.tsx", { title: "Blog", posts });
+  },
 });
 ```
 
@@ -88,10 +90,14 @@ Pass props from a route:
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("User.tsx", {
-  user: { name: "John", role: "Developer" },
-  permissions: ["read", "write"],
-}));
+export default route({
+  get() {
+    return response.view("User.tsx", {
+      user: { name: "John", role: "Developer" },
+      permissions: ["read", "write"],
+    });
+  },
+});
 ```
 
 Access the props in the component:
@@ -222,24 +228,25 @@ import p from "pema";
 
 await Counter.table.create();
 
-route.get(async () => {
-  const counters = await Counter.find({});
-
-  const counter = counters.length === 0
-    ? await Counter.insert({ counter: 10 })
-    : counters[0];
-
-  return response.view("Counter.tsx", {
-    id: counter.id,
-    counter: counter.counter
-  });
-});
-
-route.post(async request => {
-  const id = p.string.parse(request.query.get("id"));
-  const body = p.number.coerce(request.body.json());
-  await Counter.update(id, { set: { counter: body } });
-  return null;
+export default route({
+  async get() {
+      const counters = await Counter.find({});
+    
+      const counter = counters.length === 0
+        ? await Counter.insert({ counter: 10 })
+        : counters[0];
+    
+      return response.view("Counter.tsx", {
+        id: counter.id,
+        counter: counter.counter
+      });
+  },
+  async post(request) {
+      const id = p.string.parse(request.query.get("id"));
+      const body = p.number.coerce(await request.body.json());
+      await Counter.update(id, { set: { counter: body } });
+      return null;
+  },
 });
 ```
 
@@ -380,14 +387,17 @@ const LoginSchema = p({
   password: p.string.min(8),
 });
 
-route.get(() => response.view("LoginForm.tsx"));
-
-route.post(request => {
-  const body = LoginSchema.parse(request.body.json());
-
-  // implement authentication logic
-
-  return null;
+export default route({
+  get() {
+    return response.view("LoginForm.tsx");
+  },
+  async post(request) {
+      const body = LoginSchema.parse(await request.body.json());
+    
+      // implement authentication logic
+    
+      return null;
+  },
 });
 ```
 
@@ -440,7 +450,11 @@ Next, register the layout via a `+layout.ts` file:
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("Layout.tsx", { brand: "Primate React Demo" }));
+export default route({
+  get() {
+    return response.view("Layout.tsx", { brand: "Primate React Demo" });
+  },
+});
 ```
 
 Pages under this route subtree render inside the layout as `children`.

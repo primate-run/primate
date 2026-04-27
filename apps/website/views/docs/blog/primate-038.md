@@ -1,23 +1,243 @@
 ---
-title: Primate 0.38: Oracle database driver, YYY, and ZZZ
-epoch: 1775417680816
+title: "Primate 0.38: The route is the contract"
+epoch: 1775417680000
 author: terrablue
 published: false
 ---
 
 Today we're announcing the availability of the Primate 0.38 preview release.
-This release adds an Oracle database driver, YYY, and ZZZ.
 
 !!!
 If you're new to Primate, we recommend reading the [quickstart] page to get
 started.
 !!!
 
+## The route is the contract
+
+In most web frameworks, a route handler is just a function. The types it
+expects live in a schema file. The validation logic lives somewhere else.
+The client code that calls it is written separately. The form that submits
+to it is configured independently. Everything drifts. Everything duplicates.
+Everything goes out of sync.
+
+Primate 0.38 takes a different position: **the route file is the single source
+of truth**. What the server accepts, what TypeScript enforces at call sites,
+what the runtime validates before your handler runs, and what your form wires
+up automatically — all of it flows from one declaration.
+
+This release introduces the full stack of that idea: declarative route exports,
+typed route clients, and `client.form`. We'll walk through each layer in turn,
+because they build on each other.
+
+## Declarative route exports
+
+The foundation is a new way to author routes. Previously, routes registered
+handlers as side effects. In 0.38, route files export their handlers as a
+default export using the new `route()` function:
+
+```ts
+import route from "primate/route";
+
+export default route({
+  get: () => "hello",
+  post: async request => {
+    const body = await request.body.json();
+    // ...
+  },
+});
+```
+
+Route files are now pure — they describe what a route does without reaching
+into a global registry to say so. This makes them easier to reason about,
+easier to test, and easier to compose.
+
+### Content type declaration
+
+The first layer of the contract: declare what content type your handler
+expects. Use `route.with` to pair a handler with its expected `Content-Type`:
+
+```ts
+import route from "primate/route";
+
+export default route({
+  post: route.with({ contentType: "application/json" }, async request => {
+    const body = await request.body.json();
+    // ...
+  }),
+});
+```
+
+If the incoming request doesn't match, Primate returns `415 Unsupported Media
+Type` before your handler ever runs. No defensive checks inside the handler,
+no silent misparses.
+
+All five body types are supported:
+
+```ts
+const json            = await request.body.json();
+const text            = await request.body.text();
+const form            = await request.body.form();
+const { form, files } = await request.body.multipart();
+const blob            = await request.body.blob();
+```
+
+All accessors are async and on-demand — the body is never preparsed. It can
+only be consumed once; calling a body accessor a second time throws.
+
+### Body schema
+
+The second layer: pair the content type with a pema schema to get runtime
+validation and narrowed types in the handler:
+
+```ts
+import route from "primate/route";
+import p from "pema";
+
+export default route({
+  post: route.with({
+    contentType: "application/json",
+    body: p({ foo: p.string }),
+  }, async request => {
+    const { foo } = await request.body.json();
+    // foo is typed as string — validated before this line runs
+    return { foo };
+  }),
+});
+```
+
+If the body fails validation, Primate returns `400 Bad Request` with
+structured pema error details before the handler runs. The handler only
+executes if the body is valid and fully typed.
+
+### Typed route client
+
+The third layer — and where the contract starts to pay off.
+
+Import a route directly into a view and you get a fully typed HTTP client.
+No code generation. No schema files. No separate client definitions. The
+route file is the source, and TypeScript sees it:
+
+```ts
+import route from "#route/user/register";
+
+const response = await route.post({ body: { foo: "bar" } });
+const data = await response.json();
+```
+
+TypeScript enforces the body type at the call site based on what the route
+declares. If the route has `body: p({ foo: p.string })`, passing
+`{ foo: 123 }` is a compile-time error. If the server rejects the body at
+runtime, the `400` response with pema's error structure comes straight back.
+
+The same import works in SSR — on the server, the handler is invoked directly
+with no network round-trip. The view code is identical in both contexts.
+
+### client.form
+
+The fourth layer — the full payoff.
+
+Pass a route method to `client.form` and you get a fully wired, fully typed
+form. The endpoint, the content type, the field types, and the validation
+errors all come from the route declaration:
+
+```tsx
+import { client } from "@primate/react";
+import route from "#route/user/register";
+
+export default function Register() {
+  const form = client.form(route.post);
+
+  return (
+    <form id={form.id} onSubmit={form.submit}>
+      <input name="email" />
+      <input name="age" type="number" />
+      {form.field("email").error && <p>{form.field("email").error}</p>}
+      {form.field("age").error && <p>{form.field("age").error}</p>}
+      <button type="submit">Register</button>
+    </form>
+  );
+}
+```
+
+`form.field("email")` is typed. `form.submit` posts to the right endpoint
+with the right content type. When the server returns a `400`, validation
+errors are automatically mapped to the right fields and surfaced via
+`form.field("name").error`. `form.submitted` flips to `true` on success.
+
+No endpoint URL strings. No separate form library configuration. No
+duplicated schema. The route is the contract — declare it once, get
+everything.
+
+`client.form` is available in all five supported frontends: React, Svelte,
+Vue, Solid, and Angular.
+
+### Hooks and helpers
+
+Hook files follow the same declarative pattern, exporting a default function
+using `hook()`:
+
+```ts
+import hook from "primate/hook";
+
+export default hook(async (request, next) => {
+  // runs before every route in this directory
+  return next(request);
+});
+```
+
+Files prefixed with `-` are excluded from routing entirely and can be used
+as shared helpers within a route directory:
+
+```
+routes/
+  -utils.ts       ← not a route, importable as a helper
+  index.ts        ← routed normally
+  user.ts         ← routed normally
+```
+
+### Wasm routes
+
+Go, Ruby, and Python routes keep their existing side-effect authoring model
+— the ergonomics are appropriate for those runtimes. The underlying
+implementation now returns a handlers object rather than registering into
+the global route table directly, but this is invisible to route authors.
+
+Wasm routes that access the request body must declare a `contentType`:
+
+**Go**
+```go
+var _ = route.With(route.Options{ContentType: route.JSON}).
+  Post(func(request route.Request) any {
+    json, _ := request.Body.JSON()
+    // ...
+  })
+```
+
+**Ruby**
+```ruby
+Route.post(content_type: "application/json") do |request|
+  json = request.body.json
+  # ...
+end
+```
+
+**Python**
+```python
+@Route.post(content_type="application/json")
+def handler(request):
+    json = request.body.json()
+    # ...
+```
+
+If no `contentType` is declared and the body is accessed, Primate returns
+an error.
+
 ## Oracle database driver
 
 Primate 0.38 adds `@primate/oracledb`, a native driver for Oracle Database.
 The driver targets Oracle 23c (23ai Free and above) and uses the `oracledb`
 Node.js package in thin mode — no Oracle Instant Client installation required.
+
 ```ts
 import oracle from "@primate/oracledb";
 import config from "primate/config";
@@ -38,8 +258,6 @@ All standard Primate store operations are supported — `insert`, `find`, `get`,
 projection, sorting, limiting, and the full operator set (`$like`, `$gt`,
 `$gte`, `$lt`, `$lte`, `$ne`, `$before`, `$after`).
 
-## YYY
-
 ## ZZZ
 
 ## Vue style tag support
@@ -47,6 +265,7 @@ projection, sorting, limiting, and the full operator set (`$like`, `$gt`,
 Primate 0.38 adds support for `<style>` blocks in Vue single-file components.
 Previously, styles defined inside a `.vue` file were silently ignored at
 runtime. They are now compiled and injected into the page automatically.
+
 ```vue
 <template>
   <p class="hello">Hello, world!</p>
@@ -67,16 +286,21 @@ Primate now handles `HEAD` requests correctly. If a route defines a `GET`
 handler but no explicit `HEAD` handler, Primate automatically falls back to
 the `GET` handler and strips the response body — returning only the headers,
 as the HTTP specification requires.
+
 ```ts
-// this route now responds correctly to both GET and HEAD
-route.get(() => response.json({ foo: "bar" }));
+export default route({
+  get: () => response.json({ foo: "bar" }),
+});
 ```
 
 If you need a bespoke `HEAD` response, define an explicit handler and it takes
 priority:
+
 ```ts
-route.get(() => response.json({ foo: "bar" }));
-route.head(() => new Response(null, { headers: { "x-custom": "bespoke" } }));
+export default route({
+  get: () => response.json({ foo: "bar" }),
+  head: () => new Response(null, { headers: { "x-custom": "bespoke" } }),
+});
 ```
 
 Routes that only define non-GET verbs correctly return 404 on HEAD.
@@ -84,9 +308,9 @@ Routes that only define non-GET verbs correctly return 404 on HEAD.
 ## Raw database client access
 
 Every database driver now exposes its underlying client via `db.client`.
-This gives you a typed escape hatch for operations that fall outside
-Primate's structured API — custom DDL, driver-specific features, or anything
-else the abstraction does not cover.
+This gives you an escape hatch for operations that fall outside Primate's
+structured API — custom DDL, driver-specific features, or anything else the
+abstraction does not cover.
 
 The type of `db.client` is specific to each driver:
 
@@ -99,6 +323,7 @@ The type of `db.client` is specific to each driver:
 | Oracle     | `Connection`   |
 
 The most common use case is a migration that requires raw SQL:
+
 ```ts
 export default async db => {
   await db.client.unsafe(`
@@ -114,6 +339,60 @@ writing driver-specific code, and the type system reflects that.
 
 ## Breaking changes
 
+### Routes: declarative exports replace side-effect registration
+
+The old `route.get(handler)` / `route.post(handler)` pattern no longer works.
+Migrate to `export default route({...})`:
+
+```ts
+// before
+route.get(() => "hello");
+route.post(async request => { /* ... */ });
+
+// after
+export default route({
+  get() {
+    return "hello";
+  },
+  async post(request) {
+    /* ... */
+  },
+});
+```
+
+### Request body: accessors are now async
+
+All `request.body` accessors are now async. Update any synchronous body access:
+
+```ts
+// before
+const body = request.body.json();
+
+// after
+const body = await request.body.json();
+```
+
+`request.body.binary` is renamed to `request.body.blob()`.
+`request.body.multipart()` is now separate from `request.body.form()` and
+returns `{ form, files }`.
+
+### Frontend client: named export replaces default import
+
+The `client` object is now a named export from each frontend package.
+Update any existing imports:
+
+```ts
+// before
+import client from "@primate/react/client";
+
+// after
+import { client } from "@primate/react";
+```
+
+The same applies to all five frontends — replace `@primate/svelte/client`,
+`@primate/vue/client`, `@primate/solid/client`, and `@primate/angular/client`
+with the named `{ client }` import from the root package.
+
 ### PostgreSQL: `date` now uses `TIMESTAMPTZ`
 
 The `date` Pema type previously mapped to `TIMESTAMP` (without timezone)
@@ -125,6 +404,7 @@ timezones. `TIMESTAMPTZ` stores the absolute moment in time unambiguously.
 
 If you have existing `date` columns in PostgreSQL, create a migration with
 the next number in your `migrations/` directory:
+
 ```ts
 export default async db => {
   await db.client.unsafe(`
@@ -150,3 +430,4 @@ us on [GitHub].
 [discord]: https://discord.gg/RSg4NNwM4f
 [GitHub]: https://github.com/primate-run/primate
 [upcoming features]: https://github.com/primate-run/primate/milestone/11
+

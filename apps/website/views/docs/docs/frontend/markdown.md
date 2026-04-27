@@ -52,7 +52,11 @@ Serve the template from a route:
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("post-index.md"));
+export default route({
+  get() {
+    return response.view("post-index.md");
+  },
+});
 ```
 
 ## Frontmatter
@@ -81,7 +85,11 @@ Serve the Markdown file:
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("blog-post.md"));
+export default route({
+  get() {
+    return response.view("blog-post.md");
+  },
+});
 ```
 
 ## Table of Contents
@@ -113,7 +121,11 @@ Serve the article:
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("article.md"));
+export default route({
+  get() {
+    return response.view("article.md");
+  },
+});
 ```
 
 The rendered view includes `toc` data with heading information that can be used
@@ -130,16 +142,18 @@ import respone from "primate/response";
 import route from "primate/route";
 import app from "#app";
 
-route.get(request => {
-  const page = request.path.get("page");
-  const { html, toc, meta } = app.view<Component>(`docs/${page}.md`);
-
-  return response.view("DocPage.html", {
-    content: html,
-    toc,
-    meta,
-    title: meta.title || page,
-  });
+export default route({
+  get(request) {
+      const page = request.path.get("page");
+      const { html, toc, meta } = app.view<Component>(`docs/${page}.md`);
+    
+      return response.view("DocPage.html", {
+        content: html,
+        toc,
+        meta,
+        title: meta.title || page,
+      });
+  },
 });
 ```
 

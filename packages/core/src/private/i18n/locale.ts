@@ -21,8 +21,8 @@ type EnforceNoDots<T, D extends number = 6> =
   }
   : T;
 
-export default function locale<const M extends Catalog>(
-  messages: EnforceNoDots<M>,
+export default function locale<const M>(
+  messages: EnforceNoDots<M> & Catalog,
 ): M {
   return messages as unknown as M;
 }

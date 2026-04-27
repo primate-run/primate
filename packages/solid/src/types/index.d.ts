@@ -1,2 +1,3 @@
 import "./app.d.ts";
-export { default } from "./public/default";
+export { default } from "#default";
+export { default as client } from "#client/index";

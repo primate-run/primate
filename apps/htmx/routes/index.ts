@@ -1,13 +1,8 @@
 import response from "primate/response";
 import route from "primate/route";
 
-const posts = [{
-  id: 1,
-  title: "First post",
-}];
-
 export default route({
   get() {
-    return response.view("post-index.htmx", { posts });
+    return response.view("index.htmx");
   },
 });

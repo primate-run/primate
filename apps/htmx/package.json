@@ -5,9 +5,9 @@
   "scripts": {
     "start": "npx primate",
     "build": "npx primate build",
-    "test": "npx primate test",
-    "test:deno": "deno run -A npm:primate test",
-    "test:bun": "bun x --bun primate test"
+    "test": "npx proby",
+    "test:deno": "deno run -A npm:proby",
+    "test:bun": "bunx --bun proby"
   },
   "dependencies": {
     "@primate/htmx": "workspace:^",
@@ -18,5 +18,8 @@
     "nunjucks": "^3.2.4",
     "pema": "workspace:^",
     "primate": "workspace:^"
+  },
+  "devDependencies": {
+    "@primate/test": "workspace:^"
   }
 }

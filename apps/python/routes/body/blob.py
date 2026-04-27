@@ -5,7 +5,7 @@ from primate import Route
 def handle_post(request):
     blob = request.body.blob()
     return {
-        "type": blob.content_type,
+        "type": blob.type,
         "size": blob.size,
         "head": blob.head(4),
     }

@@ -41,7 +41,11 @@ just created.
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("hello.html"));
+export default route({
+  get() {
+    return response.view("hello.html");
+  },
+});
 ```
 
 `response.view` will use the `pages/app.html` to render a full HTML page,
@@ -89,7 +93,11 @@ handler.
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("hello.html", {}, { partial: true }));
+export default route({
+  get() {
+    return response.view("hello.html", {}, { partial: true });
+  },
+});
 ```
 
 Using the same `hello.html` view specified as above, a client requesting

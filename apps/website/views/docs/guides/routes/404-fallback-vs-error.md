@@ -20,7 +20,11 @@ Return a normal error response.
 // routes/[[...path]].ts
 import route from "primate/route";
 
-route.get(() => new Response("Not found", { status: 404 }));
+export default route({
+  get() {
+    return new Response("Not found", { status: 404 });
+  },
+});
 ```
 
 ---
@@ -34,7 +38,13 @@ route.get(() => new Response("Not found", { status: 404 }));
 import route from "primate/route";
 import response from "primate/response";
 
-route.get(() => response.redirect("/")); // or return a rendered error view
+ // or return a rendered error view
+
+export default route({
+  get() {
+    return response.redirect("/");
+  },
+});
 ```
 
 ---

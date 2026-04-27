@@ -5,13 +5,16 @@
   "scripts": {
     "start": "npx primate",
     "build": "npx primate build",
-    "test": "npx primate test",
-    "test:deno": "deno run -A npm:primate test",
-    "test:bun": "bun x --bun primate test"
+    "test": "npx proby",
+    "test:deno": "deno run -A npm:proby",
+    "test:bun": "bunx --bun proby"
   },
   "dependencies": {
     "@primate/markdown": "workspace:^",
     "marked": "^17.0.6",
     "primate": "workspace:^"
+  },
+  "devDependencies": {
+    "@primate/test": "workspace:^"
   }
 }

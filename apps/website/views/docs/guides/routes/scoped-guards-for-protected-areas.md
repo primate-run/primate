@@ -21,13 +21,15 @@ Create a top-level guard.
 import route from "primate/route";
 import response from "primate/response";
 
-route.get(request => {
-  const ok = !!request.headers.get("Authorization");
-  if (!ok) {
-    return response.redirect(`/login?next=${encodeURIComponent(request.target)}`);
-  }
-  // pass through
-  return null;
+export default route({
+  get(request) {
+      const ok = !!request.headers.get("Authorization");
+      if (!ok) {
+        return response.redirect(`/login?next=${encodeURIComponent(request.target)}`);
+      }
+      // pass through
+      return null;
+  },
 });
 ```
 
@@ -43,12 +45,14 @@ through.
 import route from "primate/route";
 import response from "primate/response";
 
-route.get(request => {
-  if (request.headers.get("X-Role") !== "admin") {
-    return response.redirect("/"); // or return a 403 view/response
-  }
-
-  // pass through
-  return null;
+export default route({
+  get(request) {
+      if (request.headers.get("X-Role") !== "admin") {
+        return response.redirect("/"); // or return a 403 view/response
+      }
+    
+      // pass through
+      return null;
+  },
 });
 ```

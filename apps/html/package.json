@@ -1,0 +1,20 @@
+{
+  "name": "@primate/app/html",
+  "description": "Primate HTML template",
+  "type": "module",
+  "scripts": {
+    "start": "npx primate",
+    "build": "npx primate build",
+    "test": "npx proby",
+    "test:deno": "deno run -A npm:proby",
+    "test:bun": "bunx --bun proby"
+  },
+  "dependencies": {
+    "@primate/html": "workspace:^",
+    "pema": "workspace:^",
+    "primate": "workspace:^"
+  },
+  "devDependencies": {
+    "@primate/test": "workspace:^"
+  }
+}

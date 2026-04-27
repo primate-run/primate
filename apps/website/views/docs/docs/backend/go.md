@@ -170,7 +170,7 @@ var _ = route.Post(func(request route.Request) any {
 #### Binary Data
 
 ```go
-// routes/binary.go
+// routes/blob.go
 package main
 
 import (
@@ -179,19 +179,19 @@ import (
 )
 
 var _ = route.Post(func(request route.Request) any {
-    data, mime, err := request.Body.Binary()
+    blob, err := request.Body.Blob()
     if err != nil {
         return types.Dict{"error": err.Error()}
     }
 
     head := []int{}
-    for i := 0; i < len(data) && i < 4; i++ {
-        head = append(head, int(data[i]))
+    for i := 0; i < len(blob.Data) && i < 4; i++ {
+        head = append(head, int(blob.Data[i]))
     }
 
-    return types.Dict{
-        "type": mime,
-        "size": len(data),
+    return map[string]any{
+        "type": blob.Type,
+        "size": len(blob.Data),
         "head": head,
     }
 })

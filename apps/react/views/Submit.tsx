@@ -1,4 +1,4 @@
-import client from "@primate/react/client";
+import { client } from "@primate/react";
 
 export default function Submit() {
   const form = client.form({ initial: { email: "" } });

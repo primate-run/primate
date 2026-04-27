@@ -41,7 +41,7 @@ response.
 | ------------------------------------- | --------------------- | ---------------- | ------------------------------------|
 | [Web forms](#web-forms)               | `request.body.form`   | `string\|File`   | form submission, Authentication     |
 | [JSON API calls](#json-api-calls)     | `request.body.json`   | `JSONValue`      | REST APIs, client-side fetch calls  |
-| [Binary uploads](#binary-uploads)     | `request.body.binary` | `Blob`           | File uploads                        |
+| [Binary uploads](#binary-uploads)     | `request.body.blob`   | `Blob`           | File uploads                        |
 | [Query parameters](#query-parameters) | `request.query`       | `string`         | Pagination, filtering               |
 | [Path parameters](#path-parameters)   | `request.path`        | `string`         | REST resources, nested routes       |
 | [Headers](#headers)                   | `request.headers`     | `string`         | Authentication, content negotiation |
@@ -60,10 +60,12 @@ const Login = p({
   password: p.string.min(8),
 });
 
-route.post(request => {
-  const form = Login.parse(request.body.form());
-  // form.email and form.password are now validated
-  return "Welcome back!";
+export default route({
+  async post(request) {
+      const form = Login.parse(await request.body.form());
+      // form.email and form.password are now validated
+      return "Welcome back!";
+  },
 });
 ```
 
@@ -89,17 +91,17 @@ const CreateUser = p({
   age: p.uint.min(13), // must be >= 13
 });
 
-route.post(request => {
-  // short for CreateUser.parse(request.body.json())
-  const user = request.body.json(CreateUser);
-  // user is now guaranteed to match schema
-  return { id: 42, ...user };
+export default route({
+  async post(request) {
+    const user = CreateUser.parse(await request.body.json());
+    // user is now guaranteed to match schema
+    return { id: 42, ...user };
+  },
 });
 ```
 
 ## Binary uploads
-Raw uploads (e.g. images) are available through `request.body.binary` as a
-`Blob`.
+Raw uploads (e.g. images) are available through `request.body.blob` as a `Blob`.
 
 ```ts
 import p from "pema";
@@ -107,13 +109,15 @@ import route from "primate/route";
 
 const Icon = p.blob.max(1000).type("image/png");
 
-route.post(request => {
-  // this throws if body isn't a binary stream or doesn't pass validation
-  const file = Icon.parse(request.body.binary());
+export default route({
+  async post(request) {
+      // this throws if body isn't a binary stream or doesn't pass validation
+      const file = Icon.parse(await request.body.blob());
 
-  await FileRef.write("/tmp/1.png", file);
+      await FileRef.write("/tmp/1.png", file);
 
-  return "File uploaded!";
+      return "File uploaded!";
+  },
 });
 ```
 
@@ -133,10 +137,12 @@ const Query = p({
   filter: p.string.optional(),
 });
 
-route.get(request => {
-  const params = request.query.parse(Query);
-  // params.page is a validated number
-  return `Showing page ${params.page}`;
+export default route({
+  get(request) {
+      const params = request.query.parse(Query);
+      // params.page is a validated number
+      return `Showing page ${params.page}`;
+  },
 });
 ```
 
@@ -152,9 +158,11 @@ const Path = p({
   userId: p.uint.coerce,
 });
 
-route.get(request => {
-  const { userId } = request.path.parse(Path);
-  return `Profile for user ${userId}`;
+export default route({
+  get(request) {
+      const { userId } = request.path.parse(Path);
+      return `Profile for user ${userId}`;
+  },
 });
 ```
 
@@ -171,12 +179,14 @@ const Header = p({
   authorization: p.string.startsWith("Bearer "),
 });
 
-route.get(request => {
-  const { authorization } = request.headers.parse(Header);
-  const bearer = authorization.slice("Bearer ".length);
+export default route({
+  get(request) {
+      const { authorization } = request.headers.parse(Header);
+      const bearer = authorization.slice("Bearer ".length);
 
-  /* actually validate the token */
+      /* actually validate the token */
 
-  return `Validated token: ${bearer}`;
+      return `Validated token: ${bearer}`;
+  },
 });
 ```

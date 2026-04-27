@@ -25,9 +25,11 @@ const Query = p({
   limit: p.uint.max(100).default(10),
 });
 
-route.get(request => {
-  const { q, limit } = Query.parse(request.query);
-  return { q, limit };
+export default route({
+  get(request) {
+      const { q, limit } = Query.parse(request.query);
+      return { q, limit };
+  },
 });
 ```
 
@@ -42,9 +44,11 @@ Schema for path parameters.
 import route from "primate/route";
 import p from "pema";
 
-route.get(request => {
-  const id = p.uint.parse(request.path.get("id"));
-  return { id };
+export default route({
+  get(request) {
+      const id = p.uint.parse(request.path.get("id"));
+      return { id };
+  },
 });
 ```
 
@@ -58,10 +62,12 @@ Schema for headers.
 import route from "primate/route";
 import p from "pema";
 
-route.get(request => {
-  const auth = p.string
-    .startsWith("Bearer ")
-    .parse(request.headers.get("Authorization"));
-  return { auth };
+export default route({
+  get(request) {
+      const auth = p.string
+        .startsWith("Bearer ")
+        .parse(request.headers.get("Authorization"));
+      return { auth };
+  },
 });
 ```

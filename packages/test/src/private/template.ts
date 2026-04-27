@@ -11,13 +11,13 @@ export default function template(dirname: string) {
   test.case("renders h1", async assert => {
     await using tab = await browser.open();
     await tab.goto("/");
-    assert(tab.select("h1")?.textContent).equals("Hello");
+    assert(tab.get("h1").text()).equals("Hello");
   });
 
   test.case("renders props", async assert => {
     await using tab = await browser.open();
     await tab.goto("/props");
-    assert(tab.select("span")?.textContent).equals("bar");
+    assert(tab.get("span").text()).equals("bar");
   });
 
   return browser;

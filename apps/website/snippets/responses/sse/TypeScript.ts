@@ -1,12 +1,16 @@
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.sse({
-  // connection opened
-  open(source) {
-    // push event to client
-    source.send("open", "hi!");
+export default route({
+  get() {
+    return response.sse({
+      // connection opened
+      open(source) {
+        // push event to client
+        source.send("open", "hi!");
+      },
+      // connection closed
+      close() { },
+    });
   },
-  // connection closed
-  close() { },
-}));
+});

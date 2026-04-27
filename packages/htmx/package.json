@@ -20,8 +20,7 @@
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build",
-    "test": "npx proby"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
@@ -33,9 +32,6 @@
     "@rcompat/runtime": "^0.14.4",
     "@rcompat/string": "^0.19.0",
     "pema": "workspace:^"
-  },
-  "devDependencies": {
-    "@primate/test": "workspace:^"
   },
   "peerDependencies": {
     "handlebars": "4",

@@ -1,6 +1,7 @@
-import { Component, Input, type OnInit } from "@angular/core";
 import { NgIf } from "@angular/common";
-import client from "@primate/angular/client";
+import type { OnInit } from "@angular/core";
+import { Component, Input } from "@angular/core";
+import { client } from "@primate/angular";
 
 @Component({
   imports: [NgIf],
@@ -25,10 +26,11 @@ import client from "@primate/angular/client";
         />
       </label>
 
-      <p *ngIf="counterField.error() as err" style="color: red">
+      <p *ngIf="counterField.error() as err" id="counter-error" style="color: red">
         {{ err }}
       </p>
 
+      <span *ngIf="form.submitted" id="submitted">saved</span>
       <button type="submit" [disabled]="form.submitting()">Save</button>
     </form>
   `,

@@ -1,30 +1,26 @@
-export default (depth: number, i18n_active: boolean) => {
-  const n = depth;
-
+export default function createRoot(depth: number, i18n_active: boolean) {
   const build_view = (index: number): string => {
-    // anchor case: render the deepest view
-    if (index === n) return `h(p.views[${index}], p.props[${index}] || {})`;
-    else {
-      // recursive case: render view with child
-      const child = build_view(index + 1);
-      return `h(p.views[${index}], p.props[${index}] || {}, () => [${child}])`;
-    }
+    if (index > depth) return `h("div")`;
+    if (index === depth) return `h(p.views[${index}], p.props[${index}] || {})`;
+    const child = build_view(index + 1);
+    return `h(p.views[${index}], p.props[${index}] || {}, () => [${child}])`;
   };
 
-  const body = depth > 0 ? build_view(0) : "h(\"div\")";
+  const body = `h(Suspense, null, { default: () => ${build_view(0)} })`;
 
-  const vueImports = `
+  const vue_imports = `
     import {
-      defineComponent, h${i18n_active ? ", ref, onMounted, onUnmounted" : ""}
+      defineComponent, h, Suspense
+      ${i18n_active ? ", ref, onMounted, onUnmounted" : ""}
     } from "vue";
     import { setRequest } from "@primate/vue/app";
     `;
-  const i18nImports = i18n_active
+  const i18n_imports = i18n_active
     ? `
 import t from "#i18n";
 import sInternal from "primate/s/internal";`
     : "";
-  const i18nSetup = i18n_active
+  const i18n_setup = i18n_active
     ? `
 const initialLocale = props.p?.request?.context?.i18n?.locale;
 if (initialLocale) t[sInternal].init(initialLocale);
@@ -41,13 +37,13 @@ if (typeof window !== "undefined") {
 }`
     : "";
   return `
-${vueImports}
-${i18nImports}
+${vue_imports}
+${i18n_imports}
 export default defineComponent({
   name: "root",
   props: { p: { type: Object, required: true } },
   setup(props) {
-    ${i18nSetup}
+    ${i18n_setup}
     return () => {
       const p = props.p;
       setRequest(props.p.request);

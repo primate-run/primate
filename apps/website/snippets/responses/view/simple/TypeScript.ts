@@ -1,4 +1,8 @@
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("Counter.jsx"));
+export default route({
+  get() {
+    return response.view("Counter.jsx");
+  },
+});

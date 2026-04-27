@@ -3,6 +3,7 @@ import init from "#init";
 import frontend from "@primate/core/frontend";
 import type { FileRef } from "@rcompat/fs";
 import esbuild from "esbuild";
+import type { ModuleCompileOptions } from "svelte/compiler";
 import { compile, compileModule } from "svelte/compiler";
 
 const strip = (code: string) => {
@@ -10,6 +11,10 @@ const strip = (code: string) => {
     loader: "ts",
     format: "esm",
   }).code;
+};
+
+const options: ModuleCompileOptions = {
+  experimental: { async: true },
 };
 
 export default frontend({
@@ -25,16 +30,16 @@ export default frontend({
       const accessors = true;
       const { css, js } = file.path.endsWith(".js") || file.path.endsWith(".ts")
         // runes in .svelte.[j|t]s
-        ? compileModule(strip(text), { generate: "client" })
-        : compile(text, { accessors, generate: "client" })
+        ? compileModule(strip(text), { generate: "client", ...options })
+        : compile(text, { accessors, generate: "client", ...options })
         ;
       return { css: css?.code ?? "", js: js.code };
     },
     server: (text: string, file?: FileRef) => {
       const { js } = file?.path.endsWith(".js") || file?.path.endsWith(".ts")
         // runes in .svelte.[j|t]s
-        ? compileModule(strip(text), { generate: "server" })
-        : compile(text, { generate: "server" })
+        ? compileModule(strip(text), { generate: "server", ...options })
+        : compile(text, { generate: "server", ...options })
         ;
       return js.code;
     },

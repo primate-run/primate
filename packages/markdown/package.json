@@ -32,7 +32,6 @@
     "pema": "workspace:^"
   },
   "devDependencies": {
-    "@primate/test": "workspace:^",
     "@rcompat/type": "^0.15.1"
   },
   "peerDependencies": {

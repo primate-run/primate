@@ -1,3 +1,7 @@
 import route from "primate/route";
 
-route.get(() => new Blob(["data"]));
+export default route({
+  get() {
+    return new Blob(["data"]);
+  },
+});

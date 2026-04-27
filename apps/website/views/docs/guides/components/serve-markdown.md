@@ -55,5 +55,9 @@ Use `view()` in a route to render the Markdown.
 import route from "primate/route";
 import response from "primate/response";
 
-route.get(() => response.view("Welcome.md"));
+export default route({
+  get() {
+    return response.view("Welcome.md");
+  },
+});
 ```

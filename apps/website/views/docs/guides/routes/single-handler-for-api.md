@@ -31,10 +31,21 @@ function path(request: RequestFacade) {
 Expose API verbs.
 
 ```ts
-route.get(req => `GET /api/${path(req)}`);
-route.post(req => `POST /api/${path(req)}`);
-route.put(req => `PUT /api/${path(req)}`);
-route.delete(req => `DELETE /api/${path(req)}`);
 // Example branching by prefix:
 // if (path(request).startsWith("users/")) { ... }
+
+export default route({
+  get(req) {
+    return `GET /api/${path(req)}`;
+  },
+  post(req) {
+    return `POST /api/${path(req)}`;
+  },
+  put(req) {
+    return `PUT /api/${path(req)}`;
+  },
+  delete(req) {
+    return `DELETE /api/${path(req)}`;
+  },
+});
 ```

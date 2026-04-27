@@ -2,10 +2,12 @@ import type BuildApp from "#build/App";
 import plugin_alias from "#build/client/plugin/alias";
 import plugin_entrypoint from "#build/client/plugin/entrypoint";
 import plugin_frontend from "#build/client/plugin/frontend";
+import plugin_routes from "#build/client/plugin/routes";
 import plugin_server_stamp from "#build/client/plugin/server-stamp";
 import plugin_view from "#build/client/plugin/view";
 import plugin_app_request from "#build/shared/plugin/app-request";
 import location from "#location";
+import { CodeError } from "@rcompat/error";
 import * as esbuild from "esbuild";
 
 const write_bootstrap = async (app: BuildApp) => {
@@ -54,6 +56,7 @@ export default async function build_client(app: BuildApp) {
   app.plugin("client", plugin_alias(app));
   app.plugin("client", plugin_view(app));
   app.plugin("client", plugin_app_request(app));
+  app.plugin("client", plugin_routes(app));
   app.plugin("client", plugin_server_stamp(app));
   app.plugin("client", plugin_entrypoint(app));
 
@@ -78,6 +81,7 @@ export default async function build_client(app: BuildApp) {
     ...await tsconfig.exists() ? { tsconfig: tsconfig.path } : {},
     bundle: true,
     format: "esm",
+    logLevel: "silent",
   };
   const NO_HR = app.config("livereload.exclude") ?? [];
   const mode_options: esbuild.BuildOptions = app.mode === "development"
@@ -98,13 +102,21 @@ export default async function build_client(app: BuildApp) {
     };
   const options: esbuild.BuildOptions = { ...build_options, ...mode_options };
 
-  if (app.mode === "development") {
-    const context = await esbuild.context(options);
-    await context.watch();
-    await context.rebuild();
-    await context.serve(app.livereload);
-  } else {
-    await esbuild.build(options);
+  try {
+    if (app.mode === "development") {
+      const context = await esbuild.context(options);
+      await context.watch();
+      await context.rebuild();
+      await context.serve(app.livereload);
+    } else {
+      await esbuild.build(options);
+    }
+  } catch (cause: any) {
+    const original = cause?.errors?.[0]?.detail;
+    if (CodeError.is(original)) {
+      throw original;
+    }
+    throw cause;
   }
 
   await write_bootstrap(app);

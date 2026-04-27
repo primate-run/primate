@@ -16,9 +16,4 @@ interface Config {
     };
   };
   modules?: Module[];
-  request?: {
-    body?: {
-      parse?: boolean; // true
-    };
-  };
 }

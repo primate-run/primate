@@ -7,9 +7,9 @@ const module: Init<Component> = {
   extensions: [".svelte.js", ".svelte.ts", ".svelte"],
   layouts: true,
   client: true,
-  render(view, props) {
-    const { head, html } = render(view, { props: { p: { ...props } } });
-    return { body: html, head };
+  async render(view, props) {
+    const { body, head } = await render(view, { props: { p: { ...props } } });
+    return { body, head };
   },
   conditions: ["svelte"],
 };

@@ -1,10 +1,11 @@
 import extract_issues from "#client/extract-issues";
 import submit from "#client/submit";
+import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
 import type { Issue, JSONPayload } from "pema";
 
 type FormId = string;
-type FieldErrors = readonly string[];
+type FieldErrors = string[];
 
 type FormErrors = {
   form: FieldErrors;
@@ -24,11 +25,20 @@ export type FormView = FormSnapshot & {
 
 type FormSubscriber = (snapshot: FormSnapshot) => void;
 
+export type MethodMeta = {
+  contentType?: string;
+};
+
+export type ClientMethod<Values extends Dict = Dict> = MethodMeta &
+  ((args: { body: Values }) => Promise<Response>);
+
 export type FormInit = {
   id?: string;
   method?: "POST" | "PUT" | "PATCH" | "DELETE";
   url?: string;
   headers?: Dict<string>;
+  action?: (args: { body: unknown }) => Promise<Response>;
+  contentType?: string;
 };
 
 type FormController = {
@@ -68,6 +78,23 @@ function pointer_to_fieldname(path: string): string {
   return name;
 }
 
+function content_type_body(
+  contentType: string | undefined,
+  form_data: FormData,
+): unknown {
+  if (contentType === "application/json") return Object.fromEntries(form_data);
+  if (contentType === "multipart/form-data") return form_data;
+  // default: application/x-www-form-urlencoded
+  return new URLSearchParams(form_data as unknown as Record<string, string>);
+}
+
+function form_data_body(form_data: FormData): FormData | URLSearchParams {
+  for (const value of form_data.values()) {
+    if (value instanceof File && value.size > 0) return form_data;
+  }
+  return new URLSearchParams(form_data as unknown as Record<string, string>);
+}
+
 export default function createForm(init: FormInit): FormController {
   const id = init.id ?? `form-${crypto.randomUUID()}`;
 
@@ -94,7 +121,7 @@ export default function createForm(init: FormInit): FormController {
     const form_errors: string[] = [];
 
     for (const issue of issues) {
-      const path = (issue as any).path as string | undefined;
+      const path = issue.path as string | undefined;
 
       // no path or empty string -> form-level error
       if (path === undefined) {
@@ -146,7 +173,10 @@ export default function createForm(init: FormInit): FormController {
     setSubmitting(true);
 
     try {
-      const response = await submit(url, form_data, method);
+      const response = await (is.defined(init.action)
+        ? init.action({ body: content_type_body(init.contentType, form_data) })
+        : submit(url, form_data_body(form_data), method)
+      );
 
       if (response.ok) {
         // on success: clear errors, let the app decide what to do next
@@ -156,8 +186,8 @@ export default function createForm(init: FormInit): FormController {
         return;
       }
 
-      const payload = await response.json() as JSONPayload;
-      const issues = extract_issues(payload); // all issues, all paths
+      // all issues, all paths
+      const issues = extract_issues(await response.json() as JSONPayload);
       setErrors(issues);
     } catch (error) {
       // network error

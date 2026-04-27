@@ -144,17 +144,16 @@ def post(request):
 #### Binary Data
 
 ```python
-# routes/binary.py
+# routes/blob.py
 from primate import Route
 
 @Route.post
 def post(request):
-    bin_data = request.body.binary()
-
+    blob = request.body.blob()
     return {
-        "type": bin_data.content_type,
-        "size": bin_data.size,
-        "head": bin_data.head(4)
+        "type": blob.type,
+        "size": blob.size,
+        "head": blob.head(4),
     }
 ```
 

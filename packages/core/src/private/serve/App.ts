@@ -17,6 +17,7 @@ import create from "#module/create";
 import handle from "#request/handle";
 import parse from "#request/parse";
 import RequestBag from "#request/RequestBag";
+import { BodyPatch } from "#request/RequestBody";
 import type RequestFacade from "#request/RequestFacade";
 import route from "#request/route";
 import request_storage from "#request/storage";
@@ -84,6 +85,14 @@ const render_head = (assets: Asset[], head?: string) => {
 };
 
 const s_http = Symbol("s_http");
+
+const content_type_method = {
+  "application/json": "json",
+  "text/plain": "text",
+  "application/x-www-form-urlencoded": "form",
+  "multipart/form-data": "multipart",
+  "application/octet-stream": "blob",
+} as const;
 
 interface PublishOptions {
   code: string;
@@ -179,22 +188,11 @@ export default class ServeApp extends App {
         });
       },
     }));
-  };
-
-  get secure() {
-    const ssl = this.config("http.ssl");
-
-    return ssl.key !== undefined && ssl.cert !== undefined;
   }
 
   get assets() {
     return this.#assets;
   }
-
-  get url() {
-    const { host, port } = this.config("http");
-    return `http${this.secure ? "s" : ""}://${host}:${port}`;
-  };
 
   get router() {
     return this.#router;
@@ -448,15 +446,14 @@ export default class ServeApp extends App {
   }
 
   async route(request: RequestFacade) {
-    const { original, url } = request;
-    const pathname = normalize(url.pathname);
-    const matched = this.router.match(original);
+    const pathname = normalize(request.url.pathname);
+    const matched = this.router.match(request.original);
     if (is.undefined(matched)) {
-      this.log.trace`no ${original.method} route to ${pathname}`;
+      this.log.trace`no ${request.method} route to ${pathname}`;
       return undefined;
     }
 
-    const method = original.method.toLowerCase() as Method;
+    const method = request.method.toLowerCase() as Method;
     const specials = matched.specials;
     const errors = (specials.error ?? [])
       .map(v => router.get(v)[method]?.handler)
@@ -481,10 +478,10 @@ export default class ServeApp extends App {
     }
     const handler = route_path.handler;
 
-    const { contentType } = route_path.options;
+    const { contentType, body } = route_path.options;
 
     if (contentType !== undefined) {
-      const raw = original.headers.get("content-type") ?? "";
+      const raw = request.headers.try("content-type") ?? "";
       const actual = raw.split(";")[0].trim().toLowerCase();
       if (actual !== contentType) {
         throw E.request_content_type_mismatch(contentType, actual);
@@ -494,8 +491,11 @@ export default class ServeApp extends App {
     const refined = Object.assign(Object.create(request), {
       path: new RequestBag(matched.params as PartialDict<string>, "path", {
         normalize: k => k.toLowerCase(),
-        raw: url.pathname,
+        raw: request.url.pathname,
       }),
+      ...(body !== undefined && contentType !== undefined
+        ? { body: request.body[BodyPatch]({ contentType, schema: body }) }
+        : {}),
     });
 
     return { errors, hooks, layouts, handler, request: refined, is_head };

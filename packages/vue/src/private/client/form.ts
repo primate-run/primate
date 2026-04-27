@@ -1,4 +1,4 @@
-import type { FormInit } from "@primate/core/client";
+import type { ClientMethod, FormInit, MethodMeta } from "@primate/core/client";
 import core from "@primate/core/client";
 import type { Dict } from "@rcompat/type";
 import { onUnmounted, shallowRef } from "vue";
@@ -8,35 +8,50 @@ type FormView<Values extends Dict> = {
   submitting: boolean;
   submitted: boolean;
   submit: (event?: Event) => Promise<void>;
-
-  errors: readonly string[];
-
+  errors: string[];
   field: <K extends keyof Values & string>(name: K) => {
     name: string;
     value: Values[K];
     error: string | null;
-    errors: readonly string[];
+    errors: string[];
   };
 };
 
 type Initial<Values extends Dict> = FormInit & { initial?: Values };
 
+function form<Values extends Dict>(
+  action: ClientMethod<Values>,
+  init?: Initial<Values>,
+): FormView<Values>;
 function form<Values extends Dict>(init: Initial<Values>): FormView<Values>;
 function form(init?: FormInit): FormView<Dict>;
 
 function form<Values extends Dict = Dict>(
-  init?: Initial<Values>,
+  action_or_init?: ClientMethod | Initial<Values>,
+  maybe_init?: Initial<Values>,
 ): FormView<Values> {
-  const { initial, ...form_init } = (init ?? {}) as Initial<Values>;
-  const controller = core.createForm(form_init);
-  const values = (initial ?? {}) as Values;
+  const is_action = typeof action_or_init === "function";
+  const { initial, ...form_init } = (
+    is_action ? (maybe_init ?? {}) : (action_or_init ?? {})
+  ) as Initial<Values>;
+  const action = is_action ? action_or_init : undefined;
+  const contentType = is_action
+    ? (action_or_init as MethodMeta).contentType
+    : undefined;
+  const controller = core.createForm({
+    ...form_init,
+    ...action !== undefined && {
+      action: action as (args: { body: unknown }) => Promise<Response>,
+      contentType,
+    },
+  });
+  const values = initial ?? {} as Values;
   const snapshot = shallowRef(controller.read());
-
-  const unsub = controller.subscribe((next) => {
+  const unsubscribe = controller.subscribe(next => {
     snapshot.value = next;
   });
 
-  onUnmounted(unsub);
+  onUnmounted(unsubscribe);
 
   return {
     get id() {

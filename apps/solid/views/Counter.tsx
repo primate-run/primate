@@ -1,4 +1,4 @@
-import client from "@primate/solid/client";
+import { client } from "@primate/solid";
 
 interface Props { counter: number; id: number };
 

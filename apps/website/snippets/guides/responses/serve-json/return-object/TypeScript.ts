@@ -1,3 +1,7 @@
 import route from "primate/route";
 
-route.get(() => ({ message: "Hello", data: [1, 2, 3] }));
+export default route({
+  get() {
+    return ({ message: "Hello", data: [1, 2, 3] });
+  },
+});

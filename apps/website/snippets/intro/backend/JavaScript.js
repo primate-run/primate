@@ -1,3 +1,7 @@
 import route from "primate/route";
 
-route.get(() => "Hello from JavaScript!");
+export default route({
+  get() {
+    return "Hello from JavaScript!";
+  },
+});

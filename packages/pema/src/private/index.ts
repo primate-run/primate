@@ -1,4 +1,5 @@
 export type { default as ArrayType } from "#ArrayType";
+export type { default as BlobType } from "#BlobType";
 export type { default as BooleanType } from "#BooleanType";
 export type { default as ConstructorType } from "#ConstructorType";
 export type { default as DataKey } from "#DataKey";
@@ -13,10 +14,11 @@ export type { default as InferStoreOut } from "#InferStoreOut";
 export type { default as Issue } from "#Issue";
 export type { default as IsType } from "#IsType";
 export type { default as JSONPayload } from "#json/JSONPayload";
+export type { default as JSONType } from "#JSONType";
 export type { default as LiteralType } from "#LiteralType";
 export type {
   default as NormalizeSchema,
-  NormalizeSchemaObject
+  NormalizeSchemaObject,
 } from "#NormalizeSchema";
 export type { default as NullType } from "#NullType";
 export type { default as NumberType } from "#NumberType";
@@ -36,6 +38,7 @@ export type { default as UintType } from "#UintType";
 export type { default as UndefinedType } from "#UndefinedType";
 export type { default as UnionType } from "#UnionType";
 export type { default as UnknownType } from "#UnknownType";
+export type { default as URLType } from "#URLType";
 export type { default as UUIDType } from "#UUIDType";
 export type { default as UUIDV4Type } from "#UUIDV4Type";
 export type { default as UUIDV7Type } from "#UUIDV7Type";
@@ -61,6 +64,7 @@ import i8 from "#i8";
 import int from "#int";
 import is from "#is";
 import json from "#json";
+import literal from "#literal";
 import normalize from "#normalize";
 import type NormalizeSchema from "#NormalizeSchema";
 import number from "#number";
@@ -111,6 +115,7 @@ schema.i8 = i8;
 schema.int = int;
 schema.is = is;
 schema.json = json;
+schema.literal = literal;
 schema.number = number;
 schema.object = object;
 schema.omit = omit;

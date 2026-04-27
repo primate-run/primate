@@ -1,4 +1,4 @@
-import client from "@primate/react/client";
+import { client } from "@primate/react";
 
 interface Props { counter: number; id: number };
 

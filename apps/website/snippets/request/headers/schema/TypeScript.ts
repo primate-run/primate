@@ -7,10 +7,12 @@ const HeadersSchema = p({
   authorization: p.string.startsWith("Bearer ").optional(),
 });
 
-route.get(request => {
-  const headers = request.headers.parse(HeadersSchema);
-  const token = headers.authorization?.slice("Bearer ".length);
-  const status = token ? Status.NO_CONTENT : Status.UNAUTHORIZED;
+export default route({
+  get(request) {
+    const headers = request.headers.parse(HeadersSchema);
+    const token = headers.authorization?.slice("Bearer ".length);
+    const status = token ? Status.NO_CONTENT : Status.UNAUTHORIZED;
 
-  return new Response(null, { status });
+    return new Response(null, { status });
+  },
 });

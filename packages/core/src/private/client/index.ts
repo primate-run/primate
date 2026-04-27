@@ -1,5 +1,10 @@
 import boot from "#client/boot";
-import type { FormInit, FormView } from "#client/create-form";
+import type {
+  ClientMethod,
+  FormInit,
+  FormView,
+  MethodMeta,
+} from "#client/create-form";
 import createForm from "#client/create-form";
 import type Data from "#client/Data";
 import navigate from "#client/navigate";
@@ -25,14 +30,13 @@ const client = {
 export default client;
 
 export type {
-  Data,
+  ClientMethod, Data,
   FormInit,
-  FormView,
-  Publish,
+  FormView, MethodMeta, Publish,
   Render,
   ValidateInit,
   ValidateUpdater,
   ValidationError,
-  ViewResponse,
+  ViewResponse
 };
 

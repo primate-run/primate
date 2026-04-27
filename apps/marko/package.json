@@ -1,0 +1,20 @@
+{
+  "name": "@primate/app/marko",
+  "description": "Primate Marko template",
+  "type": "module",
+  "scripts": {
+    "start": "npx primate",
+    "build": "npx primate build",
+    "test": "npx proby",
+    "test:deno": "deno run -A npm:proby",
+    "test:bun": "bunx --bun proby"
+  },
+  "dependencies": {
+    "@primate/marko": "workspace:^",
+    "marko": "^5.38.35",
+    "primate": "workspace:^"
+  },
+  "devDependencies": {
+    "@primate/test": "workspace:^"
+  }
+}

@@ -1,4 +1,4 @@
-import client from "@primate/react/client";
+import { client } from "@primate/react";
 
 export default function Redirect() {
   const form = client.form({ initial: { email: "" } });

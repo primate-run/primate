@@ -1,6 +1,32 @@
 import build from "@primate/core/build";
 import runtime from "@rcompat/runtime";
+import type { JSONValue } from "@rcompat/type";
+import type { Element } from "happy-dom";
 import { Browser } from "happy-dom";
+
+function Selector(element: Element | null) {
+  return {
+    text() {
+      if (element === null) return undefined;
+      return element.textContent.trim();
+    },
+    html() {
+      if (element === null) return undefined;
+      return element.innerHTML.trim();
+    },
+    json(): JSONValue | undefined {
+      if (element === null) return undefined;
+      return JSON.parse(element.textContent.trim());
+    },
+    exists() {
+      return element !== null;
+    },
+    hasAttribute(a: string) {
+      if (element === null) return undefined;
+      return element.hasAttribute(a);
+    },
+  };
+}
 
 export default function setup(dirname: string) {
   const ready = (async () => {
@@ -36,8 +62,19 @@ export default function setup(dirname: string) {
           await page.goto(`${server.url}${url}`);
           await page.waitUntilComplete();
         },
-        select(selector: string) {
-          return page.mainFrame.document.querySelector(selector);
+        get(selector: string) {
+          return Selector(page.mainFrame.document.querySelector(selector));
+        },
+        async set(selector: string, value: string) {
+          const el = page.mainFrame.document.querySelector(selector) as any;
+          if (el === null) return;
+          el.value = value;
+          el.dispatchEvent(new page.mainFrame.window.Event("input", {
+            bubbles: true,
+          }));
+          el.dispatchEvent(new page.mainFrame.window.Event("change", {
+            bubbles: true,
+          }));
         },
         async fetch(url: string, options?: RequestInit) {
           return basefetch(url, options);
@@ -47,6 +84,9 @@ export default function setup(dirname: string) {
         },
         async text(url: string) {
           return basefetch(url).then(r => r.text());
+        },
+        async status(url: string) {
+          return (await basefetch(url)).status;
         },
         async click(selector: string) {
           (page.mainFrame.document.querySelector(selector) as any)?.click();

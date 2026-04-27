@@ -1,6 +1,6 @@
 import { NgIf } from "@angular/common";
 import { Component } from "@angular/core";
-import client from "@primate/angular/client";
+import { client } from "@primate/angular";
 
 @Component({
   imports: [NgIf],

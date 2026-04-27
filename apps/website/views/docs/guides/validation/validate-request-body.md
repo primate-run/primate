@@ -40,9 +40,11 @@ const UserSchema = p({
   email: p.string.email(),
 });
 
-route.post(request => {
-  const user = UserSchema.parse(request.body);
-  return { user };
+export default route({
+  post(request) {
+      const user = UserSchema.parse(request.body);
+      return { user };
+  },
 });
 ```
 
@@ -62,13 +64,15 @@ const UserSchema = p({
   email: p.string.email(),
 });
 
-route.post(async (request) => {
-  try {
-    const user = UserSchema.parse(request.body);
-    // save user
-    return { success: true };
-  } catch (error) {
-    return response.json({ error: error.message }, { status: 400 });
-  }
+export default route({
+  async post(request) {
+      try {
+        const user = UserSchema.parse(request.body);
+        // save user
+        return { success: true };
+      } catch (error) {
+        return response.json({ error: error.message }, { status: 400 });
+      }
+  },
 });
 ```

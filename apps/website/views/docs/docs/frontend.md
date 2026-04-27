@@ -109,7 +109,11 @@ Render it in a route:
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => response.view("Welcome.tsx", { name: "World" }));
+export default route({
+  get() {
+    return response.view("Welcome.tsx", { name: "World" });
+  },
+});
 ```
 
 ## Mixing frontends

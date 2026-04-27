@@ -1,5 +1,6 @@
 import type BuildApp from "#build/App";
 import build_client from "#build/client/index";
+import build_preclient from "#build/preclient/index";
 import build_server from "#build/server/index";
 import E from "#errors";
 import location from "#location";
@@ -36,7 +37,11 @@ async function pre(app: BuildApp) {
 }
 
 async function post(app: BuildApp) {
+  app.log.trace`building preclient`;
+  await build_preclient(app);
+  app.log.trace`building client`;
   await build_client(app);
+  app.log.trace`building server`;
   await build_server(app);
 
   // write build.json with version and migration_version

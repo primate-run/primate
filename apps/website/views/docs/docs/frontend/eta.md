@@ -47,13 +47,15 @@ Serve the template from a route:
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => {
-  const posts = [
-    { id: 1, title: "First Post" },
-    { id: 2, title: "Second Post" },
-  ];
-
-  return response.view("post-index.eta", { posts });
+export default route({
+  get() {
+      const posts = [
+        { id: 1, title: "First Post" },
+        { id: 2, title: "Second Post" },
+      ];
+    
+      return response.view("post-index.eta", { posts });
+  },
 });
 ```
 
@@ -67,11 +69,13 @@ Pass props from a route:
 import response from "primate/response";
 import route from "primate/route";
 
-route.get(() => {
-  return response.view("user.eta", {
-    user: { name: "John", role: "Developer" },
-    permissions: ["read", "write"],
-  });
+export default route({
+  get() {
+      return response.view("user.eta", {
+        user: { name: "John", role: "Developer" },
+        permissions: ["read", "write"],
+      });
+  },
 });
 ```
 

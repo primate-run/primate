@@ -20,15 +20,11 @@
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build",
-    "test": "npx proby"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
     "eta": "^4.5.1"
-  },
-  "devDependencies": {
-    "@primate/test": "workspace:^"
   },
   "peerDependencies": {
     "primate": "workspace:^"

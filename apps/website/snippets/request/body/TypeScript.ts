@@ -1,8 +1,10 @@
 import p from "pema";
 import route from "primate/route";
 
-route.post(request => {
-  const { name } = p({ name: p.string.min(1) }).parse(request.body.json());
+export default route({
+  async post(request) {
+    const { name } = p({ name: p.string.min(1) }).parse(await request.body.json());
 
-  return `Hello, ${name}`;
+    return `Hello, ${name}`;
+  },
 });

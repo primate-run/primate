@@ -34,18 +34,20 @@ const Query = pema({
   include: string.optional(),
 });
 
-route.get(request => {
-  // TypeScript knows `id` is a string from the path parameter
-  const id = request.path.get("id");
-
-  // query parameters are fully typed
-  const { include } = request.query.parse(Query);
-
-  // return type is inferred and type-checked
-  return {
-    user: { id, name: "John" },
-    included: include ? ["profile", "settings"] : []
-  };
+export default route({
+  get(request) {
+      // TypeScript knows `id` is a string from the path parameter
+      const id = request.path.get("id");
+    
+      // query parameters are fully typed
+      const { include } = request.query.parse(Query);
+    
+      // return type is inferred and type-checked
+      return {
+        user: { id, name: "John" },
+        included: include ? ["profile", "settings"] : []
+      };
+  },
 });
 ```
 
@@ -77,17 +79,19 @@ Now in your routes, session access is type-safe:
 import session from "#session";
 import route from "primate/route";
 
-route.get(() => {
-  if (!session.exists) {
-    session.create({
-      userId: "user123",
-      lastActivity: new Date()
-    });
-  }
-
-  const data = session.get();
-  // TypeScript knows: data.userId is string
-  return `Welcome back, user ${data.userId}`;
+export default route({
+  get() {
+      if (!session.exists) {
+        session.create({
+          userId: "user123",
+          lastActivity: new Date()
+        });
+      }
+    
+      const data = session.get();
+      // TypeScript knows: data.userId is string
+      return `Welcome back, user ${data.userId}`;
+  },
 });
 ```
 
@@ -197,29 +201,30 @@ const CreateUser = pema({
   age: uint.range(13, 120),
 });
 
-route.get(async () => {
-  const users = await User.find({});
-  // TypeScript knows the exact shape of each user
-  return users.map(user => ({
-    id: user.id,
-    name: user.name,
-    isAdult: user.age >= 18
-  }));
-});
-
-route.post(async request => {
-  const userData = request.body.form(CreateUser);
-  const user = await User.insert(userData);
-
-  // all properties are typed and validated
-  return {
-    success: true,
-    user: {
-      id: user.id,
-      name: user.name,
-      created: user.created.toISOString()
-    }
-  };
+export default route({
+  async get() {
+      const users = await User.find({});
+      // TypeScript knows the exact shape of each user
+      return users.map(user => ({
+        id: user.id,
+        name: user.name,
+        isAdult: user.age >= 18
+      }));
+  },
+  async post(request) {
+      const userData = request.body.form(CreateUser);
+      const user = await User.insert(userData);
+    
+      // all properties are typed and validated
+      return {
+        success: true,
+        user: {
+          id: user.id,
+          name: user.name,
+          created: user.created.toISOString()
+        }
+      };
+  },
 });
 ```
 

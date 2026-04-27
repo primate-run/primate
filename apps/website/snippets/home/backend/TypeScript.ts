@@ -6,4 +6,8 @@ const posts = [{
   title: "First post",
 }];
 
-route.get(() => response.view("Index.jsx", { posts }));
+export default route({
+  get() {
+    return response.view("Index.jsx", { posts });
+  },
+});

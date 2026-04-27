@@ -1,4 +1,8 @@
 // routes/backstream.ts
 import route from "primate/route";
 
-route.post(request => request.body.binary());
+export default route({
+  post(request) {
+    return request.body.binary();
+  },
+});

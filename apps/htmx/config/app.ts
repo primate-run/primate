@@ -2,8 +2,9 @@ import htmx from "@primate/htmx";
 import config from "primate/config";
 
 export default config({
+  conditions: ["@primate/source"],
   http: {
-    port: 10006,
+    port: 14869, // 1HTMX
   },
   modules: [
     htmx({

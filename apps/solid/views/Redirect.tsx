@@ -1,4 +1,4 @@
-import client from "@primate/solid/client";
+import { client } from "@primate/solid";
 
 export default function Redirect() {
   const form = client.form({ initial: { email: "" } });

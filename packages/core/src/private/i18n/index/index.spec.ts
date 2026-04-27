@@ -1,12 +1,13 @@
 import { Code } from "#i18n/errors";
 import i18n from "#i18n/index/server";
+import locale from "#i18n/locale";
 import type TypeOf from "#i18n/TypeOf";
 import test from "@rcompat/test";
 
 const en_config = {
   defaultLocale: "en" as const,
   locales: {
-    en: {
+    en: locale({
       // basic
       simple: "Hello world",
       greeting: "Hello {name}",
@@ -94,7 +95,7 @@ const en_config = {
         added: "Added {n:n|{n} item|{n} items}",
         plain: ["a", "b", "c"],
       },
-    },
+    }),
   },
 };
 
@@ -102,7 +103,7 @@ const de_config = {
   defaultLocale: "de" as const,
   currency: "EUR" as const,
   locales: {
-    de: {
+    de: locale({
       // basic
       simple: "Hallo Welt",
       greeting: "Hallo {name}",
@@ -185,12 +186,12 @@ const de_config = {
         added: "{n} {n:n|Eintrag|Einträge} hinzugefügt",
         plain: ["a", "b", "c"],
       },
-    },
+    }),
   },
 };
 
-const en = i18n(en_config) as any;
-const de = i18n(de_config) as any;
+const en = i18n(en_config);
+const de = i18n(de_config);
 
 test.case("simple message without parameters", assert => {
   assert(en("simple")).equals("Hello world");
@@ -433,8 +434,8 @@ test.case("complex multiple parameters with plural", assert => {
 
 test.case("missing parameter", assert => {
   const input = {};
-  assert(en("greeting", input)).equals("Hello ");
-  assert(de("greeting", input)).equals("Hallo ");
+  assert(en("greeting", input as any)).equals("Hello ");
+  assert(de("greeting", input as any)).equals("Hallo ");
 });
 
 test.case("empty message", assert => {
@@ -461,8 +462,8 @@ test.case("unicode characters", assert => {
 });
 
 test.case("missing key", assert => {
-  assert(en("nonexistent")).equals("nonexistent");
-  assert(de("nonexistent")).equals("nonexistent");
+  assert(en("nonexistent" as any)).equals("nonexistent");
+  assert(de("nonexistent" as any)).equals("nonexistent");
 });
 
 test.case("TypeOf type assertions", assert => {
@@ -535,4 +536,51 @@ test.case("reject dotted catalog keys (runtime)", assert => {
       },
     },
   } as any)).throws(Code.no_dots_catalog_keys);
+});
+
+test.case("type: parameterized key requires typed params", assert => {
+  const typed_en = i18n(en_config);
+
+  // key with params: second arg must be required and correctly typed
+  assert(typed_en("greeting", { name: "John" })).type<string>();
+
+  // key without params: single arg only
+  assert(typed_en("simple")).type<string>();
+
+  // number param types correctly
+  assert(typed_en("count", { count: 5 })).type<string>();
+});
+
+test.case("type: param types are correct and enforced", assert => {
+  const typed_en = i18n(en_config);
+
+  // string param
+  assert(typed_en("greeting", { name: "John" })).type<string>();
+
+  // number param
+  assert(typed_en("count", { count: 5 })).type<string>();
+
+  // date param
+  assert(typed_en("date", { date: new Date() })).type<string>();
+
+  // currency param
+  assert(typed_en("currency", { price: 9.99 })).type<string>();
+
+  // list param
+  assert(typed_en("list", { items: ["a", "b"] })).type<string>();
+
+  // unit param
+  assert(typed_en("distance_km", { dist: 5 })).type<string>();
+
+  // no-param key takes no second arg
+  assert(typed_en("simple")).type<string>();
+
+  // escaped braces don't bleed into params
+  assert(typed_en("nested_braces", { real: 42 })).type<string>();
+
+  // dot-path to parameterized nested key
+  assert(typed_en("onboarding.greeting", { name: "Sam" })).type<string>();
+
+  // dot-path to no-param nested key
+  assert(typed_en("onboarding.steps.0.title")).type<string>();
 });
