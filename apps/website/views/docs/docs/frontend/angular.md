@@ -88,7 +88,7 @@ export default route({
           excerpt: "Building reactive applications"
         },
       ];
-    
+
       return response.view("PostIndex.component.ts", { title: "Blog", posts });
   },
 });
@@ -247,7 +247,7 @@ import route from "primate/route";
 import response from "primate/response";
 import p from "pema";
 
-await Counter.table.create();
+await Counter.create();
 
 // GET page
 
@@ -257,7 +257,7 @@ export default route({
   async get() {
       const [existing] = await Counter.find({});
       const counter = existing ?? await Counter.insert({ value: 10 });
-    
+
       return response.view("Counter.component.ts", {
         id: counter.id,
         counter: counter.value
@@ -352,9 +352,9 @@ export default route({
   },
   async post(request) {
       const body = LoginSchema.parse(await request.body.json());
-    
+
       // implement authentication logic
-    
+
       return null; // 204 or redirect/response
   },
 });

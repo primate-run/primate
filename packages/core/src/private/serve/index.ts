@@ -21,7 +21,7 @@ export default async (root: string, options: ServeInit) => {
     if (migrations !== undefined) {
       const { table, db } = migrations;
       const Migration = store({
-        name: table,
+        table,
         db,
         schema: {
           id: key.primary(p.u16, { generate: false }),
@@ -29,7 +29,7 @@ export default async (root: string, options: ServeInit) => {
         },
       });
 
-      await Migration.table.create();
+      await Migration.create();
       const last = await Migration.find({ limit: 1, sort: { id: "desc" } });
       const last_id = last.length === 0 ? 0 : last[0].id;
 

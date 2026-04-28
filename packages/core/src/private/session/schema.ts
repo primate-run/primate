@@ -17,7 +17,7 @@ export default p({
         session_id: p.uuid,
       },
       db: new MemoryDB(),
-      name: "session",
+      table: "session",
     }) as Store<any>;
   }),
 });

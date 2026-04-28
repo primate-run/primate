@@ -151,7 +151,7 @@ export default <D extends DB>(db: D) => {
   test.ended(() => db.close());
 
   const Post = store({
-    name: "post",
+    table: "post",
     db,
     schema: {
       id: key.primary(p.uuid),
@@ -163,7 +163,7 @@ export default <D extends DB>(db: D) => {
   Post.update;
 
   const User = store({
-    name: "user",
+    table: "user",
     db,
     schema: {
       id: key.primary(p.uuid),
@@ -174,7 +174,7 @@ export default <D extends DB>(db: D) => {
   });
 
   const UserN = store({
-    name: "user_n",
+    table: "user_n",
     db,
     schema: {
       id: key.primary(p.u32),
@@ -185,7 +185,7 @@ export default <D extends DB>(db: D) => {
   });
 
   const UserB = store({
-    name: "user_b",
+    table: "user_b",
     db,
     schema: {
       id: key.primary(p.u128),
@@ -198,7 +198,7 @@ export default <D extends DB>(db: D) => {
   const USER_STORES = [User, UserN, UserB];
 
   const Type = store({
-    name: "type",
+    table: "type",
     db,
     schema: {
       id: key.primary(p.uuid),
@@ -224,7 +224,7 @@ export default <D extends DB>(db: D) => {
   // this stresses identifier quoting in CREATE/INSERT/SELECT/UPDATE/DELETE
   const Reserved = store({
     // deliberately reserved-like table name
-    name: "select",
+    table: "select",
     db,
     schema: {
       id: key.primary(p.uuid),
@@ -254,7 +254,7 @@ export default <D extends DB>(db: D) => {
 
   const Author = store({
     db,
-    name: "author",
+    table: "author",
     schema: AuthorSchema,
     relations: {
       articles: relation.many(ArticleSchema, "author_id"),
@@ -275,7 +275,7 @@ export default <D extends DB>(db: D) => {
 
   const Article = store({
     db,
-    name: "article",
+    table: "article",
     schema: ArticleSchema,
     relations: {
       author: relation.one(AuthorSchema, "author_id", { reverse: true }),
@@ -284,7 +284,7 @@ export default <D extends DB>(db: D) => {
 
   const Profile = store({
     db,
-    name: "profile",
+    table: "profile",
     schema: ProfileSchema,
     relations: {
       author: relation.one(AuthorSchema, "author_id", { reverse: true }),
@@ -293,18 +293,18 @@ export default <D extends DB>(db: D) => {
 
   function $store<S extends Store<any>>(label: string, s: S, body: Body) {
     test.case(label, async assert => {
-      await s.table.create();
+      await s.create();
       try {
         await body(assert);
       } finally {
-        await s.table.delete();
+        await s.drop();
       }
     });
   }
 
   function $user(label: string, body: Body) {
     test.case(label, async assert => {
-      for (const S of USER_STORES) await S.table.create();
+      for (const S of USER_STORES) await S.create();
 
       try {
         for (const u of Object.values(USERS)) {
@@ -312,7 +312,7 @@ export default <D extends DB>(db: D) => {
         }
         await body(assert);
       } finally {
-        for (const S of USER_STORES) await S.table.delete();
+        for (const S of USER_STORES) await S.drop();
       }
     });
   }
@@ -327,9 +327,9 @@ export default <D extends DB>(db: D) => {
 
   function $rel(label: string, body: Body) {
     test.case(`relation: ${label}`, async assert => {
-      await Author.table.create();
-      await Article.table.create();
-      await Profile.table.create();
+      await Author.create();
+      await Article.create();
+      await Profile.create();
 
       try {
         const john = await Author.insert({ name: "John" });
@@ -360,9 +360,9 @@ export default <D extends DB>(db: D) => {
 
         await body(assert);
       } finally {
-        await Profile.table.delete();
-        await Article.table.delete();
-        await Author.table.delete();
+        await Profile.drop();
+        await Article.drop();
+        await Author.drop();
       }
     });
   }
@@ -470,7 +470,7 @@ export default <D extends DB>(db: D) => {
   });
 
   const ManualUser = store({
-    name: "manual_user",
+    table: "manual_user",
     db,
     schema: {
       id: key.primary(p.uuid, { generate: false }),
@@ -1834,7 +1834,7 @@ export default <D extends DB>(db: D) => {
 
     await throws(assert, Code.identifier_invalid, () => {
       store({
-        name: "users; DROP TABLE users",
+        table: "users; DROP TABLE users",
         db,
         schema: {
           id: key.primary(p.uuid),
@@ -1927,7 +1927,7 @@ export default <D extends DB>(db: D) => {
     };
 
     const Parent = store({
-      name: "j_parent",
+      table: "j_parent",
       db,
       schema: ParentSchema,
       relations: {
@@ -1937,15 +1937,15 @@ export default <D extends DB>(db: D) => {
 
     const Child = store({
       db,
-      name: "j_child",
+      table: "j_child",
       schema: ChildSchema,
       relations: {
         parent: relation.one(ParentSchema, "parent_id", { reverse: true }),
       },
     });
 
-    await Parent.table.create();
-    await Child.table.create();
+    await Parent.create();
+    await Child.create();
 
     try {
       const p0 = await Parent.insert({
@@ -1984,8 +1984,8 @@ export default <D extends DB>(db: D) => {
       assert(c0.url instanceof URL).true();
       assert(c0.url!.href).equals("https://example.com/joined");
     } finally {
-      await Child.table.delete();
-      await Parent.table.delete();
+      await Child.drop();
+      await Parent.drop();
     }
   });
 
@@ -2017,7 +2017,7 @@ export default <D extends DB>(db: D) => {
 
   test.case("store: relation name conflicts with field throws", async assert => {
     await throws(assert, Code.relation_conflicts_with_field, async () => store({
-      name: "conflict",
+      table: "conflict",
       db,
       schema: {
         id: key.primary(p.uuid),
@@ -2106,7 +2106,7 @@ export default <D extends DB>(db: D) => {
   $store("schema: introspect after create", User, async assert => {
     // insert a record so MongoDB has something to sample
     await User.insert({ name: "test", age: 1, lastname: "test" });
-    const types = await db.schema.introspect(User.name, User.pk);
+    const types = await db.schema.introspect(User.table, User.pk);
     assert(types).not.null();
     if (types !== null) {
       assert(types.id).includes("uuid");
@@ -2122,7 +2122,7 @@ export default <D extends DB>(db: D) => {
       add: { email: "string" }, drop: [], rename: [],
     });
     const MigratedUser = store({
-      name: "user",
+      table: "user",
       db,
       schema: {
         id: key.primary(p.uuid),
@@ -2150,7 +2150,7 @@ export default <D extends DB>(db: D) => {
       add: {}, drop: [], rename: [["lastname", "surname"]],
     });
     const MigratedUser = store({
-      name: "user",
+      table: "user",
       db,
       schema: {
         id: key.primary(p.uuid),
@@ -2171,7 +2171,7 @@ export default <D extends DB>(db: D) => {
       add: { email: "string" }, drop: ["lastname"], rename: [],
     });
     const MigratedUser = store({
-      name: "user",
+      table: "user",
       db,
       schema: {
         id: key.primary(p.uuid),
@@ -2187,7 +2187,7 @@ export default <D extends DB>(db: D) => {
   });
 
   const UUIDTest = store({
-    name: "uuid_test",
+    table: "uuid_test",
     db,
     schema: {
       id: key.primary(p.uuid),

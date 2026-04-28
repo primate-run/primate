@@ -27,7 +27,7 @@ Stores have:
 ## Define a store
 
 Create a file under `stores` and export a store. Every store requires three
-fields: `name`, `db`, and `schema`.
+fields: `table`, `db`, and `schema`.
 
 Stores may also define `migrate`, which defaults to `true`. Set
 `migrate: false` for stores that should not participate in migration
@@ -41,7 +41,7 @@ import key from "primate/orm/key";
 import db from "#db";
 
 export default store({
-  name: "post",
+  table: "post",
   db,
   schema: {
     id: key.primary(p.u32),
@@ -52,7 +52,7 @@ export default store({
 });
 ```
 
-Passing an incorrect `name`, `db`, or `schema` throws immediately at
+Passing an incorrect `table`, `db`, or `schema` throws immediately at
 construction time.
 
 Database stores require a primary key field. Pema types (`string`, `number`,
@@ -60,7 +60,7 @@ Database stores require a primary key field. Pema types (`string`, `number`,
 
 ### Portability
 
-Because `db` and `name` are declared explicitly in the store file, stores are
+Because `table` and `db` are declared explicitly in the store file, stores are
 fully self-contained modules. You can import and use them anywhere — migration
 scripts, test suites, REPLs, or any other context outside a running Primate
 app — without any framework initialisation.
@@ -69,7 +69,7 @@ app — without any framework initialisation.
 // scripts/migrate.ts
 import Post from "../stores/Post.ts";
 
-await Post.table.create();
+await Post.drop();
 ```
 
 ### Primary keys
@@ -104,7 +104,7 @@ import key from "primate/orm/key";
 import p from "pema";
 
 export default store({
-  name: "article",
+  table: "article",
   db,
   schema: {
     id: key.primary(p.u32),
@@ -133,7 +133,7 @@ import db from "#db";
 import Article from "#store/Article";
 
 export default store({
-  name: "user",
+  table: "user",
   db,
   schema: {
     id: key.primary(p.uuid),
@@ -157,7 +157,7 @@ import db from "#db";
 import Profile from "#store/Profile";
 
 export default store({
-  name: "user",
+  table: "user",
   db,
   schema: {
     id: key.primary(p.uuid),
@@ -182,7 +182,7 @@ import db from "#db";
 import User from "#store/User";
 
 export default store({
-  name: "article",
+  table: "article",
   db,
   schema: {
     id: key.primary(p.u32),
@@ -297,10 +297,10 @@ Create tables or collections at app startup, e.g. in a route file.
 ```ts
 import Post from "#store/Post";
 
-await Post.table.create();
+await Post.create();
 
 // ... later (e.g., tests/teardown)
-// await Post.table.delete();
+// await Post.drop();
 ```
 
 You can safely call `create()` multiple times; drivers treat it as idempotent.
@@ -325,7 +325,7 @@ export default route({
         select: ["id", "title", "created"],
         limit: 20,
       });
-    
+
       return response.view("posts.jsx", { posts });
   },
   async post(request) {
@@ -333,9 +333,9 @@ export default route({
         title: p.string.max(100),
         body: p.string,
       }).coerce(await request.body.form());
-    
+
       const created = await Post.insert(body);
-    
+
       return response.view("posts/created.jsx", { post: created });
   },
 });
@@ -353,7 +353,7 @@ import key from "primate/orm/key";
 import db from "#db";
 
 export default store({
-  name: "user",
+  table: "user",
   db,
   schema: {
     id: key.primary(p.u32),
@@ -386,7 +386,7 @@ import key from "primate/orm/key";
 import db from "#db";
 
 export default store({
-  name: "user",
+  table: "user",
   db,
   schema: {
     id: key.primary(p.u32),

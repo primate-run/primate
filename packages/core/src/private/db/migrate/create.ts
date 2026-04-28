@@ -23,12 +23,12 @@ function generate_migration(diffs: MigrationDiff[]): string {
         .map(([k, v]) => `    ${k}: "${v}"`)
         .join(",\n");
       const options = `{ name: "${store.pk}", generate: true }`;
-      lines.push(`  await db.schema.create("${store.name}", ${options}, {`);
+      lines.push(`  await db.schema.create("${store.table}", ${options}, {`);
       lines.push(`${types}`);
       lines.push("  });");
     } else {
       const { store, diff } = entry;
-      lines.push(`  await db.schema.alter("${store.name}", {`);
+      lines.push(`  await db.schema.alter("${store.table}", {`);
       lines.push(`    add: { ${Object.entries(diff.add).map(([k, v]) => `${k}: "${v}"`).join(", ")} },`);
       lines.push(`    drop: [${diff.drop.map(f => `"${f}"`).join(", ")}],`);
       lines.push(`    rename: [${diff.rename.map(([f, t]) => `["${f}", "${t}"]`).join(", ")}],`);
@@ -58,7 +58,7 @@ export default async function create_migration(desc: string) {
   let next = 1;
   if (await migrations.exists()) {
     const Migration = await toMigrationStore();
-    await Migration.table.create();
+    await Migration.create();
     const last = await Migration.find({ limit: 1, sort: { id: "desc" } });
     const last_id = last.length === 0 ? 0 : last[0].id;
     const files = await migrations.files({ filter: /\d+-.*\.ts$/ });
@@ -91,8 +91,8 @@ export default async function create_migration(desc: string) {
     seen.add(store.id);
     migration_stores.push(store);
 
-    const existing = names.get(store.name) ?? [];
-    names.set(store.name, [...existing, file.name]);
+    const existing = names.get(store.table) ?? [];
+    names.set(store.table, [...existing, file.name]);
   }
 
   const conflicts = [...names].filter(([, files]) => files.length > 1);
@@ -104,7 +104,7 @@ export default async function create_migration(desc: string) {
   }
 
   for (const store of migration_stores) {
-    const current = await store.db.schema.introspect(store.name, store.pk);
+    const current = await store.db.schema.introspect(store.table, store.pk);
 
     // table doesn't exist yet, create
     if (current === null) {
@@ -139,7 +139,7 @@ export default async function create_migration(desc: string) {
     if (diff_entry.op !== "alter") continue;
 
     const { diff, store } = diff_entry;
-    const current = await store.db.schema.introspect(store.name, store.pk);
+    const current = await store.db.schema.introspect(store.table, store.pk);
     const confirmed_renames: [string, string][] = [];
     const confirmed_drops: string[] = [];
 

@@ -1,11 +1,11 @@
 import p from "pema";
-import db from "primate/db";
+import memorydb from "primate/memorydb";
 import key from "primate/orm/key";
 import store from "primate/orm/store";
 
 export default store({
-  name: "counter",
-  db: db(),
+  table: "counter",
+  db: memorydb(),
   schema: {
     id: key.primary(p.u32),
     counter: p.i8.range(-20, 20),

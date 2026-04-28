@@ -11,6 +11,7 @@ import type PrimaryKey from "#orm/PrimaryKey";
 import type { ManyRelation, OneRelation, Relation } from "#orm/relation";
 import type StoreInput from "#orm/StoreInput";
 import assert from "@rcompat/assert";
+import dict from "@rcompat/dict";
 import is from "@rcompat/is";
 import type { Dict, EmptyDict, Serializable } from "@rcompat/type";
 import type { DataKey, DefaultType, InferStore, Storable } from "pema";
@@ -172,7 +173,7 @@ function guard_options<
   T extends object,
   const K extends readonly (keyof T & string)[],
 >(options: T | undefined, allowed: K) {
-  if (options === undefined) return;
+  if (is.undefined(options)) return;
 
   const allowed_set = new Set<string>(allowed as readonly string[]);
 
@@ -202,7 +203,7 @@ const BIGINT_LIMITS = {
 function assert_number_value(key: string, datatype: NumberKey, value: number) {
   if (!is.finite(value)) throw E.where_invalid_value(key, value);
 
-  if (datatype in INT_LIMITS) {
+  if (dict.has(INT_LIMITS, datatype)) {
     if (!is.safeint(value)) throw E.where_invalid_value(key, value);
     const [min, max] = INT_LIMITS[datatype as keyof typeof INT_LIMITS];
     if (value < min || value > max) throw E.where_invalid_value(key, value);
@@ -225,7 +226,7 @@ type Init<
   S extends StoreInput,
   R extends Dict<Relation>,
 > = {
-  name: string;
+  table: string;
   db: DB;
   id?: symbol;
   schema: S;
@@ -250,7 +251,7 @@ export class Store<
   #type: StoreType<ExtractSchema<T>>;
   #types: Types;
   #nullables: Set<string>;
-  #name: string;
+  #table: string;
   #db: DB;
   #pk: PK;
   #generate_pk: boolean;
@@ -262,12 +263,12 @@ export class Store<
   declare readonly Schema: Schema<T>;
 
   constructor(init: Init<T, R>) {
-    const { name, db, migrate, id } = init;
+    const { table, db, migrate, id } = init;
     const { pk, generate_pk, fks, schema } = parse(init.schema);
 
-    if (name === undefined) throw E.store_name_required();
-    assert.string(name);
-    if (!VALID_IDENTIFIER.test(name)) throw E.identifier_invalid(name);
+    if (is.undefined(table)) throw E.store_table_required();
+    assert.string(table);
+    if (!VALID_IDENTIFIER.test(table)) throw E.identifier_invalid(table);
     assert.defined(db, E.db_missing as any);
     assert.dict(schema);
     assert.maybe.boolean(migrate);
@@ -280,7 +281,7 @@ export class Store<
     this.#types = Object.fromEntries(
       Object.entries(schema).map(([key, value]) => [key, value.datatype]),
     );
-    this.#name = name;
+    this.#table = table;
     this.#db = db;
     this.#pk = pk;
     this.#generate_pk = generate_pk;
@@ -290,7 +291,7 @@ export class Store<
     this.#migrate = migrate ?? true;
 
     for (const relation of Object.keys(this.#relations)) {
-      if (relation in schema) throw E.relation_conflicts_with_field(relation);
+      if (dict.has(schema, relation)) throw E.relation_conflicts_with_field(relation);
     }
 
     this.#nullables = new Set(
@@ -299,7 +300,7 @@ export class Store<
         .map(([k]) => k),
     );
 
-    if (init.extend !== undefined) {
+    if (is.defined(init.extend)) {
       for (const [k, v] of Object.entries(init.extend)) {
         if (k in this) throw E.key_duplicate(k);
         (this as any)[k] = v;
@@ -311,23 +312,22 @@ export class Store<
 
   get #as() {
     return {
-      table: this.name,
+      table: this.#table,
       pk: this.#pk,
       generate_pk: this.#generate_pk,
       types: this.#types,
     };
   }
 
-  get table() {
-    const db = this.db;
-    const pk = {
+  async create() {
+    return this.db.schema.create(this.#table, {
       name: this.#pk,
       generate: this.#generate_pk,
-    };
-    return {
-      create: () => db.schema.create(this.#name, pk, this.#types),
-      delete: () => db.schema.delete(this.#name),
-    };
+    }, this.#types);
+  }
+
+  async drop() {
+    return this.db.schema.delete(this.#table);
   }
 
   get infer() {
@@ -350,8 +350,8 @@ export class Store<
     return this.#id;
   }
 
-  get name() {
-    return this.#name;
+  get table() {
+    return this.#table;
   }
 
   get pk() {
@@ -368,7 +368,7 @@ export class Store<
 
   #parse_pk(pkv: unknown): string {
     const pk = this.#pk;
-    if (pk === null) throw E.pk_undefined(this.name);
+    if (is.null(pk)) throw E.pk_undefined(this.#table);
     try {
       this.#schema[pk].parse(pkv);
     } catch {
@@ -380,33 +380,33 @@ export class Store<
   #parse_query(query: Query, types: Types) {
     const { where, select, sort, limit } = query;
 
-    if (where !== undefined) this.#parse_where(where, types);
-    if (select !== undefined) this.#parse_select(select, types);
-    if (sort !== undefined) this.#parse_sort(sort, types);
-    if (limit !== undefined && !is.uint(limit)) throw E.limit_invalid();
+    if (is.defined(where)) this.#parse_where(where, types);
+    if (is.defined(select)) this.#parse_select(select, types);
+    if (is.defined(sort)) this.#parse_sort(sort, types);
+    if (is.defined(limit) && !is.uint(limit)) throw E.limit_invalid();
 
   }
 
   #with(options?: With<R>) {
-    if (options === undefined) return undefined;
+    if (is.undefined(options)) return undefined;
 
     const plan: DBWith = {};
 
     for (const [name, query] of Object.entries(options)) {
-      if (query === undefined) continue;
+      if (is.undefined(query)) continue;
 
       const relation = this.#relations[name] as Relation | undefined;
-      if (relation === undefined) throw E.relation_unknown(name);
+      if (is.undefined(relation)) throw E.relation_unknown(name);
 
       const store = registry.get(relation.schema);
-      if (store === undefined) throw E.unregistered_schema();
+      if (is.undefined(store)) throw E.unregistered_schema();
 
       const { pk: target_pk } = parse(relation.schema);
       const target_types = store.types;
 
       const base = {
         as: {
-          table: store.name,
+          table: store.#table,
           pk: target_pk,
           types: target_types,
         },
@@ -440,7 +440,7 @@ export class Store<
     for (const [k, value] of Object.entries(where)) {
       if (!VALID_IDENTIFIER.test(k)) throw E.identifier_invalid(k);
       if (!(k in types)) throw E.field_unknown(k, "where");
-      if (value === undefined) throw E.field_undefined(k, "where");
+      if (is.undefined(value)) throw E.field_undefined(k, "where");
 
       const datatype = types[k];
 
@@ -813,8 +813,8 @@ export class Store<
 
   extend<A extends Dict>(extensor: (This: this) => A): this & A {
     return new Store({
-      name: this.name,
-      db: this.db,
+      table: this.#table,
+      db: this.#db,
       schema: this.#input,
       relations: this.#relations,
       migrate: this.#migrate,

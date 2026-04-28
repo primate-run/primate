@@ -20,8 +20,8 @@ function store_directory_missing() {
 function store_directory_empty() {
   return t`store directory empty`;
 }
-function store_name_required() {
-  return t`store name required`;
+function store_table_required() {
+  return t`store ${"table"} required`;
 }
 function unregistered_schema() {
   return t`no store registered for schema`;
@@ -49,7 +49,7 @@ const STORE = error.coded({
   db_missing,
   store_directory_missing,
   store_directory_empty,
-  store_name_required,
+  store_table_required,
   unregistered_schema,
   record_not_found,
   record_number_invalid,

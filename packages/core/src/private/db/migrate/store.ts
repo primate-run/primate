@@ -24,7 +24,7 @@ export default async function migration_store() {
   const { table, db } = migrations_config;
 
   return store({
-    name: table,
+    table,
     db,
     schema: {
       id: key.primary(p.u16, { generate: false }),

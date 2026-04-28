@@ -7,7 +7,7 @@ export default async function status_migration() {
   const migrations_dir = root.join("migrations");
 
   const Migration = await store();
-  await Migration.table.create();
+  await Migration.create();
 
   const applied = await Migration.find({
     limit: 3,

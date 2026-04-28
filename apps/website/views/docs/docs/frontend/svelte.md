@@ -65,7 +65,7 @@ export default route({
         { title: "First Post", excerpt: "Introduction to Primate with Svelte" },
         { title: "Second Post", excerpt: "Building reactive applications" },
       ];
-    
+
       return response.view("PostIndex.svelte", { title: "Blog", posts });
   },
 });
@@ -205,16 +205,16 @@ import route from "primate/route";
 import response from "primate/response";
 import p from "pema";
 
-await Counter.table.create();
+await Counter.create();
 
 export default route({
   async get() {
       const counters = await Counter.find({});
-    
+
       const counter = counters.length === 0
         ? await Counter.insert({ counter: 10 })
         : counters[0];
-    
+
       return response.view("Counter.svelte", {
         id: counter.id,
         value: counter.counter
@@ -322,9 +322,9 @@ export default route({
   },
   async post(request) {
       const body = LoginSchema.parse(await request.body.json());
-    
+
       // implement authentication logic
-    
+
       return null;
   },
 });

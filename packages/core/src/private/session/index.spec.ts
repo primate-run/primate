@@ -9,7 +9,7 @@ import test from "@rcompat/test";
 import p from "pema";
 
 const new_store = () => store({
-  name: "session",
+  table: "session",
   db: new MemoryDB(),
   schema: {
     id: k.primary(p.uuid),

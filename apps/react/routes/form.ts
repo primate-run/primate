@@ -4,7 +4,7 @@ import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
 
-await Counter.table.create();
+await Counter.create();
 
 const CounterSchema = p({
   counter: p.number,

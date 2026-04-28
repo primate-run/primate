@@ -4,162 +4,111 @@ title: Using databases
 
 # Databases
 
-Databases back stores. You define them under `config/db`, import them via `#db`,
-and use them in stores (or directly).
+Databases back stores. Define one in your project, map it to a path alias in
+`tsconfig.json`, and import it wherever you need it.
 
-## Overview
+## Available databases
 
 | Database                                | Storage        | Type        |
 | --------------------------------------- | -------------- | ----------- |
-| InMemory                                | in-memory      | relational  |
+| [MemoryDB](#memorydb)                   | in-memory      | relational  |
 | [SQLite](/docs/database/sqlite)         | in-memory/file | relational  |
 | [MySQL](/docs/database/mysql)           | DBMS           | relational  |
 | [PostgreSQL](/docs/database/postgresql) | DBMS           | relational  |
+| [OracleDB](/docs/database/oracle)       | DBMS           | relational  |
 | [MongoDB](/docs/database/mongodb)       | DBMS           | document    |
 
-## Default resolution
+## MemoryDB
 
-Primate resolves the **default database** from `config/db` as follows.
-
-1. If the directory is **missing** or **empty**, Primate writes
-   `config/db/index.ts` with:
-
-   ```ts
-   import db from "primate/db";
-   export default db();
-   ```
-
-   This is an **in-memory, ephemeral** database (no persistence).
-2. Else use `index.ts` or `index.js` if present.
-3. Else use `default.ts` or `default.js` if present.
-4. Else if there is exactly one file, use that file.
-5. If multiple files exist and none is `index`/`default`, throw an error.
-
-This default is what `#db` imports.
-
-!!!
-**TypeScript note** — the compiler cannot map `#db` to "the only file in
-config/db". If you use rule 4, create `config/db/index.ts` that re-exports your
-file. Runtime discovery still works without it, but TS needs the stub to resolve
-`#db`.
-!!!
-
-## Import paths
-
-* `#db` -> `config/db/index.(ts|js)` or `default.(ts|js)`, or the sole file,
-per the resolution rules above
-* `#db/<name>` -> `config/db/<name>.ts` or `.js`.
-
-Examples:
+For development, tests, or ephemeral use, Primate ships a built-in in-memory
+database:
 
 ```ts
-// config/db/postgresql.ts
+import memorydb from "primate/memorydb";
+
+const db = memorydb();
+```
+
+MemoryDB requires no configuration and holds no state between instances. It is
+particularly useful in test suites where you want a clean database per test.
+
+## Setting up a database
+
+Create a file for your database configuration and map it to a path alias in
+`tsconfig.json`:
+
+```ts
+// config/db.ts
 import postgresql from "@primate/postgresql";
-export default postgresql({ /* connection options */ });
+
+export default postgresql({
+  host: "localhost",
+  port: 5432,
+  database: "myapp",
+  username: "myapp",
+  password: "myapp",
+});
 ```
 
-```ts
-// anywhere
-import db from "#db";             // default database
-import pg from "#db/postgresql";  // named database
+```json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "paths": {
+      "#db": ["config/db.ts"]
+    }
+  }
+}
 ```
 
-## Using databases in stores
+The `#db` alias is conventional but not required — `@db`, `@/db`, or any other
+alias you prefer works equally well.
 
-Stores use the **default** database unless pinned. Pin a store by passing a
-`database` in the second argument.
+## Using a database in a store
+
+Import your database and pass it explicitly to the store:
 
 ```ts
-import postgresql from "#db/postgresql";
-import p from "pema";
-import store from "primate/orm/store";
+import db from "#db";
 import key from "primate/orm/key";
+import store from "primate/orm/store";
+import p from "pema";
 
 export default store({
-  name: "post",
-  db: PostgreSQL,
-  schema: { id: key.primary(p.u32), title: p.string },
+  table: "post",
+  db,
+  schema: {
+    id: key.primary(p.u32),
+    title: p.string,
+  },
 });
 ```
 
 See the [stores](/docs/stores) page for the full store API.
 
-## Non-`DatabaseStore` usage
+## Using a database directly
 
-You can skip `DatabaseStore` and call a database directly. Import a database
-and export your own module with the operations you need.
+You can bypass stores entirely and call the database driver directly when your
+access pattern doesn't fit the store shape or you need full control:
 
 ```ts
-// stores/Custom.ts
 import db from "#db";
 
-// the db client is lazily initialized on first use and reused afterwards.
 export default new class Custom {
   async getAll() {
     return db.read(
-      { name: "widget", types: { /* schema types */ } }, // As
-      { criteria: {} },                                  // args
+      { table: "widget", types: { /* schema types */ } },
+      { where: {} },
     );
   }
 }();
 ```
 
-Use this when your access pattern doesn't fit the `DatabaseStore` shape, or
-you want full control over queries.
-
-## Driver shape (CRUD)
-
-All database drivers implement the same abstract CRUD surface. You usually
-won't call these directly unless writing a custom store or a new driver.
-
-```ts
-// create one record; returns the unbound (typed) record with id
-create<O extends Dict>(
-  as: As,
-  args: { record: Dict },
-): MaybePromise<O>;
-
-// read count of matching records
-read(as: As, args: { count: true; criteria: Dict }): MaybePromise<number>;
-
-// read matching records, with optional projection/limit/sort
-read(
-  as: As,
-  args: {
-    criteria: Dict;
-    fields?: string[];
-    limit?: number;
-    sort?: Sort;
-  }
-): MaybePromise<Dict[]>;
-
-// update matching records; returns number updated
-update(
-  as: As,
-  args: { changes: Dict; criteria: Dict }
-): MaybePromise<number>;
-
-// delete matching records; returns number deleted
-delete(as: As, args: { criteria: Dict }): MaybePromise<number>;
-```
-
-Helpers provided by the base `Database` class include:
-
-* identifier quoting: `ident()`, `table()`
-* SQL-like builders: `toSelect()`, `toWhere()`, `toSort()`, `toLimit()`
-* binding: `bind()`, `bindCriteria()`, `unbind()`, `formatBinds()`
-* schema ops on `database.table.create(name, schema)` and `delete()`
-
-Drivers adapt these to their backends (SQL, Mongo queries).
-
 ## Typical project layout
 
 ```
 config/
-  db/
-    index.ts            # default db (or default.ts, or single file)
-    postgresql.ts       # extra named dbs as needed
+  db.ts               # database configuration
 stores/
-  Post.ts               # DatabaseStore, may pin a specific db
-  Custom.ts             # custom module using db directly
+  Post.ts             # store using #db
 ```

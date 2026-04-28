@@ -5,7 +5,7 @@ import runtime from "@rcompat/runtime";
 
 export default async function apply_migration() {
   const Migration = await store();
-  await Migration.table.create();
+  await Migration.create();
   const last = await Migration.find({ limit: 1, sort: { id: "desc" } });
   const last_id = last.length === 0 ? 0 : last[0].id;
 

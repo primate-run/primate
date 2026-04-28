@@ -4,7 +4,7 @@ import key from "primate/orm/key";
 import store from "primate/orm/store";
 
 export default store({
-  name: "user",
+  table: "user",
   db,
   schema: {
     id: key.primary(p.u32),

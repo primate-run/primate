@@ -1,5 +1,5 @@
 ---
-title: "Primate 0.38: The route is the contract"
+title: Primate 0.38: The route is the contract
 epoch: 1775417680000
 author: terrablue
 published: false
@@ -392,6 +392,42 @@ import { client } from "@primate/react";
 The same applies to all five frontends — replace `@primate/svelte/client`,
 `@primate/vue/client`, `@primate/solid/client`, and `@primate/angular/client`
 with the named `{ client }` import from the root package.
+
+### Stores: `name` renamed to `table`, DDL methods promoted
+
+The `name` field in store definitions is now `table`:
+
+```ts
+// before
+export default store({
+  name: "user",
+  db,
+  schema: { ... },
+});
+
+// after
+export default store({
+  table: "user",
+  db,
+  schema: { ... },
+});
+```
+
+The `store.table.create()` and `store.table.delete()` DDL methods are now
+top-level methods directly on the store:
+
+```ts
+// before
+await User.table.create();
+await User.table.delete();
+
+// after
+await User.create();
+await User.drop();
+```
+
+Note the rename from `delete` to `drop` — this avoids ambiguity with the
+data-level `store.delete()` method which removes records, not the table itself.
 
 ### PostgreSQL: `date` now uses `TIMESTAMPTZ`
 
