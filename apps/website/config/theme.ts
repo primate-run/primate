@@ -121,6 +121,7 @@ export default {
       }].concat(...[
         "MongoDB",
         "MySQL",
+        "JSONDB",
         "Oracle",
         "PostgreSQL",
         "SQLite",

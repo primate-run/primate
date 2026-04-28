@@ -1,5 +1,5 @@
-import type { Store } from "#orm/store";
-import type StoreInput from "#orm/StoreInput";
+import type Store from "#store/Store";
+import type StoreInput from "#store/StoreInput";
 import is from "@rcompat/is";
 
 /**

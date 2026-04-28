@@ -1,10 +1,10 @@
 import E from "#errors";
 import create from "#module/create";
-import type { Store } from "#orm/store";
 import type Config from "#session/Config";
 import kSerialize from "#session/k-serialize";
 import SessionHandle from "#session/SessionHandle";
 import storage from "#session/storage";
+import type Store from "#store/Store";
 import type { Dict } from "@rcompat/type";
 import type { StoreSchema } from "pema";
 import p from "pema";

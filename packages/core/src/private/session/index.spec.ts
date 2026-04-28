@@ -1,10 +1,10 @@
 import MemoryDB from "#db/MemoryDB";
-import k from "#orm/key";
-import type { Store } from "#orm/store";
-import store from "#orm/store";
 import session_module from "#session/module";
 import type SessionHandle from "#session/SessionHandle";
 import storage from "#session/storage";
+import store from "#store";
+import k from "#store/key";
+import type Store from "#store/Store";
 import test from "@rcompat/test";
 import p from "pema";
 

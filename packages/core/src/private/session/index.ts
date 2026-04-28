@@ -1,8 +1,8 @@
 import E from "#errors";
-import type { Store } from "#orm/store";
 import configSchema from "#session/schema";
 import type SessionFacade from "#session/SessionFacade";
 import local_storage from "#session/storage";
+import type Store from "#store/Store";
 import s_config from "#symbol/config";
 import type { InferStore, StoreSchema } from "pema";
 

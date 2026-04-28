@@ -16,6 +16,7 @@ Databases back stores. Define one in your project, map it to a path alias in
 | [MySQL](/docs/database/mysql)           | DBMS           | relational  |
 | [PostgreSQL](/docs/database/postgresql) | DBMS           | relational  |
 | [OracleDB](/docs/database/oracle)       | DBMS           | relational  |
+| [JSONDB](docs/database/jsondb)          | JSON files     | document    |
 | [MongoDB](/docs/database/mongodb)       | DBMS           | document    |
 
 ## MemoryDB
@@ -70,15 +71,14 @@ Import your database and pass it explicitly to the store:
 
 ```ts
 import db from "#db";
-import key from "primate/orm/key";
-import store from "primate/orm/store";
+import store from "primate/store";
 import p from "pema";
 
 export default store({
   table: "post",
   db,
   schema: {
-    id: key.primary(p.u32),
+    id: store.key.primary(p.u32),
     title: p.string,
   },
 });

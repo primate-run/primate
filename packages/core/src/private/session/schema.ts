@@ -1,6 +1,7 @@
 import MemoryDB from "#db/MemoryDB";
-import key from "#orm/key";
-import store, { Store } from "#orm/store";
+import store from "#store";
+import Store from "#store/Store";
+import key from "#store/key";
 import p from "pema";
 
 export default p({

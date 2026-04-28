@@ -1,4 +1,4 @@
-import type { AllowedPKType } from "#orm/PrimaryKey";
+import type { AllowedPKType } from "#store/PrimaryKey";
 import type { OptionalType } from "pema";
 
 export type AllowedFKType = AllowedPKType | OptionalType<AllowedPKType>;

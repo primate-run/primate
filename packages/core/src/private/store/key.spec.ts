@@ -1,6 +1,6 @@
-import ForeignKey from "#orm/ForeignKey";
-import key from "#orm/key";
-import PrimaryKey from "#orm/PrimaryKey";
+import ForeignKey from "#store/ForeignKey";
+import key from "#store/key";
+import PrimaryKey from "#store/PrimaryKey";
 import test from "@rcompat/test";
 import p from "pema";
 

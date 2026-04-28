@@ -1,7 +1,7 @@
 import { s_attach, s_config } from "#app/Facade";
 import E from "#db/errors";
-import key from "#orm/key";
-import store from "#orm/store";
+import key from "#store/key";
+import store from "#store";
 import ServeApp from "#serve/App";
 import serve_hook from "#serve/hook";
 import type ServeInit from "#serve/Init";

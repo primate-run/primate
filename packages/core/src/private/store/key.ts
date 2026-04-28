@@ -1,5 +1,5 @@
-import ForeignKey from "#orm/ForeignKey";
-import PrimaryKey from "#orm/PrimaryKey";
+import ForeignKey from "#store/ForeignKey";
+import PrimaryKey from "#store/PrimaryKey";
 
 const key = {
   foreign: ForeignKey.new,

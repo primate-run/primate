@@ -36,15 +36,14 @@ generation.
 ```ts
 // stores/Post.ts
 import p from "pema";
-import store from "primate/orm/store";
-import key from "primate/orm/key";
+import store from "primate/store";
 import db from "#db";
 
 export default store({
   table: "post",
   db,
   schema: {
-    id: key.primary(p.u32),
+    id: store.key.primary(p.u32),
     title: p.string.max(100),
     body: p.string,
     created: p.date.default(() => new Date()),
@@ -76,20 +75,20 @@ await Post.drop();
 
 Define primary keys with `key.primary()`:
 ```ts
-import key from "primate/orm/key";
+import store from "primate/store";
 import p from "pema";
 
 // auto-generated integer PK (default)
-id: key.primary(p.u32)
+id: store.key.primary(p.u32)
 
 // auto-generated UUID PK
-id: key.primary(p.uuid)
+id: store.key.primary(p.uuid)
 
 // bigint PK
-id: key.primary(p.u64)
+id: store.key.primary(p.u64)
 
 // manual PK (no auto-generation)
-id: key.primary(p.u32, { generate: false })
+id: store.key.primary(p.u32, { generate: false })
 ```
 
 Supported PK types:
@@ -100,16 +99,16 @@ Supported PK types:
 
 Define foreign keys with `key.foreign()` to reference other stores:
 ```ts
-import key from "primate/orm/key";
+import store from "primate/store";
 import p from "pema";
 
 export default store({
   table: "article",
   db,
   schema: {
-    id: key.primary(p.u32),
+    id: store.key.primary(p.u32),
     title: p.string,
-    author_id: key.foreign(p.u32),  // references User.id
+    author_id: store.key.foreign(p.u32),  // references User.id
   },
 });
 ```
@@ -125,9 +124,7 @@ Define relationships between stores using the `relation` module.
 
 A user has many articles:
 ```ts
-import store from "primate/orm/store";
-import key from "primate/orm/key";
-import relation from "primate/orm/relation";
+import store from "primate/store";
 import p from "pema";
 import db from "#db";
 import Article from "#store/Article";
@@ -136,11 +133,11 @@ export default store({
   table: "user",
   db,
   schema: {
-    id: key.primary(p.uuid),
+    id: store.key.primary(p.uuid),
     name: p.string,
   },
   relations: {
-    articles: relation.many(Article, "author_id"),
+    articles: store.relation.many(Article, "author_id"),
   },
 });
 ```
@@ -149,9 +146,7 @@ export default store({
 
 A user has one profile:
 ```ts
-import store from "primate/orm/store";
-import key from "primate/orm/key";
-import relation from "primate/orm/relation";
+import store from "primate/store";
 import p from "pema";
 import db from "#db";
 import Profile from "#store/Profile";
@@ -160,11 +155,11 @@ export default store({
   table: "user",
   db,
   schema: {
-    id: key.primary(p.uuid),
+    id: store.key.primary(p.uuid),
     name: p.string,
   },
   relations: {
-    profile: relation.one(Profile, "user_id"),
+    profile: store.relation.one(Profile, "user_id"),
   },
 });
 ```
@@ -174,9 +169,7 @@ export default store({
 Query from the *many* side back to the *one* side:
 ```ts
 // stores/Article.ts
-import store from "primate/orm/store";
-import key from "primate/orm/key";
-import relation from "primate/orm/relation";
+import store from "primate/store";
 import p from "pema";
 import db from "#db";
 import User from "#store/User";
@@ -185,9 +178,9 @@ export default store({
   table: "article",
   db,
   schema: {
-    id: key.primary(p.u32),
+    id: store.key.primary(p.u32),
     title: p.string,
-    author_id: key.foreign(p.u32),
+    author_id: store.key.foreign(p.u32),
   },
   relations: {
     author: relation.one(User, "author_id", { reverse: true }),
@@ -348,15 +341,14 @@ inline or in separate files for modularity.
 ```ts
 // stores/User.ts
 import p from "pema";
-import store from "primate/orm/store";
-import key from "primate/orm/key";
+import store from "primate/store";
 import db from "#db";
 
 export default store({
   table: "user",
   db,
   schema: {
-    id: key.primary(p.u32),
+    id: store.key.primary(p.u32),
     name: p.string,
     age: p.u8.range(0, 120),
     lastname: p.string.optional(),
@@ -381,15 +373,14 @@ Create a base store:
 ```ts
 // stores/User.ts
 import p from "pema";
-import store from "primate/orm/store";
-import key from "primate/orm/key";
+import store from "primate/store";
 import db from "#db";
 
 export default store({
   table: "user",
   db,
   schema: {
-    id: key.primary(p.u32),
+    id: store.key.primary(p.u32),
     name: p.string,
     age: p.u8.range(0, 120),
     lastname: p.string.optional(),

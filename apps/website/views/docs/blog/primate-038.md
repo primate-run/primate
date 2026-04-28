@@ -258,6 +258,34 @@ All standard Primate store operations are supported — `insert`, `find`, `get`,
 projection, sorting, limiting, and the full operator set (`$like`, `$gt`,
 `$gte`, `$lt`, `$lte`, `$ne`, `$before`, `$after`).
 
+## JSON Database driver
+
+Primate 0.38 adds `@primate/jsondb`, a file-backed document database that
+stores each table as a JSON file on disk. It requires no external DBMS and
+is suited to local development and small deployments.
+
+```ts
+import jsondb from "@primate/jsondb";
+import config from "primate/config";
+
+export default config({
+  modules: [jsondb({
+    directory: "data",
+  })],
+});
+```
+
+All standard Primate store operations are supported — `insert`, `find`, `get`,
+`try`, `update`, `delete`, `count`, `has` — as well as relations, field
+projection, sorting, and limiting. All Primate field types are supported,
+including `bigint`, `blob`, `datetime`, and `url`, which are serialized using
+type-tagged JSON objects and revived transparently on load.
+
+JSON Database is not suited to high-concurrency workloads. For production use,
+prefer a dedicated DBMS such as PostgreSQL or MySQL.
+
+Thanks to [lioloc] for contributing this driver.
+
 ## ZZZ
 
 ## Vue style tag support
@@ -336,6 +364,44 @@ export default async db => {
 
 `db.client` is intentionally unabstracted — reaching for it means you are
 writing driver-specific code, and the type system reflects that.
+
+## Unified store API
+
+Store-related imports are now consolidated under a single `primate/store` entry
+point. The separate `primate/orm/store`, `primate/orm/key`, and
+`primate/orm/relation` imports are gone.
+
+```ts
+// before
+import store from "primate/orm/store";
+import key from "primate/orm/key";
+import relation from "primate/orm/relation";
+
+export default store({
+  table: "user",
+  db,
+  schema: {
+    id: key.primary(p.u32),
+    name: p.string,
+    posts: relation.many(PostSchema, "user_id"),
+  },
+});
+
+// after
+import store from "primate/store";
+
+export default store({
+  table: "user",
+  db,
+  schema: {
+    id: store.key.primary(p.u32),
+    name: p.string,
+    posts: store.relation.many(PostSchema, "user_id"),
+  },
+});
+```
+
+This is a breaking change. Update all store files to use the new import.
 
 ## Breaking changes
 
@@ -429,6 +495,11 @@ await User.drop();
 Note the rename from `delete` to `drop` — this avoids ambiguity with the
 data-level `store.delete()` method which removes records, not the table itself.
 
+### Stores: unified import replaces separate orm paths
+
+Replace the three separate imports with a single `primate/store` import and
+update `key` and `relation` usages to use `store.key` and `store.relation`.
+
 ### PostgreSQL: `date` now uses `TIMESTAMPTZ`
 
 The `date` Pema type previously mapped to `TIMESTAMP` (without timezone)
@@ -466,4 +537,4 @@ us on [GitHub].
 [discord]: https://discord.gg/RSg4NNwM4f
 [GitHub]: https://github.com/primate-run/primate
 [upcoming features]: https://github.com/primate-run/primate/milestone/11
-
+[lioloc]: https://github.com/lioloc

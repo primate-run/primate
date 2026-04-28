@@ -1,9 +1,9 @@
 import E from "#db/errors";
 import type PK from "#db/PK";
-import ForeignKey from "#orm/ForeignKey";
-import type { AllowedFKType } from "#orm/ForeignKey";
-import PrimaryKey from "#orm/PrimaryKey";
-import type StoreInput from "#orm/StoreInput";
+import type { AllowedFKType } from "#store/ForeignKey";
+import ForeignKey from "#store/ForeignKey";
+import PrimaryKey from "#store/PrimaryKey";
+import type StoreInput from "#store/StoreInput";
 import type { Dict } from "@rcompat/type";
 import type { DataKey, Storable } from "pema";
 

@@ -1,9 +1,9 @@
 import type DB from "#db/DB";
 import { Code } from "#db/errors";
-import key from "#orm/key";
-import relation from "#orm/relation";
-import type { Store } from "#orm/store";
-import store from "#orm/store";
+import type Store from "#store/Store";
+import store from "#store";
+import key from "#store/key";
+import relation from "#store/relation";
 import type { Asserter } from "@rcompat/test";
 import test from "@rcompat/test";
 import any from "@rcompat/test/any";

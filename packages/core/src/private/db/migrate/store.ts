@@ -1,8 +1,8 @@
 import type AppFacade from "#app/Facade";
 import bundle from "#db/migrate/bundle";
 import E from "#errors";
-import key from "#orm/key";
-import store from "#orm/store";
+import key from "#store/key";
+import store from "#store";
 import runtime from "@rcompat/runtime";
 import p from "pema";
 

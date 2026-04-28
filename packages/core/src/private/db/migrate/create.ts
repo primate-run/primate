@@ -3,7 +3,7 @@ import E from "#db/errors";
 import bundle from "#db/migrate/bundle";
 import toMigrationStore from "#db/migrate/store";
 import type Types from "#db/Types";
-import type { Store } from "#orm/store";
+import type Store from "#store/Store";
 import cli from "@rcompat/cli";
 import runtime from "@rcompat/runtime";
 import string from "@rcompat/string";

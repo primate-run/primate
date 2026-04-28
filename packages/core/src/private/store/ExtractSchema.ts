@@ -1,6 +1,6 @@
-import type ForeignKey from "#orm/ForeignKey";
-import type PrimaryKey from "#orm/PrimaryKey";
-import type StoreInput from "#orm/StoreInput";
+import type ForeignKey from "#store/ForeignKey";
+import type PrimaryKey from "#store/PrimaryKey";
+import type StoreInput from "#store/StoreInput";
 import type { DataKey, Storable } from "pema";
 
 type ExtractSchema<T extends StoreInput> = {

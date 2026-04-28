@@ -1,7 +1,7 @@
-import type ForeignKey from "#orm/ForeignKey";
-import type { AllowedFKType } from "#orm/ForeignKey";
-import type PrimaryKey from "#orm/PrimaryKey";
-import type { AllowedPKType } from "#orm/PrimaryKey";
+import type ForeignKey from "#store/ForeignKey";
+import type { AllowedFKType } from "#store/ForeignKey";
+import type PrimaryKey from "#store/PrimaryKey";
+import type { AllowedPKType } from "#store/PrimaryKey";
 import type { Dict } from "@rcompat/type";
 import type { DataKey, Storable } from "pema";
 

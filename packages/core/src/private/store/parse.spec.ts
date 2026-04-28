@@ -1,8 +1,8 @@
 import { Code } from "#db/errors";
-import ForeignKey from "#orm/ForeignKey";
-import key from "#orm/key";
-import parse from "#orm/parse";
-import PrimaryKey from "#orm/PrimaryKey";
+import ForeignKey from "#store/ForeignKey";
+import key from "#store/key";
+import parse from "#store/parse";
+import PrimaryKey from "#store/PrimaryKey";
 import test from "@rcompat/test";
 import p from "pema";
 

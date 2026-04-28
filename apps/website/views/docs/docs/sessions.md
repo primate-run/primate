@@ -62,14 +62,13 @@ First create the store inside `stores`.
 ```ts
 import db from "#db";
 import p from "pema";
-import store from "primate/orm/store";
-import key from "primate/orm/key";
+import store from "primate/store";
 
 export default store({
   name: "session",
   db,
   schema: {
-    id: key.primary(p.u32),
+    id: store.key.primary(p.u32),
     session_id: p.uuid,
     user_id: p.number,
     last_active: p.date,
@@ -119,7 +118,7 @@ export default route({
       if (!session.exists) {
         session.create({ user_id: 42 });
       }
-    
+
       const data = session.get();
       return `User ${data.user_id} last active at ${data.last_active.toISOString()}`;
   },
@@ -152,14 +151,13 @@ store.
 ```ts
 import db from "#db";
 import p from "pema";
-import store from "primate/orm/store";
-import key from "primate/orm/key";
+import store from "primate/store";
 
 export default store({
   name: "session",
   db,
   schema: {
-    id: key.primary(p.u32),
+    id: store.key.primary(p.u32),
     session_id: p.uuid,
     token: p.string.min(10),
   },

@@ -3,13 +3,14 @@ import E from "#db/errors";
 import type PK from "#db/PK";
 import type Types from "#db/Types";
 import type DBWith from "#db/With";
-import type ExtractSchema from "#orm/ExtractSchema";
-import type ForeignKey from "#orm/ForeignKey";
-import type { AllowedFKType } from "#orm/ForeignKey";
-import parse from "#orm/parse";
-import type PrimaryKey from "#orm/PrimaryKey";
-import type { ManyRelation, OneRelation, Relation } from "#orm/relation";
-import type StoreInput from "#orm/StoreInput";
+import type ExtractSchema from "#store/ExtractSchema";
+import type ForeignKey from "#store/ForeignKey";
+import type { AllowedFKType } from "#store/ForeignKey";
+import type Init from "#store/Init";
+import parse from "#store/parse";
+import type PrimaryKey from "#store/PrimaryKey";
+import type { ManyRelation, OneRelation, Relation } from "#store/relation";
+import type StoreInput from "#store/StoreInput";
 import assert from "@rcompat/assert";
 import dict from "@rcompat/dict";
 import is from "@rcompat/is";
@@ -222,19 +223,6 @@ const NUMBER_OPS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
 const BIGINT_OPS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
 const DATE_OPS = ["$before", "$after", "$ne"];
 
-type Init<
-  S extends StoreInput,
-  R extends Dict<Relation>,
-> = {
-  table: string;
-  db: DB;
-  id?: symbol;
-  schema: S;
-  relations?: R;
-  migrate?: boolean;
-  extend?: Dict;
-};
-
 /**
  * Database-backed store.
  *
@@ -242,10 +230,10 @@ type Init<
  * document database table/collection. It pairs a Pema schema with a uniform
  * CRUD/query API.
  */
-export class Store<
-  T extends StoreInput,
-  R extends Dict<Relation> = EmptyDict,
-> implements Serializable {
+export default class Store<
+    T extends StoreInput,
+    R extends Dict<Relation> = EmptyDict,
+  > implements Serializable {
   #input: StoreInput;
   #schema: Dict<Storable<DataKey>>;
   #type: StoreType<ExtractSchema<T>>;
@@ -823,12 +811,3 @@ export class Store<
     }) as unknown as this & A;
   }
 }
-
-function store<
-  T extends StoreInput,
-  R extends Dict<Relation> = EmptyDict,
->(init: Init<T, R>) {
-  return new Store(init);
-}
-
-export default store;
