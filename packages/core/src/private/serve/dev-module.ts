@@ -1,5 +1,5 @@
 import create from "#module/create";
-import c from "@rcompat/cli/color";
+import cli from "@rcompat/cli";
 
 function pass(address: string, request: Request) {
   return fetch(address, {
@@ -22,7 +22,7 @@ export default function dev() {
         const assets = app.assets.map(asset => asset.src);
         reload = `http://${host}:${port}`;
         paths = ["/esbuild"].concat(assets as string[]);
-        app.log.print`↻ live reload ${c.dim(reload)}\n`;
+        app.log.print`↻ live reload ${cli.fg.dim(reload)}\n`;
       });
 
       onHandle((request, next) => {

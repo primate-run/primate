@@ -1,6 +1,5 @@
 import type { LogHook } from "#module/Setup";
-import c from "@rcompat/cli/color";
-import print from "@rcompat/cli/print";
+import cli from "@rcompat/cli";
 import { CodeError } from "@rcompat/error";
 import p from "pema";
 
@@ -17,7 +16,7 @@ const levels = {
 
 function mark(strings: TemplateStringsArray, params: unknown[]) {
   return strings.reduce((acc, str, i) =>
-    acc + (i > 0 ? c.bold(String(params[i - 1])) : "") + str, "");
+    acc + (i > 0 ? cli.fg.bold(String(params[i - 1])) : "") + str, "");
 }
 
 function format(strings: TemplateStringsArray, params: unknown[]) {
@@ -48,37 +47,37 @@ export default function logger(level: string = "warn", hooks: LogHook[] = []) {
     },
 
     print(strings: TemplateStringsArray, ...params: unknown[]) {
-      print(format(strings, params));
+      cli.print(format(strings, params));
     },
 
     system(strings: TemplateStringsArray, ...params: unknown[]) {
-      print(`  ${format(strings, params)}\n`);
+      cli.print(`  ${format(strings, params)}\n`);
     },
 
     trace(strings: TemplateStringsArray, ...params: unknown[]) {
       if (n === levels.trace) {
-        print(c.blue("[TRACE]"), mark(strings, params), "\n");
+        cli.print(cli.fg.blue("[TRACE]"), mark(strings, params), "\n");
       }
       run_hooks("trace", format(strings, params), hooks);
     },
 
     info(strings: TemplateStringsArray, ...params: unknown[]) {
       if (n >= levels.info) {
-        print(c.green("[INFO]"), mark(strings, params), "\n");
+        cli.print(cli.fg.green("[INFO]"), mark(strings, params), "\n");
       }
       run_hooks("info", format(strings, params), hooks);
     },
 
     warn(strings: TemplateStringsArray, ...params: unknown[]) {
       if (n >= levels.warn) {
-        print(c.yellow("[WARN]"), mark(strings, params), "\n");
+        cli.print(cli.fg.yellow("[WARN]"), mark(strings, params), "\n");
       }
       run_hooks("warn", format(strings, params), hooks);
     },
 
     error(error: unknown) {
       if (CodeError.is(error)) {
-        print(c.red("[ERROR]"), mark(error.strings, error.params), "\n");
+        cli.print(cli.fg.red("[ERROR]"), mark(error.strings, error.params), "\n");
         run_hooks("error", format(error.strings, error.params), hooks);
       } else {
         console.error(error);

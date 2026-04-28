@@ -26,14 +26,14 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.11.0",
-    "@rcompat/dict": "^0.8.0",
-    "@rcompat/is": "^0.9.0",
+    "@rcompat/assert": "^0.13.0",
+    "@rcompat/dict": "^0.10.0",
+    "@rcompat/is": "^0.11.0",
     "mongodb": "^7.1.1",
     "pema": "workspace:"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.15.1"
+    "@rcompat/type": "^0.17.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"

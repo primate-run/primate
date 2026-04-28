@@ -25,14 +25,14 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.15.1",
+    "@rcompat/type": "^0.17.0",
     "@types/babel__core": "^7.20.5"
   },
   "dependencies": {
     "@babel/core": "^7.28.6",
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.31.0",
-    "@rcompat/runtime": "^0.14.4",
+    "@rcompat/fs": "^0.33.2",
+    "@rcompat/runtime": "^0.16.0",
     "babel-preset-solid": "^1.9.12"
   },
   "peerDependencies": {

@@ -13,19 +13,19 @@
     "upgrade": "pnpm -r update -i -L",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "pnpm -r test",
+    "test": "pnpm --workspace-concurrency=1 -r test",
     "test:apps": "pnpm -r --filter='./apps/**' test",
     "test:packages": "pnpm -r --filter='./packages/**' test",
     "sweep": "rm -rf node_modules pnpm-lock.yaml {app,package}s/*/node_modules apps/*/build && npm run clean",
     "knip": "knip"
   },
   "devDependencies": {
-    "@rcompat/test": "^0.15.0",
+    "@rcompat/test": "^0.17.0",
     "@types/node": "^25.5.2",
     "apekit": "^0.0.51",
     "eslint": "^9.39.2",
     "knip": "^6.3.0",
-    "proby": "^0.16.2",
+    "proby": "^0.19.0",
     "typescript": "^6.0.2"
   }
 }

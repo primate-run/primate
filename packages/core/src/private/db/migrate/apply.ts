@@ -1,7 +1,6 @@
 import E from "#db/errors";
 import store from "#db/migrate/store";
-import color from "@rcompat/cli/color";
-import print from "@rcompat/cli/print";
+import cli from "@rcompat/cli";
 import runtime from "@rcompat/runtime";
 
 export default async function apply_migration() {
@@ -20,7 +19,7 @@ export default async function apply_migration() {
     .toSorted((a, b) => a.n - b.n);
 
   if (files.length === 0) {
-    print("No pending migrations.\n");
+    cli.print("No pending migrations.\n");
     return;
   }
 
@@ -28,10 +27,10 @@ export default async function apply_migration() {
     const { default: migration } = await import(file.path);
     await migration(Migration.db);
     await Migration.insert({ id: n, applied: new Date() });
-    print(`Applied migration ${color.bold(file.name)}.\n`);
+    cli.print(`Applied migration ${cli.fg.bold(file.name)}.\n`);
   }
 
   const plural = files.length === 1 ? "" : "s";
-  print(`Done. Applied ${files.length} migration${plural}.\n`);
+  cli.print(`Done. Applied ${files.length} migration${plural}.\n`);
   runtime.exit();
 }

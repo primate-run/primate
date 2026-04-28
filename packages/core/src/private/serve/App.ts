@@ -327,7 +327,7 @@ export default class ServeApp extends App {
     if (await ref.exists() && await ref.type() === "file") {
       return new Response(ref.stream(), {
         headers: {
-          "Content-Type": http.MIME.resolve(ref.name),
+          "Content-Type": http.toMIME(ref.name),
           "Content-Length": String(await ref.size()),
         },
         status: http.Status.OK,

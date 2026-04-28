@@ -1,5 +1,4 @@
-import c from "@rcompat/cli/color";
-import print from "@rcompat/cli/print";
+import cli from "@rcompat/cli";
 import build from "./build.js";
 import dev from "./dev.js";
 import init from "./init.js";
@@ -20,7 +19,7 @@ const commands = {
 
 function unknown(command: string) {
   return () => {
-    print(`Unknown command ${c.dim(command)}\n`);
+    cli.print(`Unknown command ${cli.fg.dim(command)}\n`);
   };
 };
 

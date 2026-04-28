@@ -14,8 +14,8 @@
     "@primate/core": "workspace:^",
     "@primate/html": "workspace:^",
     "@primate/sqlite": "workspace:^",
-    "@rcompat/assert": "^0.11.0",
-    "@rcompat/type": "^0.15.1",
+    "@rcompat/assert": "^0.13.0",
+    "@rcompat/type": "^0.17.0",
     "pema": "workspace:^",
     "primate": "workspace:^"
   },

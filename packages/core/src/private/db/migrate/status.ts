@@ -1,6 +1,5 @@
 import store from "#db/migrate/store";
-import c from "@rcompat/cli/color";
-import print from "@rcompat/cli/print";
+import cli from "@rcompat/cli";
 import runtime from "@rcompat/runtime";
 
 export default async function status_migration() {
@@ -28,18 +27,18 @@ export default async function status_migration() {
 
   for (const { id, applied: date } of last_applied) {
     const file = files.find(f => f.n === id);
-    print(`${c.green("Applied")} ${file?.name ?? "unknown"} (${date.toISOString()})\n`);
+    cli.print(`${cli.fg.green("Applied")} ${file?.name ?? "unknown"} (${date.toISOString()})\n`);
   }
 
   if (last_applied.length > 0 && pending.length > 0) {
-    print("---\n");
+    cli.print("---\n");
   }
 
-  for (const { name, n } of pending) {
-    print(`${c.yellow("Pending")} ${c.bold(name)}\n`);
+  for (const { name } of pending) {
+    cli.print(`${cli.fg.yellow("Pending")} ${cli.fg.bold(name)}\n`);
   }
 
   if (last_applied.length === 0 && pending.length === 0) {
-    print("No migrations found.\n");
+    cli.print("No migrations found.\n");
   }
 }

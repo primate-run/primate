@@ -25,13 +25,13 @@
     "db": "scripts/db.sh"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.15.1",
+    "@rcompat/type": "^0.17.0",
     "@types/oracledb": "^6.10.2"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.11.0",
-    "@rcompat/is": "^0.9.0",
+    "@rcompat/assert": "^0.13.0",
+    "@rcompat/is": "^0.11.0",
     "oracledb": "^6.10.0",
     "pema": "workspace:"
   },

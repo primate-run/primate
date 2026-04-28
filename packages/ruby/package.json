@@ -24,19 +24,19 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.11.0",
-    "@rcompat/error": "^0.6.2",
-    "@rcompat/fs": "^0.31.0",
-    "@rcompat/http": "^0.28.0",
-    "@rcompat/io": "^0.8.0",
-    "@rcompat/is": "^0.9.0",
-    "@rcompat/runtime": "^0.14.4",
+    "@rcompat/assert": "^0.13.0",
+    "@rcompat/error": "^0.8.0",
+    "@rcompat/fs": "^0.33.2",
+    "@rcompat/http": "^0.30.0",
+    "@rcompat/io": "^0.10.0",
+    "@rcompat/is": "^0.11.0",
+    "@rcompat/runtime": "^0.16.0",
     "@ruby/head-wasm-wasi": "^2.7.2",
     "@ruby/wasm-wasi": "^2.7.2",
     "pema": "workspace:^"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.15.1"
+    "@rcompat/type": "^0.17.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"

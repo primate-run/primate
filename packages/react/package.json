@@ -24,13 +24,13 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.15.1",
+    "@rcompat/type": "^0.17.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/runtime": "^0.14.4"
+    "@rcompat/runtime": "^0.16.0"
   },
   "peerDependencies": {
     "@types/react": "19",

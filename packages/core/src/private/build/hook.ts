@@ -7,7 +7,7 @@ import location from "#location";
 import $router from "#request/router";
 import s_layout_depth from "#symbol/layout-depth";
 import assert from "@rcompat/assert";
-import c from "@rcompat/cli/color";
+import cli from "@rcompat/cli";
 import runtime from "@rcompat/runtime";
 
 const package_json = await runtime.packageJSON(import.meta.dirname);
@@ -59,7 +59,7 @@ async function post(app: BuildApp) {
     migration_version,
   });
 
-  app.log.print`✓ build path  ${c.dim(app.path.build.path)}\n`;
+  app.log.print`✓ build path  ${cli.fg.dim(app.path.build.path)}\n`;
   app.cleanup();
   return app;
 }

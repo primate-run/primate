@@ -11,9 +11,9 @@
     "test:bun": "bunx --bun proby"
   },
   "dependencies": {
-    "@primate/svelte": "workspace:^",
     "@primate/sqlite": "workspace:^",
-    "@rcompat/http": "^0.28.0",
+    "@primate/svelte": "workspace:^",
+    "@rcompat/http": "^0.30.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
     "svelte": "^5.55.1"

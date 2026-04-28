@@ -1,10 +1,10 @@
-import Status from "primate/http/Status";
+import http from "@rcompat/http";
 import route from "primate/route";
 
 export default route({
   get() {
     return new Response("Hi!", {
-      status: Status.ACCEPTED,
+      status: http.Status.ACCEPTED,
       headers: { "X-Custom": "1" },
     });
   },

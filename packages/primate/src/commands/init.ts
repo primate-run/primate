@@ -1,22 +1,11 @@
 import core from "@primate/core";
-import color from "@rcompat/cli/color";
-import cancel from "@rcompat/cli/prompts/cancel";
-import intro from "@rcompat/cli/prompts/intro";
-import is_cancel from "@rcompat/cli/prompts/is-cancel";
-import multiselect from "@rcompat/cli/prompts/multiselect";
-import outro from "@rcompat/cli/prompts/outro";
-import select from "@rcompat/cli/prompts/select";
-import text from "@rcompat/cli/prompts/text";
+import cli from "@rcompat/cli";
 import type { FileRef } from "@rcompat/fs";
 import fs from "@rcompat/fs";
 import is from "@rcompat/is";
-import runtime from "@rcompat/runtime";
+import runtime_mod from "@rcompat/runtime";
 import type { Dict } from "@rcompat/type";
 import type Command from "./Command.js";
-
-function abort() {
-  return cancel("Aborted");
-}
 
 type Runtime = "node" | "deno" | "bun";
 
@@ -86,19 +75,29 @@ const FRONTEND_PEER_DEPS: Record<Frontend, string[]> = {
   "webc": [],
 };
 
+function abort() {
+  return cli.prompt.cancel("Aborted");
+}
+
+function is_cancel(x: unknown) {
+  return is.symbol(x) || prompt.isCancel(x);
+}
+
+const { prompt } = cli;
+
 const command_init: Command = async () => {
-  intro("Create a new Primate app");
+  prompt.intro("Create a new Primate app");
 
   let directory: string;
   let target: FileRef;
 
-  const log = core.logger(runtime.flags.get("--log"));
+  const log = core.logger(runtime_mod.flags.get("--log"));
 
   while (true) {
-    const ans = await text({
+    const ans = await prompt.text({
       message: "Directory to create app?", initial: ".",
     });
-    if (is.symbol(ans) || is_cancel(ans)) return abort();
+    if (is.symbol(ans) || prompt.isCancel(ans)) return abort();
 
     target = fs.ref(ans);
     if (await empty(target)) {
@@ -110,21 +109,21 @@ const command_init: Command = async () => {
     log.error("Directory not empty, choose another.");
   }
 
-  const frontends = await multiselect<Frontend>({
+  const frontends = await prompt.multiselect<Frontend>({
     message: "Choose frontend (press Enter to skip)",
     options: FRONTEND_OPTIONS,
     initial: [],
   });
-  if (typeof frontends === "symbol" || is_cancel(frontends)) return abort();
+  if (is_cancel(frontends)) return abort();
 
-  const backends = await multiselect<Backend>({
+  const backends = await prompt.multiselect<Backend>({
     message: "Choose backend (press Enter to skip)",
     options: BACKEND_OPTIONS,
     initial: [],
   });
-  if (typeof backends === "symbol" || is_cancel(backends)) return abort();
+  if (is_cancel(backends)) return abort();
 
-  const selected_runtime = await select<Runtime>({
+  const runtime = await prompt.select<Runtime>({
     message: "Choose runtime",
     options: [
       { label: "Node", value: "node" },
@@ -133,17 +132,18 @@ const command_init: Command = async () => {
     ],
     initial: 0,
   });
-  if (typeof selected_runtime === "symbol" || is_cancel(selected_runtime)) return abort();
+  if (is_cancel(runtime)) return abort();
 
-  const dbs = await multiselect<Database>({
+  const dbs = await prompt.multiselect<Database>({
     message: "Choose a database (press Enter to skip)",
     options: DATABASE_OPTIONS,
     initial: [],
   });
-  if (typeof dbs === "symbol" || is_cancel(dbs)) return abort();
+  if (is_cancel(dbs)) return abort();
+
   const db = dbs[0] as Database | undefined;
 
-  const i18n = await select<"yes" | "no">({
+  const i18n = await prompt.select<"yes" | "no">({
     message: "Enable i18n?",
     options: [
       { label: "Yes", value: "yes" },
@@ -151,10 +151,11 @@ const command_init: Command = async () => {
     ],
     initial: 1,
   });
-  if (typeof i18n === "symbol" || is_cancel(i18n)) return abort();
+  if (is_cancel(i18n)) return abort();
+
   const with_i18n = i18n === "yes";
 
-  const sessions = await select<"yes" | "no">({
+  const sessions = await prompt.select<"yes" | "no">({
     message: "Configure sessions?",
     options: [
       { label: "Yes", value: "yes" },
@@ -162,27 +163,27 @@ const command_init: Command = async () => {
     ],
     initial: 1,
   });
-  if (typeof sessions === "symbol" || is_cancel(sessions)) return abort();
-  const withSessions = sessions === "yes";
+  if (is_cancel(sessions)) return abort();
+  const with_sessions = sessions === "yes";
 
   await target.create();
   await target.join("routes").create();
   await target.join("views").create();
-  if (db !== undefined) await target.join("stores").create();
+  if (is.defined(db)) await target.join("stores").create();
 
   // files
   await gitignore(target);
   await tsconfig_json(target, { frontends });
-  await app_config(target, { frontends: frontends, backends: backends, runtime: selected_runtime });
+  await app_config(target, { frontends, backends, runtime });
   if (with_i18n) await i18n_config(target);
-  if (withSessions) await session_config(target);
-  if (db) await database_config(target, db);
-  await package_json(target, { directory, runtime: selected_runtime });
+  if (with_sessions) await session_config(target);
+  if (is.defined(db)) await database_config(target, db);
+  await package_json(target, { directory, runtime: runtime });
 
-  const packages = compute_packages({ frontends: frontends, backends: backends, db });
-  const install = build_install_command(selected_runtime, packages, directory);
+  const packages = compute_packages({ frontends, backends, db });
+  const install = build_install_command(runtime, packages, directory);
 
-  outro(`${color.green("done, now run")} ${color.dim(install.print)}`);
+  prompt.outro(`${cli.fg.green("done, now run")} ${cli.fg.dim(install.print)}`);
 
   process.exit();
 };
@@ -326,7 +327,9 @@ async function package_json(
 }
 
 function safe(s: string) {
-  return s.trim().toLowerCase().replace(/\s+/g, "-")
+  return s
+    .trim()
+    .toLowerCase().replace(/\s+/g, "-")
     .replace(/[^a-z0-9._-]/g, "") || "primate-app";
 }
 
@@ -362,7 +365,7 @@ function compute_packages(args: {
   for (const b of args.backends) deps.add(`@primate/${b}`);
 
   // database → @primate/<token>, if selected
-  if (args.db) deps.add(`@primate/${args.db}`);
+  if (is.defined(args.db)) deps.add(`@primate/${args.db}`);
 
   return {
     dependencies: Array.from(deps),

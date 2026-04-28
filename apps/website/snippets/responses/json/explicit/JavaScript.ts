@@ -1,5 +1,5 @@
 import response from "primate/response";
-import Status from "primate/http/Status";
+import http from "@rcompat/http";
 import route from "primate/route";
 
 export default route({
@@ -7,6 +7,6 @@ export default route({
     return response.json([
       { name: "Donald" },
       { name: "John" },
-    ], { status: Status.CREATED });
+    ], { status: http.Status.CREATED });
   },
 });

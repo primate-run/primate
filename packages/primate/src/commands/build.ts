@@ -1,8 +1,7 @@
 import core from "@primate/core";
 import build from "@primate/core/build";
 import Flags from "@primate/core/Flags";
-import c from "@rcompat/cli/color";
-import print from "@rcompat/cli/print";
+import cli from "@rcompat/cli";
 import runtime from "@rcompat/runtime";
 import type Command from "./Command.js";
 
@@ -13,7 +12,7 @@ function orange(x: unknown) {
 const command_build: Command = async mode => {
   const { name, version } = await runtime.packageJSON(import.meta.dirname);
 
-  print(c.bold(orange((name.toUpperCase()))), orange(version), "\n\n");
+  cli.print(cli.fg.bold(orange((name.toUpperCase()))), orange(version), "\n\n");
   const root = await runtime.projectRoot();
 
   core.try(async () => {

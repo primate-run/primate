@@ -28,7 +28,7 @@
     "voby": "^0.58.1"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.15.1"
+    "@rcompat/type": "^0.17.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"

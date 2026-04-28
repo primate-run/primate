@@ -1,5 +1,5 @@
 import p from "pema";
-import Status from "primate/http/Status";
+import http from "@rcompat/http";
 import response from "primate/response";
 import route from "primate/route";
 
@@ -12,7 +12,7 @@ export default route({
     const { session } = request.cookies.parse(CookieSchema);
 
     return response.text(session ? "OK" : "No session", {
-      status: session ? Status.OK : Status.FORBIDDEN,
+      status: session ? http.Status.OK : http.Status.FORBIDDEN,
     });
   },
 });

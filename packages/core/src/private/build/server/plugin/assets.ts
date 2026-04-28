@@ -34,7 +34,7 @@ export default function plugin_server_assets(app: BuildApp): Plugin {
             const bytes = await file.bytes();
             const base64 = bytes2base64(bytes);
             client_assets[pathname] = {
-              mime: http.MIME.resolve(file.name),
+              mime: http.toMIME(file.name),
               data: base64,
             };
           }
@@ -50,7 +50,7 @@ export default function plugin_server_assets(app: BuildApp): Plugin {
             const bytes = await file.bytes();
             const base64 = bytes2base64(bytes);
             static_assets[pathname] = {
-              mime: http.MIME.resolve(file.name),
+              mime: http.toMIME(file.name),
               data: base64,
             };
           }

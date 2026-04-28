@@ -2,7 +2,7 @@ import command from "#command";
 import type { NativeTarget } from "#targets";
 import targets from "#targets";
 import type { Module } from "@primate/core";
-import color from "@rcompat/cli/color";
+import cli from "@rcompat/cli";
 import io from "@rcompat/io";
 import p from "pema";
 
@@ -28,7 +28,7 @@ export default function module(input: typeof Schema.input = {}): Module {
         if (names.has(app.target.name)) {
           app.done(async () => {
             const { exe, flags } = app.target.get() as NativeTarget;
-            const executable_path = color.dim(`${app.path.build}/${exe}`);
+            const executable_path = cli.fg.dim(`${app.path.build}/${exe}`);
             const { host, port } = app.config("http");
             await app.runpath("worker.js").write(`
           import target from "@primate/native/target/${app.target.target}";

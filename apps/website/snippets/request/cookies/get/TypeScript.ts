@@ -1,4 +1,4 @@
-import Status from "primate/http/Status";
+import http from "@rcompat/http";
 import response from "primate/response";
 import route from "primate/route";
 
@@ -8,7 +8,7 @@ export default route({
     if (!session) {
       return response.error({
         body: "Unauthorized",
-        status: Status.UNAUTHORIZED,
+        status: http.Status.UNAUTHORIZED,
       });
     }
 

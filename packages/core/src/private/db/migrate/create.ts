@@ -4,10 +4,7 @@ import bundle from "#db/migrate/bundle";
 import toMigrationStore from "#db/migrate/store";
 import type Types from "#db/Types";
 import type { Store } from "#orm/store";
-import c from "@rcompat/cli/color";
-import print from "@rcompat/cli/print";
-import is_cancel from "@rcompat/cli/prompts/is-cancel";
-import text from "@rcompat/cli/prompts/text";
+import cli from "@rcompat/cli";
 import runtime from "@rcompat/runtime";
 import string from "@rcompat/string";
 
@@ -158,14 +155,14 @@ export default async function create_migration(desc: string) {
       }
 
       for (const added of matching_added) {
-        const d = c.bold(dropped);
-        const a = c.bold(added);
-        const answer = await text({
+        const d = cli.fg.bold(dropped);
+        const a = cli.fg.bold(added);
+        const answer = await cli.prompt.text({
           message: `${d} was removed and ${a} was `
             + `added with a compatible type. Rename ${d} → ${a}? (y/N)`,
         });
 
-        if (!is_cancel(answer) && (answer as string).toLowerCase() === "y") {
+        if (!cli.prompt.isCancel(answer) && answer.toLowerCase() === "y") {
           confirmed_renames.push([dropped, added]);
           delete diff.add[added];
         } else {
@@ -179,7 +176,7 @@ export default async function create_migration(desc: string) {
   }
 
   if (diffs.length === 0) {
-    print("No schema changes detected.\n");
+    cli.print("No schema changes detected.\n");
     return;
   }
 
@@ -188,6 +185,6 @@ export default async function create_migration(desc: string) {
   const content = generate_migration(diffs);
   const filename = `${next}-${string.toSlug(desc)}.ts`;
   await migrations.join(filename).write(content);
-  print(`Created ${c.bold(`migrations/${filename}`)}.\n`);
+  cli.print(`Created ${cli.fg.bold(`migrations/${filename}`)}.\n`);
   runtime.exit();
 };
