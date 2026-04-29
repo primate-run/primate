@@ -1,9 +1,10 @@
 import type DB from "#db/DB";
 import { Code } from "#db/errors";
-import type Store from "#store/Store";
 import store from "#store";
 import key from "#store/key";
 import relation from "#store/relation";
+import type Store from "#store/Store";
+import { CodeError } from "@rcompat/error";
 import type { Asserter } from "@rcompat/test";
 import test from "@rcompat/test";
 import any from "@rcompat/test/any";
@@ -143,7 +144,9 @@ async function throws(
     await fn();
     assert(false).true();
   } catch (error) {
-    assert((error as any).code).equals(code);
+    if (CodeError.is(error)) {
+      assert(error.code).equals(code);
+    }
   }
 }
 
@@ -161,6 +164,10 @@ export default <D extends DB>(db: D) => {
   });
 
   Post.update;
+
+  test.case("#table typed from table name", assert => {
+    assert(Post.table).type<"post">();
+  });
 
   const User = store({
     table: "user",
@@ -234,31 +241,14 @@ export default <D extends DB>(db: D) => {
     },
   });
 
-  const AuthorSchema = {
-    id: key.primary(p.uuid),
-    name: p.string,
-  };
-
-  const ArticleSchema = {
-    id: key.primary(p.uuid),
-    title: p.string,
-    author_id: key.foreign(p.uuid),
-  };
-
-  const ProfileSchema = {
-    id: key.primary(p.uuid),
-    bio: p.string,
-    url: p.url.optional(),
-    author_id: key.foreign(p.uuid),
-  };
-
   const Author = store({
-    db,
     table: "author",
-    schema: AuthorSchema,
-    relations: {
-      articles: relation.many(ArticleSchema, "author_id"),
-      profile: relation.one(ProfileSchema, "author_id"),
+    db,
+    schema: {
+      id: key.primary(p.uuid),
+      name: p.string,
+      articles: relation.many({ table: "article", by: "author_id" }),
+      profile: relation.one({ table: "profile", by: "author_id" }),
     },
   });
 
@@ -274,20 +264,25 @@ export default <D extends DB>(db: D) => {
   });*/
 
   const Article = store({
-    db,
     table: "article",
-    schema: ArticleSchema,
-    relations: {
-      author: relation.one(AuthorSchema, "author_id", { reverse: true }),
+    db,
+    schema: {
+      id: key.primary(p.uuid),
+      title: p.string,
+      author_id: key.foreign(p.uuid),
+      author: relation.one({ table: "author", by: "author_id", reverse: true }),
     },
   });
 
   const Profile = store({
     db,
     table: "profile",
-    schema: ProfileSchema,
-    relations: {
-      author: relation.one(AuthorSchema, "author_id", { reverse: true }),
+    schema: {
+      id: key.primary(p.uuid),
+      bio: p.string,
+      url: p.url.optional(),
+      author_id: key.foreign(p.uuid),
+      author: relation.one({ table: "author", by: "author_id", reverse: true }),
     },
   });
 
@@ -401,7 +396,7 @@ export default <D extends DB>(db: D) => {
       label,
       mk,
       base => User.find({ where: base }),
-      w => Author.find({ with: { articles: { where: w } } }),
+      w => Author.find({ with: { articles: { store: Article, where: w as any } } }),
       expected,
     );
   }
@@ -416,7 +411,7 @@ export default <D extends DB>(db: D) => {
       label,
       mk,
       base => User.find({ select: base }),
-      w => Author.find({ with: { articles: { select: w } } }),
+      w => Author.find({ with: { articles: { store: Article, select: w } } }),
       expected,
     );
   }
@@ -431,7 +426,7 @@ export default <D extends DB>(db: D) => {
       label,
       mk,
       base => User.find({ sort: base }),
-      w => Author.find({ with: { articles: { sort: w } } }),
+      w => Author.find({ with: { articles: { store: Article, sort: w } } }),
       expected,
     );
   }
@@ -1111,7 +1106,7 @@ export default <D extends DB>(db: D) => {
     const articles = await Article.find();
     const article = await Article.get(articles[0].id, {
       with: {
-        author: true,
+        author: Author,
       },
     });
 
@@ -1130,7 +1125,7 @@ export default <D extends DB>(db: D) => {
 
   $rel("get with many", async assert => {
     const [first] = await Author.find({ where: { name: "John" } });
-    const john = await Author.get(first.id, { with: { articles: true } });
+    const john = await Author.get(first.id, { with: { articles: Article } });
 
     assert(john.articles).type<{
       id: string;
@@ -1144,7 +1139,7 @@ export default <D extends DB>(db: D) => {
 
   $rel("get by id", async assert => {
     const [first] = await Author.find({ where: { name: "John" } });
-    const john = await Author.get(first.id, { with: { profile: true } });
+    const john = await Author.get(first.id, { with: { profile: Profile } });
 
     assert(john.profile).not.null();
     assert(john.profile?.bio).equals("John is a writer");
@@ -1152,7 +1147,7 @@ export default <D extends DB>(db: D) => {
 
   $rel("get by id returns null when missing", async assert => {
     const [first] = await Author.find({ where: { name: "Bob" } });
-    const bob = await Author.get(first.id, { with: { profile: true } });
+    const bob = await Author.get(first.id, { with: { profile: Profile } });
 
     assert(bob.profile).null();
   });
@@ -1160,7 +1155,7 @@ export default <D extends DB>(db: D) => {
   $rel("find", async assert => {
     const articles = await Article.find({
       where: { title: { $like: "% Post" } },
-      with: { author: true },
+      with: { author: Author },
       sort: { title: "asc" },
     });
 
@@ -1173,7 +1168,7 @@ export default <D extends DB>(db: D) => {
 
   $rel("try", async assert => {
     const [first] = await Article.find();
-    const article = await Article.try(first.id, { with: { author: true } });
+    const article = await Article.try(first.id, { with: { author: Author } });
 
     assert(article).defined();
     assert(article?.author).not.null();
@@ -1182,7 +1177,7 @@ export default <D extends DB>(db: D) => {
   $rel("many returns empty array when no matches", async assert => {
     // insert author with no articles
     const lonely = await Author.insert({ name: "Lonely" });
-    const author = await Author.get(lonely.id, { with: { articles: true } });
+    const author = await Author.get(lonely.id, { with: { articles: Article } });
 
     assert(author.articles).type<{
       id: string;
@@ -1196,8 +1191,8 @@ export default <D extends DB>(db: D) => {
     const authors = await Author.find({ where: { name: "John" } });
     const john = await Author.get(authors[0].id, {
       with: {
-        articles: true,
-        profile: true,
+        articles: Article,
+        profile: Profile,
       },
     });
 
@@ -1224,12 +1219,13 @@ export default <D extends DB>(db: D) => {
       limit: 20,
       with: {
         articles: {
+          store: Article,
           where: { title: { $like: "%foo%" } },
           select: ["id", "title"],
           sort: { title: "asc" },
           limit: SUBLIMIT,
         },
-        profile: true,
+        profile: Profile,
       },
     });
 
@@ -1324,8 +1320,8 @@ export default <D extends DB>(db: D) => {
     const rows = await Author.find({
       select: ["id"],
       with: {
-        profile: { select: ["bio"] },
-        articles: { select: ["title"] },
+        profile: { store: Profile, select: ["bio"] },
+        articles: { store: Article, select: ["title"] },
       },
     });
 
@@ -1358,8 +1354,8 @@ export default <D extends DB>(db: D) => {
     const missing = "00000000-0000-4000-8000-000000000000";
 
     await throws(assert, Code.record_not_found, () =>
-      Article.get(missing, { with: { author: true } }));
-    assert(await Article.try(missing, { with: { author: true } })).undefined();
+      Article.get(missing, { with: { author: Author } }));
+    assert(await Article.try(missing, { with: { author: Author } })).undefined();
   });
 
   $rel("get/try: missing id (+ parent)", async assert => {
@@ -1367,9 +1363,9 @@ export default <D extends DB>(db: D) => {
     //const missing = `missing-${Date.now()}-${Math.random()}`;
 
     await throws(assert, Code.record_not_found, () =>
-      Author.get(missing, { with: { articles: true, profile: true } }));
+      Author.get(missing, { with: { articles: Article, profile: Profile } }));
     assert(await Author.try(missing, {
-      with: { articles: true, profile: true },
+      with: { articles: Article, profile: Profile },
     })).undefined();
   });
 
@@ -1742,10 +1738,11 @@ export default <D extends DB>(db: D) => {
       return Author.find({
         with: {
           articles: {
+            store: Article,
             select: {} as any, // must be array
           },
         },
-      } as any);
+      });
     });
   });
 
@@ -1754,10 +1751,55 @@ export default <D extends DB>(db: D) => {
       return Author.find({
         with: {
           articles: {
+            store: Article,
             limit: -1 as any, // must be uint
           },
         },
-      } as any);
+      });
+    });
+  });
+
+  $rel$("with: rejects store with wrong table", async assert => {
+    // runtime check
+    await throws(assert, Code.relation_table_mismatch, () => {
+      return Author.find({
+        with: {
+          // Profile.table === "profile", expected "article"
+          articles: Profile as any,
+        },
+      });
+    });
+  });
+
+  $rel$("with: wrong table store is a type error", async assert => {
+    await throws(assert, Code.relation_table_mismatch, () => {
+      return Author.find({
+        with: {
+          // @ts-expect-error — Profile.table === "profile", expected "article"
+          articles: Profile,
+        },
+      });
+    });
+  });
+
+  test.case("with: missing store in query object is a type error", async assert => {
+    await throws(assert, Code.relation_store_required, () => {
+      return Author.find({
+        with: {
+          // @ts-expect-error — store is required in WithQuery
+          articles: { where: { title: "foo" } },
+        },
+      });
+    });
+  });
+
+  test.case("with: missing store throws at runtime", async assert => {
+    await throws(assert, Code.relation_store_required, () => {
+      return Author.find({
+        with: {
+          articles: { where: { title: "foo" } } as any,
+        },
+      });
     });
   });
 
@@ -1768,7 +1810,7 @@ export default <D extends DB>(db: D) => {
       author_id,
     });
 
-    const got = await Article.get(orphan.id, { with: { author: true } });
+    const got = await Article.get(orphan.id, { with: { author: Author } });
     assert(got.author).null();
   });
 
@@ -1872,7 +1914,11 @@ export default <D extends DB>(db: D) => {
   $rel("with + select (no id)", async assert => {
     const rows = await Author.find({
       select: ["name"],
-      with: { articles: { select: ["title"], sort: { title: "asc" } } },
+      with: {
+        articles: {
+          store: Article, select: ["title"], sort: { title: "asc" }
+        },
+      },
       sort: { name: "asc" },
     });
 
@@ -1889,7 +1935,7 @@ export default <D extends DB>(db: D) => {
     const [first] = await Author.find({ where: { name: "John" } });
 
     const john = await Author.get(first.id, {
-      with: { profile: true },
+      with: { profile: Profile },
     });
 
     assert(john.profile).not.null();
@@ -1906,7 +1952,7 @@ export default <D extends DB>(db: D) => {
 
       const got = await Article.get(row.id, {
         select: ["title"], // intentionally omit author_id
-        with: { author: true },
+        with: { author: Author },
       });
 
       assert("author_id" in got).false(); // stripped
@@ -1914,33 +1960,25 @@ export default <D extends DB>(db: D) => {
     });
 
   $rel("with: joined relations decode URL fields (base + rel)", async assert => {
-    const ParentSchema = {
-      id: key.primary(p.uuid),
-      name: p.string,
-      url: p.url.optional(),
-    };
-
-    const ChildSchema = {
-      id: key.primary(p.uuid),
-      parent_id: key.foreign(p.uuid),
-      url: p.url.optional(),
-    };
-
     const Parent = store({
       table: "j_parent",
       db,
-      schema: ParentSchema,
-      relations: {
-        children: relation.many(ChildSchema, "parent_id"),
+      schema: {
+        id: key.primary(p.uuid),
+        name: p.string,
+        url: p.url.optional(),
+        children: relation.many({ table: "j_child", by: "parent_id" }),
       },
     });
 
     const Child = store({
       db,
       table: "j_child",
-      schema: ChildSchema,
-      relations: {
-        parent: relation.one(ParentSchema, "parent_id", { reverse: true }),
+      schema: {
+        id: key.primary(p.uuid),
+        parent_id: key.foreign(p.uuid),
+        url: p.url.optional(),
+        parent: relation.one({ table: "j_parent", by: "parent_id", reverse: true }),
       },
     });
 
@@ -1962,7 +2000,7 @@ export default <D extends DB>(db: D) => {
       const [got] = await Parent.find({
         where: { id: p0.id },
         select: ["url"],
-        with: { children: true },
+        with: { children: Child },
       });
 
       assert(got).defined();
@@ -1993,7 +2031,7 @@ export default <D extends DB>(db: D) => {
     const authors = await Author.find({
       limit: 2,
       sort: { name: "asc" },
-      with: { articles: true },
+      with: { articles: Article },
     });
 
     assert(authors.length).equals(2);
@@ -2014,20 +2052,6 @@ export default <D extends DB>(db: D) => {
   for (const c of BAD_WHERE_COLUMN) {
     bad_where(c.label, () => ({ base: c.base, with: c.with }), c.expected);
   }
-
-  test.case("store: relation name conflicts with field throws", async assert => {
-    await throws(assert, Code.relation_conflicts_with_field, async () => store({
-      table: "conflict",
-      db,
-      schema: {
-        id: key.primary(p.uuid),
-        articles: p.string,
-      },
-      relations: {
-        articles: relation.many(ArticleSchema, "author_id"),
-      },
-    }));
-  });
 
   // introspect: returns null for non-existent table
   test.case("schema: introspect non-existent", async assert => {

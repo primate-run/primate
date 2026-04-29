@@ -3,6 +3,7 @@ import type PK from "#db/PK";
 import type { AllowedFKType } from "#store/ForeignKey";
 import ForeignKey from "#store/ForeignKey";
 import PrimaryKey from "#store/PrimaryKey";
+import relation from "#store/relation";
 import type StoreInput from "#store/StoreInput";
 import type { Dict } from "@rcompat/type";
 import type { DataKey, Storable } from "pema";
@@ -25,8 +26,11 @@ export default function parse(input: StoreInput) {
     } else if (is_fk(value)) {
       fks.set(key, value);
       schema[key] = value.type;
+    } else if (relation.is(value)) {
+      // skip — relations are extracted separately
+      continue;
     } else {
-      schema[key] = value;
+      schema[key] = value as Storable<DataKey>;
     }
   }
 

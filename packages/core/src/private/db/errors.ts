@@ -198,21 +198,24 @@ const QUERY = error.coded({
   limit_invalid,
 });
 
-function relation_unknown(relation: string) {
+function relation_unknown(relation: PropertyKey) {
   return t`unknown relation ${relation}`;
 }
 function relation_requires_pk(type: "target" | "parent") {
   return t`relation loading requires ${type} primary key`;
 }
-
-function relation_conflicts_with_field(relation: string) {
-  return t`relation ${relation} conflicts with an existing schema field`;
+function relation_table_mismatch(expected: string, actual: string) {
+  return t`relation table mismatch: expected ${expected}, got ${actual}`;
+}
+function relation_store_required(name: PropertyKey) {
+  return t`relation ${name} requires a store`;
 }
 
 const RELATION = error.coded({
   relation_unknown,
   relation_requires_pk,
-  relation_conflicts_with_field,
+  relation_table_mismatch,
+  relation_store_required,
 });
 
 function option_unknown(option: string) {

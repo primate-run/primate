@@ -13,10 +13,10 @@ This page focuses on database stores, the most widely used.
 
 ## Mapping
 
-| Driver         | Maps to    | Examples                  |
-| -------------- | ---------- | ------------------------- |
-| SQL            | table      | SQLite, MySQL, PostgreSQL |
-| Document/NoSQL | collection | MongoDB                   |
+| Driver         | Maps to    | Examples                          |
+| -------------- | ---------- | --------------------------------- |
+| SQL            | table      | SQLite, MySQL, PostgreSQL, Oracle |
+| Document/NoSQL | collection | JSONDB, MongoDB                   |
 
 Stores have:
 
@@ -118,16 +118,16 @@ for example `key.foreign(p.u32)` or `key.foreign(p.uuid)`.
 
 ## Relations
 
-Define relationships between stores using the `relation` module.
+Define relationships between stores inline in the schema using `store.relation`.
 
 ### One-to-many
 
 A user has many articles:
 ```ts
-import store from "primate/store";
+// stores/User.ts
 import p from "pema";
+import store from "primate/store";
 import db from "#db";
-import Article from "#store/Article";
 
 export default store({
   table: "user",
@@ -135,9 +135,7 @@ export default store({
   schema: {
     id: store.key.primary(p.uuid),
     name: p.string,
-  },
-  relations: {
-    articles: store.relation.many(Article, "author_id"),
+    articles: store.relation.many({ table: "article", by: "author_id" }),
   },
 });
 ```
@@ -146,10 +144,10 @@ export default store({
 
 A user has one profile:
 ```ts
-import store from "primate/store";
+// stores/User.ts
 import p from "pema";
+import store from "primate/store";
 import db from "#db";
-import Profile from "#store/Profile";
 
 export default store({
   table: "user",
@@ -157,22 +155,19 @@ export default store({
   schema: {
     id: store.key.primary(p.uuid),
     name: p.string,
-  },
-  relations: {
-    profile: store.relation.one(Profile, "user_id"),
+    profile: store.relation.one({ table: "profile", by: "user_id" }),
   },
 });
 ```
 
 ### Reverse relations
 
-Query from the *many* side back to the *one* side:
+Query from the *many* side back to the *one* side using `reverse: true`:
 ```ts
 // stores/Article.ts
-import store from "primate/store";
 import p from "pema";
+import store from "primate/store";
 import db from "#db";
-import User from "#store/User";
 
 export default store({
   table: "article",
@@ -181,21 +176,31 @@ export default store({
     id: store.key.primary(p.u32),
     title: p.string,
     author_id: store.key.foreign(p.u32),
-  },
-  relations: {
-    author: relation.one(User, "author_id", { reverse: true }),
+    author: store.relation.one({ table: "user", by: "author_id", reverse: true }),
   },
 });
 ```
 
 ### Loading relations
 
-Use the `with` option to load related records:
+Use the `with` option to load related records. Pass the store directly:
 ```ts
+import Article from "#store/Article";
+
+const users = await User.find({
+  with: { articles: Article },
+});
+```
+
+Pass a query object with `store` plus any sub-query options:
+```ts
+import Article from "#store/Article";
+
 const users = await User.find({
   where: { active: true },
   with: {
     articles: {
+      store: Article,
       select: ["title", "created"],
       sort: { created: "desc" },
       limit: 5,
@@ -216,19 +221,15 @@ const users = await User.find({
 // ]
 ```
 
-Each relation can specify:
+Each relation sub-query can specify:
+- `store` — the related store (required)
 - `select` — fields to include
 - `sort` — ordering
 - `where` — filter criteria
 - `limit` — max records per parent
 
-Use `true` to load a relation with defaults:
-```ts
-const users = await User.find({
-  where: { active: true },
-  with: { articles: true, profile: true },
-});
-```
+Primate validates that the store passed in `with` matches the table declared in
+the relation. Passing the wrong store throws a `relation_table_mismatch` error.
 
 ## Configure a database
 

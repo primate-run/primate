@@ -1,76 +1,52 @@
-import type Store from "#store/Store";
-import type StoreInput from "#store/StoreInput";
 import is from "@rcompat/is";
 
-/**
- * extracts schema type from either a schema or a Store.
- */
-type SchemaOf<T> = T extends Store<infer S, any> ? S : T;
-
-/**
- * One relation (singular) - returns single record or null
- *
- * Normal: FK is on the OTHER table, pointing to this table's PK.
- *   Author has one Profile -> Profile has author_id
- *
- * Reverse: FK is on THIS table, pointing to other table's PK.
- *   Profile belongs to Author -> Profile has author_id
- */
-export type OneRelation<T extends StoreInput, FK extends string> = {
+export type OneRelation<N extends string, FK extends string> = {
   type: "one";
-  schema: T;
+  table: N;
   fk: FK;
   reverse: boolean;
 };
 
-/**
- * Many relation (plural) - returns array of records
- *
- * FK is always on the OTHER table, pointing to this table's PK.
- *   Example: Author has many Articles → Article has author_id
- */
-export type ManyRelation<T extends StoreInput, FK extends string> = {
+export type ManyRelation<N extends string, FK extends string> = {
   type: "many";
-  schema: T;
+  table: N;
   fk: FK;
 };
 
-export type Relation = OneRelation<any, string> | ManyRelation<any, string>;
+export type Relation =
+  | OneRelation<string, string>
+  | ManyRelation<string, string>
+  ;
 
-function is_store(value: unknown): value is Store<StoreInput, any> {
-  return is.dict(value) && "schema" in value && is.function(value.get);
-}
-
-function extract_schema<T extends StoreInput | Store<StoreInput, any>>(
-  schema_or_store: T,
-): SchemaOf<T> {
-  return (is_store(schema_or_store)
-    ? schema_or_store.schema
-    : schema_or_store) as SchemaOf<T>;
-}
-
-function one<T extends StoreInput | Store<StoreInput, any>, FK extends string>(
-  input: T,
-  fk: FK,
-  options?: { reverse?: boolean },
-): OneRelation<SchemaOf<T>, FK> {
+function one<const N extends string, const FK extends string>(
+  options: { table: N; by: FK; reverse?: boolean },
+): OneRelation<N, FK> {
   return {
     type: "one",
-    schema: extract_schema(input),
-    fk,
-    reverse: options?.reverse ?? false,
+    table: options.table,
+    fk: options.by,
+    reverse: options.reverse ?? false,
   };
 }
 
-function many<T extends StoreInput | Store<StoreInput, any>, FK extends string>(
-  input: T,
-  fk: FK,
-): ManyRelation<SchemaOf<T>, FK> {
+function many<const N extends string, const FK extends string>(
+  options: { table: N; by: FK },
+): ManyRelation<N, FK> {
   return {
     type: "many",
-    schema: extract_schema(input),
-    fk,
+    table: options.table,
+    fk: options.by,
   };
 }
 
-export default { one, many };
+function is_relation(x: unknown): x is Relation {
+  return is.dict(x) && "type" in x && (x.type === "one" || x.type === "many");
+}
+
+const relation = {
+  one,
+  many,
+  is: is_relation,
+};
+
+export default relation;

@@ -1,8 +1,10 @@
+import type DataDict from "#db/DataDict";
 import type DB from "#db/DB";
 import E from "#db/errors";
 import type PK from "#db/PK";
 import type Types from "#db/Types";
-import type DBWith from "#db/With";
+import type With from "#db/With";
+import type ExtractRelations from "#store/ExtractRelation";
 import type ExtractSchema from "#store/ExtractSchema";
 import type ForeignKey from "#store/ForeignKey";
 import type { AllowedFKType } from "#store/ForeignKey";
@@ -10,13 +12,16 @@ import type Init from "#store/Init";
 import parse from "#store/parse";
 import type PrimaryKey from "#store/PrimaryKey";
 import type { ManyRelation, OneRelation, Relation } from "#store/relation";
+import relation from "#store/relation";
 import type StoreInput from "#store/StoreInput";
 import assert from "@rcompat/assert";
 import dict from "@rcompat/dict";
 import is from "@rcompat/is";
-import type { Dict, EmptyDict, Serializable } from "@rcompat/type";
+import type { Dict, Serializable } from "@rcompat/type";
 import type { DataKey, DefaultType, InferStore, Storable } from "pema";
 import StoreType from "pema/StoreType";
+
+const brand = Symbol.for("@primate/core/Store/v0");
 
 type X<T> = { [K in keyof T]: T[K] } & {};
 
@@ -97,6 +102,58 @@ type PrimaryKeyField<T extends StoreInput> = {
   [K in keyof T]: T[K] extends PrimaryKey<any> ? K : never
 }[keyof T] & keyof InferRecord<T>;
 
+type SchemaOf<S> = S extends Store<infer T, any> ? Schema<T> : never;
+
+type StoreT<S> = S extends Store<infer T, any> ? T : never;
+
+type RelationTable<R> =
+  R extends OneRelation<infer N, string> ? N :
+  R extends ManyRelation<infer N, string> ? N :
+  never;
+
+type RelationStore<N extends string> = Store<any, N>;
+
+type WithQuery<
+  N extends string,
+  S extends RelationStore<N> = RelationStore<N>,
+> = {
+  store: S;
+  where?: Where<StoreT<S>> & DataDict;
+  select?: readonly (keyof Schema<StoreT<S>> & string)[];
+  sort?: Sort<Schema<StoreT<S>>> & ReadSort;
+  limit?: number;
+};
+
+type WithInput<R extends Dict<Relation>> = {
+  [K in keyof R]?: RelationStore<RelationTable<R[K]>>
+  | WithQuery<RelationTable<R[K]>, RelationStore<RelationTable<R[K]>>>;
+};
+
+type RelationResult<Rel, W> =
+  Rel extends OneRelation<string, string>
+  ? W extends WithQuery<string, infer S>
+  ? W["select"] extends readonly (keyof SchemaOf<S> & string)[]
+  ? Pick<SchemaOf<S>, W["select"][number]> | null
+  : SchemaOf<S> | null
+  : SchemaOf<W> | null  // bare store
+  : Rel extends ManyRelation<string, string>
+  ? W extends WithQuery<string, infer S>
+  ? W["select"] extends readonly (keyof SchemaOf<S> & string)[]
+  ? Pick<SchemaOf<S>, W["select"][number]>[]
+  : SchemaOf<S>[]
+  : SchemaOf<W>[]  // bare store
+  : never;
+
+type WithRelations<
+  Base,
+  R extends Dict<Relation>,
+  W extends WithInput<R> | undefined,
+> = W extends object
+  ? X<Base & {
+    [K in keyof W & keyof R]: RelationResult<R[K], W[K]>;
+  }>
+  : Base;
+
 const NUMBER_KEYS = [
   "u8", "u16", "u32",
   "i8", "i16", "i32",
@@ -121,50 +178,6 @@ type PKV<T extends StoreInput> =
   : string | number | bigint
   : string | number | bigint
   : string | number | bigint;
-
-// `true` means: include relation with all fields
-// Object means: include relation with specified where/select/sort/limit
-type WithQuery<T extends StoreInput> = true | {
-  where?: Where<T>;
-  select?: Select<Schema<T>>;
-  sort?: Sort<Schema<T>>;
-  limit?: number;
-};
-
-type With<R extends Dict<Relation>> = {
-  [K in keyof R]?: R[K] extends OneRelation<infer S, string>
-  ? WithQuery<S>
-  : R[K] extends ManyRelation<infer S, string>
-  ? WithQuery<S>
-  : never;
-};
-
-// given relation + query, compute the resulting field type
-type RelationResult<Rel, Q> =
-  Rel extends OneRelation<infer S, string>
-  ? Q extends { select: infer Sel }
-  ? Sel extends Select<Schema<S>>
-  ? Projected<Schema<S>, Sel> | null
-  : Schema<S> | null
-  : Schema<S> | null
-  : Rel extends ManyRelation<infer S, string>
-  ? Q extends { select: infer Sel }
-  ? Sel extends Select<Schema<S>>
-  ? Projected<Schema<S>, Sel>[]
-  : Schema<S>[]
-  : Schema<S>[]
-  : never;
-
-// attach relations based on `with` input
-type WithRelations<
-  Base,
-  Relations extends Dict<Relation>,
-  W extends With<Relations> | undefined,
-> = W extends object
-  ? X<Base & {
-    [K in keyof W & keyof Relations]: RelationResult<Relations[K], W[K]>;
-  }>
-  : Base;
 
 type ReadSort = Dict<"asc" | "desc">;
 
@@ -216,8 +229,6 @@ function assert_bigint_value(key: string, datatype: BigIntKey, value: bigint) {
   if (value < min || value > max) throw E.where_invalid_value(key, value);
 }
 
-const registry = new Map<Dict, Store<any>>();
-
 const STRING_OPS = ["$like", "$ilike"];
 const NUMBER_OPS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
 const BIGINT_OPS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
@@ -231,26 +242,31 @@ const DATE_OPS = ["$before", "$after", "$ne"];
  * CRUD/query API.
  */
 export default class Store<
-    T extends StoreInput,
-    R extends Dict<Relation> = EmptyDict,
-  > implements Serializable {
+  T extends StoreInput,
+  N extends string = string,
+> implements Serializable {
+  [brand] = true;
   #input: StoreInput;
   #schema: Dict<Storable<DataKey>>;
   #type: StoreType<ExtractSchema<T>>;
   #types: Types;
   #nullables: Set<string>;
-  #table: string;
+  #table: N;
   #db: DB;
   #pk: PK;
   #generate_pk: boolean;
   #fks: Map<string, ForeignKey<AllowedFKType>>;
-  #relations: R;
+  #relations: ExtractRelations<T>;
   #migrate: boolean;
   #id: symbol;
 
   declare readonly Schema: Schema<T>;
 
-  constructor(init: Init<T, R>) {
+  static is(x: unknown): x is Store<any, any> {
+    return is.branded(x, brand);
+  }
+
+  constructor(init: Init<T, N>) {
     const { table, db, migrate, id } = init;
     const { pk, generate_pk, fks, schema } = parse(init.schema);
 
@@ -275,13 +291,10 @@ export default class Store<
     this.#generate_pk = generate_pk;
     this.#fks = fks;
     this.#input = init.schema as StoreInput;
-    this.#relations = init.relations ?? {} as R;
+    this.#relations = Object.fromEntries(
+      Object.entries(init.schema).filter(([, v]) => relation.is(v)),
+    ) as ExtractRelations<T>;
     this.#migrate = migrate ?? true;
-
-    for (const relation of Object.keys(this.#relations)) {
-      if (dict.has(schema, relation)) throw E.relation_conflicts_with_field(relation);
-    }
-
     this.#nullables = new Set(
       Object.entries(this.#type.properties as Dict<{ nullable: boolean }>)
         .filter(([, v]) => v.nullable)
@@ -294,8 +307,6 @@ export default class Store<
         (this as any)[k] = v;
       }
     }
-
-    registry.set(init.schema, this);
   }
 
   get #as() {
@@ -375,47 +386,45 @@ export default class Store<
 
   }
 
-  #with(options?: With<R>) {
+  #with(options?: WithInput<ExtractRelations<T>>) {
     if (is.undefined(options)) return undefined;
 
-    const plan: DBWith = {};
+    const plan: With = {};
 
-    for (const [name, query] of Object.entries(options)) {
-      if (is.undefined(query)) continue;
+    for (const [name, input] of dict.entries(options)) {
+      if (is.undefined(input)) continue;
 
       const relation = this.#relations[name] as Relation | undefined;
       if (is.undefined(relation)) throw E.relation_unknown(name);
 
-      const store = registry.get(relation.schema);
-      if (is.undefined(store)) throw E.unregistered_schema();
+      const is_query = is.dict(input) && "store" in input;
+      const passed_store = is_query
+        ? (input as WithQuery<string>).store
+        : Store.is(input) ? input : undefined;
+      if (is.undefined(passed_store)) throw E.relation_store_required(name);
+      const query = is_query
+        ? input as WithQuery<string>
+        : undefined;
 
-      const { pk: target_pk } = parse(relation.schema);
-      const target_types = store.types;
+      if (passed_store.table !== relation.table) {
+        throw E.relation_table_mismatch(relation.table, passed_store.table);
+      }
 
-      const base = {
+      this.#parse_query(query ?? {}, passed_store.types);
+
+      plan[name] = {
         as: {
-          table: store.#table,
-          pk: target_pk,
-          types: target_types,
+          table: passed_store.table,
+          pk: passed_store.pk,
+          types: passed_store.types,
         },
         kind: relation.type,
         fk: relation.fk,
         reverse: "reverse" in relation && relation.reverse === true,
-      };
-
-      if (query === true) {
-        plan[name] = { ...base, where: {} };
-        continue;
-      }
-
-      this.#parse_query(query, target_types);
-
-      plan[name] = {
-        ...base,
-        where: query.where ?? {},
-        fields: query.select ? [...query.select] : undefined,
-        sort: query.sort,
-        limit: query.limit,
+        where: query?.where ?? {},
+        fields: query?.select ? [...query.select] : undefined,
+        sort: query?.sort,
+        limit: query?.limit,
       };
     }
 
@@ -427,13 +436,13 @@ export default class Store<
 
     for (const [k, value] of Object.entries(where)) {
       if (!VALID_IDENTIFIER.test(k)) throw E.identifier_invalid(k);
-      if (!(k in types)) throw E.field_unknown(k, "where");
+      if (!dict.has(types, k)) throw E.field_unknown(k, "where");
       if (is.undefined(value)) throw E.field_undefined(k, "where");
 
       const datatype = types[k];
 
       // null criteria (IS NULL semantics)
-      if (value === null) continue;
+      if (is.null(value)) continue;
 
       // arrays are always invalid
       if (is.array(value)) throw E.where_invalid_value(k, value);
@@ -523,7 +532,7 @@ export default class Store<
     for (const [i, v] of select.entries()) {
       if (!is.string(v)) throw E.select_invalid_value(i, v);
       if (!VALID_IDENTIFIER.test(v)) throw E.identifier_invalid(v);
-      if (!(v in types)) throw E.field_unknown(v, "select");
+      if (!dict.has(types, v)) throw E.field_unknown(v, "select");
       // duplicate isn't harmful, but usually a thought error
       if (seen.has(v)) throw E.field_duplicate(v, "select");
       seen.add(v);
@@ -537,7 +546,7 @@ export default class Store<
 
     for (const [k, direction] of Object.entries(sort)) {
       if (!is.string(direction)) throw E.sort_invalid_value(k, direction);
-      if (!(k in types)) throw E.field_unknown(k, "sort");
+      if (!dict.has(types, k)) throw E.field_unknown(k, "sort");
       const l = direction.toLowerCase();
       if (l !== "asc" && l !== "desc") throw E.sort_invalid_value(k, direction);
     }
@@ -546,9 +555,9 @@ export default class Store<
   #prepare_insert(record: Dict): Dict {
     const out: Dict = {};
     for (const [k, v] of Object.entries(record)) {
-      if (!(k in this.#types)) throw E.field_unknown(k, "insert");
-      if (v === undefined) continue; // treat as omission
-      if (v === null) throw E.null_not_allowed(k);
+      if (!dict.has(this.#types, k)) throw E.field_unknown(k, "insert");
+      if (is.undefined(v)) continue; // treat as omission
+      if (is.null(v)) throw E.null_not_allowed(k);
       out[k] = v;
     }
     return out;
@@ -586,17 +595,17 @@ export default class Store<
   get(pkv: PKV<T>): Promise<Schema<T>>;
   get<
     const S extends Select<Schema<T>> | undefined = undefined,
-    const W extends With<R> | undefined = undefined,
+    const W extends WithInput<ExtractRelations<T>> | undefined = undefined,
   >(
     pkv: PKV<T>,
     options: {
       select?: S;
       with?: W;
     },
-  ): Promise<WithRelations<Projected<Schema<T>, S>, R, W>>;
+  ): Promise<WithRelations<Projected<Schema<T>, S>, ExtractRelations<T>, W>>;
   async get(
     pkv: PKV<T>,
-    options?: { select?: readonly string[]; with?: With<R> },
+    options?: { select?: readonly string[]; with?: WithInput<ExtractRelations<T>> },
   ) {
     const pk = this.#parse_pk(pkv);
 
@@ -622,14 +631,14 @@ export default class Store<
     const raw = records[0] as Dict;
 
     // if projected, keep it as-is (no parse)
-    if (options?.select) return raw;
+    if (is.defined(options?.select)) return raw;
 
     // parse *only* base fields (exclude relation keys)
     const base_only = Object.fromEntries(Object.entries(raw)
-      .filter(([k]) => k in this.#types));
+      .filter(([k]) => dict.has(this.#types, k)));
     const parsed = this.#type.parse(base_only) as Dict;
 
-    if ($with === undefined) return parsed;
+    if (is.undefined($with)) return parsed;
 
     return {
       ...parsed,
@@ -643,17 +652,17 @@ export default class Store<
   try(pkv: PKV<T>): Promise<Schema<T> | undefined>;
   try<
     const S extends Select<Schema<T>> | undefined = undefined,
-    const W extends With<R> | undefined = undefined,
+    const W extends WithInput<ExtractRelations<T>> | undefined = undefined,
   >(
     pkv: PKV<T>,
     options: {
       select?: S;
       with?: W;
     },
-  ): Promise<WithRelations<Projected<Schema<T>, S>, R, W> | undefined>;
+  ): Promise<WithRelations<Projected<Schema<T>, S>, ExtractRelations<T>, W> | undefined>;
   async try(
     pkv: PKV<T>,
-    options?: { select?: readonly string[]; with?: With<R> },
+    options?: { select?: readonly string[]; with?: WithInput<ExtractRelations<T>> },
   ) {
     try {
       return await this.get(pkv, options as any);
@@ -699,8 +708,8 @@ export default class Store<
     if (pk !== null && pk in set) throw E.pk_immutable(pk);
 
     for (const [k, v] of Object.entries(set)) {
-      if (!(k in this.#types)) throw E.field_unknown(k, "set");
-      if (v === null && !this.#nullables.has(k)) throw E.null_not_allowed(k);
+      if (!dict.has(this.#types, k)) throw E.field_unknown(k, "set");
+      if (is.null(v) && !this.#nullables.has(k)) throw E.null_not_allowed(k);
     }
 
     const entries = Object.entries(set);
@@ -717,7 +726,7 @@ export default class Store<
     if (by_pk) return this.#update_1(arg0 as PKV<T>, parsed);
 
     const where = (arg0 as { where?: Where<T>; set: $Set<T> }).where;
-    if (where !== undefined) this.#parse_where(where, this.#types);
+    if (is.defined(where)) this.#parse_where(where, this.#types);
 
     return this.#update_n((where ?? {}) as Where<T>, parsed);
   }
@@ -770,7 +779,7 @@ export default class Store<
    */
   async find<
     const S extends Select<Schema<T>> | undefined = undefined,
-    const W extends With<R> | undefined = undefined,
+    const W extends WithInput<ExtractRelations<T>> | undefined = undefined,
   >(
     options?: {
       where?: Where<T>;
@@ -779,7 +788,7 @@ export default class Store<
       limit?: number;
       with?: W;
     },
-  ): Promise<WithRelations<Projected<Schema<T>, S>, R, W>[]> {
+  ): Promise<WithRelations<Projected<Schema<T>, S>, ExtractRelations<T>, W>[]> {
     guard_options(options, ["where", "select", "sort", "limit", "with"]);
 
     this.#parse_query(options ?? {}, this.#types);
@@ -804,7 +813,6 @@ export default class Store<
       table: this.#table,
       db: this.#db,
       schema: this.#input,
-      relations: this.#relations,
       migrate: this.#migrate,
       id: this.#id,
       extend: extensor(this),
