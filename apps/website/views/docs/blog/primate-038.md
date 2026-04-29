@@ -256,7 +256,7 @@ export default config({
 All standard Primate store operations are supported — `insert`, `find`, `get`,
 `try`, `update`, `delete`, `count`, `has` — as well as relations, field
 projection, sorting, limiting, and the full operator set (`$like`, `$gt`,
-`$gte`, `$lt`, `$lte`, `$ne`, `$before`, `$after`).
+`$gte`, `$lt`, `$lte`, `$ne`, `$before`, `$after`, `$in`).
 
 ## JSON Database driver
 
@@ -286,7 +286,116 @@ prefer a dedicated DBMS such as PostgreSQL or MySQL.
 
 Thanks to [lioloc] for contributing this driver.
 
-## ZZZ
+## Relations redesigned
+
+Relations are now declared inline in the store schema rather than in a
+separate `relations` field. This makes stores fully self-contained — the
+schema is the single source of truth for both data fields and relationships.
+
+```ts
+// before
+import store from "primate/store";
+import Article from "#store/Article";
+
+export default store({
+  table: "author",
+  db,
+  schema: {
+    id: store.key.primary(p.uuid),
+    name: p.string,
+  },
+  relations: {
+    articles: store.relation.many(Article, "author_id"),
+  },
+});
+
+// after
+export default store({
+  table: "author",
+  db,
+  schema: {
+    id: store.key.primary(p.uuid),
+    name: p.string,
+    articles: store.relation.many({ table: "article", by: "author_id" }),
+  },
+});
+```
+
+Relations are declared with a plain `{ table, by }` object instead of a
+store reference — no circular import risk, no registry. The `table` string
+names the related table; `by` names the foreign key column.
+
+Loading relations now requires passing the related store explicitly in the
+`with` option:
+
+```ts
+// before
+const authors = await Author.find({
+  with: { articles: true },
+});
+
+// after
+import Article from "#store/Article";
+
+const authors = await Author.find({
+  with: { articles: Article },
+});
+```
+
+Passing the store instead of `true` lets Primate validate that the store
+matches the declared relation table, catching mismatches immediately
+rather than silently returning wrong data.
+
+Sub-queries work the same way, with `store` now required alongside the other
+options:
+
+```ts
+const authors = await Author.find({
+  with: {
+    articles: {
+      store: Article,
+      where: { published: true },
+      select: ["id", "title"],
+      sort: { created: "desc" },
+      limit: 5,
+    },
+  },
+});
+```
+
+## $in operator
+
+All scalar field types now support the `$in` operator, which matches records
+whose field value is in a given list:
+
+```ts
+const users = await User.find({
+  where: { name: { $in: ["Alice", "Bob", "Carol"] } },
+});
+
+const posts = await Post.find({
+  where: { status: { $in: ["draft", "published"] } },
+});
+```
+
+`$in` works on strings, numbers, bigints, dates, and UUIDs. Passing an empty
+array throws an error — an empty `$in` can never match anything and is almost
+always a programmer mistake.
+
+## Offset pagination
+
+`find` now accepts an `offset` option for cursor-style pagination:
+
+```ts
+const page = await Post.find({
+  sort: { created: "desc" },
+  limit: 20,
+  offset: 40,
+});
+```
+
+`offset` requires `limit` to be set — using offset without a limit throws.
+All six database drivers support offset pagination natively.
 
 ## Vue style tag support
 
@@ -375,7 +484,6 @@ point. The separate `primate/orm/store`, `primate/orm/key`, and
 // before
 import store from "primate/orm/store";
 import key from "primate/orm/key";
-import relation from "primate/orm/relation";
 
 export default store({
   table: "user",
@@ -383,7 +491,6 @@ export default store({
   schema: {
     id: key.primary(p.u32),
     name: p.string,
-    posts: relation.many(PostSchema, "user_id"),
   },
 });
 
@@ -396,7 +503,6 @@ export default store({
   schema: {
     id: store.key.primary(p.u32),
     name: p.string,
-    posts: store.relation.many(PostSchema, "user_id"),
   },
 });
 ```
@@ -499,6 +605,43 @@ data-level `store.delete()` method which removes records, not the table itself.
 
 Replace the three separate imports with a single `primate/store` import and
 update `key` and `relation` usages to use `store.key` and `store.relation`.
+
+### Relations: inline schema replaces separate `relations` field
+
+Move all relation definitions from the `relations` object into the `schema`,
+and update the relation syntax to use `{ table, by }` instead of passing a
+store or schema reference:
+
+```ts
+// before
+export default store({
+  table: "author",
+  db,
+  schema: {
+    id: store.key.primary(p.uuid),
+    name: p.string,
+  },
+  relations: {
+    articles: store.relation.many(Article, "author_id"),
+    profile: store.relation.one(Profile, "author_id"),
+  },
+});
+
+// after
+export default store({
+  table: "author",
+  db,
+  schema: {
+    id: store.key.primary(p.uuid),
+    name: p.string,
+    articles: store.relation.many({ table: "article", by: "author_id" }),
+    profile: store.relation.one({ table: "profile", by: "author_id" }),
+  },
+});
+```
+
+Update all `with: { relation: true }` usages to pass the related store
+directly, and add `store:` to any sub-query objects.
 
 ### PostgreSQL: `date` now uses `TIMESTAMPTZ`
 
