@@ -1,7 +1,7 @@
 import typemap from "#typemap";
 import type {
-  As, DataDict, DB, PK,
-  Schema, Sort, With,
+    As, DataDict, DB, PK,
+    Schema, Sort, With,
 } from "@primate/core/db";
 import base from "@primate/core/db";
 import E from "@primate/core/db/errors";
@@ -109,6 +109,14 @@ async function bind(as: As, object: DataDict): Promise<Dict> {
           case "$before":
             next = { $lt: await bind_value(datatype, op_value) };
             break;
+          case "$in": {
+            const array = op_value as unknown[];
+            const bound = await Promise.all(
+              array.map(v => bind_value(datatype, v))
+            );
+            next = { $in: bound };
+            break;
+          }
           default:
             throw E.operator_unknown(field, op);
         }
@@ -388,6 +396,7 @@ export default class MongoDB implements DB<MongoClient> {
     where: DataDict;
     fields?: string[];
     limit?: number;
+    offset?: number;
     sort?: Sort;
     with?: With;
   }) {
@@ -412,23 +421,22 @@ export default class MongoDB implements DB<MongoClient> {
     where: DataDict;
     fields?: string[];
     limit?: number;
+    offset?: number;
     sort?: Sort;
   }) {
     const filter = await bind(as, args.where);
     const collection = await this.#collection(as.table);
-
     const projection = get_projection(as.pk, args.fields);
     const sort = get_sort(args.sort);
     const limit = get_limit(args.limit);
-
     const options: Dict = { useBigInt64: true };
-    if (projection) options.projection = projection;
-    if (sort) options.sort = sort;
 
-    const docs = await collection
-      .find(filter, options)
-      .limit(limit)
-      .toArray();
+    if (is.defined(projection)) options.projection = projection;
+    if (is.defined(sort)) options.sort = sort;
+
+    const cursor = collection.find(filter, options).limit(limit);
+     if (is.defined(args.offset)) cursor.skip(args.offset);
+    const docs = await cursor.toArray();
 
     return docs.map(doc => this.#unbind(as, doc));
   }

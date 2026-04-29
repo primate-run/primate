@@ -267,7 +267,7 @@ export default class SQLite implements DB<Client> {
       const value = where[field];
       const datatype = types[field];
       const q = sql.quote(field);
-      const quoted = alias ? `${alias}.${q}` : q;
+      const quoted = is.defined(alias) ? `${alias}.${q}` : q;
 
       if (value === null) {
         parts.push(`${quoted} IS NULL`);
@@ -299,6 +299,13 @@ export default class SQLite implements DB<Client> {
             case "$before":
               parts.push(cmp_expr(quoted, bound_key, op, datatype));
               break;
+            case "$in": {
+              const arr = (value as Dict).$in as unknown[];
+              const placeholders = arr.map((_, i) =>
+                `${BIND_BY}${sql.bindKey(field, `in${i}`)}`);
+              parts.push(`${quoted} IN (${placeholders.join(", ")})`);
+              break;
+            }
             default:
               throw E.operator_unknown(field, op);
           }
@@ -338,6 +345,14 @@ export default class SQLite implements DB<Client> {
             case "$ne":
               filtered[bound_key] = op_value;
               break;
+            case "$in": {
+              const arr = op_value as unknown[];
+              for (let i = 0; i < arr.length; i++) {
+                const bound_key = sql.bindKey(field, `in${i}`);
+                filtered[bound_key] = arr[i] as DataDict[string];
+              }
+              break;
+            }
             default:
               throw E.operator_unknown(field, op);
           }
@@ -450,6 +465,7 @@ export default class SQLite implements DB<Client> {
     where: DataDict;
     fields?: string[];
     limit?: number;
+    offset?: number;
     sort?: Sort;
     with?: With;
   }) {
@@ -661,13 +677,15 @@ export default class SQLite implements DB<Client> {
     where: DataDict;
     sort?: Sort;
     limit?: number;
+    offset?: number;
   }) {
     const SELECT = sql.columns(as.types, args.fields);
     const WHERE = this.#where(as.types, args.where);
     const ORDER_BY = sql.orderBy(as.types, args.sort);
     const LIMIT = sql.limit(args.limit);
+    const OFFSET = args.offset !== undefined ? ` OFFSET ${args.offset}` : "";
     const table = sql.quote(as.table);
-    return `SELECT ${SELECT} FROM ${table} ${WHERE}${ORDER_BY}${LIMIT}`;
+    return `SELECT ${SELECT} FROM ${table} ${WHERE}${ORDER_BY}${LIMIT}${OFFSET}`;
   }
 
   async #read_joined(as: As, args: ReadRelationsArgs): Promise<Dict[]> {

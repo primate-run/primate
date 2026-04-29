@@ -34,11 +34,13 @@ type Query = {
   select?: unknown;
   sort?: unknown;
   limit?: unknown;
+  offset?: unknown;
 };
 
 type StringOperators = {
   $like?: string;
   $ilike?: string;
+  $in?: string[];
 };
 
 type NumberOperators = {
@@ -47,6 +49,7 @@ type NumberOperators = {
   $lt?: number;
   $lte?: number;
   $ne?: number;
+  $in?: number[];
 };
 
 type BigIntOperators = {
@@ -55,12 +58,14 @@ type BigIntOperators = {
   $lt?: bigint;
   $lte?: bigint;
   $ne?: bigint;
+  $in?: bigint[];
 };
 
 type DateOperators = {
   $before?: Date;
   $after?: Date;
   $ne?: Date;
+  $in?: Date[];
 };
 
 type QueryOperators<T> =
@@ -229,10 +234,10 @@ function assert_bigint_value(key: string, datatype: BigIntKey, value: bigint) {
   if (value < min || value > max) throw E.where_invalid_value(key, value);
 }
 
-const STRING_OPS = ["$like", "$ilike"];
-const NUMBER_OPS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
-const BIGINT_OPS = ["$gt", "$gte", "$lt", "$lte", "$ne"];
-const DATE_OPS = ["$before", "$after", "$ne"];
+const STRING_OPS = ["$like", "$ilike", "$in"];
+const NUMBER_OPS = ["$gt", "$gte", "$lt", "$lte", "$ne", "$in"];
+const BIGINT_OPS = ["$gt", "$gte", "$lt", "$lte", "$ne", "$in"];
+const DATE_OPS = ["$before", "$after", "$ne", "$in"];
 
 /**
  * Database-backed store.
@@ -377,13 +382,16 @@ export default class Store<
   }
 
   #parse_query(query: Query, types: Types) {
-    const { where, select, sort, limit } = query;
+    const { where, select, sort, limit, offset } = query;
 
     if (is.defined(where)) this.#parse_where(where, types);
     if (is.defined(select)) this.#parse_select(select, types);
     if (is.defined(sort)) this.#parse_sort(sort, types);
     if (is.defined(limit) && !is.uint(limit)) throw E.limit_invalid();
-
+    if (is.defined(offset)) {
+      if (!is.uint(offset)) throw E.offset_invalid();
+      if (is.undefined(limit)) throw E.offset_requires_limit();
+    }
   }
 
   #with(options?: WithInput<ExtractRelations<T>>) {
@@ -456,12 +464,29 @@ export default class Store<
 
           if (datatype === "string" || datatype === "time") {
             if (!STRING_OPS.includes(op)) throw E.operator_unknown(k, op);
+            if (op === "$in") {
+              if (!is.array(op_val)) throw E.wrong_type("array", k, op_val, op);
+              if (op_val.length === 0) throw E.operator_empty_in(k);
+              for (const v of op_val) {
+                if (!is.string(v)) throw E.wrong_type("string", k, v, op);
+              }
+              continue;
+            }
             if (!is.string(op_val)) throw E.wrong_type("string", k, op_val, op);
             continue;
           }
 
           if (is_number_key(datatype)) {
             if (!NUMBER_OPS.includes(op)) throw E.operator_unknown(k, op);
+            if (op === "$in") {
+              if (!is.array(op_val)) throw E.wrong_type("array", k, op_val, op);
+              if (op_val.length === 0) throw E.operator_empty_in(k);
+              for (const v of op_val) {
+                if (!is.number(v)) throw E.wrong_type("number", k, v, op);
+                assert_number_value(k, datatype, v);
+              }
+              continue;
+            }
             if (!is.number(op_val)) throw E.wrong_type("number", k, op_val, op);
             assert_number_value(k, datatype, op_val);
             continue;
@@ -469,6 +494,15 @@ export default class Store<
 
           if (is_bigint_key(datatype)) {
             if (!BIGINT_OPS.includes(op)) throw E.operator_unknown(k, op);
+            if (op === "$in") {
+              if (!is.array(op_val)) throw E.wrong_type("array", k, op_val, op);
+              if (op_val.length === 0) throw E.operator_empty_in(k);
+              for (const v of op_val) {
+                if (!is.bigint(v)) throw E.wrong_type("bigint", k, v, op);
+                assert_bigint_value(k, datatype, v);
+              }
+              continue;
+            }
             if (!is.bigint(op_val)) throw E.wrong_type("bigint", k, op_val, op);
             assert_bigint_value(k, datatype, op_val);
             continue;
@@ -476,7 +510,25 @@ export default class Store<
 
           if (datatype === "datetime") {
             if (!DATE_OPS.includes(op)) throw E.operator_unknown(k, op);
+            if (op === "$in") {
+              if (!is.array(op_val)) throw E.wrong_type("array", k, op_val, op);
+              if (op_val.length === 0) throw E.operator_empty_in(k);
+              for (const v of op_val) {
+                if (!is.date(v)) throw E.wrong_type("date", k, v, op);
+              }
+              continue;
+            }
             if (!is.date(op_val)) throw E.wrong_type("date", k, op_val, op);
+            continue;
+          }
+
+          if (datatype === "uuid" || datatype === "uuid_v4" || datatype === "uuid_v7") {
+            if (op !== "$in") throw E.operator_unknown(k, op);
+            if (!is.array(op_val)) throw E.wrong_type("array", k, op_val, op);
+            if (op_val.length === 0) throw E.operator_empty_in(k);
+            for (const v of op_val) {
+              if (!is.string(v)) throw E.wrong_type("string", k, v, op);
+            }
             continue;
           }
 
@@ -786,10 +838,11 @@ export default class Store<
       select?: S;
       sort?: Sort<Schema<T>>;
       limit?: number;
+      offset?: number;
       with?: W;
     },
   ): Promise<WithRelations<Projected<Schema<T>, S>, ExtractRelations<T>, W>[]> {
-    guard_options(options, ["where", "select", "sort", "limit", "with"]);
+    guard_options(options, ["where", "select", "sort", "limit", "offset", "with"]);
 
     this.#parse_query(options ?? {}, this.#types);
 
@@ -797,6 +850,7 @@ export default class Store<
       where: options?.where ?? {},
       fields: options?.select !== undefined ? [...options.select] : undefined,
       limit: options?.limit,
+      offset: options?.offset,
       sort: options?.sort as ReadSort | undefined,
       with: this.#with(options?.with),
     });

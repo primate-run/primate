@@ -125,7 +125,7 @@ const NULL = error.coded({
 });
 
 function wrong_type(
-  type: "string" | "number" | "bigint" | "boolean" | "url" | "date" | "blob",
+  type: "string" | "number" | "bigint" | "boolean" | "url" | "date" | "blob" | "array",
   field: string,
   got: unknown,
   op = "value",
@@ -142,12 +142,16 @@ function operator_empty(field: string) {
 function operator_scalar(field: string) {
   return t`${field}: operator requires scalar value`;
 }
+function operator_empty_in(key: string) {
+  return t`$in operator on ${key} requires a non-empty array`;
+}
 
 const OPERATOR = error.coded({
   operator_unknown,
   operator_empty,
   wrong_type,
   operator_scalar,
+  operator_empty_in,
 });
 
 function sort_empty() {
@@ -183,6 +187,12 @@ function where_invalid_value(field: string, value: unknown) {
 function set_empty() {
   return t`empty set on update`;
 }
+function offset_invalid() {
+  return t`offset must be a non-negative integer`;
+}
+function offset_requires_limit() {
+  return t`offset requires limit to be set`;
+}
 
 const QUERY = error.coded({
   sort_empty,
@@ -196,6 +206,8 @@ const QUERY = error.coded({
   where_invalid_value,
   set_empty,
   limit_invalid,
+  offset_invalid,
+  offset_requires_limit,
 });
 
 function relation_unknown(relation: PropertyKey) {

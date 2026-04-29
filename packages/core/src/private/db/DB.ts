@@ -44,6 +44,7 @@ export default interface DB<Client = unknown> {
     where: Dict;
     fields?: string[];
     limit?: number;
+    offset?: number;
     sort?: Sort;
     with?: With;
   }): MaybePromise<Dict[]>;

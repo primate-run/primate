@@ -31,7 +31,7 @@ function Q(strings: TemplateStringsArray, ...values: (string | unknown[])[]) {
     const value = values[i];
     let processed: string;
 
-    if (Array.isArray(value)) {
+    if (is.array(value)) {
       processed = value.join(", ");
     } else if (typeof value === "string") {
 
@@ -59,7 +59,7 @@ function ph(index: number, datakey: DataKey) {
 }
 
 function order_by(types: Types, sort?: Sort, alias?: string) {
-  if (sort === undefined) return "";
+  if (is.undefined(sort)) return "";
   const entries = Object.entries(sort);
   if (entries.length === 0) return "";
 
@@ -67,7 +67,7 @@ function order_by(types: Types, sort?: Sort, alias?: string) {
     const d = String(dir).toLowerCase();
     const direction = d === "desc" ? "DESC" : "ASC";
 
-    const quoted = alias !== undefined ? `${alias}.${quote(k)}` : quote(k);
+    const quoted = is.defined(alias) ? `${alias}.${quote(k)}` : quote(k);
     const type = types[k];
 
     // if bigint-ish might be stored as TEXT/NUMERIC, force numeric ordering
@@ -84,7 +84,7 @@ function get_column(key: DataKey) {
 }
 
 function bind_value(key: DataKey, value: unknown) {
-  if (value === null) return null;
+  if (is.null(value)) return null;
   // typemap.bind may be sync or async; allow both
   return typemap[key].bind(value as never);
 }
@@ -98,7 +98,7 @@ function unbind(types: Types, row: Dict) {
 }
 
 function relation_order(types: Types, sort?: Sort) {
-  if (sort === undefined) return "";
+  if (is.undefined(sort)) return "";
   const entries = Object.entries(sort);
   if (entries.length === 0) return "";
 
@@ -141,8 +141,6 @@ function columns_to_types(row: IntrospectRow): DataKey[] {
   }
   return [];
 }
-
-const BIND_BY = "$";
 
 const schema = p({
   host: p.string.default("localhost"),
@@ -218,7 +216,7 @@ export default class PostgreSQL implements DB<Sql> {
 
     const parts: string[] = [];
     const params: unknown[] = [];
-    const aliased = alias !== undefined;
+    const aliased = is.defined(alias);
     let i = index;
 
     for (const field of keys) {
@@ -226,7 +224,7 @@ export default class PostgreSQL implements DB<Sql> {
       const datatype = as.types[field];
       const base = aliased ? `${alias}.${quote(field)}` : quote(field);
 
-      if (raw === null) {
+      if (is.null(raw)) {
         parts.push(`${base} IS NULL`);
         continue;
       }
@@ -237,20 +235,21 @@ export default class PostgreSQL implements DB<Sql> {
         if (ops.length === 0) throw E.operator_empty(field);
 
         for (const [op, op_value] of ops) {
-          const ph = `$${i++}`;
+          const is_in = op === "$in";
+          const placeholder = is_in ? "" : `$${i++}`;
 
           // bigint comparisons must be numeric, regardless of storage.
           const numeric = is_bigint_key(datatype);
           const lhs = numeric ? `(${base})::numeric` : base;
-          const rhs = numeric ? `${ph}::numeric` : ph;
+          const rhs = numeric ? `${placeholder}::numeric` : placeholder;
 
           switch (op) {
             case "$like":
-              parts.push(`${base} LIKE ${ph}`);
+              parts.push(`${base} LIKE ${placeholder}`);
               params.push(await bind_value(datatype, op_value));
               break;
             case "$ilike":
-              parts.push(`${base} ILIKE ${ph}`);
+              parts.push(`${base} ILIKE ${placeholder}`);
               params.push(await bind_value(datatype, op_value));
               break;
             case "$ne":
@@ -266,6 +265,18 @@ export default class PostgreSQL implements DB<Sql> {
               const sql_op = sql.OPS[op];
               parts.push(`${lhs} ${sql_op} ${rhs}`);
               params.push(await bind_value(datatype, op_value));
+              break;
+            }
+            case "$in": {
+              const arr = op_value as unknown[];
+              const placeholders: string[] = [];
+              for (const v of arr) {
+                const p = `$${i++}`;
+                placeholders.push(numeric ? `${p}::numeric` : p);
+                params.push(await bind_value(datatype, v));
+              }
+              const in_lhs = numeric ? `(${base})::numeric` : base;
+              parts.push(`${in_lhs} IN (${placeholders.join(", ")})`);
               break;
             }
             default:
@@ -298,7 +309,7 @@ export default class PostgreSQL implements DB<Sql> {
           const column = quote(key);
           if (key === pk.name) {
             const is_int = ["INTEGER", "BIGINT"].includes(column_type);
-            if (pk.generate === true && is_int) {
+            if (pk.generate && is_int) {
               const serial = column_type === "BIGINT" ? "BIGSERIAL" : "SERIAL";
               columns.push(`${column} ${serial} PRIMARY KEY`);
             } else {
@@ -345,7 +356,7 @@ export default class PostgreSQL implements DB<Sql> {
       alter: async (table, diff) => {
         // check table exists
         const existing = await this.schema.introspect(table);
-        if (existing === null) throw E.table_not_found(table);
+        if (is.null(existing)) throw E.table_not_found(table);
 
         const parts: string[] = [];
 
@@ -406,7 +417,7 @@ export default class PostgreSQL implements DB<Sql> {
     const table = as.table;
 
     // PK provided or none defined, simple insert
-    if (pk === null || pk in record) {
+    if (is.null(pk) || pk in record) {
       if (!has_values) {
         await this.#sql(Q`INSERT INTO ${table} DEFAULT VALUES`);
         return record as O;
@@ -455,6 +466,7 @@ export default class PostgreSQL implements DB<Sql> {
     where: DataDict;
     fields?: string[];
     limit?: number;
+    offset?: number;
     sort?: Sort;
     with?: With;
   }): Promise<Dict[]>;
@@ -498,25 +510,26 @@ export default class PostgreSQL implements DB<Sql> {
     where: DataDict;
     sort?: Sort;
     limit?: number;
+    offset?: number;
   }): Promise<{ query: string; params: unknown[] }> {
-    const SELECT = args.fields === undefined
-      ? "*"
-      : args.fields.map(quote).join(", ");
+    const { fields } = args;
+    const SELECT = is.defined(fields) ? fields.map(quote).join(", ") : "*";
     const table = quote(as.table);
     const { WHERE, params } = await this.#where(as, args.where);
     const ORDER_BY = order_by(as.types, args.sort);
     const LIMIT = sql.limit(args.limit);
+    const OFFSET = is.defined(args.offset) ? ` OFFSET ${args.offset}` : "";
     return {
-      query: `SELECT ${SELECT} FROM ${table} ${WHERE}${ORDER_BY}${LIMIT}`,
+      query: `SELECT ${SELECT} FROM ${table} ${WHERE}${ORDER_BY}${LIMIT}${OFFSET}`,
       params,
     };
   }
 
   async #read_joined(as: As, args: ReadRelationsArgs): Promise<Dict[]> {
-    if (as.pk === null) throw E.relation_requires_pk("parent");
+    if (is.null(as.pk)) throw E.relation_requires_pk("parent");
 
     const [[, relation]] = Object.entries(args.with);
-    if (relation.as.pk === null) throw E.relation_requires_pk("target");
+    if (is.null(relation.as.pk)) throw E.relation_requires_pk("target");
 
     const aliases = sql.aliases([as.table, relation.as.table]);
     const alias = aliases[as.table];
@@ -574,10 +587,10 @@ export default class PostgreSQL implements DB<Sql> {
     const relation = args.relation;
 
     const by = relation.reverse === true ? relation.as.pk : relation.fk;
-    if (by === null) throw E.relation_requires_pk("target");
+    if (is.null(by)) throw E.relation_requires_pk("target");
 
     const parent_by = relation.reverse === true ? relation.fk : as.pk;
-    if (parent_by === null) throw E.relation_requires_pk("parent");
+    if (is.null(parent_by)) throw E.relation_requires_pk("parent");
 
     const join_values = [...new Set(
       args.rows.map(r => r[parent_by]).filter(v => v != null),
@@ -596,7 +609,7 @@ export default class PostgreSQL implements DB<Sql> {
 
     for (const row of related) {
       const key = row[by];
-      if (key === null) continue;
+      if (is.null(key)) continue;
       if (!grouped.has(key)) grouped.set(key, []);
       grouped.get(key)!.push(row);
     }
@@ -650,13 +663,13 @@ export default class PostgreSQL implements DB<Sql> {
     const lhs = numeric ? `(${quote(args.by)})::numeric` : quote(args.by);
     const in_part = `${lhs} IN (${in_placeholders.join(", ")})`;
 
-    const WHERE = where_part
+    const WHERE = is.text(where_part)
       ? `WHERE (${where_part}) AND (${in_part})`
       : `WHERE ${in_part}`;
 
     // SELECT fields, must include `by` for grouping
     const all_columns = Object.keys(args.as.types);
-    const fields = args.fields !== undefined && args.fields.length > 0
+    const fields = is.defined(args.fields) && is.uint(args.fields.length)
       ? args.fields
       : all_columns;
     const select_fields = [...new Set([...fields, args.by])];
@@ -668,7 +681,7 @@ export default class PostgreSQL implements DB<Sql> {
       ? `(${quote(args.by)})::numeric ASC`
       : `${quote(args.by)} ASC`;
 
-    const ORDER_BY = user_order
+    const ORDER_BY = is.text(user_order)
       ? ` ORDER BY ${base_order}, ${user_order}`
       : ` ORDER BY ${base_order}`;
 
@@ -676,8 +689,8 @@ export default class PostgreSQL implements DB<Sql> {
 
     const table = quote(args.as.table);
 
-    if (per_parent !== undefined) {
-      const rn_order = user_order ? ` ORDER BY ${user_order}` : "";
+    if (is.defined(per_parent)) {
+      const rn_order = is.text(user_order) ? ` ORDER BY ${user_order}` : "";
 
       q = `
         WITH ranked AS (

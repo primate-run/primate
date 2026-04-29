@@ -209,6 +209,7 @@ export default <D extends DB>(db: D) => {
     db,
     schema: {
       id: key.primary(p.uuid),
+      blob: p.blob.optional(),
       boolean: p.boolean.optional(),
       date: p.date.optional(),
       f32: p.f32.optional(),
@@ -2245,4 +2246,127 @@ export default <D extends DB>(db: D) => {
       }),
     );
   });
+
+  $user("find: $in on string field", async assert => {
+    const rows = await User.find({
+      where: { name: { $in: ["Donald", "Ryan"] } },
+      sort: { name: "asc" },
+    });
+    assert(rows.length).equals(2);
+    assert(rows[0].name).equals("Donald");
+    assert(rows[1].name).equals("Ryan");
+  });
+
+  $user("find: $in on number field", async assert => {
+    const rows = await User.find({
+      where: { age: { $in: [30, 40] } },
+      sort: { age: "asc" },
+    });
+    assert(rows.length).equals(3);
+    assert(rows.map(r => r.age)).equals([30, 40, 40]);
+  });
+
+  $user("find: $in on uuid field", async assert => {
+    const [donald] = await User.find({ where: { name: "Donald" } });
+    const [ryan] = await User.find({ where: { name: "Ryan" } });
+    const rows = await User.find({
+      where: { id: { $in: [donald.id, ryan.id] } },
+      sort: { name: "asc" },
+    });
+    assert(rows.length).equals(2);
+    assert(rows.map(r => r.name)).equals(["Donald", "Ryan"]);
+  });
+
+  $user("find: $in with single value", async assert => {
+    const rows = await User.find({
+      where: { name: { $in: ["Donald"] } },
+    });
+    assert(rows.length).equals(1);
+    assert(rows[0].name).equals("Donald");
+  });
+
+  $user("find: $in with no matches returns empty", async assert => {
+    const rows = await User.find({
+      where: { name: { $in: ["Nobody", "Ghost"] } },
+    });
+    assert(rows.length).equals(0);
+  });
+
+  $user$("find: $in with empty array throws", async assert => {
+    await throws(assert, Code.operator_empty_in, () => {
+      return User.find({ where: { name: { $in: [] } } } as any);
+    });
+  });
+
+  $user$("find: $in on boolean field throws", async assert => {
+    await throws(assert, Code.operator_unknown, () => {
+      return Type.find({ where: { boolean: { $in: [true, false] } } } as any);
+    });
+  });
+
+  $user$("find: $in on blob field throws", async assert => {
+    await throws(assert, Code.operator_unknown, () => {
+      return Type.find({ where: { blob: { $in: [] } } } as any);
+    });
+  });
+
+  $user("find: $in combined with other where criteria", async assert => {
+    const rows = await User.find({
+      where: {
+        name: { $in: ["Donald", "Ryan", "Ben"] },
+        age: { $lt: 40 },
+      },
+      sort: { name: "asc" },
+    });
+    assert(rows.length).equals(1);
+    assert(rows[0].name).equals("Donald");
+  });
+
+  $user("find: offset skips records", async assert => {
+    const all = await User.find({ sort: { name: "asc" } });
+    const offset = await User.find({
+      sort: { name: "asc" }, offset: 2, limit: all.length - 2 });
+    assert(offset.length).equals(all.length - 2);
+    assert(offset[0].name).equals(all[2].name);
+  });
+
+  $user("find: offset 0 is same as no offset", async assert => {
+    const without = await User.find({ sort: { name: "asc" } });
+    const with_zero = await User.find({
+      sort: { name: "asc" }, offset: 0, limit: without.length });
+    assert(with_zero.length).equals(without.length);
+    assert(with_zero.map(r => r.name)).equals(without.map(r => r.name));
+  });
+
+  $user("find: offset with limit", async assert => {
+    const sort = { name: "asc" };
+    const all = await User.find({ sort });
+    const page = await User.find({ sort, offset: 1, limit: 2 });
+    assert(page.length).equals(2);
+    assert(page[0].name).equals(all[1].name);
+    assert(page[1].name).equals(all[2].name);
+  });
+
+  $user("find: offset beyond total returns empty", async assert => {
+    const rows = await User.find({ offset: 100, limit: 10 });
+    assert(rows.length).equals(0);
+  });
+
+  $user$("find: negative offset throws", async assert => {
+    await throws(assert, Code.offset_invalid, () => {
+      return User.find({ offset: -1 } as any);
+    });
+  });
+
+  $user$("find: non-integer offset throws", async assert => {
+    await throws(assert, Code.offset_invalid, () => {
+      return User.find({ offset: 1.5 } as any);
+    });
+  });
+
+  $user$("find: offset without limit throws", async assert => {
+    await throws(assert, Code.offset_requires_limit, () => {
+      return User.find({ offset: 1 } as any);
+    });
+});
 };

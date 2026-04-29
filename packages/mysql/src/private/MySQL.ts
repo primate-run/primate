@@ -1,9 +1,9 @@
 import typemap from "#typemap";
 import type {
-    As, DataDict, DB,
-    ReadArgs, ReadRelationsArgs,
-    Schema,
-    Sort, Types, With,
+  As, DataDict, DB,
+  ReadArgs, ReadRelationsArgs,
+  Schema,
+  Sort, Types, With,
 } from "@primate/core/db";
 import base from "@primate/core/db";
 import E from "@primate/core/db/errors";
@@ -28,13 +28,13 @@ function is_bigint_key(k: string) {
 }
 
 function order_by(types: Types, sort?: Sort, alias?: string) {
-  if (sort === undefined) return "";
+  if (is.undefined(sort)) return "";
   const entries = Object.entries(sort);
   if (entries.length === 0) return "";
 
   const parts = entries.map(([k, dir]) => {
     const quoted = sql.quote(k);
-    const base = alias !== undefined ? `${alias}.${quoted}` : quoted;
+    const base = is.defined(alias) ? `${alias}.${quoted}` : quoted;
     const expression = is_bigint_key(types[k]) ? bigint_cast(base) : base;
     return `${expression} ${dir.toLowerCase() === "desc" ? "DESC" : "ASC"}`;
   });
@@ -236,7 +236,9 @@ export default class MySQL implements DB<Pool> {
           const numeric = is_bigint_key(datatype);
           const lhs = numeric ? bigint_cast(quoted) : quoted;
           const rhs = numeric ? bigint_cast(ph) : ph;
-          binds[bind_key] = await bind_value(datatype, op_value);
+          if (op !== "$in") {
+            binds[bind_key] = await bind_value(datatype, op_value);
+          }
 
           switch (op) {
             case "$like":
@@ -256,6 +258,19 @@ export default class MySQL implements DB<Pool> {
             case "$before": {
               const sql_op = sql.OPS[op];
               parts.push(`${lhs} ${sql_op} ${rhs}`);
+              break;
+            }
+            case "$in": {
+              const array = op_value as unknown[];
+              const placeholders: string[] = [];
+              for (let i = 0; i < array.length; i++) {
+                const key = `${sql.bindKey(field, `in${i}`)}`;
+                binds[key] = await bind_value(datatype, array[i]);
+                const ph = `${BIND_BY}${key}`;
+                placeholders.push(is_bigint_key(datatype) ? bigint_cast(ph) : ph);
+              }
+              const lhs = is_bigint_key(datatype) ? bigint_cast(quoted) : quoted;
+              parts.push(`${lhs} IN (${placeholders.join(", ")})`);
               break;
             }
             default:
@@ -381,6 +396,7 @@ export default class MySQL implements DB<Pool> {
     where: DataDict;
     fields?: string[];
     limit?: number;
+    offset?: number;
     sort?: Sort;
     with?: With;
   }) {
@@ -412,16 +428,18 @@ export default class MySQL implements DB<Pool> {
     where: DataDict;
     sort?: Sort;
     limit?: number;
+    offset?: number;
   }) {
-    const SELECT = args.fields === undefined
+    const SELECT = is.undefined(args.fields)
       ? "*"
       : args.fields.map(sql.quote).join(", ");
     const [WHERE, binds] = await this.#where(as, args.where);
     const ORDER_BY = order_by(as.types, args.sort);
-    const LIMIT = sql.limit(args.limit);
+    const LIMIT = is.defined(args.limit) ? ` LIMIT ${args.limit}` : "";
+    const OFFSET = is.defined(args.offset) ? ` OFFSET ${args.offset}` : "";
     const table = sql.quote(as.table);
     return [
-      `SELECT ${SELECT} FROM ${table} ${WHERE}${ORDER_BY}${LIMIT}`,
+      `SELECT ${SELECT} FROM ${table} ${WHERE}${ORDER_BY}${LIMIT}${OFFSET}`,
       binds,
     ] as const;
   }
@@ -531,7 +549,7 @@ export default class MySQL implements DB<Pool> {
     const WHERE = `WHERE ${where_parts.join(" AND ")}`;
 
     const all_columns = Object.keys(args.as.types);
-    const fields = args.fields !== undefined && args.fields.length > 0
+    const fields = is.defined(args.fields) && is.uint(args.fields.length)
       ? args.fields
       : all_columns;
     const select_fields = [...new Set([...fields, args.by])];
@@ -547,7 +565,7 @@ export default class MySQL implements DB<Pool> {
     const table = sql.quote(args.as.table);
     let query: string;
 
-    if (per_parent !== undefined) {
+    if (is.defined(per_parent)) {
       const partition = numeric ? cast : Q`${args.by}`;
       const rn_order = user_order ? ` ORDER BY ${user_order}` : "";
 

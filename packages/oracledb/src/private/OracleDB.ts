@@ -25,13 +25,13 @@ function get_column(key: DataKey) {
 }
 
 async function bind_value(key: DataKey, value: unknown) {
-  if (value === null) return null;
+  if (is.null(value)) return null;
 
   return typemap[key].bind(value as never);
 }
 
-function order_by(types: Types, sort?: Sort) {
-  if (sort === undefined) return "";
+function order_by(sort?: Sort) {
+  if (is.undefined(sort)) return "";
   const entries = Object.entries(sort);
   if (entries.length === 0) return "";
 
@@ -46,17 +46,17 @@ interface IntrospectRow {
   data_type: string;
   data_length: number | null;
   char_length: number | null;
-  data_precision: number | null;
-  data_scale: number | null;
+  data_precision: string | null;
+  data_scale: string | null;
 }
 
-function oracle_columns_to_types(row: IntrospectRow): DataKey[] {
+function columns_to_types(row: IntrospectRow): DataKey[] {
   const data_type = row.data_type.toUpperCase();
   const char_length = Number(row.char_length ?? row.data_length ?? 0);
-  const precision = row.data_precision === null
+  const precision = is.null(row.data_precision)
     ? null
     : Number(row.data_precision);
-  const scale = row.data_scale === null ? 0 : Number(row.data_scale);
+  const scale = is.null(row.data_scale) ? 0 : Number(row.data_scale);
 
   if (data_type === "BLOB") return ["blob"];
   if (data_type === "BOOLEAN") return ["boolean"];
@@ -84,7 +84,7 @@ function oracle_columns_to_types(row: IntrospectRow): DataKey[] {
 }
 
 function limit(n?: number) {
-  return n === undefined ? "" : ` FETCH FIRST ${n} ROWS ONLY`;
+  return is.defined(n) ? ` FETCH FIRST ${n} ROWS ONLY` : "";
 }
 
 function unbind_value(key: DataKey, value: unknown) {
@@ -120,12 +120,8 @@ export default class OracleDB implements DB<oracledb.Connection> {
     return this.#connection!;
   }
 
-  get #db() {
-    return this.#connection!;
-  }
-
   async #connect() {
-    if (this.#connection === undefined) {
+    if (is.undefined(this.#connection)) {
       const { username, password, host, port, database } = this.#config;
       this.#connection = await oracledb.getConnection({
         user: username,
@@ -173,10 +169,10 @@ export default class OracleDB implements DB<oracledb.Connection> {
     for (const field of keys) {
       const raw = where[field];
       const datatype = as.types[field];
-      const col = quote(field);
+      const column = quote(field);
 
-      if (raw === null) {
-        parts.push(`${col} IS NULL`);
+      if (is.null(raw)) {
+        parts.push(`${column} IS NULL`);
         continue;
       }
 
@@ -185,18 +181,19 @@ export default class OracleDB implements DB<oracledb.Connection> {
         if (ops.length === 0) throw E.operator_empty(field);
 
         for (const [op, op_value] of ops) {
-          const placeholder = `:${i++}`;
+          const placeholder = op === "$in" ? "" : `:${i++}`;
+
           switch (op) {
             case "$like":
-              parts.push(`${col} LIKE ${placeholder} ESCAPE '\\'`);
+              parts.push(`${column} LIKE ${placeholder} ESCAPE '\\'`);
               params.push(await bind_value(datatype, op_value));
               break;
             case "$ilike":
-              parts.push(`UPPER(${col}) LIKE UPPER(${placeholder}) ESCAPE '\\'`);
+              parts.push(`UPPER(${column}) LIKE UPPER(${placeholder}) ESCAPE '\\'`);
               params.push(await bind_value(datatype, op_value));
               break;
             case "$ne":
-              parts.push(`${col} != ${placeholder}`);
+              parts.push(`${column} != ${placeholder}`);
               params.push(await bind_value(datatype, op_value));
               break;
             case "$gt":
@@ -206,8 +203,18 @@ export default class OracleDB implements DB<oracledb.Connection> {
             case "$after":
             case "$before": {
               const sql_op = sql.OPS[op];
-              parts.push(`${col} ${sql_op} ${placeholder}`);
+              parts.push(`${column} ${sql_op} ${placeholder}`);
               params.push(await bind_value(datatype, op_value));
+              break;
+            }
+            case "$in": {
+              const array = op_value as unknown[];
+              const placeholders: string[] = [];
+              for (const value of array) {
+                placeholders.push(`:${i++}`);
+                params.push(await bind_value(datatype, value));
+              }
+              parts.push(`${column} IN (${placeholders.join(", ")})`);
               break;
             }
             default:
@@ -217,7 +224,7 @@ export default class OracleDB implements DB<oracledb.Connection> {
         continue;
       }
 
-      parts.push(`${col} = :${i++}`);
+      parts.push(`${column} = :${i++}`);
       params.push(await bind_value(datatype, raw));
     }
 
@@ -233,14 +240,17 @@ export default class OracleDB implements DB<oracledb.Connection> {
     where: DataDict;
     sort?: Sort;
     limit?: number;
+    offset?: number;
   }): Promise<{ query: string; params: unknown[] }> {
-    const SELECT = args.fields === undefined
-      ? "*"
-      : args.fields.map(quote).join(", ");
+    const { fields } = args;
+    const SELECT = is.defined(fields) ? fields.map(quote).join(", ") : "*";
     const table = quote(as.table);
     const { WHERE, params } = await this.#where(as, args.where);
-    const ORDER_BY = order_by(as.types, args.sort);
-    const LIMIT = limit(args.limit);
+    const ORDER_BY = order_by(args.sort);
+    const OFFSET = is.defined(args.offset) ? ` OFFSET ${args.offset} ROWS` : "";
+    const LIMIT = is.defined(args.limit)
+      ? `${OFFSET} FETCH FIRST ${args.limit} ROWS ONLY`
+      : "";
     return {
       query: `SELECT ${SELECT} FROM ${table} ${WHERE}${ORDER_BY}${LIMIT}`,
       params,
@@ -261,10 +271,10 @@ export default class OracleDB implements DB<oracledb.Connection> {
   }
 
   async #read_joined(as: As, args: ReadRelationsArgs): Promise<Dict[]> {
-    if (as.pk === null) throw E.relation_requires_pk("parent");
+    if (is.null(as.pk)) throw E.relation_requires_pk("parent");
 
     const [[, relation]] = Object.entries(args.with);
-    if (relation.as.pk === null) throw E.relation_requires_pk("target");
+    if (is.null(relation.as.pk)) throw E.relation_requires_pk("target");
 
     const aliases = sql.aliases([as.table, relation.as.table]);
     const alias = aliases[as.table];
@@ -281,7 +291,7 @@ export default class OracleDB implements DB<oracledb.Connection> {
 
     const { query, params } = await this.#base_query(as, { ...args, fields });
     const JOIN = `LEFT JOIN ${quote(relation.as.table)} ${r_alias}
-    ON ${r_alias}.${quote(relation.fk)} = ${alias}.${quote(as.pk)}`;
+      ON ${r_alias}.${quote(relation.fk)} = ${alias}.${quote(as.pk)}`;
     const q = `SELECT ${SELECT} FROM (${query}) ${alias} ${JOIN}`;
 
     const rows = await this.#sql<Dict[]>(q, params);
@@ -311,10 +321,10 @@ export default class OracleDB implements DB<oracledb.Connection> {
   ) {
     const relation = args.relation;
     const by = relation.reverse === true ? relation.as.pk : relation.fk;
-    if (by === null) throw E.relation_requires_pk("target");
+    if (is.null(by)) throw E.relation_requires_pk("target");
 
     const parent_by = relation.reverse === true ? relation.fk : as.pk;
-    if (parent_by === null) throw E.relation_requires_pk("parent");
+    if (is.null(parent_by)) throw E.relation_requires_pk("parent");
 
     const join_values = [...new Set(
       args.rows.map(r => r[parent_by]).filter(v => v != null),
@@ -333,7 +343,7 @@ export default class OracleDB implements DB<oracledb.Connection> {
 
     for (const row of related) {
       const key = row[by];
-      if (key === null) continue;
+      if (is.null(key)) continue;
       if (!grouped.has(key)) grouped.set(key, []);
       grouped.get(key)!.push(row);
     }
@@ -341,7 +351,7 @@ export default class OracleDB implements DB<oracledb.Connection> {
     for (let i = 0; i < args.out.length; i++) {
       const join_value = args.rows[i][parent_by];
 
-      if (join_value == null) {
+      if (is.null(join_value)) {
         args.out[i][args.table] = is_many ? [] : null;
         continue;
       }
@@ -381,7 +391,7 @@ export default class OracleDB implements DB<oracledb.Connection> {
     }
 
     const in_part = `${quote(args.by)} IN (${in_placeholders.join(", ")})`;
-    const WHERE = where_part
+    const WHERE = is.text(where_part)
       ? `WHERE (${where_part}) AND (${in_part})`
       : `WHERE ${in_part}`;
 
@@ -392,7 +402,7 @@ export default class OracleDB implements DB<oracledb.Connection> {
     const select_fields = [...new Set([...fields, args.by])];
     const SELECT = select_fields.map(quote).join(", ");
 
-    const ORDER_BY = ` ORDER BY ${quote(args.by)} ASC${args.sort
+    const ORDER_BY = ` ORDER BY ${quote(args.by)} ASC${is.defined(args.sort)
       ? ", " + Object.entries(args.sort).map(([k, dir]) =>
         `${quote(k)} ${dir.toLowerCase() === "desc" ? "DESC" : "ASC"}`,
       ).join(", ")
@@ -401,26 +411,24 @@ export default class OracleDB implements DB<oracledb.Connection> {
     const table = quote(args.as.table);
     let q: string;
 
-    if (per_parent !== undefined) {
-      const rn_order = args.sort
+    if (is.defined(per_parent)) {
+      const rn_order = is.defined(args.sort)
         ? Object.entries(args.sort).map(([k, dir]) =>
           `${quote(k)} ${dir.toLowerCase() === "desc" ? "DESC" : "ASC"}`,
         ).join(", ")
         : "";
 
-      q = `
-        SELECT ${SELECT} FROM (
-          SELECT ${SELECT},
-            ROW_NUMBER() OVER (
-              PARTITION BY ${quote(args.by)}
-              ORDER BY ${quote(args.by)}${rn_order ? ", " + rn_order : ""}
-            ) AS "__rn"
-          FROM ${table}
-          ${WHERE}
-        )
-        WHERE "__rn" <= ${per_parent}
-        ${ORDER_BY}
-      `;
+      q = `SELECT ${SELECT} FROM (
+        SELECT ${SELECT},
+          ROW_NUMBER() OVER (
+            PARTITION BY ${quote(args.by)}
+            ORDER BY ${quote(args.by)}${is.text(rn_order) ? ", " + rn_order : ""}
+          ) AS "__rn"
+        FROM ${table}
+        ${WHERE}
+      )
+      WHERE "__rn" <= ${per_parent}
+      ${ORDER_BY}`;
     } else {
       q = `SELECT ${SELECT} FROM ${table} ${WHERE}${ORDER_BY}`;
     }
@@ -430,8 +438,19 @@ export default class OracleDB implements DB<oracledb.Connection> {
     return rows.map(r => unbind(args.as.types, r));
   }
 
-  read(as: As, args: { count: true; where: DataDict; with?: never }): Promise<number>;
-  read(as: As, args: { where: DataDict; fields?: string[]; limit?: number; sort?: Sort; with?: With }): Promise<Dict[]>;
+  read(as: As, args: {
+    count: true;
+    where: DataDict;
+    with?: never;
+  }): Promise<number>;
+  read(as: As, args: {
+    where: DataDict;
+    fields?: string[];
+    limit?: number;
+    offset?: number;
+    sort?: Sort;
+    with?: With;
+  }): Promise<Dict[]>;
   async read(as: As, args: any): Promise<any> {
     assert.dict(args.where);
     this.#explain = {};
@@ -463,15 +482,16 @@ export default class OracleDB implements DB<oracledb.Connection> {
         for (const [key, value] of Object.entries(types)) {
           const column_type = get_column(value);
           const column = quote(key);
+          const c = `${column} ${column_type}`;
           if (key === pk.name) {
-            const is_identity = pk.generate === true && column_type.startsWith("NUMBER");
+            const is_identity = pk.generate && column_type.startsWith("NUMBER");
             if (is_identity) {
-              columns.push(`${column} ${column_type} GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY`);
+              columns.push(`${c} GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY`);
             } else {
-              columns.push(`${column} ${column_type} PRIMARY KEY`);
+              columns.push(`${c} PRIMARY KEY`);
             }
           } else {
-            columns.push(`${column} ${column_type}`);
+            columns.push(`${c}`);
           }
         }
         await this.#sql(
@@ -515,7 +535,7 @@ export default class OracleDB implements DB<oracledb.Connection> {
 
         const result: Dict<DataKey[]> = {};
         for (const row of rows) {
-          const candidates = oracle_columns_to_types(row);
+          const candidates = columns_to_types(row);
           if (candidates.length > 0) {
             result[row.column_name] = candidates;
           }
@@ -525,7 +545,7 @@ export default class OracleDB implements DB<oracledb.Connection> {
 
       alter: async (table, diff) => {
         const existing = await this.schema.introspect(table);
-        if (existing === null) throw E.table_not_found(table);
+        if (is.null(existing)) throw E.table_not_found(table);
 
         // rename first
         for (const [from, to] of diff.rename) {
@@ -558,7 +578,7 @@ export default class OracleDB implements DB<oracledb.Connection> {
     const table = quote(as.table);
 
     // PK provided or none defined
-    if (pk === null || pk in record) {
+    if (is.null(pk) || pk in record) {
       const fields = Object.keys(record);
       if (fields.length === 0) {
         await this.#sql(`INSERT INTO ${table} VALUES (DEFAULT)`);

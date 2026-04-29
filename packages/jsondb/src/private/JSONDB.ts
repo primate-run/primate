@@ -90,6 +90,20 @@ function match(record: Dict, where: Dict) {
             break;
           }
 
+          case "$in": {
+            const arr = op_val as unknown[];
+            if (is.date(value)) {
+              if (!arr.some(v => is.date(v) && v.getTime() === (value as Date).getTime())) return false;
+              break;
+            }
+            if (is.url(value)) {
+              if (!arr.some(v => is.url(v) && v.href === (value as URL).href)) return false;
+              break;
+            }
+            if (!arr.includes(value)) return false;
+            break;
+          }
+
           default:
             throw E.operator_unknown(k, op);
         }
@@ -329,6 +343,7 @@ export default class JSONDB implements DB<Tables> {
     where: DataDict;
     fields?: string[];
     limit?: number;
+    offset?: number;
     sort?: Sort;
     with?: With;
   }): Promise<Dict[] | number> {
@@ -345,8 +360,9 @@ export default class JSONDB implements DB<Tables> {
       ? matches
       : matches.toSorted((a, b) => to_sorted(a, b, sort));
 
+    const offset = args.offset ?? 0;
     const limit = args.limit ?? sorted.length;
-    const base_rows = sorted.slice(0, limit);
+    const base_rows = sorted.slice(offset, offset + limit);
 
     if (args.with === undefined) {
       const fields = args.fields ?? [];
