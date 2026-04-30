@@ -6,6 +6,7 @@ import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
 import next from "#path/next";
+import resolve from "#resolve";
 import SE from "#schema-errors";
 import type Serialized from "#Serialized";
 import type OptionalTrait from "#trait/Optional";
@@ -74,7 +75,8 @@ export default class ObjectType<
     );
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
     const $options = { ...this.#options, ...options };
 
     if (is.defined(x) && !is.dict(x)) throw E.invalid_type(x, "object", $options);

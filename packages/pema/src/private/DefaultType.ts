@@ -1,6 +1,7 @@
 import type Infer from "#Infer";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
+import resolve from "#resolve";
 import VirtualType from "#VirtualType";
 import is from "@rcompat/is";
 
@@ -29,14 +30,14 @@ export default class DefaultType<
     return undefined;
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    let $x = x;
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    let x = resolve(u);
     // default fallback
-    if (is.undefined($x)) {
-      $x = is.function(this.#default) ? this.#default() : this.#default;
+    if (is.undefined(x)) {
+      x = is.function(this.#default) ? this.#default() : this.#default;
     }
 
-    return this.#schema.parse($x, options);
+    return this.#schema.parse(x, options);
   }
 
   toJSON() {

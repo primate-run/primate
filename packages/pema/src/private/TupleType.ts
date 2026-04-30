@@ -6,8 +6,10 @@ import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
 import next from "#path/next";
+import resolve from "#resolve";
 import type Schema from "#Schema";
 import type OptionalTrait from "#trait/Optional";
+import is from "@rcompat/is";
 
 type InferTuple<T extends Schema[]> = {
   [K in keyof T]:
@@ -34,8 +36,10 @@ export default class TupleType<T extends Parsed<unknown>[]>
     return new OptionalType(this);
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    if (!Array.isArray(x)) throw E.invalid_type(x, "array", options);
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
+
+    if (!is.array(x)) throw E.invalid_type(x, "array", options);
 
     const items = this.#items;
     const n = items.length;

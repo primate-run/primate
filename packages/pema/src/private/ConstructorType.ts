@@ -4,6 +4,7 @@ import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
 import type ParseOptions from "#ParseOptions";
+import resolve from "#resolve";
 import type DefaultTrait from "#trait/Default";
 import type OptionalTrait from "#trait/Optional";
 import type { AbstractNewable } from "@rcompat/type";
@@ -30,7 +31,9 @@ export default class ConstructorType<C extends AbstractNewable>
     return new DefaultType(this, value);
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
+
     if (!(x instanceof this.#type)) throw E.invalid_type(x, this.name, options);
 
     return x as never;

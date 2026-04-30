@@ -8,6 +8,7 @@ import type ParseOptions from "#ParseOptions";
 import type Partialable from "#Partialable";
 import join from "#path/join";
 import next from "#path/next";
+import resolve from "#resolve";
 import type DefaultTrait from "#trait/Default";
 import VirtualType from "#VirtualType";
 import is from "@rcompat/is";
@@ -39,7 +40,9 @@ export default class PartialType<D extends Partialable>
     return new DefaultType(this, value);
   }
 
-  parse(x: unknown, options: ParseOptions = {}): InferPartial<D> {
+  parse(u: unknown, options: ParseOptions = {}): InferPartial<D> {
+    const x = resolve(u);
+
     if (!is.dict(x)) throw E.invalid_type(x, "object", options);
 
     const input = x;

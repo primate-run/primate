@@ -23,8 +23,8 @@ export default class UintType<T extends UintDataType>
     return this.derive({ validators: [port] });
   }
 
-  parse(x: unknown, options: ParseOptions<number> = {}) {
-    return super.parse(x, {
+  parse(u: unknown, options: ParseOptions<number> = {}) {
+    return super.parse(u, {
       ...options,
       validators: [integer],
     });

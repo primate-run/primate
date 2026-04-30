@@ -8,6 +8,7 @@ import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
+import resolve from "#resolve";
 import type Schema from "#Schema";
 import S from "#schema-errors";
 import type DefaultTrait from "#trait/Default";
@@ -78,7 +79,9 @@ export default class UnionType<T extends Parsed<unknown>[]>
     return new DefaultType(this, value);
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
+
     for (const type of this.#of) {
       try {
         type.parse(x, options);

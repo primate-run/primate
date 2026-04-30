@@ -12,6 +12,7 @@ import join from "#path/join";
 import next from "#path/next";
 import rebase from "#path/rebase";
 import PrimitiveType from "#PrimitiveType";
+import resolve from "#resolve";
 import S from "#schema-errors";
 import type DefaultTrait from "#trait/Default";
 import type OptionalTrait from "#trait/Optional";
@@ -96,7 +97,9 @@ export default class ArrayType<T extends Parsed<unknown>>
     return this.derive({ validators: [length(from, to)] });
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
+
     const path = options[ParsedKey] ?? "";
     if (!Array.isArray(x)) throw E.invalid_type(x, "array", path);
 

@@ -4,6 +4,7 @@ import Storable from "#Storable";
 import UUIDV4Type from "#UUIDV4Type";
 import UUIDV7Type from "#UUIDV7Type";
 import E from "#errors";
+import resolve from "#resolve";
 import is from "@rcompat/is";
 
 const re = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
@@ -23,7 +24,9 @@ export default class UUIDType
     return "uuid" as const;
   }
 
-  parse(x: unknown): Infer<this> {
+  parse(u: unknown): Infer<this> {
+    const x = resolve(u);
+
     if (!is.string(x) || !re.test(x)) {
       throw E.invalid_format(x, `"${x}" is not a valid UUID`);
     }

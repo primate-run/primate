@@ -1,7 +1,9 @@
 import type Infer from "#Infer";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
+import resolve from "#resolve";
 import VirtualType from "#VirtualType";
+import is from "@rcompat/is";
 
 export default class OptionalType<S extends Parsed<unknown>>
   extends VirtualType<S | undefined, Infer<S> | undefined, "OptionalType"> {
@@ -24,15 +26,13 @@ export default class OptionalType<S extends Parsed<unknown>>
     return true;
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
-    const s = this.#schema;
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
 
     // optional
-    if (x === undefined) {
-      return undefined as Infer<this>;
-    }
+    if (is.undefined(x)) return undefined as Infer<this>;
 
-    return s.parse(x, options) as Infer<this>;
+    return this.#schema.parse(x, options) as Infer<this>;
   }
 
   toJSON() {

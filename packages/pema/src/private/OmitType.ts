@@ -6,6 +6,7 @@ import type Parsed from "#Parsed";
 import ParsedKey from "#ParsedKey";
 import type ParseOptions from "#ParseOptions";
 import join from "#path/join";
+import resolve from "#resolve";
 import type Serialized from "#Serialized";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
@@ -33,7 +34,9 @@ export default class OmitType<
     return "omit" as const;
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
+
     if (!is.dict(x)) throw E.invalid_type(x, "object", options);
 
     const out: Dict = {};

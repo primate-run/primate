@@ -4,6 +4,7 @@ import type Infer from "#Infer";
 import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
+import resolve from "#resolve";
 import Type from "#Type";
 import type Validator from "#Validator";
 import type { JSONPointer, Newable } from "@rcompat/type";
@@ -43,7 +44,9 @@ export default abstract class PrimitiveType<StaticType, Name extends string>
     );
   }
 
-  parse(x: unknown, options: ParseOptions<StaticType> = {}): Infer<this> {
+  parse(u: unknown, options: ParseOptions<StaticType> = {}): Infer<this> {
+    const x = resolve(u);
+
     // hotpath: avoid object spread when possible
     const has_instance_options = this.#options.coerce !== undefined
       || this.#options[ParsedKey] !== undefined;

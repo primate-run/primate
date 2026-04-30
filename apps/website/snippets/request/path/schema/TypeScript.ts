@@ -5,7 +5,7 @@ const PathSchema = p({ id: p.string.regex(/^\d+$/) });
 
 export default route({
   get(request) {
-    const { id } = request.path.parse(PathSchema); // id: string (digits only)
+    const { id } = PathSchema.parse(request.path); // id: string (digits only)
     return `User #${id}`;
   },
 });

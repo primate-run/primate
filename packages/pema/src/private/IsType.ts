@@ -4,6 +4,7 @@ import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
 import Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
+import resolve from "#resolve";
 import type DefaultTrait from "#trait/Default";
 import type OptionalTrait from "#trait/Optional";
 
@@ -28,7 +29,9 @@ export default class IsType<T> extends Parsed<T>
     return new DefaultType(this, value);
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
+
     if (!this.#predicate(x)) throw E.invalid_type(x, this.name, options);
     return x as Infer<this>;
   }

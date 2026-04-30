@@ -15,8 +15,8 @@ export default class IntType<T extends IntDataType>
     return "number";
   }
 
-  parse(x: unknown, options: ParseOptions<number> = {}) {
-    return super.parse(x, {
+  parse(u: unknown, options: ParseOptions<number> = {}) {
+    return super.parse(u, {
       ...options,
       validators: [integer],
     });

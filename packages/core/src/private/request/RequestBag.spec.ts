@@ -1,9 +1,9 @@
 import { Code } from "#errors";
 import RequestBag from "#request/RequestBag";
 import test from "@rcompat/test";
-import any from "@rcompat/test/any";
 import undef from "@rcompat/test/undef";
 import type { Dict } from "@rcompat/type";
+import p from "pema";
 
 const toLower = (k: string) => k.toLowerCase();
 
@@ -75,30 +75,11 @@ test.case("has: true only for defined values", assert => {
   assert(b.has("undef")).false();
 });
 
-test.case("parse: schema receives normalized contents", assert => {
-  let received: unknown;
-
-  const schema = {
-    parse(input: unknown) {
-      received = input;
-      // return something transformed to prove delegation worked
-      return { ok: true };
-    },
-    coerce(input: unknown) {
-      received = input;
-      // return something transformed to prove delegation worked
-      return { ok: true };
-    },
-  };
-
+test.case("symbol.parse: pema schema receives normalized contents", assert => {
   const b = bag({ bar: "2", Foo: "1" }, "query", "?Foo=1&bar=2", toLower);
-  const out = b.parse(schema);
-
-  // output is whatever schema returned
-  assert(out).equals({ ok: true });
-
-  // schema saw normalized keys
-  assert(received).equals(any({ bar: "2", foo: "1" }));
+  const schema = p({ bar: p.string, foo: p.string });
+  const out = schema.parse(b);
+  assert(out).equals({ bar: "2", foo: "1" });
 });
 
 test.case("toJSON: returns a shallow null-prototype clone, independent from the bag", assert => {

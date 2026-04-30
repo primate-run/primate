@@ -20,9 +20,9 @@ export default class PureType<Type, Name extends string = "PureType">
     return new OptionalType(this);
   }
 
-  parse(x: unknown): Infer<this> {
+  parse(u: unknown): Infer<this> {
     // no parsing of static types
-    return x as Infer<this>;
+    return u as Infer<this>;
   }
 
   toJSON() {

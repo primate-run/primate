@@ -5,6 +5,7 @@ import PartialType from "#PartialType";
 import type StoreSchema from "#StoreSchema";
 import E from "#errors";
 import next from "#path/next";
+import resolve from "#resolve";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
 
@@ -20,9 +21,10 @@ export default class StoreType<S extends StoreSchema> extends ObjectType<S> {
     return "store";
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
     const $options = { ...options };
-    if (x !== undefined && !is.dict(x)) throw E.invalid_type(x, "object", $options);
+    if (is.defined(x) && !is.dict(x)) throw E.invalid_type(x, "object", $options);
     const input = x ?? {};
     const out: Dict = {};
     for (const k in this.properties) {

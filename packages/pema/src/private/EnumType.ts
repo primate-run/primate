@@ -4,6 +4,7 @@ import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
 import type ParseOptions from "#ParseOptions";
+import resolve from "#resolve";
 import type OptionalTrait from "#trait/Optional";
 import is from "@rcompat/is";
 
@@ -31,7 +32,9 @@ export default class EnumType<T extends readonly Literal[]>
     return new DefaultType<EnumType<T>, D>(this, value);
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
+
     if (!is.string(x) || !this.#values.includes(x as T[number])) {
       throw E.invalid_type(x, this.name, options);
     }

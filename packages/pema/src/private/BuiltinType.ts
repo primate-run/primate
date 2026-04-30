@@ -2,6 +2,7 @@ import CoerceKey from "#CoerceKey";
 import E from "#errors";
 import type Infer from "#Infer";
 import type ParseOptions from "#ParseOptions";
+import resolve from "#resolve";
 import Type from "#Type";
 import type { AbstractNewable, Newable } from "@rcompat/type";
 
@@ -21,7 +22,8 @@ export default abstract class BuiltinType<StaticType, Name extends string>
     return new Constructor({ ...this.#options, ...next });
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
     const $options = { ...this.#options, ...options };
     const $x = $options.coerce === true ? this[CoerceKey](x) : x;
 

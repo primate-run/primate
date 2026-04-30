@@ -139,7 +139,7 @@ const Query = p({
 
 export default route({
   get(request) {
-      const params = request.query.parse(Query);
+      const params = Query.parse(request.query);
       // params.page is a validated number
       return `Showing page ${params.page}`;
   },
@@ -160,7 +160,7 @@ const Path = p({
 
 export default route({
   get(request) {
-      const { userId } = request.path.parse(Path);
+      const { userId } = Path.parse(request.path);
       return `Profile for user ${userId}`;
   },
 });
@@ -175,13 +175,13 @@ Request headers are strings, available via `request.headers`.
 import p from "pema";
 import route from "primate/route";
 
-const Header = p({
+const HeadersSchema = p({
   authorization: p.string.startsWith("Bearer "),
 });
 
 export default route({
   get(request) {
-      const { authorization } = request.headers.parse(Header);
+      const { authorization } = HeadersSchema.parse(request.headers);
       const bearer = authorization.slice("Bearer ".length);
 
       /* actually validate the token */

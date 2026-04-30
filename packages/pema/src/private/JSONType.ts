@@ -4,6 +4,7 @@ import type Infer from "#Infer";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
+import resolve from "#resolve";
 import type Serialized from "#Serialized";
 import Storable from "#Storable";
 import is from "@rcompat/is";
@@ -42,7 +43,9 @@ export default class JSONType<S extends JSONInput = undefined>
     return new DefaultType(this, value);
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
+
     if (this.#inner !== undefined) {
       // delegate to inner schema for typed validation
       return this.#inner.parse(x, options) as never;

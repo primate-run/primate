@@ -8,6 +8,7 @@ import type ParseOptions from "#ParseOptions";
 import join from "#path/join";
 import next from "#path/next";
 import type RecordTypeKey from "#RecordTypeKey";
+import resolve from "#resolve";
 import type OptionalTrait from "#trait/Optional";
 import is from "@rcompat/is";
 
@@ -33,7 +34,9 @@ export default class RecordType<
     return "record" as const;
   }
 
-  parse(x: unknown, options: ParseOptions = {}): Infer<this> {
+  parse(u: unknown, options: ParseOptions = {}): Infer<this> {
+    const x = resolve(u);
+
     const path = options[ParsedKey] ?? "";
     if (!is.dict(x)) throw E.invalid_type(x, "object", path);
 

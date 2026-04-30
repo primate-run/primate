@@ -26,13 +26,13 @@ export default abstract class Parsed<StaticType> implements Serializable {
   /**
   * Parse the given value.
   *
-  * @param x Value to parse.
+  * @param u Value to parse.
   *
   * @throws `ParseError` if the value could not be parsed.
   *
   * @returns The parsed value, if successfully parsed.
   */
-  abstract parse(x: unknown, options?: ParseOptions): StaticType;
+  abstract parse(u: unknown, options?: ParseOptions): StaticType;
 
   coerce(x: unknown, options: ParseOptions = {}): StaticType {
     return this.parse(x, { ...options, coerce: true });

@@ -1,18 +1,11 @@
 import E from "#errors";
 import assert from "@rcompat/assert";
 import fn from "@rcompat/fn";
+import symbol from "@rcompat/symbol";
 import type { PartialDict } from "@rcompat/type";
 
 type Contents = PartialDict<string>;
 type Normalize = (key: string) => string;
-
-interface Schema<T> {
-  parse(input: unknown): T;
-}
-
-interface CoercibleSchema<T> extends Schema<T> {
-  coerce(input: unknown): T;
-}
 
 type Options = {
   normalize?: Normalize;
@@ -24,6 +17,10 @@ export default class RequestBag {
   #name: string;
   #normalize: Normalize;
   #raw: string;
+
+  [symbol.parse]() {
+    return this.toJSON();
+  }
 
   /**
    * Create a new RequestBag.
@@ -123,24 +120,6 @@ export default class RequestBag {
     const k = this.#normalize(key);
 
     return this.#hasOwn(k) && this.#contents[k] !== undefined;
-  }
-
-  /**
-   * Parse the entire bag with a schema.
-   *
-   * The schema receives the bag's normalized contents.
-   *
-   * @typeParam T - Parsed/validated result type.
-   * @param schema - Object exposing `parse(input)`.
-   * @returns The parsed value.
-   * @throws Whatever the schema throws.
-   */
-  parse<T>(schema: Schema<T>): T {
-    return schema.parse(this.#contents);
-  }
-
-  coerce<T>(schema: CoercibleSchema<T>): T {
-    return schema.coerce(this.#contents);
   }
 
   /** Returns {@link raw}. Useful in template strings. */
