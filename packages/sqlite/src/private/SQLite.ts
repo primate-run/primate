@@ -1,7 +1,13 @@
 import typemap from "#typemap";
 import type {
-  As, DataDict, DB, PK, ReadArgs, ReadRelationsArgs,
-  Schema, Sort, Types, With,
+  As,
+  CheckPlaceholders,
+  DataDict,
+  ExtractPlaceholders,
+  PK, ReadArgs, ReadRelationsArgs,
+  Schema, Sort,
+  SQLDB,
+  Types, With,
 } from "@primate/core/db";
 import base from "@primate/core/db";
 import E from "@primate/core/db/errors";
@@ -11,7 +17,7 @@ import is from "@rcompat/is";
 import type { PrimitiveParam } from "@rcompat/sqlite";
 import Client from "@rcompat/sqlite";
 import type { Dict } from "@rcompat/type";
-import type { DataKey } from "pema";
+import type { DataKey, ObjectType, Parsed, Storable } from "pema";
 import p from "pema";
 
 type Binds = Dict<PrimitiveParam>;
@@ -152,7 +158,7 @@ function columns_to_types(type: string): DataKey[] {
   return [];
 }
 
-export default class SQLite implements DB<Client> {
+export default class SQLite implements SQLDB<Client> {
   #factory: () => Client;
   #client?: Client;
   #debug = false;
@@ -747,5 +753,56 @@ export default class SQLite implements DB<Client> {
 
   close() {
     this.#db.close();
+  }
+
+  sql<
+    Q extends string,
+    I extends ObjectType<{
+      [K in ExtractPlaceholders<Q>]: Parsed<unknown>
+    }> | undefined,
+    O extends Parsed<unknown> | undefined,
+  >(options: {
+    input?: I extends ObjectType<any> ? CheckPlaceholders<I, Q> : I;
+    query: Q;
+    output?: O;
+  }):
+    (args: I extends ObjectType<any> ? I["infer"] : void)
+      => Promise<O extends Parsed<unknown> ? O["infer"] : void> {
+    if (is.defined(options.input)) {
+      const placeholders = new Set(
+        [...options.query.matchAll(/:(\w+)/g)].map(m => m[1]),
+      );
+      const input_keys = new Set(Object.keys(options.input.properties));
+      for (const key of input_keys) {
+        if (!placeholders.has(key)) throw E.sql_placeholder_missing(key);
+      }
+      for (const key of placeholders) {
+        if (!input_keys.has(key)) throw E.sql_input_missing(key);
+      }
+    }
+
+    return async args => {
+      const input = is.defined(options.input)
+        ? options.input.parse(args)
+        : undefined;
+
+      const query = options.query.replace(/:(\w+)/g, (_, name) => `$${name}`);
+
+      const binds = is.defined(input)
+        ? await bind(
+          Object.fromEntries(
+            Object.entries(options.input!.properties)
+              .map(([k, v]) => [k, (v as Storable).datatype]),
+          ),
+          input as Dict,
+        )
+        : {};
+
+      const rows = this.#sql(query).all(binds) as Dict[];
+
+      return (is.defined(options.output)
+        ? options.output.parse(rows)
+        : undefined) as never;
+    };
   }
 }

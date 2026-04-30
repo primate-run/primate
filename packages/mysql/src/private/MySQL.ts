@@ -1,9 +1,13 @@
 import typemap from "#typemap";
 import type {
-  As, DataDict, DB,
+  As, DataDict,
+  ExtractPlaceholders,
   ReadArgs, ReadRelationsArgs,
   Schema,
-  Sort, Types, With,
+  Sort,
+  SQLDB,
+  Types, With,
+  CheckPlaceholders,
 } from "@primate/core/db";
 import base from "@primate/core/db";
 import E from "@primate/core/db/errors";
@@ -13,7 +17,7 @@ import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
 import type { Pool, ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import mysql from "mysql2/promise";
-import type { DataKey } from "pema";
+import type { DataKey, ObjectType, Parsed, Storable } from "pema";
 import p from "pema";
 
 const BIND_BY = ":";
@@ -87,7 +91,7 @@ const schema = p({
   jsonStrings: p.boolean.default(true),
 });
 
-export default class MySQL implements DB<Pool> {
+export default class MySQL implements SQLDB<Pool> {
   static config: typeof schema.input;
 
   #factory: () => Pool;
@@ -666,5 +670,50 @@ export default class MySQL implements DB<Pool> {
     const query = `DELETE FROM ${sql.quote(as.table)} ${WHERE}`;
     const result = await this.#execute<ResultSetHeader>(query, binds);
     return result.affectedRows;
+  }
+
+  sql<
+    Q extends string,
+    I extends ObjectType<{
+      [K in ExtractPlaceholders<Q>]: Parsed<unknown>
+    }> | undefined,
+    O extends Parsed<unknown> | undefined,
+  >(options: {
+    input?: I extends ObjectType<any> ? CheckPlaceholders<I, Q> : I;
+    query: Q;
+    output?: O;
+  }):
+    (args: I extends ObjectType<any> ? I["infer"] : void)
+      => Promise<O extends Parsed<unknown> ? O["infer"] : void> {
+    if (is.defined(options.input)) {
+      const placeholders = new Set(
+        [...options.query.matchAll(/:(\w+)/g)].map(m => m[1]),
+      );
+      const input_keys = new Set(Object.keys(options.input.properties));
+      for (const key of input_keys) {
+        if (!placeholders.has(key)) throw E.sql_placeholder_missing(key);
+      }
+      for (const key of placeholders) {
+        if (!input_keys.has(key)) throw E.sql_input_missing(key);
+      }
+    }
+    return async args => {
+      const input = is.defined(options.input)
+        ? options.input.parse(args)
+        : undefined;
+      const binds = is.defined(input)
+        ? await this.#create_params(
+          Object.fromEntries(
+            Object.entries(options.input!.properties)
+              .map(([k, v]) => [k, (v as Storable).datatype]),
+          ),
+          input as Dict,
+        )
+        : {};
+      const rows = await this.#sql<RowDataPacket[]>(options.query, binds);
+      return (is.defined(options.output)
+        ? options.output.parse(rows)
+        : undefined) as never;
+    };
   }
 }

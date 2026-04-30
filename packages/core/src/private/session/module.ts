@@ -31,7 +31,7 @@ export default function session_module(config: Config) {
   let secure: boolean;
   const store: Store<StoreSchema> = config.store;
 
-  const props = store.type.properties;
+  const props = store.schema.properties;
   if (!("session_id" in props)) throw E.session_missing_id();
 
   try {
@@ -68,7 +68,7 @@ export default function session_module(config: Config) {
           db_id = _id as string;
         }
 
-        const session_type = p.omit(store.type, "id", "session_id");
+        const session_type = p.omit(store.schema, "id", "session_id");
 
         const session = new SessionHandle<Dict>(
           sid,

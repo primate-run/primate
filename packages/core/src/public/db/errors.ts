@@ -1,1 +1,1 @@
-export { default } from "#db/errors";
+export { default, Code } from "#db/errors";

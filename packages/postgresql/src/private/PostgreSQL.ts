@@ -1,9 +1,13 @@
 import typemap from "#typemap";
 import type {
-  As, DataDict, DB,
+  As, DataDict,
+  CheckPlaceholders,
+  ExtractPlaceholders,
   PK, ReadArgs, ReadRelationsArgs,
   Schema,
-  Sort, Types, With,
+  Sort,
+  SQLDB,
+  Types, With,
 } from "@primate/core/db";
 import base from "@primate/core/db";
 import E from "@primate/core/db/errors";
@@ -11,7 +15,7 @@ import sql from "@primate/core/db/sql";
 import assert from "@rcompat/assert";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
-import type { DataKey } from "pema";
+import type { DataKey, ObjectType, Parsed, Storable } from "pema";
 import p from "pema";
 import type { Sql } from "postgres";
 import postgres from "postgres";
@@ -150,7 +154,7 @@ const schema = p({
   password: p.string.optional(),
 });
 
-export default class PostgreSQL implements DB<Sql> {
+export default class PostgreSQL implements SQLDB<Sql> {
   static config: typeof schema.input;
 
   #factory: () => Sql;
@@ -748,5 +752,56 @@ export default class PostgreSQL implements DB<Sql> {
     const q = `DELETE FROM ${quote(as.table)} ${WHERE} RETURNING 1`;
     const rows = await this.#sql<unknown[]>(q, params);
     return rows.length;
+  }
+
+  sql<
+    Q extends string,
+    I extends ObjectType<{
+      [K in ExtractPlaceholders<Q>]: Parsed<unknown>
+    }> | undefined,
+    O extends Parsed<unknown> | undefined,
+  >(options: {
+    input?: I extends ObjectType<any> ? CheckPlaceholders<I, Q> : I;
+    query: Q;
+    output?: O;
+  }):
+    (args: I extends ObjectType<any> ? I["infer"] : void)
+      => Promise<O extends Parsed<unknown> ? O["infer"] : void> {
+    if (is.defined(options.input)) {
+      const placeholders = new Set(
+        [...options.query.matchAll(/:(\w+)/g)].map(m => m[1]),
+      );
+      const input_keys = new Set(Object.keys(options.input.properties));
+      for (const key of input_keys) {
+        if (!placeholders.has(key)) throw E.sql_placeholder_missing(key);
+      }
+      for (const key of placeholders) {
+        if (!input_keys.has(key)) throw E.sql_input_missing(key);
+      }
+    }
+    return async args => {
+      const input = is.defined(options.input)
+        ? options.input.parse(args)
+        : undefined;
+
+      const params: unknown[] = [];
+      const name_to_index = new Map<string, number>();
+      const query = options.query.replace(/:(\w+)/g, (_, name) => {
+        if (!name_to_index.has(name)) {
+          name_to_index.set(name, params.length + 1);
+          const types = Object.fromEntries(
+            Object.entries(options.input!.properties)
+              .map(([k, v]) => [k, (v as Storable).datatype]),
+          );
+          params.push(bind_value(types[name], (input as Dict)[name]));
+        }
+        return `$${name_to_index.get(name)}`;
+      });
+
+      const rows = await this.#sql<Dict[]>(query, params);
+      return (is.defined(options.output)
+        ? options.output.parse(rows)
+        : undefined) as never;
+    };
   }
 }

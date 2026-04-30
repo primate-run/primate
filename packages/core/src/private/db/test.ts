@@ -2339,7 +2339,7 @@ export default <D extends DB>(db: D) => {
   });
 
   $user("find: offset with limit", async assert => {
-    const sort = { name: "asc" };
+    const sort = { name: "asc" } as const;
     const all = await User.find({ sort });
     const page = await User.find({ sort, offset: 1, limit: 2 });
     assert(page.length).equals(2);

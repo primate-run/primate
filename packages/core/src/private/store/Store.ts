@@ -18,7 +18,7 @@ import assert from "@rcompat/assert";
 import dict from "@rcompat/dict";
 import is from "@rcompat/is";
 import type { Dict, Serializable } from "@rcompat/type";
-import type { DataKey, DefaultType, InferStore, Storable } from "pema";
+import type { DefaultType, InferStore, Storable } from "pema";
 import StoreType from "pema/StoreType";
 
 const brand = Symbol.for("@primate/core/Store/v0");
@@ -252,8 +252,7 @@ export default class Store<
 > implements Serializable {
   [brand] = true;
   #input: StoreInput;
-  #schema: Dict<Storable<DataKey>>;
-  #type: StoreType<ExtractSchema<T>>;
+  #schema: StoreType<ExtractSchema<T>>;
   #types: Types;
   #nullables: Set<string>;
   #table: N;
@@ -285,8 +284,7 @@ export default class Store<
     assert.maybe.symbol(id);
 
     this.#id = id ?? Symbol();
-    this.#schema = schema;
-    this.#type = new StoreType(schema as ExtractSchema<T>, pk);
+    this.#schema = new StoreType(schema as ExtractSchema<T>, pk);
     this.#types = Object.fromEntries(
       Object.entries(schema).map(([key, value]) => [key, value.datatype]),
     );
@@ -301,7 +299,7 @@ export default class Store<
     ) as ExtractRelations<T>;
     this.#migrate = migrate ?? true;
     this.#nullables = new Set(
-      Object.entries(this.#type.properties as Dict<{ nullable: boolean }>)
+      Object.entries(this.#schema.properties as Dict<{ nullable: boolean }>)
         .filter(([, v]) => v.nullable)
         .map(([k]) => k),
     );
@@ -342,10 +340,6 @@ export default class Store<
     return this.#schema;
   }
 
-  get type() {
-    return this.#type;
-  }
-
   get migrate() {
     return this.#migrate;
   }
@@ -374,7 +368,7 @@ export default class Store<
     const pk = this.#pk;
     if (is.null(pk)) throw E.pk_undefined(this.#table);
     try {
-      this.#schema[pk].parse(pkv);
+      (this.#schema.properties as Dict<Storable>)[pk].parse(pkv);
     } catch {
       throw E.pk_invalid(pkv);
     }
@@ -688,7 +682,7 @@ export default class Store<
     // parse *only* base fields (exclude relation keys)
     const base_only = Object.fromEntries(Object.entries(raw)
       .filter(([k]) => dict.has(this.#types, k)));
-    const parsed = this.#type.parse(base_only) as Dict;
+    const parsed = this.#schema.parse(base_only) as Dict;
 
     if (is.undefined($with)) return parsed;
 
@@ -732,7 +726,7 @@ export default class Store<
 
     const prepared = this.#prepare_insert(record);
 
-    return this.db.create(this.#as, this.#type.parse(prepared));
+    return this.db.create(this.#as, this.#schema.parse(prepared));
   }
 
   /**
@@ -771,7 +765,7 @@ export default class Store<
       .filter(([key, value]) => value === null && this.#nullables.has(key)));
 
     const parsed = {
-      ...this.#type.partial().parse(to_parse),
+      ...this.#schema.partial().parse(to_parse),
       ...nulls,
     } as $Set<T>;
 
@@ -859,7 +853,7 @@ export default class Store<
   }
 
   toJSON() {
-    return this.#type.toJSON();
+    return this.#schema.toJSON();
   }
 
   extend<A extends Dict>(extensor: (This: this) => A): this & A {

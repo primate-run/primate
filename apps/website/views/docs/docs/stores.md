@@ -231,6 +231,92 @@ Each relation sub-query can specify:
 Primate validates that the store passed in `with` matches the table declared in
 the relation. Passing the wrong store throws a `relation_table_mismatch` error.
 
+## Operators
+
+The `where` option supports operators for non-equality comparisons.
+
+### Comparison operators
+
+Available on numbers, bigints, and dates:
+
+```ts
+const posts = await Post.find({
+  where: { views: { $gt: 100 } },
+});
+```
+
+| Operator  | Meaning               | Types                    |
+| --------- | --------------------- | ------------------------ |
+| `$gt`     | greater than          | number, bigint           |
+| `$gte`    | greater than or equal | number, bigint           |
+| `$lt`     | less than             | number, bigint           |
+| `$lte`    | less than or equal    | number, bigint           |
+| `$ne`     | not equal             | number, bigint           |
+| `$after`  | after                 | date                     |
+| `$before` | before                | date                     |
+
+### String operators
+
+```ts
+const users = await User.find({
+  where: { name: { $like: "Ali%" } },
+});
+```
+
+| Operator  | Meaning                      |
+| --------- | ---------------------------- |
+| `$like`   | case-sensitive pattern match |
+| `$ilike`  | case-insensitive pattern match |
+| `$ne`     | not equal                    |
+
+Use `%` as a wildcard and `_` as a single-character wildcard.
+
+### $in operator
+
+Match records whose field value is in a given list. Works on strings, numbers,
+bigints, dates, and UUIDs:
+
+```ts
+const users = await User.find({
+  where: { name: { $in: ["John", "Bob", "Larry"] } },
+});
+
+const posts = await Post.find({
+  where: { status: { $in: ["draft", "published"] } },
+});
+```
+
+Passing an empty array throws — an empty `$in` can never match anything and
+is almost always a programmer mistake.
+
+## Pagination
+
+### Limit
+
+Cap the number of results with `limit`:
+
+```ts
+const posts = await Post.find({
+  sort: { created: "desc" },
+  limit: 20,
+});
+```
+
+### Offset
+
+Skip a number of records with `offset`. Requires `limit` to be set:
+
+```ts
+const page = await Post.find({
+  sort: { created: "desc" },
+  limit: 20,
+  offset: 40,
+});
+```
+
+Using `offset` without `limit` throws. All six database drivers support offset
+pagination natively.
+
 ## Configure a database
 
 Install a Primate database driver and create a `config/db` directory with your
@@ -413,3 +499,27 @@ export default Base.extend(User => {
   };
 });
 ```
+
+## Bespoke SQL
+
+Store schemas can be passed directly to `db.sql` for typed raw SQL queries,
+letting you reuse your existing type definitions without duplication:
+
+```ts
+import db from "#db";
+import User from "#store/User";
+
+const findByAge = db.sql({
+  input: User.schema,
+  query: "SELECT name FROM users WHERE age > :age",
+  output: p.array(p({ name: p.string })),
+});
+
+const results = await findByAge({ age: 18 });
+```
+
+TypeScript enforces that every required field in the store schema has a
+matching placeholder in the query. Optional fields are exempt.
+
+See the [databases](/docs/database#typed-bespoke-sql) page for the full
+`db.sql` API.

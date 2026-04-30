@@ -370,7 +370,7 @@ whose field value is in a given list:
 
 ```ts
 const users = await User.find({
-  where: { name: { $in: ["Alice", "Bob", "Carol"] } },
+  where: { name: { $in: ["John", "Bob", "Larry"] } },
 });
 
 const posts = await Post.find({
@@ -442,37 +442,87 @@ export default route({
 
 Routes that only define non-GET verbs correctly return 404 on HEAD.
 
-## Raw database client access
+## Typed bespoke SQL
 
-Every database driver now exposes its underlying client via `db.client`.
-This gives you an escape hatch for operations that fall outside Primate's
-structured API — custom DDL, driver-specific features, or anything else the
-abstraction does not cover.
-
-The type of `db.client` is specific to each driver:
-
-| Driver     | Type           |
-| ---------- | -------------- |
-| PostgreSQL | `Sql`          |
-| MySQL      | `Pool`         |
-| SQLite     | `Client`       |
-| MongoDB    | `MongoClient`  |
-| Oracle     | `Connection`   |
-
-The most common use case is a migration that requires raw SQL:
+Sometimes you need to step outside the structured query API and write raw SQL
+— for complex joins, database-specific functions, or queries that don't map
+cleanly to a store operation. In 0.38, all four SQL drivers (SQLite, MySQL,
+PostgreSQL, and OracleDB) expose `db.sql` for exactly this purpose.
 
 ```ts
-export default async db => {
-  await db.client.unsafe(`
-    ALTER TABLE your_table
-      ALTER COLUMN your_column TYPE TIMESTAMPTZ
-      USING your_column AT TIME ZONE 'UTC'
-  `);
-};
+const findByAge = db.sql({
+  input: p({ age: p.u8 }),
+  query: "SELECT name FROM users WHERE age > :age",
+  output: p.array(p({ name: p.string })),
+});
+
+const results = await findByAge({ age: 18 });
 ```
 
-`db.client` is intentionally unabstracted — reaching for it means you are
-writing driver-specific code, and the type system reflects that.
+`db.sql` returns a function. Call it with your input to execute the query.
+Named placeholders (`:age`) map to input schema keys — TypeScript enforces
+that every placeholder has a matching input key and vice versa, at compile
+time. Input is validated against the input schema before the query runs.
+Output is validated against the output schema after.
+
+Both `input` and `output` are optional. A write-only query needs no output:
+
+```ts
+const insert = db.sql({
+  input: p({ name: p.string, age: p.u8 }),
+  query: "INSERT INTO users (name, age) VALUES (:name, :age)",
+});
+
+await insert({ name: "John", age: 30 });
+```
+
+A query with no parameters needs no input:
+
+```ts
+const findAll = db.sql({
+  query: "SELECT name FROM users",
+  output: p.array(p({ name: p.string })),
+});
+
+const results = await findAll();
+```
+
+DDL statements work too:
+
+```ts
+const createIndex = db.sql({
+  query: "CREATE INDEX idx_users_name ON users (name)",
+});
+
+await createIndex();
+```
+
+Placeholder translation is handled automatically per driver. You always write
+`:name` and the driver does the rest.
+
+### Store schema interoperability
+
+`db.sql` accepts a store's schema directly as input, letting you reuse your
+existing type definitions without duplication:
+
+```ts
+import User from "#store/User";
+
+const findByAge = db.sql({
+  input: User.schema,
+  query: "SELECT name FROM users WHERE age > :age",
+  output: p.array(p({ name: p.string })),
+});
+```
+
+TypeScript enforces that every required field in the store schema has a
+matching placeholder in the query — at compile time, before any code runs.
+Optional fields are exempt. If you pass `User.schema` but forget `:name` in the
+query, the error tells you exactly which placeholders are missing.
+
+This makes `db.sql` a natural complement to the store API — use stores for
+structured CRUD, reach for `db.sql` when you need raw SQL, and carry your
+schema definitions across both without rewriting them.
 
 ## Unified store API
 

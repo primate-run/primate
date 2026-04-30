@@ -443,7 +443,7 @@ data := core.Dict{"key": "value", "count": 42}
 user := core.Object[string]{"name": "John", "role": "admin"}
 
 // generic array with typed elements
-names := core.Array[string]{"Alice", "Bob", "Charlie"}
+names := core.Array[string]{"John", "Bob", "Charlie"}
 
 // array of dictionaries
 users := core.Array[core.Dict]{

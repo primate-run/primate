@@ -253,6 +253,12 @@ function unapplied_migrations() {
 — Show migration status ${"npx primate migrate:status"}
 - Apply pending migrations ${"npx primate migrate:apply"}`;
 }
+function sql_placeholder_missing(key: string) {
+  return t`input key ${key} has no matching placeholder in query`;
+}
+function sql_input_missing(key: string) {
+  return t`query placeholder ${key} has no matching input key`;
+}
 
 const MISC = error.coded({
   option_unknown,
@@ -262,6 +268,8 @@ const MISC = error.coded({
   migration_directory_missing,
   migration_store_conflict,
   unapplied_migrations,
+  sql_placeholder_missing,
+  sql_input_missing,
 });
 
 const errors = {
