@@ -840,4 +840,4 @@ us on [GitHub].
 [quickstart]: /docs/quickstart
 [discord]: https://discord.gg/RSg4NNwM4f
 [GitHub]: https://github.com/primate-run/primate
-[lioloc]: https://github.com/lioloc
+[lioloc]: https://github.com/liolocs
