@@ -48,6 +48,11 @@ Route files are now pure — they describe what a route does without reaching
 into a global registry to say so. Easier to reason about, easier to test,
 easier to compose.
 
+!!!
+A route file at `routes/hello.ts` is automatically mounted at `/hello` —
+no registration required. To mount to `/`, create `routes/index.ts`.
+!!!
+
 ### Content type declaration
 
 Declare what content type your handler expects with `route.with`:
