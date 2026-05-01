@@ -40,22 +40,22 @@ const FRONTEND_OPTIONS: { label: string; value: Frontend }[] = [
   { label: "Web Components", value: "webc" },
 ];
 
-type Backend = "go" | "python" | "ruby" | "grain";
+type Backend = "go" | "python" | "ruby";
 
 const BACKEND_OPTIONS: { label: string; value: Backend }[] = [
   { label: "Go", value: "go" },
   { label: "Python", value: "python" },
   { label: "Ruby", value: "ruby" },
-  { label: "Grain", value: "grain" },
 ];
 
-type Database = "sqlite" | "postgresql" | "mysql" | "mongodb";
+type Database = "sqlite" | "postgresql" | "mysql" | "mongodb" | "oracledb";
 
 const DATABASE_OPTIONS: { label: string; value: Database }[] = [
   { label: "SQLite", value: "sqlite" },
   { label: "PostgreSQL", value: "postgresql" },
   { label: "MySQL", value: "mysql" },
   { label: "MongoDB", value: "mongodb" },
+  { label: "Oracle", value: "oracledb" },
 ];
 
 // peer deps per frontend (npm names)
@@ -91,7 +91,7 @@ const command_init: Command = async () => {
   let directory: string;
   let target: FileRef;
 
-  const log = core.logger(runtime_mod.flags.get("--log"));
+  const log = core.logger(runtime_mod.flags.try("--log") ?? "warn");
 
   while (true) {
     const ans = await prompt.text({
