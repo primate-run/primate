@@ -87,7 +87,7 @@ only be consumed once; calling a body accessor a second time throws.
 
 ### Body schema
 
-Pair the content type with a pema schema to get runtime validation and
+Pair the content type with a Pema schema to get runtime validation and
 narrowed types in the handler:
 
 ```ts
@@ -107,7 +107,7 @@ export default route({
 ```
 
 If the body fails validation, Primate returns `400 Bad Request` with
-structured pema error details before the handler runs. The handler only
+structured Pema error details before the handler runs. The handler only
 executes if the body is valid and fully typed.
 
 ### Typed route client
@@ -126,7 +126,7 @@ const data = await response.json();
 TypeScript enforces the body type at the call site based on what the route
 declares. If the route has `body: p({ foo: p.string })`, passing
 `{ foo: 123 }` is a compile-time error. If the server rejects the body at
-runtime, the `400` response with pema's error structure comes straight back.
+runtime, the `400` response with Pema's error structure comes straight back.
 
 The same import works in SSR — on the server, the handler is invoked directly
 with no network round-trip. The view code is identical in both contexts.
@@ -205,7 +205,7 @@ Here is what 0.39 will build on top of it.
 
 Today, declaring `contentType: "application/x-www-form-urlencoded"` and
 pairing it with a schema that expects numbers is silently wrong — forms
-submit everything as strings. In 0.39, pema schemas will advertise what
+submit everything as strings. In 0.39, Pema schemas will advertise what
 input shapes they can accept, and Primate will validate the pairing at
 startup rather than at runtime.
 
@@ -231,7 +231,7 @@ The route declaration stays honest about what it actually accepts.
 
 ### Client-side validation
 
-In 0.39, pema schemas will travel over the wire and be revivified on the
+In 0.39, Pema schemas will travel over the wire and be revivified on the
 client. `client.form` will run validation locally before the request is ever
 sent — giving users immediate feedback without a round-trip.
 
@@ -250,18 +250,13 @@ Node.js package in thin mode — no Oracle Instant Client installation required.
 
 ```ts
 import oracle from "@primate/oracledb";
-import config from "primate/config";
 
-export default config({
-  modules: [
-    oracle({
-      host: "localhost",
-      port: 1521,
-      database: "FREEPDB1",
-      username: "primate",
-      password: "primate",
-    }),
-  ],
+export default oracle({
+  host: "localhost",
+  port: 1521,
+  database: "FREEPDB1",
+  username: "primate",
+  password: "primate",
 });
 ```
 
@@ -280,12 +275,8 @@ is suited to local development and small deployments.
 import jsondb from "@primate/jsondb";
 import config from "primate/config";
 
-export default config({
-  modules: [
-    jsondb({
-      directory: "data",
-    }),
-  ],
+export default jsondb({
+  directory: "data",
 });
 ```
 
@@ -607,7 +598,7 @@ a schema.
 path parameters — now implements `symbol.parse`, the standard protocol for
 objects that know how to present themselves to a parser.
 
-This means you can pass a request bag directly to any pema schema:
+This means you can pass a request bag directly to any Pema schema:
 
 ```ts
 // before
@@ -793,7 +784,7 @@ directly, and add `store:` to any sub-query objects.
 
 ### PostgreSQL: `date` now uses `TIMESTAMPTZ`
 
-The `date` pema type previously mapped to `TIMESTAMP` (without timezone)
+The `date` Pema type previously mapped to `TIMESTAMP` (without timezone)
 in PostgreSQL. In 0.38 it maps to `TIMESTAMPTZ` (timestamp with timezone).
 
 This is the correct default — `TIMESTAMP` is a naive datetime that produces
