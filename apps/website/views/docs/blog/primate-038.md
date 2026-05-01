@@ -1,8 +1,7 @@
 ---
 title: Primate 0.38: The route is the contract
-epoch: 1775417680000
+epoch: 1777628817000
 author: terrablue
-published: false
 ---
 
 Today we're announcing the availability of the Primate 0.38 preview release.
@@ -26,14 +25,12 @@ what the runtime validates before your handler runs, and what your form wires
 up automatically — all of it flows from one declaration.
 
 This release introduces the full stack of that idea: declarative route exports,
-typed route clients, and `client.form`. We'll walk through each layer in turn,
-because they build on each other.
+typed route clients, and `client.form` integration. Each one builds on the last.
 
 ## Declarative route exports
 
-The foundation is a new way to author routes. Previously, routes registered
-handlers as side effects. In 0.38, route files export their handlers as a
-default export using the new `route()` function:
+Routes now export their handlers as a default export using the new `route()`
+function, rather than registering them as side effects:
 
 ```ts
 import route from "primate/route";
@@ -48,13 +45,12 @@ export default route({
 ```
 
 Route files are now pure — they describe what a route does without reaching
-into a global registry to say so. This makes them easier to reason about,
-easier to test, and easier to compose.
+into a global registry to say so. Easier to reason about, easier to test,
+easier to compose.
 
 ### Content type declaration
 
-The first layer of the contract: declare what content type your handler
-expects. Use `route.with` to pair a handler with its expected `Content-Type`:
+Declare what content type your handler expects with `route.with`:
 
 ```ts
 import route from "primate/route";
@@ -86,8 +82,8 @@ only be consumed once; calling a body accessor a second time throws.
 
 ### Body schema
 
-The second layer: pair the content type with a pema schema to get runtime
-validation and narrowed types in the handler:
+Pair the content type with a pema schema to get runtime validation and
+narrowed types in the handler:
 
 ```ts
 import route from "primate/route";
@@ -111,8 +107,6 @@ executes if the body is valid and fully typed.
 
 ### Typed route client
 
-The third layer — and where the contract starts to pay off.
-
 Import a route directly into a view and you get a fully typed HTTP client.
 No code generation. No schema files. No separate client definitions. The
 route file is the source, and TypeScript sees it:
@@ -132,9 +126,7 @@ runtime, the `400` response with pema's error structure comes straight back.
 The same import works in SSR — on the server, the handler is invoked directly
 with no network round-trip. The view code is identical in both contexts.
 
-### client.form
-
-The fourth layer — the full payoff.
+### `client.form`
 
 Pass a route method to `client.form` and you get a fully wired, fully typed
 form. The endpoint, the content type, the field types, and the validation
@@ -165,8 +157,7 @@ errors are automatically mapped to the right fields and surfaced via
 `form.field("name").error`. `form.submitted` flips to `true` on success.
 
 No endpoint URL strings. No separate form library configuration. No
-duplicated schema. The route is the contract — declare it once, get
-everything.
+duplicated schema. Declare the route once and everything else follows.
 
 `client.form` is available in all five supported frontends: React, Svelte,
 Vue, Solid, and Angular.
@@ -179,21 +170,12 @@ using `hook()`:
 ```ts
 import hook from "primate/hook";
 
-export default hook(async (request, next) => {
+export default hook((request, next) => {
   // runs before every route in this directory
   return next(request);
 });
 ```
 
-Files prefixed with `-` are excluded from routing entirely and can be used
-as shared helpers within a route directory:
-
-```
-routes/
-  -utils.ts       ← not a route, importable as a helper
-  index.ts        ← routed normally
-  user.ts         ← routed normally
-```
 
 ### Wasm routes
 
@@ -204,33 +186,56 @@ the global route table directly, but this is invisible to route authors.
 
 Wasm routes that access the request body must declare a `contentType`:
 
-**Go**
-```go
-var _ = route.With(route.Options{ContentType: route.JSON}).
-  Post(func(request route.Request) any {
-    json, _ := request.Body.JSON()
-    // ...
-  })
-```
-
-**Ruby**
-```ruby
-Route.post(content_type: "application/json") do |request|
-  json = request.body.json
-  # ...
-end
-```
-
-**Python**
-```python
-@Route.post(content_type="application/json")
-def handler(request):
-    json = request.body.json()
-    # ...
-```
+[s=blog/0.38/wasm]
 
 If no `contentType` is declared and the body is accessed, Primate returns
 an error.
+
+## What's next for the route contract
+
+The route-as-contract story isn't finished — 0.38 lays the foundation.
+Here is what 0.39 will build on top of it.
+
+### Schema-content type compatibility
+
+Today, declaring `contentType: "application/x-www-form-urlencoded"` and
+pairing it with a schema that expects numbers is silently wrong — forms
+submit everything as strings. In 0.39, pema schemas will advertise what
+input shapes they can accept, and Primate will validate the pairing at
+startup rather than at runtime.
+
+This means:
+
+```ts
+// will error at startup — p.number cannot be satisfied by a form string
+route.with({
+  contentType: "application/x-www-form-urlencoded",
+  body: p({ foo: p.string, count: p.number }),
+}, handler)
+
+// correct — p.loose.number coerces the string "42" to 42
+route.with({
+  contentType: "application/x-www-form-urlencoded",
+  body: p({ foo: p.string, count: p.loose.number }),
+}, handler)
+```
+
+The rule follows naturally from what `p.loose` already means: if a field
+needs coercion to be satisfiable from a string source, say so explicitly.
+The route declaration stays honest about what it actually accepts.
+
+### Client-side validation
+
+In 0.39, pema schemas will travel over the wire and be revivified on the
+client. `client.form` will run validation locally before the request is ever
+sent — giving users immediate feedback without a round-trip.
+
+Server-side validation always runs regardless. The client is an optimisation,
+not a replacement.
+
+Together these two changes close the loop: the schema declared in the route
+governs what the form accepts, how it validates on the client, and what the
+server enforces — all from the same declaration, with no duplication.
 
 ## Oracle database driver
 
@@ -243,13 +248,15 @@ import oracle from "@primate/oracledb";
 import config from "primate/config";
 
 export default config({
-  modules: [oracle({
-    host: "localhost",
-    port: 1521,
-    database: "FREEPDB1",
-    username: "primate",
-    password: "primate",
-  })],
+  modules: [
+    oracle({
+      host: "localhost",
+      port: 1521,
+      database: "FREEPDB1",
+      username: "primate",
+      password: "primate",
+    }),
+  ],
 });
 ```
 
@@ -258,7 +265,7 @@ All standard Primate store operations are supported — `insert`, `find`, `get`,
 projection, sorting, limiting, and the full operator set (`$like`, `$gt`,
 `$gte`, `$lt`, `$lte`, `$ne`, `$before`, `$after`, `$in`).
 
-## JSON Database driver
+## JSON database driver
 
 Primate 0.38 adds `@primate/jsondb`, a file-backed document database that
 stores each table as a JSON file on disk. It requires no external DBMS and
@@ -269,9 +276,11 @@ import jsondb from "@primate/jsondb";
 import config from "primate/config";
 
 export default config({
-  modules: [jsondb({
-    directory: "data",
-  })],
+  modules: [
+    jsondb({
+      directory: "data",
+    }),
+  ],
 });
 ```
 
@@ -281,16 +290,18 @@ projection, sorting, and limiting. All Primate field types are supported,
 including `bigint`, `blob`, `datetime`, and `url`, which are serialized using
 type-tagged JSON objects and revived transparently on load.
 
-JSON Database is not suited to high-concurrency workloads. For production use,
+!!!
+`jsondb` is not suited to high-concurrency workloads. For production use,
 prefer a dedicated DBMS such as PostgreSQL or MySQL.
+!!!
 
 Thanks to [lioloc] for contributing this driver.
 
 ## Relations redesigned
 
 Relations are now declared inline in the store schema rather than in a
-separate `relations` field. This makes stores fully self-contained — the
-schema is the single source of truth for both data fields and relationships.
+separate `relations` field. Stores are fully self-contained — the schema is
+the single source of truth for both data fields and relationships.
 
 ```ts
 // before
@@ -363,7 +374,7 @@ const authors = await Author.find({
 });
 ```
 
-## $in operator
+## `$in` operator
 
 All scalar field types now support the `$in` operator, which matches records
 whose field value is in a given list:
@@ -379,8 +390,8 @@ const posts = await Post.find({
 ```
 
 `$in` works on strings, numbers, bigints, dates, and UUIDs. Passing an empty
-array throws an error — an empty `$in` can never match anything and is almost
-always a programmer mistake.
+array throws — an empty `$in` can never match anything and is almost always
+a programmer mistake.
 
 ## Offset pagination
 
@@ -394,8 +405,8 @@ const page = await Post.find({
 });
 ```
 
-`offset` requires `limit` to be set — using offset without a limit throws.
-All six database drivers support offset pagination natively.
+`offset` requires `limit` — using offset without a limit throws. All six
+database drivers support offset pagination natively.
 
 ## Vue style tag support
 
@@ -417,7 +428,7 @@ runtime. They are now compiled and injected into the page automatically.
 
 Scoped styles (`<style scoped>`) are also supported.
 
-## HEAD falls back to GET
+## `HEAD` falls back to `GET`
 
 Primate now handles `HEAD` requests correctly. If a route defines a `GET`
 handler but no explicit `HEAD` handler, Primate automatically falls back to
@@ -430,7 +441,7 @@ export default route({
 });
 ```
 
-If you need a bespoke `HEAD` response, define an explicit handler and it takes
+Define an explicit `head` handler if you need a bespoke response, and it takes
 priority:
 
 ```ts
@@ -502,7 +513,7 @@ Placeholder translation is handled automatically per driver. You always write
 
 ### Store schema interoperability
 
-`db.sql` accepts a store's schema directly as input, letting you reuse your
+`db.sql` accepts a store's schema directly as input, letting you reuse
 existing type definitions without duplication:
 
 ```ts
@@ -517,12 +528,40 @@ const findByAge = db.sql({
 
 TypeScript enforces that every required field in the store schema has a
 matching placeholder in the query — at compile time, before any code runs.
-Optional fields are exempt. If you pass `User.schema` but forget `:name` in the
+Optional fields are exempt. If you pass `User.schema` but omit `:name` in the
 query, the error tells you exactly which placeholders are missing.
 
-This makes `db.sql` a natural complement to the store API — use stores for
-structured CRUD, reach for `db.sql` when you need raw SQL, and carry your
-schema definitions across both without rewriting them.
+Use stores for structured CRUD, reach for `db.sql` when you need raw SQL,
+and carry your schema definitions across both without rewriting them.
+
+## Log hooks
+
+Modules can now intercept every log entry Primate emits through a new
+`onLog` lifecycle hook.
+
+```ts
+import type { Module } from "primate";
+
+export default (): Module => ({
+  name: "my-logger",
+  setup({ onLog }) {
+    onLog(({ level, message }) => {
+      fetch("https://logs.example.com/ingest", {
+        method: "POST",
+        body: JSON.stringify({ level, message, ts: Date.now() }),
+      });
+    });
+  },
+});
+```
+
+`onLog` fires on every log call regardless of the configured `log.level`
+— so a production deployment running at `warn` can still ship `info` and
+`trace` entries to a remote collector without changing what appears in the
+terminal.
+
+`LogEntry` carries two fields: `level` (`"error"`, `"warn"`, `"info"`, or
+`"trace"`) and `message`.
 
 ## Loose and strict parsing
 
@@ -566,23 +605,16 @@ objects that know how to present themselves to a parser.
 This means you can pass a request bag directly to any pema schema:
 
 ```ts
-const body = p.loose({ age: p.u8, name: p.string }).parse(request.query);
+// before
+const body = request.query.parse(p({ age: p.u8 }));
+
+// after
+const body = p.loose({ age: p.u8 }).parse(request.query);
 ```
 
 The bag normalizes its keys and hands the resulting dict to the schema.
 The separate `.parse()` and `.coerce()` methods on `RequestBag` are gone —
-pass the bag directly to `p.loose` or `p.strict` instead:
-
-```ts
-// before
-const body = request.query.parse(p({ age: p.u8 }));
-
-// after — strict (this will always fail as request.query is a string bag)
-const body = p({ age: p.u8 }).parse(request.query);
-
-// after — loose (coerces string values)
-const body = p.loose({ age: p.u8 }).parse(request.query);
-```
+pass the bag directly to `p.loose` instead.
 
 ## Unified store API
 
@@ -756,7 +788,7 @@ directly, and add `store:` to any sub-query objects.
 
 ### PostgreSQL: `date` now uses `TIMESTAMPTZ`
 
-The `date` Pema type previously mapped to `TIMESTAMP` (without timezone)
+The `date` pema type previously mapped to `TIMESTAMP` (without timezone)
 in PostgreSQL. In 0.38 it maps to `TIMESTAMPTZ` (timestamp with timezone).
 
 This is the correct default — `TIMESTAMP` is a naive datetime that produces
@@ -778,9 +810,22 @@ export default async db => {
 
 Repeat the `ALTER TABLE` block for each table that has a `date` column.
 
-## What's next
+### CLI: `--build` renamed to `--outdir`
 
-Check out our issue tracker for [upcoming features].
+The `--build` flag on `primate build` and `primate serve` is renamed to
+`--outdir`:
+
+```sh
+# before
+primate build --build /tmp/my-build
+primate serve --build /tmp/my-build
+
+# after
+primate build --outdir /tmp/my-build
+primate serve --outdir /tmp/my-build
+```
+
+Update any build scripts or CI pipelines that pass a custom build directory.
 
 ## Fin
 
@@ -790,5 +835,4 @@ us on [GitHub].
 [quickstart]: /docs/quickstart
 [discord]: https://discord.gg/RSg4NNwM4f
 [GitHub]: https://github.com/primate-run/primate
-[upcoming features]: https://github.com/primate-run/primate/milestone/11
 [lioloc]: https://github.com/lioloc

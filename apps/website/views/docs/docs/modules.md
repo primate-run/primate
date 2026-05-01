@@ -71,6 +71,7 @@ the application lifecycle.
 | [`onInit`](#oninit) | Before anything else | validate config, set up external connections |
 | [`onBuild`](#onbuild) | During the build step | register esbuild plugins, precompute assets |
 | [`onServe`](#onserve) | When the HTTP server starts | capture server properties like `secure` |
+| [`onLog`](#onlog) | On every log call | capture or forward log entries — send to an external service, write to a file |
 | [`onHandle`](#onhandle) | On every incoming request | middleware — auth, headers, request context |
 | [`onRoute`](#onroute) | After routing, before the handler | per-route pre/post processing |
 
@@ -131,6 +132,35 @@ setup({ onServe }) {
   });
 }
 ```
+
+### `onLog`
+
+Called every time Primate emits a log entry, regardless of the configured log
+level. Use it to forward log output to an external service, write structured
+logs to a file, or feed entries into a monitoring pipeline.
+
+```ts
+setup({ onLog }) {
+  onLog(entry => {
+    // entry.level  — "error" | "warn" | "info" | "trace"
+    // entry.message — message text
+    externalService.log(entry.level, entry.message);
+  });
+}
+```
+
+The callback is synchronous and receives a `LogEntry` object.
+
+| Property  | Type | Description |
+| --------- | ---- | ----------- |
+| `level`   | `"error" \| "warn" \| "info" \| "trace"` | severity of the entry |
+| `message` | `string` | message text |
+
+!!!
+`onLog` fires for **every** log entry, even those below the application's
+configured log level. If you are writing to a noisy sink, filter by `level`
+inside the callback.
+!!!
 
 ### `onHandle`
 
