@@ -13,12 +13,12 @@
   },
   "dependencies": {
     "@primate/html": "workspace:^",
-    "@primate/svelte": "workspace:^",
     "@primate/python": "workspace:^",
+    "@primate/svelte": "workspace:^",
     "pema": "workspace:^",
     "primate": "workspace:^",
     "pyodide": "0.29.3",
-    "svelte": "^5.55.1"
+    "svelte": "^5.55.5"
   },
   "devDependencies": {
     "@primate/test": "workspace:^"

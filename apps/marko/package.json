@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@primate/marko": "workspace:^",
-    "marko": "^5.38.35",
+    "marko": "^5.38.37",
     "primate": "workspace:^"
   },
   "devDependencies": {

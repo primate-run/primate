@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@rcompat/type": "^0.17.0",
-    "@types/oracledb": "^6.10.2"
+    "@types/oracledb": "^6.10.3"
   },
   "dependencies": {
     "@primate/core": "workspace:^",

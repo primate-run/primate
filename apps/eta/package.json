@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@primate/eta": "workspace:^",
-    "eta": "^4.5.1",
+    "eta": "^4.6.0",
     "primate": "workspace:^"
   },
   "devDependencies": {

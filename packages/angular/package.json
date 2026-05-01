@@ -24,14 +24,14 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@angular/common": "^21.2.7",
-    "@angular/compiler": "^21.2.7",
-    "@angular/core": "^21.2.7",
-    "@angular/platform-browser": "^21.2.7",
-    "@angular/platform-server": "^21.2.7",
-    "@angular/ssr": "^21.2.6",
+    "@angular/common": "^21.2.11",
+    "@angular/compiler": "^21.2.11",
+    "@angular/core": "^21.2.11",
+    "@angular/platform-browser": "^21.2.11",
+    "@angular/platform-server": "^21.2.11",
+    "@angular/ssr": "^21.2.9",
     "@primate/core": "workspace:^",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
     "@rcompat/type": "^0.17.0"

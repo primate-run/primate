@@ -20,7 +20,7 @@
     "@rcompat/env": "^0.22.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "vue": "^3.5.32"
+    "vue": "^3.5.33"
   },
   "devDependencies": {
     "@primate/test": "workspace:^"

@@ -31,8 +31,8 @@
     "@rcompat/io": "^0.10.0",
     "@rcompat/is": "^0.11.0",
     "@rcompat/runtime": "^0.16.0",
-    "@ruby/head-wasm-wasi": "^2.7.2",
-    "@ruby/wasm-wasi": "^2.7.2",
+    "@ruby/head-wasm-wasi": "2.9.3-2.9.4",
+    "@ruby/wasm-wasi": "2.9.3-2.9.4",
     "pema": "workspace:^"
   },
   "devDependencies": {

@@ -21,11 +21,11 @@
   },
   "devDependencies": {
     "@rcompat/test": "^0.17.0",
-    "@types/node": "^25.5.2",
+    "@types/node": "^25.6.0",
     "apekit": "^0.0.51",
     "eslint": "^9.39.2",
-    "knip": "^6.3.0",
+    "knip": "^6.9.0",
     "proby": "^0.19.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   }
 }

@@ -15,7 +15,7 @@
     "@rcompat/http": "^0.30.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "svelte": "^5.55.1"
+    "svelte": "^5.55.5"
   },
   "devDependencies": {
     "@primate/test": "workspace:^"

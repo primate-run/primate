@@ -22,7 +22,7 @@
     "@rcompat/http": "^0.30.0",
     "@rcompat/runtime": "^0.16.0",
     "@rcompat/test": "^0.17.0",
-    "happy-dom": "^20.8.9"
+    "happy-dom": "^20.9.0"
   },
   "devDependencies": {
     "@rcompat/type": "^0.17.0"

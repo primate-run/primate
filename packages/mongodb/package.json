@@ -29,7 +29,7 @@
     "@rcompat/assert": "^0.13.0",
     "@rcompat/dict": "^0.10.0",
     "@rcompat/is": "^0.11.0",
-    "mongodb": "^7.1.1",
+    "mongodb": "^7.2.0",
     "pema": "workspace:"
   },
   "devDependencies": {

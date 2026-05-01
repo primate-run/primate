@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "eta": "^4.5.1"
+    "eta": "^4.6.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"
