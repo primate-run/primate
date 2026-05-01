@@ -1,20 +1,17 @@
-import number from "#number";
+import p from "#index";
 import type NumberType from "#NumberType";
-import object from "#object";
-import omit from "#omit";
 import type OmitType from "#OmitType";
-import string from "#string";
 import type StringType from "#StringType";
 import test from "#test";
 
-test.case("omit single field", assert => {
-  const original = object({
-    id: string,
-    name: string,
-    age: number,
+test.case("single field", assert => {
+  const original = p.object({
+    id: p.string,
+    name: p.string,
+    age: p.number,
   });
 
-  const omitted = omit(original, "id");
+  const omitted = p.omit(original, "id");
 
   assert(omitted).type<OmitType<{
     id: StringType;
@@ -22,22 +19,22 @@ test.case("omit single field", assert => {
     age: NumberType;
   }, "id">>();
 
-  const parsed = omitted.parse({ name: "Alice", age: 30 });
-  assert(parsed).equals({ name: "Alice", age: 30 });
+  const parsed = omitted.parse({ name: "John", age: 30 });
+  assert(parsed).equals({ name: "John", age: 30 });
   assert(parsed).type<{ name: string; age: number }>();
 });
 
-test.case("omit from nested object", assert => {
-  const original = object({
-    id: string,
+test.case("from nested p.object", assert => {
+  const original = p.object({
+    id: p.string,
     user: {
-      name: string,
-      email: string,
+      name: p.string,
+      email: p.string,
     },
-    count: number,
+    count: p.number,
   });
 
-  const omitted = omit(original, "id");
+  const omitted = p.omit(original, "id");
 
   const parsed = omitted.parse({
     user: { name: "Bob", email: "bob@example.com" },
@@ -55,14 +52,14 @@ test.case("omit from nested object", assert => {
   }>();
 });
 
-test.case("omit with optional fields", assert => {
-  const original = object({
-    id: string,
-    name: string,
-    nickname: string.optional(),
+test.case("with optional fields", assert => {
+  const original = p.object({
+    id: p.string,
+    name: p.string,
+    nickname: p.string.optional(),
   });
 
-  const omitted = omit(original, "id");
+  const omitted = p.omit(original, "id");
 
   const parsed1 = omitted.parse({ name: "Charlie" });
   assert(parsed1).equals({ name: "Charlie" });
@@ -73,29 +70,29 @@ test.case("omit with optional fields", assert => {
   assert(parsed2).type<{ name: string; nickname: string | undefined }>();
 });
 
-test.case("omit with default values", assert => {
-  const original = object({
-    id: string,
-    name: string,
-    count: number.default(0),
+test.case("with default values", assert => {
+  const original = p.object({
+    id: p.string,
+    name: p.string,
+    count: p.number.default(0),
   });
 
-  const omitted = omit(original, "id");
+  const omitted = p.omit(original, "id");
 
   const parsed = omitted.parse({ name: "Dave" });
   assert(parsed).equals({ name: "Dave", count: 0 });
 });
 
-test.case("omit different field types", assert => {
-  const original = object({
-    id: number,
-    username: string,
-    active: string, // Could be boolean in real usage
-    score: number,
+test.case("different field types", assert => {
+  const original = p.object({
+    id: p.number,
+    username: p.string,
+    active: p.string, // Could be boolean in real usage
+    score: p.number,
   });
 
-  const withoutId = omit(original, "id");
-  const withoutUsername = omit(original, "username");
+  const withoutId = p.omit(original, "id");
+  const withoutUsername = p.omit(original, "username");
 
   assert(withoutId.parse({ username: "user", active: "true", score: 100 }))
     .equals({ username: "user", active: "true", score: 100 });
@@ -104,25 +101,25 @@ test.case("omit different field types", assert => {
     .equals({ id: 1, active: "false", score: 50 });
 });
 
-test.case("omit fails on invalid data", assert => {
-  const original = object({
-    id: string,
-    age: number,
+test.case("fails on invalid data", assert => {
+  const original = p.object({
+    id: p.string,
+    age: p.number,
   });
 
-  const omitted = omit(original, "id");
+  const omitted = p.omit(original, "id");
 
-  assert(omitted).invalid_type([{ age: "not a number " }], "/age");
+  assert(omitted).invalid_type([{ age: "not a p.number " }], "/age");
 });
 
-test.case("omit preserves validation", assert => {
-  const original = object({
-    id: string,
-    email: string,
-    age: number.min(0).max(120),
+test.case("preserves validation", assert => {
+  const original = p.object({
+    id: p.string,
+    email: p.string,
+    age: p.number.min(0).max(120),
   });
 
-  const omitted = omit(original, "id");
+  const omitted = p.omit(original, "id");
 
   // valid
   const valid = omitted.parse({ email: "hi@example.com", age: 25 });
@@ -132,30 +129,30 @@ test.case("omit preserves validation", assert => {
   assert(omitted).too_large([{ email: "hi@example.com", age: 150 }], "/age");
 });
 
-test.case("omit multiple fields", assert => {
-  const original = object({
-    id: string,
-    session_id: string,
-    name: string,
-    age: number,
+test.case("supports multiple fields", assert => {
+  const original = p.object({
+    id: p.string,
+    session_id: p.string,
+    name: p.string,
+    age: p.number,
   });
 
-  const omitted = omit(original, "id", "session_id");
+  const omitted = p.omit(original, "id", "session_id");
 
-  const parsed = omitted.parse({ name: "Alice", age: 30 });
-  assert(parsed).equals({ name: "Alice", age: 30 });
+  const parsed = omitted.parse({ name: "John", age: 30 });
+  assert(parsed).equals({ name: "John", age: 30 });
   assert(parsed).type<{ name: string; age: number }>();
 });
 
-test.case("omit all but one field", assert => {
-  const original = object({
-    id: number,
-    username: string,
-    email: string,
-    active: string,
+test.case("all but one field", assert => {
+  const original = p.object({
+    id: p.number,
+    username: p.string,
+    email: p.string,
+    active: p.string,
   });
 
-  const omitted = omit(original, "id", "email", "active");
+  const omitted = p.omit(original, "id", "email", "active");
 
   const parsed = omitted.parse({ username: "bob" });
   assert(parsed).equals({ username: "bob" });

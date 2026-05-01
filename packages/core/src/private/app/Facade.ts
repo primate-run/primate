@@ -30,7 +30,7 @@ export default class AppFacade<T extends EnvSchema = EnvSchema> {
     const schema = this.#config.env.schema as ObjectType<T> | undefined;
     if (schema !== undefined) {
       try {
-        this.#env = schema.coerce(env.toJSON()) as Env<T>;
+        this.#env = schema.parse(env.toJSON()) as Env<T>;
       } catch (error) {
         if (ParseError.is(error)) throw E.env_invalid_schema(error);
         throw error;

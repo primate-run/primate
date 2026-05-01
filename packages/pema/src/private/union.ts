@@ -1,3 +1,4 @@
+import Loose from "#Loose";
 import type NormalizeSchema from "#NormalizeSchema";
 import type Schema from "#Schema";
 import UnionType from "#UnionType";
@@ -7,11 +8,37 @@ type NormalizeArray<T extends Schema[]> = {
   [K in keyof T]: NormalizeSchema<T[K]>;
 };
 
-export default function union(): UnionType<[]>;
-export default function union<const T extends Schema[]>(
+function vanilla(): UnionType<[]>;
+function vanilla<const T extends Schema[]>(
   ...types: T
 ): UnionType<NormalizeArray<T>>;
 
-export default function union(...types: Schema[]) {
+function vanilla(...types: Schema[]) {
   return new UnionType(types.map(normalize));
 }
+
+function loose(): UnionType<[]>;
+function loose<const T extends Schema[]>(
+  ...types: T
+): UnionType<NormalizeArray<T>>;
+
+function loose(...types: Schema[]) {
+  const i = new UnionType(types.map(normalize));
+  i[Loose] = true;
+  return i;
+}
+
+function strict(): UnionType<[]>;
+function strict<const T extends Schema[]>(
+  ...types: T
+): UnionType<NormalizeArray<T>>;
+
+function strict(...types: Schema[]) {
+  const i = new UnionType(types.map(normalize));
+  i[Loose] = false;
+  return i;
+}
+
+const union = { vanilla, loose, strict };
+
+export default union;

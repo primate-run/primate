@@ -1,6 +1,7 @@
 import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
+import Loose from "#Loose";
 import type NormalizeSchema from "#NormalizeSchema";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
@@ -41,17 +42,21 @@ export default class TupleType<T extends Parsed<unknown>[]>
 
     if (!is.array(x)) throw E.invalid_type(x, "array", options);
 
+    const $options = this[Loose] !== undefined
+      ? { ...options, [Loose]: this[Loose] }
+      : options;
+
     const items = this.#items;
     const n = items.length;
     const out = new Array(n) as InferTuple<T>;
 
     // validate each expected item
     for (let i = 0; i < n; i++) {
-      out[i] = items[i].parse(x[i], next(i, options)) as InferTuple<T>[typeof i];
+      out[i] = items[i].parse(x[i], next(i, $options)) as InferTuple<T>[typeof i];
     }
 
     // reject extra items
-    if (x.length > n) throw E.invalid_type(x[n], "undefined", next(n, options));
+    if (x.length > n) throw E.invalid_type(x[n], "undefined", next(n, $options));
 
     return out as never;
   }

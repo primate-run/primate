@@ -1,13 +1,12 @@
-import array from "#array";
 import type DefaultType from "#DefaultType";
-import p_enum from "#enum";
 import type EnumType from "#EnumType";
+import p from "#index";
 import type OptionalType from "#OptionalType";
 import test from "#test";
 
 const templates = ["handlebars", "mustache", "nunjucks", "xslt"] as const;
 type Template = typeof templates[number];
-const e = p_enum(templates);
+const e = p.enum(templates);
 
 test.case("pass", assert => {
   assert(e).type<EnumType<typeof templates>>();
@@ -46,7 +45,7 @@ test.case("toJSON", assert => {
 });
 
 test.case("array unique", assert => {
-  const a = array(e).unique();
+  const a = p.array(e).unique();
   const input = ["handlebars", "mustache"];
   assert(a.parse(input)).equals(input);
   assert(a).duplicate([["handlebars", "handlebars"]], "/1");

@@ -1,13 +1,13 @@
-import constructor from "#constructor";
 import type ConstructorType from "#ConstructorType";
 import type DefaultType from "#DefaultType";
+import p from "#index";
 import type OptionalType from "#OptionalType";
 import test from "#test";
 
 class Foo { }
 class Bar { }
 
-const foo = constructor(Foo);
+const foo = p.constructor(Foo);
 const f = new Foo();
 const f1 = new Foo();
 const b = new Bar();

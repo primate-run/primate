@@ -1,16 +1,13 @@
-import bigint from "#bigint";
 import type BigIntType from "#BigIntType";
-import boolean from "#boolean";
 import type BooleanType from "#BooleanType";
-import schema from "#index";
+import p from "#index";
 import type ObjectType from "#ObjectType";
 import optional from "#optional";
 import type OptionalType from "#OptionalType";
-import string from "#string";
 import type StringType from "#StringType";
 import test from "#test";
 
-const b = optional(boolean);
+const b = optional(p.boolean);
 
 test.case("empty", assert => {
   assert(b).type<OptionalType<BooleanType>>();
@@ -27,17 +24,17 @@ test.case("object", assert => {
     foo: OptionalType<StringType>;
   }>;
 
-  const s = schema({
+  const s = p({
     bar: {
-      baz: bigint,
+      baz: p.bigint,
     },
-    foo: optional(string),
+    foo: optional(p.string),
   });
-  const sv = schema({
+  const sv = p({
     bar: {
-      baz: bigint,
+      baz: p.bigint,
     },
-    foo: string.optional(),
+    foo: p.string.optional(),
   });
 
   assert(s).type<S>();

@@ -1,4 +1,5 @@
 import CoerceKey from "#CoerceKey";
+import Loose from "#Loose";
 import ParsedKey from "#ParsedKey";
 import type ParseOptions from "#ParseOptions";
 import type Serialized from "#Serialized";
@@ -17,6 +18,8 @@ export default abstract class Parsed<StaticType> implements Serializable {
     return false;
   }
 
+  [Loose]: boolean | undefined = undefined;
+
   [CoerceKey](x: unknown) {
     return x;
   }
@@ -33,10 +36,6 @@ export default abstract class Parsed<StaticType> implements Serializable {
   * @returns The parsed value, if successfully parsed.
   */
   abstract parse(u: unknown, options?: ParseOptions): StaticType;
-
-  coerce(x: unknown, options: ParseOptions = {}): StaticType {
-    return this.parse(x, { ...options, coerce: true });
-  }
 
   abstract toJSON(): Serialized;
 }

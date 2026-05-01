@@ -266,8 +266,8 @@ export default route({
   async post(request) {
       // Ensure id is present
       const id = p.string.parse(request.query.get("id"));
-      // Validate and coerce
-      const body = p({ value: p.number }).coerce(await request.body.form());
+      // Validate
+      const body = p.loose({ value: p.number }).parse(await request.body.form());
       // Persist changes
       await Counter.update(id, { set: { value: body.value } });
       return null; // 204

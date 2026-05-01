@@ -3,6 +3,7 @@ import EnumType from "#EnumType";
 import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
+import Loose from "#Loose";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import ParsedKey from "#ParsedKey";
@@ -22,6 +23,7 @@ import max from "#validator/max";
 import min from "#validator/min";
 import unique from "#validator/unique";
 import uniqueBy from "#validator/unique-by";
+import is from "@rcompat/is";
 import type { Newable, Primitive } from "@rcompat/type";
 
 type Next<T> = {
@@ -99,9 +101,12 @@ export default class ArrayType<T extends Parsed<unknown>>
 
   parse(u: unknown, options: ParseOptions = {}): Infer<this> {
     const x = resolve(u);
+    const $options = this[Loose] !== undefined
+      ? { ...options, [Loose]: this[Loose] }
+      : options;
 
-    const path = options[ParsedKey] ?? "";
-    if (!Array.isArray(x)) throw E.invalid_type(x, "array", path);
+    const path = $options[ParsedKey] ?? "";
+    if (!is.array(x)) throw E.invalid_type(x, "array", path);
 
     const item = this.#item;
     const len = x.length;
@@ -109,7 +114,7 @@ export default class ArrayType<T extends Parsed<unknown>>
 
     for (let i = 0; i < len; i++) {
       if (!(i in x)) throw E.invalid_type(undefined, item.name, join(path, i));
-      out[i] = item.parse(x[i], next(i, options));
+      out[i] = item.parse(x[i], next(i, $options));
     }
 
     const validators = this.#validators;

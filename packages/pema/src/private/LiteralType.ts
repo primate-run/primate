@@ -17,10 +17,6 @@ export default class LiteralType<T extends Literal> extends
     this.#literal = literal;
   }
 
-  static new<T extends Literal>(literal: T) {
-    return new LiteralType(literal);
-  }
-
   static get Literal(): Literal {
     return undefined as unknown as Literal;
   }

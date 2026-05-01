@@ -2,6 +2,7 @@ import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import type InferInputSchema from "#InferInputSchema";
+import Loose from "#Loose";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
@@ -51,7 +52,11 @@ export default class ObjectType<
 
   #derive(options: ParseOptions): this {
     const Constructor = this.constructor as Newable<this>;
-    return new Constructor(this.#properties, { ...this.#options, ...options });
+    const instance = new Constructor(this.#properties, {
+      ...this.#options, ...options,
+    });
+    instance[Loose] = this[Loose];
+    return instance;
   }
 
   optional() {
@@ -59,7 +64,9 @@ export default class ObjectType<
   }
 
   shape<T>() {
-    return new ObjectType<P, T>(this.#properties, this.#options);
+    const i = new ObjectType<P, T>(this.#properties, this.#options);
+    i[Loose] = this[Loose];
+    return i;
   }
 
   extend<E extends {
@@ -69,15 +76,19 @@ export default class ObjectType<
     for (const key of Object.keys(properties)) {
       if (key in this.#properties) throw SE.extend_key_collision(key);
     }
-    return new ObjectType(
+    const instance = new ObjectType(
       { ...this.#properties, ...properties } as Unpack<P & E>,
       this.#options,
     );
+    instance[Loose] = this[Loose];
+    return instance;
   }
 
   parse(u: unknown, options: ParseOptions = {}): Infer<this> {
     const x = resolve(u);
-    const $options = { ...this.#options, ...options };
+    const $options = this[Loose] !== undefined
+      ? { ...this.#options, ...options, [Loose]: this[Loose] }
+      : { ...this.#options, ...options };
 
     if (is.defined(x) && !is.dict(x)) throw E.invalid_type(x, "object", $options);
 

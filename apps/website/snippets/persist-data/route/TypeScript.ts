@@ -21,7 +21,7 @@ export default route({
     const id = p.string.parse(request.query.get("id"));
 
     // validate body as a number, coercing from string first
-    const body = p({ value: p.number }).coerce(await request.body.form());
+    const body = p.loose({ value: p.number }).parse(await request.body.form());
 
     // update the value in the database
     await Counter.update({ id }, { value: body.value });

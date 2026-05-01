@@ -1,6 +1,4 @@
-import number from "#number";
-import object from "#object";
-import string from "#string";
+import p from "#index";
 import test from "#test";
 import symbol from "@rcompat/symbol";
 
@@ -11,16 +9,16 @@ const parsable = {
 };
 
 test.case("resolve: object with symbol.parse is unwrapped", assert => {
-  const schema = object({ name: string, age: number });
+  const schema = p.object({ name: p.string, age: p.number });
   assert(schema.parse(parsable)).equals({ name: "John", age: 30 });
 });
 
 test.case("resolve: primitive schema sees unwrapped value", assert => {
   const str_bag = { [symbol.parse]() { return "hello"; } };
-  assert(string.parse(str_bag)).equals("hello");
+  assert(p.string.parse(str_bag)).equals("hello");
 });
 
 test.case("resolve: plain value passes through unchanged", assert => {
-  assert(string.parse("hello")).equals("hello");
-  assert(number.parse(42)).equals(42);
+  assert(p.string.parse("hello")).equals("hello");
+  assert(p.number.parse(42)).equals(42);
 });

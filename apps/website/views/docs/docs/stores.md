@@ -412,7 +412,7 @@ export default route({
       const body = p({
         title: p.string.max(100),
         body: p.string,
-      }).coerce(await request.body.form());
+      }).parse(await request.body.form());
 
       const created = await Post.insert(body);
 

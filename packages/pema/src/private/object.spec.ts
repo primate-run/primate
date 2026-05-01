@@ -1,24 +1,18 @@
-import array from "#array";
 import type ArrayType from "#ArrayType";
-import boolean from "#boolean";
 import type BooleanType from "#BooleanType";
-import fn from "#function";
 import type FunctionType from "#FunctionType";
-import number from "#number";
+import p from "#index";
 import type NumberType from "#NumberType";
-import object from "#object";
 import type ObjectType from "#ObjectType";
 import type OptionalType from "#OptionalType";
 import { Code } from "#schema-errors";
-import string from "#string";
 import type StringType from "#StringType";
 import test from "#test";
-import tuple from "#tuple";
 import type TupleType from "#TupleType";
 import type { EmptyDict } from "@rcompat/type";
 
 test.case("empty", assert => {
-  const o = object({});
+  const o = p.object({});
   assert(o).type<ObjectType<EmptyDict>>();
   assert(o.parse({})).equals({}).type<EmptyDict>();
 });
@@ -29,8 +23,8 @@ test.case("object", assert => {
   const o1 = { bar: { baz: 0 }, foo: "bar" };
   type O1 = { bar: { baz: number }; foo: string };
 
-  const s = object({ foo: string });
-  const s1 = object({ bar: { baz: number }, foo: string });
+  const s = p.object({ foo: p.string });
+  const s1 = p.object({ bar: { baz: p.number }, foo: p.string });
 
   assert<typeof s>().type<ObjectType<{ foo: StringType }>>();
   assert(s.parse(o)).equals(o).type<O>();
@@ -41,11 +35,11 @@ test.case("object", assert => {
   assert(s1.parse(o1)).equals(o1).type<O1>();
 });
 
-test.case("coerce", assert => {
-  const s = object({
-    name: string,
-    age: number,
-    active: boolean,
+test.case("loose", assert => {
+  const s = p.loose.object({
+    name: p.string,
+    age: p.number,
+    active: p.boolean,
   });
 
   type Expected = {
@@ -60,7 +54,7 @@ test.case("coerce", assert => {
     active: BooleanType;
   }>>();
 
-  assert(s.coerce({
+  assert(s.parse({
     name: "Bob",
     age: "42",
     active: "true",
@@ -71,14 +65,14 @@ test.case("coerce", assert => {
   }).type<Expected>();
 });
 
-test.case("deep coerce", assert => {
-  const s = object({
+test.case("deep loose", assert => {
+  const s = p.loose.object({
     user: {
-      name: string,
-      age: number,
+      name: p.string,
+      age: p.number,
     },
-    scores: array(number),
-    tupled: tuple(string, boolean),
+    scores: p.array(p.number),
+    tupled: p.tuple(p.string, p.boolean),
   });
 
   type Expected = {
@@ -99,7 +93,7 @@ test.case("deep coerce", assert => {
     tupled: TupleType<[StringType, BooleanType]>;
   }>>();
 
-  assert(s.coerce({
+  assert(s.parse({
     user: {
       name: "Bob",
       age: "42",
@@ -116,28 +110,28 @@ test.case("deep coerce", assert => {
   }).type<Expected>();
 });
 
-test.case("deep coerce errors", assert => {
-  const s = object({
+test.case("deep loose errors", assert => {
+  const s = p.loose.object({
     user: {
-      age: number,
+      age: p.number,
     },
-    scores: array(number),
-    tupled: tuple(string, boolean),
+    scores: p.array(p.number),
+    tupled: p.tuple(p.string, p.boolean),
   });
 
-  assert(s).coerce_invalid_type([{
+  assert(s).invalid_type([{
     user: { age: "oops" },
     scores: ["1"],
     tupled: ["ok", "true"],
   }], "/user/age");
 
-  assert(s).coerce_invalid_type([{
+  assert(s).invalid_type([{
     user: { age: "1" },
     scores: ["oops"],
     tupled: ["ok", "true"],
   }], "/scores/0");
 
-  assert(s).coerce_invalid_type([{
+  assert(s).invalid_type([{
     user: { age: "1" },
     scores: ["1"],
     tupled: ["ok", "nope"],
@@ -145,13 +139,13 @@ test.case("deep coerce errors", assert => {
 });
 
 test.case("input type with nested defaults", assert => {
-  const schema = object({
-    required: string,
+  const schema = p.object({
+    required: p.string,
     config: {
-      host: string.default("localhost"),
-      port: number.default(8080),
+      host: p.string.default("localhost"),
+      port: p.number.default(8080),
     },
-    optional: string.optional(),
+    optional: p.string.optional(),
   });
 
   type ExpectedInput = {
@@ -188,7 +182,7 @@ test.case("input type with nested defaults", assert => {
 });
 
 test.case("non-object input throws", assert => {
-  assert(object({ foo: string.default("bar") })).invalid_type([
+  assert(p.object({ foo: p.string.default("bar") })).invalid_type([
     null, 42, "str",
   ]);
 });
@@ -200,8 +194,8 @@ type Expected = ObjectType<{
 }>;
 
 test.case("extend: adds new fields", assert => {
-  const base = object({ spa: boolean, ssr: boolean });
-  const extended = base.extend({ name: string });
+  const base = p.object({ spa: p.boolean, ssr: p.boolean });
+  const extended = base.extend({ name: p.string });
 
   assert(extended).type<Expected>();
   assert(extended.parse({ spa: true, ssr: false, name: "markdown" }))
@@ -209,24 +203,24 @@ test.case("extend: adds new fields", assert => {
     .type<{ spa: boolean; ssr: boolean; name: string }>();
 });
 
-test.case("extend: preserves options (coerce)", assert => {
-  const base = object({ spa: boolean });
+test.case("extend: preserves options (loose)", assert => {
+  const base = p.loose.object({ spa: p.boolean });
 
-  assert(base.extend({ name: string }).coerce({ spa: "true", name: "html" }))
+  assert(base.extend({ name: p.string }).parse({ spa: "true", name: "html" }))
     .equals({ spa: true, name: "html" });
 });
 
 test.case("extend: key collision", assert => {
-  const base = object({ spa: boolean, ssr: boolean });
+  const base = p.object({ spa: p.boolean, ssr: p.boolean });
 
-  assert(() => base.extend({ ssr: string } as any))
+  assert(() => base.extend({ ssr: p.string } as any))
     .throws(Code.extend_key_collision);
   assert<Parameters<typeof base.extend>[0]>().type<never>();
 });
 
 test.case("extend: accepts ObjectType", assert => {
-  const base = object({ spa: boolean, ssr: boolean });
-  const extra = object({ name: string });
+  const base = p.object({ spa: p.boolean, ssr: p.boolean });
+  const extra = p.object({ name: p.string });
   const extended = base.extend(extra);
 
   assert(extended).type<Expected>();
@@ -236,8 +230,8 @@ test.case("extend: accepts ObjectType", assert => {
 });
 
 test.case("extend: ObjectType key collision", assert => {
-  const base = object({ spa: boolean, ssr: boolean });
-  const extra = object({ ssr: string } as any);
+  const base = p.object({ spa: p.boolean, ssr: p.boolean });
+  const extra = p.object({ ssr: p.string } as any);
 
   assert(() => base.extend(extra)).throws(Code.extend_key_collision);
 });
@@ -252,9 +246,9 @@ interface Module {
 }
 
 test.case("shape: aliases inferred output", assert => {
-  const schema = object({
-    name: string,
-    setup: fn,
+  const schema = p.object({
+    name: p.string,
+    setup: p.function,
   }).shape<Module>();
 
   assert(schema).type<ObjectType<{
@@ -273,9 +267,9 @@ test.case("shape: aliases inferred output", assert => {
 });
 
 test.case("shape: preserves runtime behavior", assert => {
-  const base = object({
-    name: string,
-    setup: fn,
+  const base = p.object({
+    name: p.string,
+    setup: p.function,
   });
 
   const shaped = base.shape<Module>();
@@ -295,9 +289,9 @@ test.case("shape: preserves parsing/coercion", assert => {
     age: number;
   };
 
-  const schema = object({
-    name: string,
-    age: number,
+  const schema = p.loose.object({
+    name: p.string,
+    age: p.number,
   }).shape<User>();
 
   assert(schema).type<ObjectType<{
@@ -305,7 +299,7 @@ test.case("shape: preserves parsing/coercion", assert => {
     age: NumberType;
   }, User>>();
 
-  assert(schema.coerce({
+  assert(schema.parse({
     name: "Bob",
     age: "42",
   })).equals({
@@ -315,7 +309,7 @@ test.case("shape: preserves parsing/coercion", assert => {
 });
 
 test.case("optional: type and undefined passthrough", assert => {
-  const s = object({ table: string, port: number }).optional();
+  const s = p.object({ table: p.string, port: p.number }).optional();
 
   assert(s)
     .type<OptionalType<ObjectType<{ table: StringType; port: NumberType }>>>();
@@ -325,21 +319,21 @@ test.case("optional: type and undefined passthrough", assert => {
 });
 
 test.case("optional: parses valid object", assert => {
-  const s = object({ table: string, port: number }).optional();
+  const s = p.object({ table: p.string, port: p.number }).optional();
 
   assert(s.parse({ table: "migrations", port: 5432 }))
     .equals({ table: "migrations", port: 5432 });
 });
 
 test.case("optional: still validates when present", assert => {
-  const s = object({ table: string }).optional();
+  const s = p.object({ table: p.string }).optional();
 
   assert(s).invalid_type([{ table: 42 }], "/table");
 });
 
 test.case("optional: nested — outer object becomes optional via all-optional rule", assert => {
-  const s = object({
-    migrations: object({ table: string }).optional(),
+  const s = p.object({
+    migrations: p.object({ table: p.string }).optional(),
   });
 
   // omit nested entirely

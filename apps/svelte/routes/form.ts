@@ -6,7 +6,7 @@ import route from "primate/route";
 
 await Counter.create();
 
-const CounterSchema = p({
+const CounterSchema = p.loose({
   counter: p.number,
 });
 
@@ -21,8 +21,8 @@ export default route({
     return response.view(Form, counter);
   },
   async post(request) {
-    const id = p.number.coerce(request.query.get("id"));
-    const { counter } = CounterSchema.coerce(await request.body.form());
+    const id = p.loose.number.parse(request.query.get("id"));
+    const { counter } = CounterSchema.parse(await request.body.form());
 
     await Counter.update(
       id,

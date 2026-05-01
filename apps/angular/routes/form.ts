@@ -16,9 +16,9 @@ export default route({
     return response.view("Form.component.ts", counter);
   },
   async post(request) {
-    const id = p.u32.coerce(request.query.get("id"));
-    const validated = p({ counter: p.number })
-      .coerce(await request.body.form());
+    const id = p.loose.u32.parse(request.query.get("id"));
+    const validated = p.loose({ counter: p.number })
+      .parse(await request.body.form());
 
     await Counter.update(id, { set: { counter: validated.counter } });
 

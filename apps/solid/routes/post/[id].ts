@@ -11,7 +11,7 @@ const posts = [{
 
 export default route({
   get(request) {
-    const id = p.int.parse(request.path.try("id"));
+    const id = p.loose.int.parse(request.path.try("id"));
     const post = assert.defined(posts.find(_post => _post.id === id));
 
     return response.view(ViewPost, { post });

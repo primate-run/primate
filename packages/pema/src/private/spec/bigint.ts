@@ -4,44 +4,49 @@ import type DefaultType from "#DefaultType";
 import test from "#test";
 
 export default <T extends BigIntDataType>(
-  t: BigIntType<T>, min: bigint, max: bigint) => {
+  t: {
+    loose: BigIntType<T>;
+    strict: BigIntType<T>;
+  }, min: bigint, max: bigint) => {
+
+  const { strict, loose } = t;
 
   test.case("fail", assert => {
-    assert(t).invalid_type(["1", 1.1, -1.1, 0, 1]);
+    assert(strict).invalid_type(["1", 1.1, -1.1, 0, 1]);
   });
 
   test.case("pass", assert => {
-    assert(t).type<BigIntType<T>>();
+    assert(strict).type<BigIntType<T>>();
 
-    assert(t.parse(0n)).equals(0n).type<bigint>();
-    assert(t.parse(1n)).equals(1n).type<bigint>();
+    assert(strict.parse(0n)).equals(0n).type<bigint>();
+    assert(strict.parse(1n)).equals(1n).type<bigint>();
   });
 
   test.case("range", assert => {
-    assert(t.parse(min)).equals(min).type<bigint>();
-    assert(t.parse(max)).equals(max).type<bigint>();
-    assert(t).out_of_range([min - 1n, max + 1n]);
+    assert(strict.parse(min)).equals(min).type<bigint>();
+    assert(strict.parse(max)).equals(max).type<bigint>();
+    assert(strict).out_of_range([min - 1n, max + 1n]);
   });
 
-  test.case("coerced", assert => {
-    assert(t.coerce(0n)).equals(0n).type<bigint>();
-    assert(t.coerce(1n)).equals(1n).type<bigint>();
-    assert(t.coerce(0)).equals(0n).type<bigint>();
-    assert(t.coerce(1)).equals(1n).type<bigint>();
-    assert(t.coerce("1")).equals(1n).type<bigint>();
-    assert(t.coerce("1.0")).equals(1n).type<bigint>();
-    assert(t.coerce("1.")).equals(1n).type<bigint>();
-    assert(t).coerce_invalid_type(["0.1", ".1"]);
+  test.case("loose", assert => {
+    assert(loose.parse(0n)).equals(0n).type<bigint>();
+    assert(loose.parse(1n)).equals(1n).type<bigint>();
+    assert(loose.parse(0)).equals(0n).type<bigint>();
+    assert(loose.parse(1)).equals(1n).type<bigint>();
+    assert(loose.parse("1")).equals(1n).type<bigint>();
+    assert(loose.parse("1.0")).equals(1n).type<bigint>();
+    assert(loose.parse("1.")).equals(1n).type<bigint>();
+    assert(loose).invalid_type(["0.1", ".1"]);
 
-    assert(t.coerce(-1)).equals(-1n).type<bigint>();
-    assert(t.coerce("-1")).equals(-1n).type<bigint>();
-    assert(t.coerce("-1.0")).equals(-1n).type<bigint>();
-    assert(t.coerce("-1.")).equals(-1n).type<bigint>();
-    assert(t).coerce_invalid_type(["-0.1", "-.1"]);
+    assert(loose.parse(-1)).equals(-1n).type<bigint>();
+    assert(loose.parse("-1")).equals(-1n).type<bigint>();
+    assert(loose.parse("-1.0")).equals(-1n).type<bigint>();
+    assert(loose.parse("-1.")).equals(-1n).type<bigint>();
+    assert(loose).invalid_type(["-0.1", "-.1"]);
   });
 
   test.case("default", assert => {
-    [t.default(1n), t.default(() => 1n)].forEach(d => {
+    [strict.default(1n), strict.default(() => 1n)].forEach(d => {
       assert(d).type<DefaultType<BigIntType<T>, 1n>>();
       assert(d.parse(undefined)).equals(1n).type<bigint>();
       assert(d.parse(1n)).equals(1n).type<bigint>();
@@ -51,7 +56,7 @@ export default <T extends BigIntDataType>(
   });
 
   test.case("validator - range", assert => {
-    const r = t.range(-10n, 10n);
+    const r = strict.range(-10n, 10n);
     assert(r.parse(-10n)).equals(-10n).type<bigint>();
     assert(r.parse(0n)).equals(0n).type<bigint>();
     assert(r.parse(10n)).equals(10n).type<bigint>();
@@ -59,7 +64,7 @@ export default <T extends BigIntDataType>(
   });
 
   test.case("validator - min", assert => {
-    const r = t.min(-10n);
+    const r = strict.min(-10n);
     assert(r.parse(-10n)).equals(-10n).type<bigint>();
     assert(r.parse(0n)).equals(0n).type<bigint>();
     assert(r.parse(10n)).equals(10n).type<bigint>();
@@ -67,7 +72,7 @@ export default <T extends BigIntDataType>(
   });
 
   test.case("validator - max", assert => {
-    const r = t.max(10n);
+    const r = strict.max(10n);
     assert(r.parse(-10n)).equals(-10n).type<bigint>();
     assert(r.parse(0n)).equals(0n).type<bigint>();
     assert(r.parse(10n)).equals(10n).type<bigint>();

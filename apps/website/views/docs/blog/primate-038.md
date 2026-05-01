@@ -524,6 +524,66 @@ This makes `db.sql` a natural complement to the store API — use stores for
 structured CRUD, reach for `db.sql` when you need raw SQL, and carry your
 schema definitions across both without rewriting them.
 
+## Loose and strict parsing
+
+Pema 0.7 introduces `p.loose` and `p.strict` — namespaces that mirror the
+full `p` API but control how input is interpreted.
+
+`p.loose` activates coercion: string inputs are interpreted as their target
+type where possible. This is useful for parsing form data, query strings, or
+any source where values arrive as strings.
+
+```ts
+const schema = p.loose({
+  age: p.u8,
+  active: p.boolean,
+});
+
+schema.parse({ age: "30", active: "true" });
+// { age: 30, active: true }
+```
+
+Looseness propagates through the schema — nested objects, arrays, and tuples
+all coerce their leaf values. Use `p.strict` to opt specific fields back out:
+
+```ts
+const schema = p.loose({
+  age: p.u8,
+  code: p.strict.string, // must be a string, never coerced
+});
+```
+
+The old `.coerce()` method is gone. `p.loose` and `p.strict` are the
+replacement — more explicit, more composable, and applicable at any level of
+a schema.
+
+## Request bag parsing
+
+`RequestBag` — the object that wraps query strings, headers, cookies, and
+path parameters — now implements `symbol.parse`, the standard protocol for
+objects that know how to present themselves to a parser.
+
+This means you can pass a request bag directly to any pema schema:
+
+```ts
+const body = p.loose({ age: p.u8, name: p.string }).parse(request.query);
+```
+
+The bag normalizes its keys and hands the resulting dict to the schema.
+The separate `.parse()` and `.coerce()` methods on `RequestBag` are gone —
+pass the bag directly to `p.loose` or `p.strict` instead:
+
+```ts
+// before
+const body = request.query.parse(p({ age: p.u8 }));
+
+// after — strict (this will always fail as request.query is a string bag)
+const body = p({ age: p.u8 }).parse(request.query);
+
+// after — loose (coerces string values)
+const body = p.loose({ age: p.u8 }).parse(request.query);
+```
+
 ## Unified store API
 
 Store-related imports are now consolidated under a single `primate/store` entry
@@ -651,10 +711,11 @@ await User.drop();
 Note the rename from `delete` to `drop` — this avoids ambiguity with the
 data-level `store.delete()` method which removes records, not the table itself.
 
-### Stores: unified import replaces separate orm paths
+### Stores: unified import replaces separate `orm` paths
 
-Replace the three separate imports with a single `primate/store` import and
-update `key` and `relation` usages to use `store.key` and `store.relation`.
+Replace the three separate `primate/orm/*` imports with a single
+`primate/store` import and update `key` and `relation` usages to use
+`store.key` and `store.relation`.
 
 ### Relations: inline schema replaces separate `relations` field
 

@@ -18,10 +18,10 @@ export default route({
   },
   async post(request) {
     // validate that an id was provided
-    const id = p.u32.coerce(request.query.get("id"));
+    const id = p.loose.u32.parse(request.query.get("id"));
 
     // validate that a request body contains a number value
-    const counter = p.number.coerce(await request.body.json());
+    const counter = p.loose.number.parse(await request.body.json());
 
     // update the value in the database
     await Counter.update(id, { set: { counter } });

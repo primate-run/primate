@@ -1,6 +1,7 @@
 import CoerceKey from "#CoerceKey";
 import E from "#errors";
 import type Infer from "#Infer";
+import Loose from "#Loose";
 import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
 import type ParseOptions from "#ParseOptions";
@@ -48,8 +49,7 @@ export default abstract class PrimitiveType<StaticType, Name extends string>
     const x = resolve(u);
 
     // hotpath: avoid object spread when possible
-    const has_instance_options = this.#options.coerce !== undefined
-      || this.#options[ParsedKey] !== undefined;
+    const has_instance_options = this.#options[ParsedKey] !== undefined;
     const $options = has_instance_options
       ? { ...this.#options, ...options }
       : options;
@@ -60,7 +60,8 @@ export default abstract class PrimitiveType<StaticType, Name extends string>
       ? option_validators.concat(this.#validators)
       : this.#validators;
 
-    const $x = $options.coerce === true ? this[CoerceKey](x) : x;
+    const loose = this[Loose] ?? $options[Loose] ?? false;
+    const $x = loose ? this[CoerceKey](x) : x;
 
     if (typeof $x !== this.name) throw E.invalid_type($x, this.name, $options);
     const base = $options[ParsedKey] ?? "";

@@ -1,24 +1,18 @@
-import array from "#array";
 import type ArrayType from "#ArrayType";
-import bigint from "#bigint";
 import type BigIntType from "#BigIntType";
-import boolean from "#boolean";
 import type BooleanType from "#BooleanType";
-import date from "#date";
 import type DateType from "#DateType";
-import number from "#number";
+import p from "#index";
 import type NumberType from "#NumberType";
 import { Code } from "#schema-errors";
-import string from "#string";
 import type StringType from "#StringType";
 import test from "#test";
-import tuple from "#tuple";
 
-const b = array(boolean);
-const bi = array(bigint);
-const d = array(date);
-const n = array(number);
-const s = array(string);
+const boolean = p.array(p.boolean);
+const bigint = p.array(p.bigint);
+const date = p.array(p.date);
+const number = p.array(p.number);
+const string = p.array(p.string);
 
 const ab = [false];
 const abi = [0n];
@@ -30,113 +24,119 @@ const as = ["0"];
 const x = <T>(t: T, length = 2) => Array.from({ length }, _ => t).flat();
 
 test.case("empty", assert => {
-  assert(b).type<ArrayType<BooleanType>>();
-  assert(b.parse([])).equals([]).type<boolean[]>();
+  assert(boolean).type<ArrayType<BooleanType>>();
+  assert(boolean.parse([])).equals([]).type<boolean[]>();
 
-  assert(bi).type<ArrayType<BigIntType>>();
-  assert(bi.parse([])).equals([]).type<bigint[]>();
+  assert(bigint).type<ArrayType<BigIntType>>();
+  assert(bigint.parse([])).equals([]).type<bigint[]>();
 
-  assert(d).type<ArrayType<DateType>>();
-  assert(d.parse([])).equals([]).type<Date[]>();
+  assert(date).type<ArrayType<DateType>>();
+  assert(date.parse([])).equals([]).type<Date[]>();
 
-  assert(n).type<ArrayType<NumberType>>();
-  assert(n.parse([])).equals([]).type<number[]>();
+  assert(number).type<ArrayType<NumberType>>();
+  assert(number.parse([])).equals([]).type<number[]>();
 
-  assert(s).type<ArrayType<StringType>>();
-  assert(s.parse([])).equals([]).type<string[]>();
+  assert(string).type<ArrayType<StringType>>();
+  assert(string.parse([])).equals([]).type<string[]>();
 });
 
 test.case("flat", assert => {
-  assert(b.parse(ab)).equals(ab).type<boolean[]>();
-  assert(bi.parse(abi)).equals(abi).type<bigint[]>();
-  assert(d.parse(ad)).equals(ad).type<Date[]>();
-  assert(n.parse(an)).equals(an).type<number[]>();
-  assert(s.parse(as)).equals(as).type<string[]>();
+  assert(boolean.parse(ab)).equals(ab).type<boolean[]>();
+  assert(bigint.parse(abi)).equals(abi).type<bigint[]>();
+  assert(date.parse(ad)).equals(ad).type<Date[]>();
+  assert(number.parse(an)).equals(an).type<number[]>();
+  assert(string.parse(as)).equals(as).type<string[]>();
 
-  assert(b.parse(x(ab, 3))).equals(x(ab, 3));
-  assert(bi.parse(x(abi, 4))).equals(x(abi, 4));
-  assert(d.parse(x(ad, 5))).equals(x(ad, 5));
-  assert(n.parse(x(an, 6))).equals(x(an, 6));
-  assert(s.parse(x(as))).equals(x(as));
+  assert(boolean.parse(x(ab, 3))).equals(x(ab, 3));
+  assert(bigint.parse(x(abi, 4))).equals(x(abi, 4));
+  assert(date.parse(x(ad, 5))).equals(x(ad, 5));
+  assert(number.parse(x(an, 6))).equals(x(an, 6));
+  assert(string.parse(x(as))).equals(x(as));
 
-  assert(b).invalid_type([abi], "/0");
-  assert(bi).invalid_type([ad], "/0");
-  assert(d).invalid_type([an], "/0");
-  assert(n).invalid_type([as], "/0");
-  assert(s).invalid_type([ab], "/0");
+  assert(boolean).invalid_type([abi], "/0");
+  assert(bigint).invalid_type([ad], "/0");
+  assert(date).invalid_type([an], "/0");
+  assert(number).invalid_type([as], "/0");
+  assert(string).invalid_type([ab], "/0");
 
-  assert(b).invalid_type([[...ab, ...ad]], "/1");
-  assert(bi).invalid_type([[...abi, ...ad]], "/1");
-  assert(d).invalid_type([[...ab, ...ad]], "/0");
-  assert(n).invalid_type([[...as, ...an]], "/0");
-  assert(s).invalid_type([[...as, ...an]], "/1");
+  assert(boolean).invalid_type([[...ab, ...ad]], "/1");
+  assert(bigint).invalid_type([[...abi, ...ad]], "/1");
+  assert(date).invalid_type([[...ab, ...ad]], "/0");
+  assert(number).invalid_type([[...as, ...an]], "/0");
+  assert(string).invalid_type([[...as, ...an]], "/1");
 });
 
-test.case("coerce", assert => {
-  assert(n).type<ArrayType<NumberType>>();
-  assert(b).type<ArrayType<BooleanType>>();
-  assert(bi).type<ArrayType<BigIntType>>();
-  assert(d).type<ArrayType<DateType>>();
+test.case("loose", assert => {
+  const loose_boolean = p.loose.array(p.boolean);
+  const loose_bigint = p.loose.array(p.bigint);
+  const loose_date = p.loose.array(p.date);
+  const loose_number = p.loose.array(p.number);
 
-  assert(n.coerce(["1", "2"])).equals([1, 2]).type<number[]>();
-  assert(b.coerce(["true", "false"])).equals([true, false]).type<boolean[]>();
-  assert(bi.coerce(["1", "2"])).equals([1n, 2n]).type<bigint[]>();
+  assert(loose_number).type<ArrayType<NumberType>>();
+  assert(loose_boolean).type<ArrayType<BooleanType>>();
+  assert(loose_bigint).type<ArrayType<BigIntType>>();
+  assert(loose_date).type<ArrayType<DateType>>();
+
+  assert(loose_number.parse(["1", "2"])).equals([1, 2]).type<number[]>();
+  assert(loose_boolean.parse(["true", "false"]))
+    .equals([true, false]).type<boolean[]>();
+  assert(loose_bigint.parse(["1", "2"])).equals([1n, 2n]).type<bigint[]>();
 
   const d0 = "2024-01-01T00:00:00.000Z";
   const d1 = "2024-01-02T00:00:00.000Z";
-  assert(d.coerce([d0, d1]))
+  assert(loose_date.parse([d0, d1]))
     .equals([new Date(d0), new Date(d1)]).type<Date[]>();
 
-  for (const type of [n, b, bi, d]) {
-    assert(type).coerce_invalid_type([["foo"]], "/0");
+  for (const type of [loose_number, loose_boolean, loose_bigint, loose_date]) {
+    assert(type).invalid_type([["foo"]], "/0");
   }
 });
 
 test.case("sparse", assert => {
-  assert(s).invalid_type([["f", undefined, "f"]], "/1");
-  assert(s).invalid_type([["f", , "f"]], "/1");
-  assert(s).invalid_type([[, "f"]], "/0");
+  assert(string).invalid_type([["f", undefined, "f"]], "/1");
+  assert(string).invalid_type([["f", , "f"]], "/1");
+  assert(string).invalid_type([[, "f"]], "/0");
   // current implementation points at the trailing hole index
-  assert(s).invalid_type([["f", "f", ,]], "/2");
+  assert(string).invalid_type([["f", "f", ,]], "/2");
 });
 
 test.case("default", assert => {
-  const sd = array(string).default(["a", "b"]);
+  const sd = p.array(p.string).default(["a", "b"]);
   assert(sd.parse(undefined)).equals(["a", "b"]).type<string[]>();
   assert(sd.parse(["x"])).equals(["x"]).type<string[]>();
-  const nd = array(number).default([1, 2]);
+  const nd = p.array(p.number).default([1, 2]);
   assert(nd).invalid_type([["nope"]], "/0");
 });
 
 test.case("deep", assert => {
-  const rc = array(s);
+  const rc = p.array(string);
   assert(rc.parse([as])).equals([as]).type<string[][]>();
 
   assert(rc).invalid_type([["0"]], "/0");
   assert(rc).invalid_type([[[0]]], "/0/0");
 });
 
-test.case("deep coerce", assert => {
-  const rc = array(array(number));
-  assert(rc.coerce([["1"], ["2", "3"]]))
+test.case("deep loose", assert => {
+  const rc = p.loose.array(p.array(p.number));
+  assert(rc.parse([["1"], ["2", "3"]]))
     .equals([[1], [2, 3]])
     .type<number[][]>();
-  assert(rc).coerce_invalid_type([[["oops"]]], "/0/0");
+  assert(rc).invalid_type([[["oops"]]], "/0/0");
 
-  const tc = array(tuple(string, number, boolean));
-  assert(tc.coerce([["foo", "1", "true"], ["bar", "2", "false"]]))
+  const tc = p.loose.array(p.tuple(p.string, p.number, p.boolean));
+  assert(tc.parse([["foo", "1", "true"], ["bar", "2", "false"]]))
     .equals([["foo", 1, true], ["bar", 2, false]])
     .type<[string, number, boolean][]>();
 
-  assert(tc).coerce_invalid_type([[["foo", "nope", "true"]]], "/0/1");
-  assert(tc).coerce_invalid_type([[["foo", "1", "nope"]]], "/0/2");
+  assert(tc).invalid_type([[["foo", "nope", "true"]]], "/0/1");
+  assert(tc).invalid_type([[["foo", "1", "nope"]]], "/0/2");
 });
 
 test.case("validator: unique", assert => {
-  const unique_s = s.unique();
-  const unique_n = n.unique();
+  const unique_s = string.unique();
+  const unique_n = number.unique();
 
-  assert(() => (d as any).unique()).throws(Code.unique_subtype_not_primitive);
+  assert(() => (date as any).unique()).throws(Code.unique_subtype_not_primitive);
 
   assert(unique_s).type<ArrayType<StringType>>();
   assert(unique_n).type<ArrayType<NumberType>>();
@@ -151,7 +151,7 @@ test.case("validator: unique", assert => {
 });
 
 test.case("validator: uniqueBy", assert => {
-  const o = array(tuple(string, number)).uniqueBy(([name]) => name);
+  const o = p.array(p.tuple(p.string, p.number)).uniqueBy(([name]) => name);
 
   assert(o.parse([["a", 1], ["b", 2]]))
     .equals([["a", 1], ["b", 2]])
@@ -162,29 +162,29 @@ test.case("validator: uniqueBy", assert => {
 });
 
 test.case("validator: min", assert => {
-  assert(() => s.min(-10)).throws(Code.min_negative);
-  assert(() => s.min(Infinity)).throws(Code.min_limit_not_finite);
-  assert(() => s.min(NaN)).throws(Code.min_limit_not_finite);
-  const min = s.min(3);
+  assert(() => string.min(-10)).throws(Code.min_negative);
+  assert(() => string.min(Infinity)).throws(Code.min_limit_not_finite);
+  assert(() => string.min(NaN)).throws(Code.min_limit_not_finite);
+  const min = string.min(3);
   assert(min.parse(["a", "b", "c"])).equals(["a", "b", "c"]).type<string[]>();
   assert(min).too_small([["a", "b"]]);
 });
 
 test.case("validator: max", assert => {
-  assert(() => s.max(-10)).throws(Code.max_negative);
-  assert(() => s.max(Infinity)).throws(Code.max_limit_not_finite);
-  assert(() => s.max(NaN)).throws(Code.max_limit_not_finite);
-  const max = s.max(3);
+  assert(() => string.max(-10)).throws(Code.max_negative);
+  assert(() => string.max(Infinity)).throws(Code.max_limit_not_finite);
+  assert(() => string.max(NaN)).throws(Code.max_limit_not_finite);
+  const max = string.max(3);
   assert(max.parse(["a", "b", "c"])).equals(["a", "b", "c"]).type<string[]>();
   assert(max).too_large([["a", "b", "c", "d"]]);
 });
 
 test.case("validator: length", assert => {
-  assert(() => s.length(Infinity, 10)).throws(Code.length_not_finite);
-  assert(() => s.length(-10, 10)).throws(Code.length_not_positive);
-  assert(() => s.length(10, -10)).throws(Code.length_not_positive);
-  assert(() => s.length(5, 3)).throws(Code.length_from_exceeds_to);
-  const length = s.length(0, 2);
+  assert(() => string.length(Infinity, 10)).throws(Code.length_not_finite);
+  assert(() => string.length(-10, 10)).throws(Code.length_not_positive);
+  assert(() => string.length(10, -10)).throws(Code.length_not_positive);
+  assert(() => string.length(5, 3)).throws(Code.length_from_exceeds_to);
+  const length = string.length(0, 2);
   assert(length.parse(["a", "b"])).equals(["a", "b"]).type<string[]>();
   assert(length.parse(["a"])).equals(["a"]).type<string[]>();
   assert(length.parse([])).equals([]).type<string[]>();
@@ -192,5 +192,5 @@ test.case("validator: length", assert => {
 });
 
 test.case("object", assert => {
-  //const rc = array({ foo: string });
+  //const rc = p.array({ foo: string });
 });

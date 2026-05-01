@@ -1,24 +1,24 @@
 import type DefaultType from "#DefaultType";
-import file from "#file";
 import type FileType from "#FileType";
+import p from "#index";
 import test from "#test";
 
 test.case("fail", assert => {
-  assert(file).invalid_type(["1", new Blob()]);
+  assert(p.file).invalid_type(["1", new Blob()]);
 });
 
 test.case("pass", assert => {
-  assert(file).type<FileType>();
+  assert(p.file).type<FileType>();
 
   const f = new File([""], "");
-  assert(file.parse(f)).equals(f).type<File>();
+  assert(p.file.parse(f)).equals(f).type<File>();
 });
 
 test.case("default", assert => {
   const f = new File([""], "");
   const f1 = new File([""], "");
 
-  [file.default(f), file.default(() => f)].forEach(d => {
+  [p.file.default(f), p.file.default(() => f)].forEach(d => {
     assert(d).type<DefaultType<FileType, File>>();
     assert(d.parse(undefined)).equals(f).type<File>();
     assert(d.parse(f)).equals(f).type<File>();
@@ -28,7 +28,7 @@ test.case("default", assert => {
 });
 
 test.case("toJSON", assert => {
-  assert(file.toJSON())
+  assert(p.file.toJSON())
     .type<{ type: "file"; datatype: "blob" }>()
     .equals({ type: "file", datatype: "blob" })
     ;

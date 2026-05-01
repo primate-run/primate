@@ -1,7 +1,7 @@
 import p from "pema";
 import route from "primate/route";
 
-const schema = p({
+const schema = p.loose({
   baz: p.u8,
   foo: p.string,
   //  greeting: p.file,
@@ -10,7 +10,7 @@ const schema = p({
 export default route({
   async post(request) {
     const { form, files } = await request.body.multipart();
-    const { baz, foo } = schema.coerce(form);
+    const { baz, foo } = schema.parse(form);
     const { greeting } = files;
     const content = await files.greeting.text();
 

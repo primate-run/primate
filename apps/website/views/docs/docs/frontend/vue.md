@@ -247,7 +247,7 @@ export default route({
   },
   async post(request) {
       const id = p.string.parse(request.query.get("id"));
-      const body = p.number.coerce(await request.body.json());
+      const body = p.loose.number.parse(await request.body.json());
       await Counter.update(id, { set: { counter: body } });
       return null;
   },

@@ -6,7 +6,7 @@ const sockets = new Set<WebSocket>();
 
 export default route({
   get(request) {
-    const limit = p.uint.default(20).coerce(request.query.get("limit"));
+    const limit = p.loose.uint.default(20).parse(request.query.get("limit"));
 
     let n = 1;
     return response.ws({

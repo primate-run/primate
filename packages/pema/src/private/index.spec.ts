@@ -1,69 +1,58 @@
-import array from "#array";
 import type ArrayType from "#ArrayType";
-import bigint from "#bigint";
-import blob from "#blob";
-import boolean from "#boolean";
 import type BooleanType from "#BooleanType";
-import date from "#date";
-import file from "#file";
-import schema from "#index";
+import p from "#index";
 import type LiteralType from "#LiteralType";
 import type NullType from "#NullType";
-import number from "#number";
 import type NumberType from "#NumberType";
 import type ObjectType from "#ObjectType";
-import partial from "#partial";
 import type PartialType from "#PartialType";
-import string from "#string";
 import type StringType from "#StringType";
-import symbol from "#symbol";
 import test from "#test";
-import tuple from "#tuple";
 import type TupleType from "#TupleType";
 import type UndefinedType from "#UndefinedType";
 import type { EmptyDict } from "@rcompat/type";
 
 const types = [
-  [bigint, 0n, 0],
-  [blob, new Blob(), 0],
-  [boolean, false, "0"],
-  [date, new Date(), "0"],
-  [number, 0, "0"],
-  [string, "0", 0],
-  [symbol, Symbol(), 0],
-  [file, new File([""], ""), 0],
+  [p.bigint, 0n, 0],
+  [p.blob, new Blob(), 0],
+  [p.boolean, false, "0"],
+  [p.date, new Date(), "0"],
+  [p.number, 0, "0"],
+  [p.string, "0", 0],
+  [p.symbol, Symbol(), 0],
+  [p.file, new File([""], ""), 0],
 ] as const;
 
 test.case("primitive validators", assert => {
   types.forEach(([parsed, good, bad]) => {
-    const s = schema(parsed);
+    const s = p(parsed);
     assert(s.parse(good)).equals(good);
     assert(s).invalid_type([bad]);
   });
 });
 
 test.case("literals", assert => {
-  const foo = schema("foo");
+  const foo = p("foo");
   assert(foo).type<LiteralType<"foo">>();
   assert(foo.parse("foo")).equals("foo").type<"foo">();
-  const t = schema(true);
+  const t = p(true);
   assert(t).type<LiteralType<true>>();
   assert(t.parse(true)).equals(true).type<true>();
   assert(t).invalid_type([false]);
-  const f = schema(false);
+  const f = p(false);
   assert(f).type<LiteralType<false>>();
   assert(f.parse(false)).equals(false).type<false>();
   assert(f).invalid_type([true]);
 });
 
 test.case("empty []", assert => {
-  const s = schema([]);
+  const s = p([]);
   assert(s).type<TupleType<[]>>();
   assert(s.parse([])).equals([]).type<[]>();
 });
 
 test.case("empty {}", assert => {
-  const s = schema({});
+  const s = p({});
   assert(s).type<ObjectType<EmptyDict>>();
   assert(s.parse({})).equals({}).type<EmptyDict>();
 });
@@ -74,8 +63,8 @@ test.case("object", assert => {
   const o1 = { bar: { baz: 0 }, foo: "bar" };
   type O1 = { bar: { baz: number }; foo: string };
 
-  const s = schema({ foo: string });
-  const s1 = schema({ bar: { baz: number }, foo: string });
+  const s = p({ foo: p.string });
+  const s1 = p({ bar: { baz: p.number }, foo: p.string });
 
   assert<typeof s>().type<ObjectType<{ foo: StringType }>>();
   assert(s.parse(o)).equals(o).type<O>();
@@ -96,8 +85,8 @@ test.case("array", assert => {
   const b0 = [false];
   const b1 = ["f", 0];
 
-  const s = schema(array(string));
-  const si = schema([string]);
+  const s = p(p.array(p.string));
+  const si = p([p.string]);
 
   for (const type of [s, si]) {
     assert(type).type<ArrayType<StringType>>();
@@ -118,9 +107,9 @@ test.case("tuple", assert => {
   const b2 = [0];
   const b3 = [0, "f"];
 
-  const s = schema(tuple(string, number));
-  const si = schema([string, number]);
-  const snb = schema([string, number, boolean]);
+  const s = p(p.tuple(p.string, p.number));
+  const si = p([p.string, p.number]);
+  const snb = p([p.string, p.number, p.boolean]);
 
   assert(s).type<TupleType<[StringType, NumberType]>>();
   assert(s.parse(g0)).equals(g0).type<[string, number]>();
@@ -137,15 +126,15 @@ test.case("tuple", assert => {
 });
 
 test.case("complex", assert => {
-  const complex = schema({
-    name: string,
-    scores: array(number),
-    tupled: tuple(string, boolean),
+  const complex = p({
+    name: p.string,
+    scores: p.array(p.number),
+    tupled: p.tuple(p.string, p.boolean),
   });
-  const complexi = schema({
-    name: string,
-    scores: [number],
-    tupled: [string, boolean],
+  const complexi = p({
+    name: p.string,
+    scores: [p.number],
+    tupled: [p.string, p.boolean],
   });
 
   const valid = { name: "John", scores: [1, 2, 3], tupled: ["yes", true] };
@@ -171,26 +160,25 @@ test.case("complex", assert => {
 });
 
 test.case("null/undefined", assert => {
-  assert(schema(null)).type<NullType>();
-  assert(schema(null).parse(null)).equals(null).type<null>();
-  assert(schema(null)).invalid_type(["null"]);
-  assert(schema(undefined)).type<UndefinedType>();
-  assert(schema(undefined).parse(undefined)).equals(undefined)
-    .type<undefined>();
-  assert(schema(undefined)).invalid_type([null]);
+  assert(p(null)).type<NullType>();
+  assert(p(null).parse(null)).equals(null).type<null>();
+  assert(p(null)).invalid_type(["null"]);
+  assert(p(undefined)).type<UndefinedType>();
+  assert(p(undefined).parse(undefined)).equals(undefined).type<undefined>();
+  assert(p(undefined)).invalid_type([null]);
 });
 
 test.case("partial", assert => {
-  const p = partial({ bar: number, foo: string });
-  assert(p.parse({})).equals({});
-  assert(p.parse({ foo: "foo" })).equals({ foo: "foo" });
-  assert(p.parse({ bar: 1 })).equals({ bar: 1 });
-  assert(p.parse({ bar: 1, foo: "foo" })).equals({ bar: 1, foo: "foo" });
-  assert(p).invalid_type([{ bar: "foo", foo: 1 }], "/bar");
-  assert(p).type<PartialType<{ foo: StringType; bar: NumberType }>>();
+  const partial = p.partial({ bar: p.number, foo: p.string });
+  assert(partial.parse({})).equals({});
+  assert(partial.parse({ foo: "foo" })).equals({ foo: "foo" });
+  assert(partial.parse({ bar: 1 })).equals({ bar: 1 });
+  assert(partial.parse({ bar: 1, foo: "foo" })).equals({ bar: 1, foo: "foo" });
+  assert(partial).invalid_type([{ bar: "foo", foo: 1 }], "/bar");
+  assert(partial).type<PartialType<{ foo: StringType; bar: NumberType }>>();
 });
 
-test.case("coerce", assert => {
+test.case("loose", assert => {
   type Expected = {
     name: string;
     scores: number[];
@@ -202,16 +190,16 @@ test.case("coerce", assert => {
     tupled: TupleType<[StringType, BooleanType]>;
   }>;
 
-  const s = schema({
-    name: string,
-    scores: array(number),
-    tupled: tuple(string, boolean),
+  const s = p({
+    name: p.string,
+    scores: p.array(p.number),
+    tupled: p.tuple(p.string, p.boolean),
   });
 
-  const si = schema({
-    name: string,
-    scores: [number],
-    tupled: [string, boolean],
+  const si = p({
+    name: p.string,
+    scores: [p.number],
+    tupled: [p.string, p.boolean],
   });
 
   const valid = { name: "John", scores: ["1", "2"], tupled: ["yes", "true"] };
@@ -219,19 +207,37 @@ test.case("coerce", assert => {
   const invalid = { name: "Bob", scores: ["oops"], tupled: ["ok", "nope"] };
 
   for (const type of [s, si]) {
+    assert(type.parse(parsed)).equals(parsed).type<Expected>;
     assert(type).type<ExpectSchema>();
-    assert(type.coerce(valid)).equals(parsed).type<Expected>;
+    assert(type).invalid_type([invalid], "/scores/0");
+  }
+
+  const sl = p.loose({
+    name: p.string,
+    scores: p.array(p.number),
+    tupled: p.tuple(p.string, p.boolean),
+  });
+
+  const sil = p.loose({
+    name: p.string,
+    scores: [p.number],
+    tupled: [p.string, p.boolean],
+  });
+
+  for (const type of [sl, sil]) {
+    assert(type.parse(valid)).equals(parsed).type<Expected>;
+    assert(type).type<ExpectSchema>();
     assert(type).invalid_type([invalid], "/scores/0");
   }
 });
 
-test.case("deep shorthand coerce", assert => {
-  const s = schema({
+test.case("deep shorthand loose", assert => {
+  const s = p.loose({
     user: {
-      age: number,
-      flags: [boolean],
+      age: p.number,
+      flags: [p.boolean],
     },
-    pair: [string, boolean],
+    pair: [p.string, p.boolean],
   });
 
   type Expected = {
@@ -242,7 +248,7 @@ test.case("deep shorthand coerce", assert => {
     pair: [string, boolean];
   };
 
-  assert(s.coerce({
+  assert(s.parse({
     user: {
       age: "42",
       flags: ["true", "false"],
@@ -255,4 +261,116 @@ test.case("deep shorthand coerce", assert => {
     },
     pair: ["ok", true],
   }).type<Expected>();
+});
+
+test.case("loose with strict escape hatch", assert => {
+  const s = p.loose({
+    name: p.string,
+    age: p.number,
+    age_int: p.u8,
+    big: p.bigint,
+    active: p.boolean,
+    created: p.date,
+    strict_name: p.strict.string,
+    strict_age: p.strict.number,
+    strict_age_int: p.strict.u8,
+    strict_big: p.strict.bigint,
+    strict_active: p.strict.boolean,
+  });
+
+  // loose fields coerce
+  assert(s.parse({
+    name: "Bob",
+    age: "42",
+    age_int: "30",
+    big: "1",
+    active: "true",
+    created: "2024-01-01T00:00:00.000Z",
+    strict_name: "John",
+    strict_age: 42,
+    strict_age_int: 30,
+    strict_big: 1n,
+    strict_active: true,
+  })).equals({
+    name: "Bob",
+    age: 42,
+    age_int: 30,
+    big: 1n,
+    active: true,
+    created: new Date("2024-01-01T00:00:00.000Z"),
+    strict_name: "John",
+    strict_age: 42,
+    strict_age_int: 30,
+    strict_big: 1n,
+    strict_active: true,
+  });
+
+  assert(s).invalid_type([{
+    name: "Bob",
+    age: "42",
+    age_int: "30",
+    big: "1",
+    active: "true",
+    created: "2024-01-01T00:00:00.000Z",
+    strict_name: 42,
+    strict_age: 42,
+    strict_age_int: 30,
+    strict_big: 1n,
+    strict_active: true,
+  }], "/strict_name");
+  assert(s).invalid_type([{
+    name: "Bob",
+    age: "42",
+    age_int: "30",
+    big: "1",
+    active: "true",
+    created: "2024-01-01T00:00:00.000Z",
+    strict_name: "John",
+    strict_age: "42",
+    strict_age_int: 30,
+    strict_big: 1n,
+    strict_active: true,
+  }], "/strict_age");
+
+  assert(s).invalid_type([{
+    name: "Bob",
+    age: "42",
+    age_int: "30",
+    big: "1",
+    active: "true",
+    created: "2024-01-01T00:00:00.000Z",
+    strict_name: "John",
+    strict_age: 42,
+    strict_age_int: "30",
+    strict_big: 1n,
+    strict_active: true,
+  }], "/strict_age_int");
+
+  assert(s).invalid_type([{
+    name: "Bob",
+    age: "42",
+    age_int: "30",
+    big: "1",
+    active: "true",
+    created: "2024-01-01T00:00:00.000Z",
+    strict_name: "John",
+    strict_age: 42,
+    strict_age_int: 30,
+    strict_big: "1",
+    strict_active: true,
+  }], "/strict_big");
+
+  assert(s).invalid_type([{
+    name: "Bob",
+    age: "42",
+    age_int: "30",
+    big: "1",
+    active: "true",
+    created: "2024-01-01T00:00:00.000Z",
+    strict_name: "John",
+    strict_age: 42,
+    strict_age_int: 30,
+    strict_big: 1n,
+    strict_active: "true",
+  }], "/strict_active");
 });

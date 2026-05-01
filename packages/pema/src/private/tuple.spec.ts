@@ -1,21 +1,17 @@
-import array from "#array";
 import type ArrayType from "#ArrayType";
-import boolean from "#boolean";
 import type BooleanType from "#BooleanType";
-import number from "#number";
+import p from "#index";
 import type NumberType from "#NumberType";
-import string from "#string";
 import type StringType from "#StringType";
 import test from "#test";
-import tuple from "#tuple";
 import type TupleType from "#TupleType";
 import undef from "@rcompat/test/undef";
 
-const e = tuple();
-const s = tuple(string);
-const s_s = tuple(string, string);
-const s_n = tuple(string, number);
-const s_n_b = tuple(string, number, boolean);
+const e = p.tuple();
+const s = p.tuple(p.string);
+const s_s = p.tuple(p.string, p.string);
+const s_n = p.tuple(p.string, p.number);
+const s_n_b = p.tuple(p.string, p.number, p.boolean);
 const f = ["bar"];
 const fb = ["bar", 0];
 const fbb = ["bar", 0, false];
@@ -42,32 +38,33 @@ test.case("flat", assert => {
   assert(s_n_b).invalid_type([x(fbb)], "/3");
 });
 
-test.case("coerce", assert => {
-  assert(s_n_b.coerce(["foo", "1", "true"]))
+test.case("loose", assert => {
+  const s_n_b_l = p.loose.tuple(p.string, p.number, p.boolean);
+  assert(s_n_b_l.parse(["foo", "1", "true"]))
     .equals(["foo", 1, true])
     .type<[string, number, boolean]>();
-  assert(s_n_b.coerce(["bar", "0", "false"]))
+  assert(s_n_b_l.parse(["bar", "0", "false"]))
     .equals(["bar", 0, false])
     .type<[string, number, boolean]>();
 
-  assert(s_n_b).coerce_invalid_type([["foo", "oops", "true"]], "/1");
-  assert(s_n_b).coerce_invalid_type([["foo", "1", "nope"]], "/2");
+  assert(s_n_b_l).invalid_type([["foo", "oops", "true"]], "/1");
+  assert(s_n_b_l).invalid_type([["foo", "1", "nope"]], "/2");
 });
 
 test.case("deep", assert => {
-  const rc = tuple(tuple(string));
+  const rc = p.tuple(p.tuple(p.string));
   assert(rc).type<TupleType<[TupleType<[StringType]>]>>();
   assert(rc.parse([["foo"]])).equals([["foo"]]).type<[[string]]>();
   assert(rc).invalid_type([[]], "/0");
 });
 
-test.case("deep coerce", assert => {
-  const rc = tuple(tuple(number));
-  assert(rc.coerce([["1"]])).equals([[1]]).type<[[number]]>();
+test.case("deep loose", assert => {
+  const rc = p.loose.tuple(p.tuple(p.number));
+  assert(rc.parse([["1"]])).equals([[1]]).type<[[number]]>();
 });
 
-test.case("in array", assert => {
-  const a = array(tuple(string));
+test.case("in p.array", assert => {
+  const a = p.array(p.tuple(p.string));
   assert(a).type<ArrayType<TupleType<[StringType]>>>();
   assert(a.parse([["foo"]])).equals([["foo"]]).type<[string][]>();
   assert(a.parse([])).equals([]).type<[string][]>();

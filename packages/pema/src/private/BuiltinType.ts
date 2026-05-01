@@ -1,6 +1,7 @@
 import CoerceKey from "#CoerceKey";
 import E from "#errors";
 import type Infer from "#Infer";
+import Loose from "#Loose";
 import type ParseOptions from "#ParseOptions";
 import resolve from "#resolve";
 import Type from "#Type";
@@ -25,7 +26,8 @@ export default abstract class BuiltinType<StaticType, Name extends string>
   parse(u: unknown, options: ParseOptions = {}): Infer<this> {
     const x = resolve(u);
     const $options = { ...this.#options, ...options };
-    const $x = $options.coerce === true ? this[CoerceKey](x) : x;
+    const loose = this[Loose] ?? $options[Loose] ?? false;
+    const $x = loose ? this[CoerceKey](x) : x;
 
     if (!($x instanceof this.Type)) throw E.invalid_type($x, this.name, $options);
 

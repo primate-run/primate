@@ -1,6 +1,6 @@
 import type DefaultType from "#DefaultType";
+import p from "#index";
 import type OptionalType from "#OptionalType";
-import symbol from "#symbol";
 import type SymbolType from "#SymbolType";
 import test from "#test";
 
@@ -9,16 +9,16 @@ const foo_s = Symbol("foo");
 const bar_s = Symbol("bar");
 
 test.case("fail", assert => {
-  assert(symbol).invalid_type([1, null, undefined, true, "foo", {}]);
+  assert(p.symbol).invalid_type([1, null, undefined, true, "foo", {}]);
 });
 
 test.case("pass", assert => {
-  assert(symbol).type<SymbolType>();
-  assert(symbol.parse(s)).equals(s).type<symbol>();
+  assert(p.symbol).type<SymbolType>();
+  assert(p.symbol.parse(s)).equals(s).type<symbol>();
 });
 
 test.case("default", assert => {
-  [symbol.default(foo_s), symbol.default(() => foo_s)].forEach(d => {
+  [p.symbol.default(foo_s), p.symbol.default(() => foo_s)].forEach(d => {
     assert(d).type<DefaultType<SymbolType, typeof foo_s>>();
     assert(d.parse(undefined)).equals(foo_s).type<symbol>();
     assert(d.parse(foo_s)).equals(foo_s).type<symbol>();
@@ -28,7 +28,7 @@ test.case("default", assert => {
 });
 
 test.case("optional", assert => {
-  const o = symbol.optional();
+  const o = p.symbol.optional();
   assert(o).type<OptionalType<SymbolType>>();
   assert(o.parse(undefined)).equals(undefined);
   assert(o.parse(s)).equals(s).type<symbol>();
@@ -36,7 +36,7 @@ test.case("optional", assert => {
 });
 
 test.case("toJSON", assert => {
-  assert(symbol.toJSON())
+  assert(p.symbol.toJSON())
     .type<{ type: "symbol" }>()
     .equals({ type: "symbol" });
 });
