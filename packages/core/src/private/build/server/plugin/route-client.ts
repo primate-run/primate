@@ -1,4 +1,5 @@
 import type BuildApp from "#build/App";
+import intercept from "#build/shared/intercept";
 import fs from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";
 import type { Plugin } from "esbuild";
@@ -54,8 +55,8 @@ export default function plugin_server_route_client(app: BuildApp): Plugin {
     setup(build) {
       build.onResolve({ filter: /.*/ }, async args => {
         if (args.pluginData === "primate-server-route-client-inner") return null;
-        if (args.namespace === "ignore-failed-check") return null;
         if (args.namespace === "primate-server-route-client") return null;
+        if (intercept(args, app.path.views)) return null;
 
         const result = await build.resolve(args.path, {
           resolveDir: args.resolveDir,
