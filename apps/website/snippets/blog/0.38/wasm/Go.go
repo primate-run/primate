@@ -4,7 +4,7 @@ package main
 
 import "github.com/primate-run/go/route"
 
-var _ = route.With{ContentType: route.JSON}.Post(func(request route.Request) any {
+var _ = route.With{ContentType: "application/json"}.Post(func(request route.Request) any {
 	json, err := request.Body.JSON()
 	if err != nil {
 		return map[string]any{"error": err.Error()}
