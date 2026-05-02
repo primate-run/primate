@@ -10,7 +10,7 @@
     "directory": "packages/test"
   },
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && tsgo",
     "clean": "rm -rf ./lib",
     "lint": "eslint ."
   },
