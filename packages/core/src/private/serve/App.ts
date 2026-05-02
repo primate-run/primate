@@ -94,6 +94,8 @@ const content_type_method = {
   "application/octet-stream": "blob",
 } as const;
 
+const asset_extensions = [".js", ".css", ".woff2"];
+
 interface PublishOptions {
   code: string;
   inline: boolean;
@@ -375,7 +377,7 @@ export default class ServeApp extends App {
     if (this.mode === "production") {
       this.#assets = await Promise.all(
         Object.entries(this.#serve_assets.client)
-          .filter(([src]) => src.endsWith(".css") || src.endsWith(".js"))
+          .filter(([src]) => asset_extensions.some(ext => src.endsWith(ext)))
           .map(async ([src, asset]) => {
             const type = src.endsWith(".css") ? "style" : "js";
             const code = atob(asset!.data);
@@ -393,7 +395,7 @@ export default class ServeApp extends App {
       const files = await client_dir.exists()
         ? await client_dir.files({
           recursive: true,
-          filter: info => info.extension === ".js" || info.extension === ".css",
+          filter: info => asset_extensions.includes(info.extension),
         })
         : [];
 
