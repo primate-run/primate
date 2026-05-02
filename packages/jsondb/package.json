@@ -1,6 +1,6 @@
 {
   "name": "@primate/jsondb",
-  "version": "0.1.0",
+  "version": "0.2.0-pre",
   "description": "JSON file databases for Primate",
   "homepage": "https://primate.run/docs/database/jsondb",
   "bugs": "https://github.com/primate-run/primate/issues",
