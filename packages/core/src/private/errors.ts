@@ -42,6 +42,10 @@ function build_body_requires_content_type() {
   const c = "route.with({ contentType: ..., body: ... })";
   return t`body schema requires ${b} to be set — declare a contentType in ${c}`;
 }
+function build_unrecognized_loader(seen: string) {
+  const loaders = ["file"];
+  return t`unrecognised loader ${seen}; supported loaders: ${loaders}`;
+}
 
 const BUILD = error.coded({
   build_missing_binary_addon,
@@ -50,6 +54,7 @@ const BUILD = error.coded({
   build_previous_build_exists,
   build_no_path_schema,
   build_body_requires_content_type,
+  build_unrecognized_loader,
 });
 
 function config_file_missing() {

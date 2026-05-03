@@ -6,6 +6,7 @@ import runtime from "@rcompat/runtime";
 import config from "primate/config";
 import { createHighlighter } from "shiki";
 import website from "./Website.ts";
+import loader from "primate/loader";
 
 const sorting = [
   // package managers
@@ -95,6 +96,7 @@ export default config({
     host: "0.0.0.0",
   },
   modules: [
+    loader("woff2", "file"),
     handlebars(),
     markdown({
       marked: {

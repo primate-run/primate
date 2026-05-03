@@ -1,4 +1,3 @@
-import fs from "@rcompat/fs";
 import http from "@rcompat/http";
 import type { Module } from "primate";
 
@@ -15,17 +14,6 @@ const website: () => Module = () => {
 
     setup({ onBuild, onServe, onHandle }) {
       onBuild(async app => {
-        app.plugin("client", {
-          name: "static-loader",
-          setup(build) {
-            build.onLoad({ filter: /\.woff2$/ }, async args => {
-              return {
-                contents: await fs.bytes(args.path),
-                loader: "file",
-              };
-            });
-          },
-        });
         const views = app.path.views;
 
         // collect guide categories and names
