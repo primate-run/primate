@@ -56,6 +56,7 @@ export default async function build_server(app: BuildApp) {
     entryPoints: [app.path.build.join("serve.js").path],
     outfile: app.path.build.join("server.js").path,
     bundle: true,
+    minify: app.mode === "production",
     platform: "node",
     format: "esm",
     packages: app.mode === "development" ? "external" : undefined,
@@ -64,10 +65,7 @@ export default async function build_server(app: BuildApp) {
       ".json": "json",
     },
     banner: {
-      js: `
-        import { createRequire as __createRequire } from "node:module";
-        const require = __createRequire(import.meta.url);
-      `,
+      js: `import { createRequire as __createRequire } from "node:module";const require = __createRequire(import.meta.url);`,
     },
     nodePaths: [app.root.join("node_modules").path],
     resolveExtensions: app.extensions,
