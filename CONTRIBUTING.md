@@ -12,23 +12,18 @@ All packages under the `@primate` namespace are officially supported.
 
 ## Setup
 
-We recommend joining our Discord server at https://primate.run/chat to
-coordinate development.
-
-Install pnpm as we use a monorepo for development with the `workspace` protocol
-which isn't supported by npm.
+* Join our Discord server at https://primate.run/chat to coordinate development
+* Install `pnpm` for the Primate monorepo
 
 ## Development cycle
 
-To build the project, run `pnpm run build` in the root directory to build the
-packages. To test the packages and the example apps under `apps`, run
-`pnpm run test`.
+Run `pnpm run build` in the root directory to build the packages. To test the
+packages and the example apps under `apps` run `pnpm run test`.
 
 You can also run the same command for individual packages in their respective
 directories.
 
-To test apps individually, run `npx primate test` in their respective
-directories.
+To test apps individually run `npm run test` in their respective directories.
 
 ## Coding style
 
