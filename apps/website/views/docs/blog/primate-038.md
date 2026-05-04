@@ -37,7 +37,7 @@ import route from "primate/route";
 
 export default route({
   get: () => "hello",
-  post: async request => {
+  post: async (request) => {
     const body = await request.body.json();
     // ...
   },
@@ -61,7 +61,7 @@ Declare what content type your handler expects with `route.with`:
 import route from "primate/route";
 
 export default route({
-  post: route.with({ contentType: "application/json" }, async request => {
+  post: route.with({ contentType: "application/json" }, async (request) => {
     const body = await request.body.json();
     // ...
   }),
@@ -75,11 +75,11 @@ no silent misparses.
 All five body types are supported:
 
 ```ts
-const json            = await request.body.json();
-const text            = await request.body.text();
-const form            = await request.body.form();
+const json = await request.body.json();
+const text = await request.body.text();
+const form = await request.body.form();
 const { form, files } = await request.body.multipart();
-const blob            = await request.body.blob();
+const blob = await request.body.blob();
 ```
 
 All accessors are async and on-demand — the body is never preparsed. It can
@@ -95,14 +95,17 @@ import route from "primate/route";
 import p from "pema";
 
 export default route({
-  post: route.with({
-    contentType: "application/json",
-    body: p({ foo: p.string }),
-  }, async request => {
-    const { foo } = await request.body.json();
-    // foo is typed as string — validated before this line runs
-    return { foo };
-  }),
+  post: route.with(
+    {
+      contentType: "application/json",
+      body: p({ foo: p.string }),
+    },
+    async (request) => {
+      const { foo } = await request.body.json();
+      // foo is typed as string — validated before this line runs
+      return { foo };
+    },
+  ),
 });
 ```
 
@@ -173,14 +176,13 @@ Hook files follow the same declarative pattern, exporting a default function
 using `hook()`:
 
 ```ts
-import hook from "primate/hook";
+import hook from "primate/route/hook";
 
 export default hook((request, next) => {
   // runs before every route in this directory
   return next(request);
 });
 ```
-
 
 ### Wasm routes
 
@@ -213,16 +215,22 @@ This means:
 
 ```ts
 // will error at startup — p.number cannot be satisfied by a form string
-route.with({
-  contentType: "application/x-www-form-urlencoded",
-  body: p({ foo: p.string, count: p.number }),
-}, handler)
+route.with(
+  {
+    contentType: "application/x-www-form-urlencoded",
+    body: p({ foo: p.string, count: p.number }),
+  },
+  handler,
+);
 
 // correct — p.loose.number coerces the string "42" to 42
-route.with({
-  contentType: "application/x-www-form-urlencoded",
-  body: p({ foo: p.string, count: p.loose.number }),
-}, handler)
+route.with(
+  {
+    contentType: "application/x-www-form-urlencoded",
+    body: p({ foo: p.string, count: p.loose.number }),
+  },
+  handler,
+);
 ```
 
 The rule follows naturally from what `p.loose` already means: if a field
@@ -657,7 +665,9 @@ Migrate to `export default route({...})`:
 ```ts
 // before
 route.get(() => "hello");
-route.post(async request => { /* ... */ });
+route.post(async (request) => {
+  /* ... */
+});
 
 // after
 export default route({
@@ -795,7 +805,7 @@ If you have existing `date` columns in PostgreSQL, create a migration with
 the next number in your `migrations/` directory:
 
 ```ts
-export default async db => {
+export default async (db) => {
   await db.client.unsafe(`
     ALTER TABLE your_table
       ALTER COLUMN your_column TYPE TIMESTAMPTZ
