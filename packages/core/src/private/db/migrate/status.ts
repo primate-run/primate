@@ -41,4 +41,6 @@ export default async function status_migration() {
   if (last_applied.length === 0 && pending.length === 0) {
     cli.print("No migrations found.\n");
   }
+
+  runtime.exit();
 }
