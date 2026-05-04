@@ -20,7 +20,7 @@ export default async function apply_migration() {
 
   if (files.length === 0) {
     cli.print("No pending migrations.\n");
-    return;
+    runtime.exit();
   }
 
   for (const { file, n } of files) {

@@ -74,7 +74,6 @@ export default async function create_migration(desc: string) {
     `import s${i} from "${f.path}";`,
   ).join("\n") + `\nexport default [
     ${store_files.map((_, i) => `s${i}`).join(",\n ")}\n];`;
-  console.log("entry", entry);
   const stores: Store<any>[] = await bundle(entry);
 
   const diffs: MigrationDiff[] = [];
@@ -177,7 +176,7 @@ export default async function create_migration(desc: string) {
 
   if (diffs.length === 0) {
     cli.print("No schema changes detected.\n");
-    return;
+    runtime.exit();
   }
 
   if (!await migrations.exists()) await migrations.create();
