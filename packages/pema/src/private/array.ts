@@ -1,5 +1,4 @@
 import ArrayType from "#ArrayType";
-import Loose from "#Loose";
 import normalize from "#normalize";
 import type NormalizeSchema from "#NormalizeSchema";
 import type Schema from "#Schema";
@@ -13,17 +12,13 @@ const vanilla = function array<const S extends Schema>(of: S):
 };
 
 const loose = function array<const S extends Schema>(of: S):
-  ArrayType<NormalizeSchema<S>> {
-  const i = new ArrayType(normalize(of));
-  i[Loose] = true;
-  return i;
+  ArrayType<NormalizeSchema<S>, true> {
+  return new ArrayType(normalize(of), true);
 };
 
 const strict = function array<const S extends Schema>(of: S):
-  ArrayType<NormalizeSchema<S>> {
-  const i = new ArrayType(normalize(of));
-  i[Loose] = false;
-  return i;
+  ArrayType<NormalizeSchema<S>, false> {
+  return new ArrayType(normalize(of), false);
 };
 
 const array = { strict, loose, vanilla };

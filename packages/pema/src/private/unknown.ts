@@ -1,4 +1,3 @@
-import Loose from "#Loose";
 import UnknownType from "#UnknownType";
 
 /**
@@ -6,13 +5,7 @@ import UnknownType from "#UnknownType";
 */
 
 const vanilla = new UnknownType();
-
 const loose = new UnknownType();
-loose[Loose] = true;
-
 const strict = new UnknownType();
-strict[Loose] = false;
 
-const unknown = { vanilla, loose, strict };
-
-export default unknown;
+export default { vanilla, loose, strict };

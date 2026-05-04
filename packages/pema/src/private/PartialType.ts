@@ -1,6 +1,8 @@
 import DefaultType from "#DefaultType";
 import E from "#errors";
 import type Infer from "#Infer";
+import Loose from "#Loose";
+import type Mode from "#Mode";
 import ParsedKey from "#ParsedKey";
 import ParseError from "#ParseError";
 import type ParseIssue from "#ParseIssue";
@@ -18,14 +20,18 @@ type InferPartial<D extends Partialable> = {
   -readonly [K in keyof D]?: NonNullable<Infer<D[K]>>;
 };
 
-export default class PartialType<D extends Partialable>
-  extends VirtualType<D, InferPartial<D>, "PartialType">
+export default class PartialType<
+  D extends Partialable,
+  M extends Mode = undefined,
+> extends VirtualType<D, InferPartial<D>, "PartialType">
   implements DefaultTrait<InferPartial<D>> {
   #spec: D;
+  [Loose]: M;
 
-  constructor(spec: D) {
+  constructor(spec: D, mode?: M) {
     super();
     this.#spec = spec;
+    this[Loose] = mode as M;
   }
 
   get name() {

@@ -1,4 +1,6 @@
 import type DataKey from "#DataKey";
+import Loose from "#Loose";
+import type Mode from "#Mode";
 import type ParseOptions from "#ParseOptions";
 import PrimitiveType from "#PrimitiveType";
 import type Storable from "#Storable";
@@ -17,24 +19,29 @@ type Next<T> = {
 export default abstract class NumericType<
   Key extends DataKey,
   T extends bigint | number,
-  Name extends string>
-  extends PrimitiveType<T, Name>
+  Name extends string,
+  M extends Mode = undefined,
+> extends PrimitiveType<T, Name>
   implements Storable<Key> {
   #datatype: Key;
+  [Loose]: M;
 
   constructor(
     datatype: Key,
+    mode: M = undefined as M,
     validators: Validator<T>[] = [],
     options: ParseOptions = {},
   ) {
     super(validators, options);
     this.#datatype = datatype;
+    this[Loose] = mode as M;
   }
 
   derive(next: Next<T>): this {
     const Constructor = this.constructor as Newable<this>;
     return new Constructor(
       this.#datatype,
+      this[Loose],
       [...this.validators, ...next.validators ?? []],
       { ...this.options, ...next.options ?? {} },
     );

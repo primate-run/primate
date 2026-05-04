@@ -1,4 +1,3 @@
-import Loose from "#Loose";
 import type NormalizeSchema from "#NormalizeSchema";
 import type Schema from "#Schema";
 import UnionType from "#UnionType";
@@ -17,26 +16,21 @@ function vanilla(...types: Schema[]) {
   return new UnionType(types.map(normalize));
 }
 
-function loose(): UnionType<[]>;
+function loose(): UnionType<[], true>;
 function loose<const T extends Schema[]>(
   ...types: T
-): UnionType<NormalizeArray<T>>;
-
+): UnionType<NormalizeArray<T>, true>;
 function loose(...types: Schema[]) {
-  const i = new UnionType(types.map(normalize));
-  i[Loose] = true;
-  return i;
+  return new UnionType(types.map(normalize), true);
 }
 
-function strict(): UnionType<[]>;
+function strict(): UnionType<[], false>;
 function strict<const T extends Schema[]>(
   ...types: T
-): UnionType<NormalizeArray<T>>;
+): UnionType<NormalizeArray<T>, false>;
 
 function strict(...types: Schema[]) {
-  const i = new UnionType(types.map(normalize));
-  i[Loose] = false;
-  return i;
+  return new UnionType(types.map(normalize), false);
 }
 
 const union = { vanilla, loose, strict };

@@ -5,8 +5,9 @@ import test from "#test";
 
 export default <T extends UintDataType>(
   t: {
-    loose: UintType<T>;
-    strict: UintType<T>;
+    vanilla: UintType<T>;
+    loose: UintType<T, true>;
+    strict: UintType<T, false>;
   }, min: number, max: number) => {
 
   const { strict, loose } = t;
@@ -16,7 +17,7 @@ export default <T extends UintDataType>(
   });
 
   test.case("pass", assert => {
-    assert(strict).type<UintType<T>>();
+    assert(strict).type<UintType<T, false>>();
 
     assert(strict.parse(1)).equals(1).type<number>();
   });
@@ -30,6 +31,7 @@ export default <T extends UintDataType>(
   });
 
   test.case("loose", assert => {
+    assert(loose).type<UintType<T, true>>();
     assert(loose.parse(0)).equals(0).type<number>();
     assert(loose.parse(1)).equals(1).type<number>();
     assert(loose.parse("1")).equals(1).type<number>();
@@ -41,7 +43,7 @@ export default <T extends UintDataType>(
 
   test.case("default", assert => {
     [strict.default(1), strict.default(() => 1)].forEach(d => {
-      assert(d).type<DefaultType<UintType<T>, 1>>();
+      assert(d).type<DefaultType<UintType<T, false>, 1>>();
       assert(d.parse(undefined)).equals(1).type<number>();
       assert(d.parse(1)).equals(1).type<number>();
       assert(d.parse(0)).equals(0).type<number>();
@@ -49,7 +51,7 @@ export default <T extends UintDataType>(
     });
 
     [strict.default(-1), strict.default(() => -1)].forEach(d => {
-      assert(d).type<DefaultType<UintType<T>, -1>>();
+      assert(d).type<DefaultType<UintType<T, false>, -1>>();
       assert(d).out_of_range([undefined]);
       assert(d.parse(1)).equals(1).type<number>();
       assert(d.parse(0)).equals(0).type<number>();

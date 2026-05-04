@@ -1,4 +1,3 @@
-import Loose from "#Loose";
 import ObjectType from "#ObjectType";
 import type Partialable from "#Partialable";
 import PartialType from "#PartialType";
@@ -14,20 +13,16 @@ function vanilla<
 
 function loose<
   const D extends Partialable,
->(input: D | ObjectType<D>): PartialType<StripReadonly<D>> {
+>(input: D | ObjectType<D>): PartialType<StripReadonly<D>, true> {
   const dict = input instanceof ObjectType ? input.properties : input;
-  const i = new PartialType(dict);
-  i[Loose] = true;
-  return i;
+  return new PartialType(dict, true);
 }
 
 function strict<
   const D extends Partialable,
->(input: D | ObjectType<D>): PartialType<StripReadonly<D>> {
+>(input: D | ObjectType<D>): PartialType<StripReadonly<D>, false> {
   const dict = input instanceof ObjectType ? input.properties : input;
-  const i = new PartialType(dict);
-  i[Loose] = false;
-  return i;
+  return new PartialType(dict, false);
 }
 
 const partial = { vanilla, loose, strict };

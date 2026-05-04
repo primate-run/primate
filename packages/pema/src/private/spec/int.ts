@@ -4,16 +4,20 @@ import type IntType from "#IntType";
 import test from "#test";
 
 export default <T extends IntDataType>(
-  t: { loose: IntType<T>; strict: IntType<T> }, min: number, max: number) => {
+  t: {
+    vanilla: IntType<T>;
+    loose: IntType<T, true>;
+    strict: IntType<T, false>;
+  }, min: number, max: number) => {
 
-  const { strict, loose } = t;
+  const { vanilla, strict, loose } = t;
 
   test.case("fail", assert => {
     assert(strict).invalid_type(["1", 0n, 1n, 1.1, -1.1]);
   });
 
   test.case("pass", assert => {
-    assert(strict).type<IntType<T>>();
+    assert(strict).type<IntType<T, false>>();
 
     assert(strict.parse(0)).equals(0).type<number>();
     assert(strict.parse(1)).equals(1).type<number>();
@@ -26,6 +30,7 @@ export default <T extends IntDataType>(
   });
 
   test.case("loose", assert => {
+    assert(loose).type<IntType<T, true>>();
     assert(loose.parse(0)).equals(0).type<number>();
     assert(loose.parse(1)).equals(1).type<number>();
     assert(loose.parse("1")).equals(1).type<number>();
@@ -41,7 +46,7 @@ export default <T extends IntDataType>(
 
   test.case("default", assert => {
     [strict.default(1), strict.default(() => 1)].forEach(d => {
-      assert(d).type<DefaultType<IntType<T>, 1>>();
+      assert(d).type<DefaultType<IntType<T, false>, 1>>();
       assert(d.parse(undefined)).equals(1).type<number>();
       assert(d.parse(1)).equals(1).type<number>();
       assert(d.parse(0)).equals(0).type<number>();

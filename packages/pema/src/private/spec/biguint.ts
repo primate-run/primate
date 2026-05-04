@@ -5,8 +5,9 @@ import test from "#test";
 
 export default <T extends BigUintDataType>(
   t: {
-    loose: BigUintType<T>;
-    strict: BigUintType<T>;
+    vanilla: BigUintType<T>;
+    loose: BigUintType<T, true>;
+    strict: BigUintType<T, false>;
   }, min: bigint, max: bigint) => {
 
   const { strict, loose } = t;
@@ -16,7 +17,7 @@ export default <T extends BigUintDataType>(
   });
 
   test.case("pass", assert => {
-    assert(strict).type<BigUintType<T>>();
+    assert(strict).type<BigUintType<T, false>>();
 
     assert(strict.parse(0n)).equals(0n).type<bigint>();
     assert(strict.parse(1n)).equals(1n).type<bigint>();
@@ -30,6 +31,7 @@ export default <T extends BigUintDataType>(
   });
 
   test.case("loose", assert => {
+    assert(loose).type<BigUintType<T, true>>();
     assert(loose.parse(0n)).equals(0n).type<bigint>();
     assert(loose.parse(1n)).equals(1n).type<bigint>();
     assert(loose.parse(0)).equals(0n).type<bigint>();
@@ -43,11 +45,18 @@ export default <T extends BigUintDataType>(
 
   test.case("default", assert => {
     [strict.default(1n), strict.default(() => 1n)].forEach(d => {
-      assert(d).type<DefaultType<BigUintType<T>, 1n>>();
+      assert(d).type<DefaultType<BigUintType<T, false>, 1n>>();
       assert(d.parse(undefined)).equals(1n).type<bigint>();
       assert(d.parse(1n)).equals(1n).type<bigint>();
       assert(d.parse(0n)).equals(0n).type<bigint>();
       assert(d).invalid_type([1.2, -1.2]);
+    });
+
+    [strict.default(-1n), strict.default(() => -1n)].forEach(d => {
+      assert(d).type<DefaultType<BigUintType<T, false>, -1n>>();
+      assert(d).out_of_range([undefined]);
+      assert(d.parse(1n)).equals(1n).type<bigint>();
+      assert(d.parse(0n)).equals(0n).type<bigint>();
     });
   });
 

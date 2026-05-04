@@ -1,13 +1,8 @@
-import Loose from "#Loose";
 import URLType from "#URLType";
 
 const vanilla = new URLType();
-
-const loose = new URLType();
-loose[Loose] = true;
-
-const strict = new URLType();
-strict[Loose] = false;
+const loose = new URLType(true);
+const strict = new URLType(false);
 
 const url = { vanilla, loose, strict };
 

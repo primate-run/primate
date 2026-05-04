@@ -1,6 +1,5 @@
 import type { ParsedJSON } from "#JSONType";
 import JSONType from "#JSONType";
-import Loose from "#Loose";
 
 // overload 1: no schema -> JSONValue
 function vanilla(): JSONType<undefined>;
@@ -13,17 +12,13 @@ function vanilla(inner?: any) {
 function loose(): JSONType<undefined>;
 function loose<S extends ParsedJSON>(inner: S): JSONType<S>;
 function loose(inner?: any) {
-  const i = new JSONType(inner);
-  i[Loose] = true;
-  return i;
+  return new JSONType(inner);
 }
 
 function strict(): JSONType<undefined>;
 function strict<S extends ParsedJSON>(inner: S): JSONType<S>;
 function strict(inner?: any) {
-  const i = new JSONType(inner);
-  i[Loose] = false;
-  return i;
+  return new JSONType(inner);
 }
 
 const json = { vanilla, loose, strict };

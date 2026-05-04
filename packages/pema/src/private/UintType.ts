@@ -7,8 +7,10 @@ import type UintDataType from "#UintDataType";
 import integer from "#validator/integer";
 import port from "#validator/port";
 
-export default class UintType<T extends UintDataType>
-  extends NumericType<T, number, "UintType">
+export default class UintType<
+  T extends UintDataType,
+  L extends boolean | undefined = undefined,
+> extends NumericType<T, number, "UintType", L>
   implements Storable<T> {
   [CoerceKey] = coerce;
 

@@ -14,6 +14,10 @@ test.case("pass", assert => {
   assert(p.string.parse("test")).equals("test").type<string>();
 });
 
+test.case("loose", assert => {
+  assert(p.loose.string.parse("foo")).equals("foo").type<string>();
+});
+
 test.case("default", assert => {
   [p.string.default("foo"), p.string.default(() => "foo")].forEach(d => {
     assert(d).type<DefaultType<StringType, "foo">>();

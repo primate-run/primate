@@ -52,7 +52,7 @@ test.case("loose", assert => {
     name: StringType;
     age: NumberType;
     active: BooleanType;
-  }>>();
+  }, true>>();
 
   assert(s.parse({
     name: "Bob",
@@ -91,7 +91,7 @@ test.case("deep loose", assert => {
     }>;
     scores: ArrayType<NumberType>;
     tupled: TupleType<[StringType, BooleanType]>;
-  }>>();
+  }, true>>();
 
   assert(s.parse({
     user: {
@@ -254,7 +254,7 @@ test.case("shape: aliases inferred output", assert => {
   assert(schema).type<ObjectType<{
     name: StringType;
     setup: FunctionType;
-  }, Module>>();
+  }, undefined, Module>>();
 
   const mod: Module = {
     name: "markdown",
@@ -297,7 +297,7 @@ test.case("shape: preserves parsing/coercion", assert => {
   assert(schema).type<ObjectType<{
     name: StringType;
     age: NumberType;
-  }, User>>();
+  }, true, User>>();
 
   assert(schema.parse({
     name: "Bob",

@@ -6,8 +6,10 @@ import type ParseOptions from "#ParseOptions";
 import type Storable from "#Storable";
 import integer from "#validator/integer";
 
-export default class IntType<T extends IntDataType>
-  extends NumericType<T, number, "IntType">
+export default class IntType<
+  T extends IntDataType,
+  L extends boolean | undefined = undefined,
+> extends NumericType<T, number, "IntType", L>
   implements Storable<T> {
   [CoerceKey] = coerce;
 

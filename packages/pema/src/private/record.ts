@@ -1,4 +1,3 @@
-import Loose from "#Loose";
 import type Parsed from "#Parsed";
 import RecordType from "#RecordType";
 import type RecordTypeKey from "#RecordTypeKey";
@@ -15,18 +14,14 @@ const loose = <
   const Key extends RecordTypeKey,
   const Value extends Parsed<unknown>,
 >(k: Key, v: Value) => {
-  const i = new RecordType(k, v);
-  i[Loose] = true;
-  return i;
+  return new RecordType(k, v, true);
 };
 
 const strict = <
   const Key extends RecordTypeKey,
   const Value extends Parsed<unknown>,
 >(k: Key, v: Value) => {
-  const i = new RecordType(k, v);
-  i[Loose] = false;
-  return i;
+  return new RecordType(k, v, false);
 };
 
 const record = { vanilla, loose, strict };

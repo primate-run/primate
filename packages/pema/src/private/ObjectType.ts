@@ -3,6 +3,7 @@ import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import type InferInputSchema from "#InferInputSchema";
 import Loose from "#Loose";
+import type Mode from "#Mode";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import type ParseOptions from "#ParseOptions";
@@ -20,18 +21,21 @@ type ObjectInfer<P extends Dict<Parsed<unknown>>> = {
 
 export default class ObjectType<
   P extends Dict<Parsed<unknown>>,
+  M extends Mode = undefined,
   I = ObjectInfer<P>,
 > extends GenericType<P, I, "ObjectType">
   implements OptionalTrait {
   #properties: P;
   #options: ParseOptions;
+  [Loose]: M;
 
   declare readonly Complement: ObjectType<Record<
     Exclude<string, keyof P>, Parsed<unknown>>>;
 
-  constructor(properties: P, options: ParseOptions = {}) {
+  constructor(properties: P, mode?: M, options: ParseOptions = {}) {
     super();
     this.#properties = properties;
+    this[Loose] = mode as M;
     this.#options = options;
   }
 
@@ -52,7 +56,7 @@ export default class ObjectType<
 
   #derive(options: ParseOptions): this {
     const Constructor = this.constructor as Newable<this>;
-    const instance = new Constructor(this.#properties, {
+    const instance = new Constructor(this.#properties, this[Loose], {
       ...this.#options, ...options,
     });
     instance[Loose] = this[Loose];
@@ -64,24 +68,21 @@ export default class ObjectType<
   }
 
   shape<T>() {
-    const i = new ObjectType<P, T>(this.#properties, this.#options);
-    i[Loose] = this[Loose];
-    return i;
+    return new ObjectType<P, M, T>(this.#properties, this[Loose], this.#options);
   }
 
   extend<E extends {
     [K in keyof E]: K extends keyof P ? never : Parsed<unknown>
-  }>(extra: E | ObjectType<E>): ObjectType<Unpack<P & E>> {
+  }>(extra: E | ObjectType<E, M>): ObjectType<Unpack<P & E>, M> {
     const properties = extra instanceof ObjectType ? extra.properties : extra;
     for (const key of Object.keys(properties)) {
       if (key in this.#properties) throw SE.extend_key_collision(key);
     }
-    const instance = new ObjectType(
+    return new ObjectType(
       { ...this.#properties, ...properties } as Unpack<P & E>,
+      this[Loose],
       this.#options,
     );
-    instance[Loose] = this[Loose];
-    return instance;
   }
 
   parse(u: unknown, options: ParseOptions = {}): Infer<this> {

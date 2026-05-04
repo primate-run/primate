@@ -3,8 +3,10 @@ import type FloatDataType from "#FloatDataType";
 import NumericType from "#NumericType";
 import coerce from "#coerce/float";
 
-export default class NumberType<T extends FloatDataType = "f64">
-  extends NumericType<T, number, "NumberType"> {
+export default class NumberType<
+  T extends FloatDataType = "f64",
+  L extends boolean | undefined = undefined,
+> extends NumericType<T, number, "NumberType", L> {
   [CoerceKey] = coerce;
 
   get name() {

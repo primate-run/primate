@@ -1,4 +1,3 @@
-import Loose from "#Loose";
 import normalize from "#normalize";
 import type NormalizeSchema from "#NormalizeSchema";
 import ObjectType from "#ObjectType";
@@ -24,28 +23,24 @@ function vanilla(properties: Dict<Schema>) {
 
 function loose<
   P extends Dict<Schema> = Dict<Schema>,
->(properties: P): ObjectType<NormalizeProps<P>>;
+>(properties: P): ObjectType<NormalizeProps<P>, true>;
 function loose(properties: Dict<Schema>) {
   const props: Dict<Parsed<unknown>> = {};
   for (const [k, v] of Object.entries(properties)) {
     props[k] = normalize(v as Schema);
   }
-  const i = new ObjectType(props);
-  i[Loose] = true;
-  return i;
+  return new ObjectType(props, true);
 }
 
 function strict<
   P extends Dict<Schema> = Dict<Schema>,
->(properties: P): ObjectType<NormalizeProps<P>>;
+>(properties: P): ObjectType<NormalizeProps<P>, false>;
 function strict(properties: Dict<Schema>) {
   const props: Dict<Parsed<unknown>> = {};
   for (const [k, v] of Object.entries(properties)) {
     props[k] = normalize(v as Schema);
   }
-  const i = new ObjectType(props);
-  i[Loose] = false;
-  return i;
+  return new ObjectType(props, false);
 }
 
 const object = { vanilla, loose, strict };

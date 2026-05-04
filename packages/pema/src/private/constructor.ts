@@ -1,5 +1,4 @@
 import ConstructorType from "#ConstructorType";
-import Loose from "#Loose";
 import type { AbstractNewable } from "@rcompat/type";
 
 /**
@@ -10,15 +9,11 @@ const vanilla = function constructor<const C extends AbstractNewable>(c: C) {
 };
 
 const loose = function constructor<const C extends AbstractNewable>(c: C) {
-  const i = new ConstructorType(c);
-  i[Loose] = true;
-  return i;
+  return new ConstructorType(c);
 };
 
 const strict = function constructor<const C extends AbstractNewable>(c: C) {
-  const i = new ConstructorType(c);
-  i[Loose] = false;
-  return i;
+  return new ConstructorType(c);
 };
 
 const constructor = { vanilla, loose, strict };

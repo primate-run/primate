@@ -72,10 +72,10 @@ test.case("loose", assert => {
   const loose_date = p.loose.array(p.date);
   const loose_number = p.loose.array(p.number);
 
-  assert(loose_number).type<ArrayType<NumberType>>();
-  assert(loose_boolean).type<ArrayType<BooleanType>>();
-  assert(loose_bigint).type<ArrayType<BigIntType>>();
-  assert(loose_date).type<ArrayType<DateType>>();
+  assert(loose_number).type<ArrayType<NumberType, true>>();
+  assert(loose_boolean).type<ArrayType<BooleanType, true>>();
+  assert(loose_bigint).type<ArrayType<BigIntType, true>>();
+  assert(loose_date).type<ArrayType<DateType, true>>();
 
   assert(loose_number.parse(["1", "2"])).equals([1, 2]).type<number[]>();
   assert(loose_boolean.parse(["true", "false"]))

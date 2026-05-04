@@ -243,7 +243,7 @@ strict.unknown = unknown.strict;
 strict.url = url.strict;
 strict.uuid = uuid.strict;
 
-schema.loose = loose as typeof schema;
-schema.strict = strict as typeof schema;
+schema.loose = loose;
+schema.strict = strict;
 
 export default schema;

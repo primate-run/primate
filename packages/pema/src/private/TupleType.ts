@@ -2,6 +2,7 @@ import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import Loose from "#Loose";
+import type Mode from "#Mode";
 import type NormalizeSchema from "#NormalizeSchema";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
@@ -19,14 +20,18 @@ type InferTuple<T extends Schema[]> = {
   : "tuple-never"
 };
 
-export default class TupleType<T extends Parsed<unknown>[]>
-  extends GenericType<T, InferTuple<T>, "TupleType">
+export default class TupleType<
+  T extends Parsed<unknown>[],
+  M extends Mode = undefined,
+> extends GenericType<T, InferTuple<T>, "TupleType">
   implements OptionalTrait {
   #items: T;
+  [Loose]: M;
 
-  constructor(items: T) {
+  constructor(items: T, mode?: M) {
     super();
     this.#items = items;
+    this[Loose] = mode as M;
   }
 
   get name() {

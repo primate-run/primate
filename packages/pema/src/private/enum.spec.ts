@@ -7,6 +7,8 @@ import test from "#test";
 const templates = ["handlebars", "mustache", "nunjucks", "xslt"] as const;
 type Template = typeof templates[number];
 const e = p.enum(templates);
+const el = p.loose.enum(templates);
+const es = p.strict.enum(templates);
 
 test.case("pass", assert => {
   assert(e).type<EnumType<typeof templates>>();

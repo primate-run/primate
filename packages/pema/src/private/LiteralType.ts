@@ -1,24 +1,31 @@
 import DefaultType from "#DefaultType";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
+import Loose from "#Loose";
 import OptionalType from "#OptionalType";
 import type ParseOptions from "#ParseOptions";
 import E from "#errors";
 import resolve from "#resolve";
+import type Mode from "#Mode";
 
 type Literal = string | boolean | number;
 
-export default class LiteralType<T extends Literal> extends
+export default class LiteralType<
+  T extends Literal,
+  M extends Mode = undefined,
+> extends
   GenericType<T, T, "LiteralType"> {
   #literal: T;
-
-  constructor(literal: T) {
-    super();
-    this.#literal = literal;
-  }
+  [Loose]: M;
 
   static get Literal(): Literal {
     return undefined as unknown as Literal;
+  }
+
+  constructor(literal: T, mode?: M) {
+    super();
+    this.#literal = literal;
+    this[Loose] = mode as M;
   }
 
   get name() {

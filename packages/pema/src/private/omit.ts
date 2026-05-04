@@ -1,4 +1,3 @@
-import Loose from "#Loose";
 import type ObjectType from "#ObjectType";
 import OmitType from "#OmitType";
 import type Parsed from "#Parsed";
@@ -14,19 +13,15 @@ function vanilla<
 function loose<
   P extends Dict<Parsed<unknown>>,
   K extends keyof P,
->(type: ObjectType<P>, ...keys: K[]): OmitType<P, K> {
-  const i = new OmitType(type, keys);
-  i[Loose] = true;
-  return i;
+>(type: ObjectType<P>, ...keys: K[]): OmitType<P, K, true> {
+  return new OmitType(type, keys, true);
 }
 
 function strict<
   P extends Dict<Parsed<unknown>>,
   K extends keyof P,
->(type: ObjectType<P>, ...keys: K[]): OmitType<P, K> {
-  const i = new OmitType(type, keys);
-  i[Loose] = false;
-  return i;
+>(type: ObjectType<P>, ...keys: K[]): OmitType<P, K, false> {
+  return new OmitType(type, keys, false);
 }
 
 const omit = { vanilla, loose, strict };

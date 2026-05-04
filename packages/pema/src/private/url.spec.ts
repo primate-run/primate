@@ -16,6 +16,12 @@ test.case("pass", assert => {
   assert(p.url.parse(u)).equals(u).type<URL>();
 });
 
+test.case("loose", assert => {
+  assert(p.loose.url.parse(address)).equals(new URL(address)).type<URL>();
+  assert(p.url).invalid_type([address]);
+  assert(p.loose.url).invalid_type(["not-a-url"]);
+});
+
 test.case("default", assert => {
   const u = new URL(address);
   const u1 = new URL("https://example.org");

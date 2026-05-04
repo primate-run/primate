@@ -4,6 +4,7 @@ import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import Loose from "#Loose";
+import type Mode from "#Mode";
 import OptionalType from "#OptionalType";
 import type Parsed from "#Parsed";
 import ParsedKey from "#ParsedKey";
@@ -34,15 +35,19 @@ function isPrimitive(x: Parsed<unknown>): x is PrimitiveType<unknown, string> {
   return x instanceof PrimitiveType || x instanceof EnumType;
 }
 
-export default class ArrayType<T extends Parsed<unknown>>
-  extends GenericType<T, Infer<T>[], "ArrayType">
+export default class ArrayType<
+  T extends Parsed<unknown>,
+  M extends Mode = undefined,
+> extends GenericType<T, Infer<T>[], "ArrayType">
   implements OptionalTrait, DefaultTrait<Infer<T>[]> {
   #item: T;
   #validators: Validator<Array<Infer<T>>>[];
+  [Loose]: M;
 
-  constructor(item: T, validators: Validator<Array<Infer<T>>>[] = []) {
+  constructor(item: T, mode?: M, validators: Validator<Array<Infer<T>>>[] = []) {
     super();
     this.#item = item;
+    this[Loose] = mode as M;
     this.#validators = validators;
   }
 
@@ -62,6 +67,7 @@ export default class ArrayType<T extends Parsed<unknown>>
     const Constructor = this.constructor as Newable<this>;
     return new Constructor(
       this.#item,
+      this[Loose],
       [...this.#validators, ..._next.validators ?? []],
     );
   }

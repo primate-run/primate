@@ -1,6 +1,6 @@
 import type DefaultType from "#DefaultType";
-import p from "#index";
 import type NumberType from "#NumberType";
+import p from "#index";
 import test from "#test";
 
 test.case("fail", assert => {

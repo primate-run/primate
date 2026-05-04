@@ -1,5 +1,4 @@
 import LiteralType from "#LiteralType";
-import Loose from "#Loose";
 
 type Literal = string | boolean | number;
 
@@ -8,17 +7,11 @@ function vanilla<T extends Literal>(literal: T) {
 }
 
 function loose<T extends Literal>(literal: T) {
-  const i = new LiteralType(literal);
-  i[Loose] = true;
-  return i;
+  return new LiteralType(literal, true);
 }
 
 function strict<T extends Literal>(literal: T) {
-  const i = new LiteralType(literal);
-  i[Loose] = false;
-  return i;
+  return new LiteralType(literal, false);
 }
 
-const literal = { vanilla, loose, strict };
-
-export default literal;
+export default { vanilla, loose, strict };

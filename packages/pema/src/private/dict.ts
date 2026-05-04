@@ -17,18 +17,18 @@ function vanilla(of = string.strict) {
   return record.vanilla(string.strict, of);
 }
 
-function loose(): RecordType<StringType, StringType>;
+function loose(): RecordType<StringType, StringType, true>;
 function loose<const Value extends Parsed<unknown>>(
   of: Value,
-): RecordType<StringType, Value>;
+): RecordType<StringType, Value, true>;
 function loose(of = string.loose) {
   return record.loose(string.loose, of);
 }
 
-function strict(): RecordType<StringType, StringType>;
+function strict(): RecordType<StringType, StringType, false>;
 function strict<const Value extends Parsed<unknown>>(
   of: Value,
-): RecordType<StringType, Value>;
+): RecordType<StringType, Value, false>;
 function strict(of = string.loose) {
   return record.strict(string.loose, of);
 }

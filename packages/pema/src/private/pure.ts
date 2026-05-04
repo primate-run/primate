@@ -1,4 +1,3 @@
-import Loose from "#Loose";
 import PureType from "#PureType";
 
 function vanilla<T>() {
@@ -6,15 +5,11 @@ function vanilla<T>() {
 }
 
 function loose<T>() {
-  const i = new PureType<T>();
-  i[Loose] = true;
-  return i;
+  return new PureType<T>();
 }
 
 function strict<T>() {
-  const i = new PureType<T>();
-  i[Loose] = false;
-  return i;
+  return new PureType<T>();
 }
 
 const pure = { vanilla, loose, strict };

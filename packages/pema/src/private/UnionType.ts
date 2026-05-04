@@ -1,4 +1,5 @@
 import DefaultType from "#DefaultType";
+import type Mode from "#Mode";
 import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
@@ -15,6 +16,7 @@ import type DefaultTrait from "#trait/Default";
 import type OptionalTrait from "#trait/Optional";
 import assert from "@rcompat/assert";
 import type { TupleToUnion } from "@rcompat/type";
+import Loose from "#Loose";
 
 type InferUnion<T extends Schema[]> = TupleToUnion<{
   [K in keyof T]:
@@ -52,15 +54,19 @@ const print = (type: unknown) => {
 const union_error = (types: Schema[]) =>
   `\`${types.map(t => is_parsed(t) ? t.name : print(t)).join(" | ")}\``;
 
-export default class UnionType<T extends Parsed<unknown>[]>
-  extends GenericType<T, InferUnion<T>, "UnionType">
+export default class UnionType<
+  T extends Parsed<unknown>[],
+  M extends Mode = undefined,
+> extends GenericType<T, InferUnion<T>, "UnionType">
   implements OptionalTrait, DefaultTrait<InferUnion<T>> {
   #of: T;
+  [Loose]: M;
 
-  constructor(of: T) {
+  constructor(of: T, mode?: M) {
     assert.true(of.length > 1, S.union_at_least_two_members());
     super();
     this.#of = of;
+    this[Loose] = mode as M;
   }
 
   get name() {

@@ -1,4 +1,3 @@
-import Loose from "#Loose";
 import type NormalizeSchema from "#NormalizeSchema";
 import type Schema from "#Schema";
 import TupleType from "#TupleType";
@@ -19,22 +18,18 @@ function vanilla(...items: Schema[]) {
 
 function loose<const T extends Schema[]>(
   ...items: T
-): TupleType<NormalizeSchemaArray<T>>;
+): TupleType<NormalizeSchemaArray<T>, true>;
 function loose(...items: Schema[]) {
   const parsed = items.map(normalize) as never;
-  const i = new TupleType(parsed);
-  i[Loose] = true;
-  return i;
+  return new TupleType(parsed, true);
 }
 
 function strict<const T extends Schema[]>(
   ...items: T
-): TupleType<NormalizeSchemaArray<T>>;
+): TupleType<NormalizeSchemaArray<T>, false>;
 function strict(...items: Schema[]) {
   const parsed = items.map(normalize) as never;
-  const i = new TupleType(parsed);
-  i[Loose] = false;
-  return i;
+  return new TupleType(parsed, false);
 }
 
 const tuple = { vanilla, loose, strict };

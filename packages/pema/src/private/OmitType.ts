@@ -1,6 +1,8 @@
 import E from "#errors";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
+import Loose from "#Loose";
+import type Mode from "#Mode";
 import type ObjectType from "#ObjectType";
 import type Parsed from "#Parsed";
 import ParsedKey from "#ParsedKey";
@@ -14,20 +16,23 @@ import type { Dict } from "@rcompat/type";
 export default class OmitType<
   P extends Dict<Parsed<unknown>>,
   K extends keyof P,
+  M extends Mode = undefined,
 > extends GenericType<
   Omit<P, K>,
   Omit<{ [Key in keyof P]: Infer<P[Key]> }, K>,
   "OmitType"
 > {
   #properties: Omit<P, K>;
+  [Loose]: M;
 
-  constructor(type: ObjectType<P>, keys: K[]) {
+  constructor(type: ObjectType<P>, keys: K[], mode?: M) {
     super();
     const props = { ...type.properties };
     for (const key of keys) {
       delete props[key];
     }
     this.#properties = props as Omit<P, K>;
+    this[Loose] = mode as M;
   }
 
   get name() {

@@ -11,19 +11,24 @@ import type RecordTypeKey from "#RecordTypeKey";
 import resolve from "#resolve";
 import type OptionalTrait from "#trait/Optional";
 import is from "@rcompat/is";
+import type Mode from "#Mode";
+import Loose from "#Loose";
 
 export default class RecordType<
   Key extends RecordTypeKey,
   Value extends Parsed<unknown>,
+  M extends Mode = undefined,
 > extends GenericType<Value, Record<Infer<Key>, Infer<Value>>, "RecordType">
   implements OptionalTrait {
   #key: Key;
   #value: Value;
+  [Loose]: M;
 
-  constructor(k: Key, v: Value) {
+  constructor(k: Key, v: Value, mode?: M) {
     super();
     this.#key = k;
     this.#value = v;
+    this[Loose] = mode as M;
   }
 
   optional() {
