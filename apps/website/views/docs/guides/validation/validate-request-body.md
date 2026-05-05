@@ -2,7 +2,7 @@
 title: Validate request body
 ---
 
-Validate incoming request body with schemas. Use pema for type-safe validation.
+Validate incoming request body with schemas. Use Pema for type-safe validation.
 
 !!!
 Validation throws on failure; handle errors appropriately.
@@ -41,9 +41,9 @@ const UserSchema = p({
 });
 
 export default route({
-  post(request) {
-      const user = UserSchema.parse(request.body);
-      return { user };
+  async post(request) {
+    const user = UserSchema.parse(await request.body.form());
+    return { user };
   },
 });
 ```
@@ -66,13 +66,13 @@ const UserSchema = p({
 
 export default route({
   async post(request) {
-      try {
-        const user = UserSchema.parse(request.body);
-        // save user
-        return { success: true };
-      } catch (error) {
-        return response.json({ error: error.message }, { status: 400 });
-      }
+    try {
+      const user = UserSchema.parse(await request.body.form());
+      // save user
+      return { success: true };
+    } catch (error) {
+      return response.json({ error: error.message }, { status: 400 });
+    }
   },
 });
 ```
