@@ -7,7 +7,7 @@ const sockets = new Set<any>();
 export default route({
   get(request) {
     // limit the number of messages a client can send
-    const limit = p.uint.coerce.default(20).parse(request.query.get("limit"));
+    const limit = p.loose.uint.default(20).parse(request.query.get("limit"));
     let n = 1;
     return response.ws({
       close(socket) {
