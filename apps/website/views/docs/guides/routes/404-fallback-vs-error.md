@@ -2,12 +2,13 @@
 title: 404 fallback vs. `+error.ts`
 ---
 
-Use a **rest route** for "not found" pages. Use **`+error.ts`** to handle errors thrown
-by matched routes. Only the **nearest** `+error.ts` runs; error handlers don't compose.
+Use a **rest route** for "not found" pages. Use **`+error.ts`** to handle
+errors thrown by matched routes. Only the **nearest** `+error.ts` runs; error
+handlers don't compose.
 
 !!!
-404 fallback ≠ error handler. The fallback only runs when nothing else matched. `+error.ts`
-runs when a matched route (or guard/layout) throws.
+404 fallback ≠ error handler. The fallback only runs when nothing else matched.
+`+error.ts` runs when a matched route (or hook/layout) throws.
 !!!
 
 ---

@@ -59,7 +59,7 @@ different routes, but every route must be uniquely handled by one backend.
 | [user/\[...name\].ts]                  | matches `/user/*` — `*` is anything _including_ zero or more `/`               |
 | [user/\[\[...name\]\].ts]              | matches `/user` _and_ `/user/*` — `*` is anything _including_ zero or more `/` |
 | [+layout.ts](/docs/routes#layouts)     | route layouts for routes in same directory and below                           |
-| [+guard.ts](/docs/routing#guards)      | route guard for routes in same directory and below                             |
+| [+hook.ts](/docs/routing#hook)         | route hook for routes in same directory and below                              |
 | [+error.ts](/docs/routing#error-files) | route error file for routes in same directory                                  |
 
 [user/\[name\].ts]: /docs/routing#dynamic-routes
