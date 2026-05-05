@@ -133,7 +133,7 @@ import p from "pema";
 import route from "primate/route";
 
 const Query = p({
-  page: p.uint.coerce.default(1),
+  page: p.loose.uint.default(1),
   filter: p.string.optional(),
 });
 
@@ -155,7 +155,7 @@ import p from "pema";
 import route from "primate/route";
 
 const Path = p({
-  userId: p.uint.coerce,
+  userId: p.loose.uint,
 });
 
 export default route({

@@ -71,7 +71,7 @@ We're using `[[slug]]` to denote an [optional](/docs/routing#optional-routes)
 path segment.
 !!!
 
-You can validate/coerce all parameters at once with a schema.
+You can validate all parameters at once with a schema.
 
 [s=request/path/schema]
 

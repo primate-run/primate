@@ -110,7 +110,8 @@ And wire it together with a route:
 [s=persist-data/route]
 
 !!!
-Use pema's `coerce` to turn web inputs into typed values before validation.
+Use pema's `loose` namespace to turn web inputs into typed values before
+validation.
 !!!
 
 ## Wrap up
