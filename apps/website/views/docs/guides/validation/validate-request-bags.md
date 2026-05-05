@@ -2,7 +2,7 @@
 title: Validate request bags
 ---
 
-Validate different parts of the request (query, params, headers). Use pema
+Validate different parts of the request (query, params, headers). Use Pema
 schemas.
 
 !!!
@@ -22,13 +22,13 @@ import p from "pema";
 
 const Query = p({
   q: p.string.min(1),
-  limit: p.uint.max(100).default(10),
+  limit: p.loose.uint.max(100).default(10),
 });
 
 export default route({
   get(request) {
-      const { q, limit } = Query.parse(request.query);
-      return { q, limit };
+    const { q, limit } = Query.parse(request.query);
+    return { q, limit };
   },
 });
 ```
@@ -46,8 +46,8 @@ import p from "pema";
 
 export default route({
   get(request) {
-      const id = p.uint.parse(request.path.get("id"));
-      return { id };
+    const id = p.loose.uint.parse(request.path.get("id"));
+    return { id };
   },
 });
 ```
@@ -64,10 +64,9 @@ import p from "pema";
 
 export default route({
   get(request) {
-      const auth = p.string
-        .startsWith("Bearer ")
-        .parse(request.headers.get("Authorization"));
-      return { auth };
+    const auth = p.string.startsWith("Bearer ")
+      .parse(request.headers.get("Authorization"));
+    return { auth };
   },
 });
 ```
