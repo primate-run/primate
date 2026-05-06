@@ -2,6 +2,8 @@ import type BuildApp from "#build/App";
 import plugin_alias from "#build/client/plugin/alias";
 import plugin_entrypoint from "#build/client/plugin/entrypoint";
 import plugin_frontend from "#build/client/plugin/frontend";
+import plugin_route_module from "#build/client/plugin/route-module";
+import plugin_route_view from "#build/client/plugin/route-view";
 import plugin_routes from "#build/client/plugin/routes";
 import plugin_server_stamp from "#build/client/plugin/server-stamp";
 import plugin_view from "#build/client/plugin/view";
@@ -56,6 +58,8 @@ export default async function build_client(app: BuildApp) {
   app.plugin("client", plugin_alias(app));
   app.plugin("client", plugin_view(app));
   app.plugin("client", plugin_app_request(app));
+  app.plugin("client", plugin_route_view(app));
+  app.plugin("client", plugin_route_module(app));
   app.plugin("client", plugin_routes(app));
   app.plugin("client", plugin_server_stamp(app));
   app.plugin("client", plugin_entrypoint(app));

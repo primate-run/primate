@@ -67,6 +67,16 @@
       "browser": "./lib/public/route.client.js",
       "default": "./lib/public/route.js"
     },
+    "./response": {
+      "@primate/source": "./src/public/response.ts",
+      "browser": "./lib/private/response.client.js",
+      "default": "./lib/public/response.js"
+    },
+    "./store": {
+      "@primate/source": "./src/public/store.ts",
+      "browser": "./lib/private/store.client.js",
+      "default": "./lib/public/store.js"
+    },
     "./*": {
       "@primate/source": "./src/public/*.ts",
       "default": "./lib/public/*.js"

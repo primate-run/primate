@@ -337,6 +337,8 @@ export default function frontend_module<
                   e.replace(".", "\\.")).join("|")})$`);
 
                 build.onLoad({ filter }, async args => {
+                  if (args.namespace !== "file") return null;
+
                   const file = fs.ref(args.path);
                   // compile file to JavaScript and potentially CSS
                   const compiled = await compile_client(await file.text(), file
