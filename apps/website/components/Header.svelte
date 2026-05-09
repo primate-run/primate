@@ -3,6 +3,7 @@
   import Icons from "#component/Icons";
   import Icon from "#component/Icon";
   import theme from "#config/theme";
+  import colorscheme from "#localStorage";
 
   export let title;
 
@@ -11,14 +12,12 @@
     colorscheme.update((value) => (value === "dark" ? "light" : "dark"));
 
   let highlight = (_) => "";
-  let colorscheme;
 
   const clipboard = (text) => {
     globalThis.navigator.clipboard.writeText(text);
   };
 
   async function updated() {
-    colorscheme = (await import("#static/localStorage.ts")).default;
     colorscheme.subscribe((value) => {
       updateThemeColor(value === "dark" ? "#161616" : "#ffffff");
     });
