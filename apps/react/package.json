@@ -20,8 +20,8 @@
     "@rcompat/env": "^0.22.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   },
   "devDependencies": {
     "@primate/test": "workspace:^",

@@ -30,7 +30,7 @@
     "@rcompat/io": "^0.10.0",
     "@rcompat/is": "^0.11.0",
     "pema": "workspace:^",
-    "pyodide": "^0.29.3"
+    "pyodide": "^0.29.4"
   },
   "devDependencies": {
     "@rcompat/type": "^0.17.0"

@@ -20,7 +20,7 @@
     "@primate/svelte": "workspace:^",
     "@rcompat/assert": "^0.13.0",
     "@rcompat/env": "^0.22.0",
-    "bits-ui": "^2.18.0",
+    "bits-ui": "^2.18.1",
     "mode-watcher": "^1.1.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
