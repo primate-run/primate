@@ -13,8 +13,6 @@ async function refetch(
   init: RequestInit = {},
   max_hops = 5,
 ): Promise<{ requested: URL; response: Response }> {
-  console.log("location.href", globalThis.location.href);
-  console.log("input", input.toString());
   let url = new URL(input.toString(), globalThis.location.href);
 
   const method = (init.method ?? "GET").toUpperCase();
