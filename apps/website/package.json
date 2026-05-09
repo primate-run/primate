@@ -41,5 +41,11 @@
     "@primate/vue": "workspace:^",
     "marked": "^18.0.2",
     "pema": "workspace:^"
+  },
+  "imports": {
+    "#localStorage": {
+      "browser": "./components/localStorage.client.ts",
+      "default": "./components/localStorage.server.ts"
+    }
   }
 }
