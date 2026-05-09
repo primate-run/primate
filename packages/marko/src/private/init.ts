@@ -1,13 +1,13 @@
 import type { Init } from "@primate/core/frontend";
-import type { Renderable } from "marko/src/runtime/html/Template.js";
+import type { Template } from "marko/src/runtime/html/index.js";
 
-const module: Init<Renderable> = {
+const module: Init<Template> = {
   name: "marko",
   extensions: [".marko"],
   layouts: false,
   client: false,
-  render(component, props) {
-    return { body: component.renderToString(props) };
+  async render(component, props) {
+    return { body: (await component.render(props)).toString() };
   },
 };
 
