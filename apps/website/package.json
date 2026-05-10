@@ -25,20 +25,6 @@
     "svelte": "^5.55.5"
   },
   "devDependencies": {
-    "@angular/common": "^21.2.12",
-    "@angular/core": "^21.2.12",
-    "@primate/angular": "workspace:^",
-    "@primate/go": "workspace:^",
-    "@primate/mongodb": "workspace:^",
-    "@primate/mysql": "workspace:^",
-    "@primate/postgresql": "workspace:^",
-    "@primate/python": "workspace:^",
-    "@primate/react": "workspace:^",
-    "@primate/ruby": "workspace:^",
-    "@primate/solid": "workspace:^",
-    "@primate/sqlite": "workspace:^",
-    "@primate/svelte": "workspace:^",
-    "@primate/vue": "workspace:^",
     "marked": "^18.0.2",
     "pema": "workspace:^"
   },
