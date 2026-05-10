@@ -1,8 +1,4 @@
-import http from "@rcompat/http";
 import type { Module } from "primate";
-
-const cookie = (name: string, value: string, secure: boolean) =>
-  `${name}=${value};HttpOnly;Path=/;${secure};SameSite=Strict`;
 
 const cookie_name = "color-scheme";
 
@@ -42,18 +38,7 @@ const website: () => Module = () => {
       });
 
       onHandle((request, next) => {
-        const { cookies, headers } = request;
-
-        const color_scheme = headers.try("Color-Scheme");
-
-        if (color_scheme !== undefined) {
-          return new Response(null, {
-            headers: {
-              "set-cookie": cookie(cookie_name, color_scheme, secure),
-            },
-            status: http.Status.OK,
-          });
-        }
+        const { cookies } = request;
 
         const scheme = cookies.try(cookie_name) ?? "light";
 

@@ -3,13 +3,18 @@
   import Icons from "#component/Icons";
   import Icon from "#component/Icon";
   import theme from "#config/theme";
-  import colorscheme from "#localStorage";
+  import { getColorScheme, setColorScheme } from "#schemeStorage";
 
   export let title;
 
+  let colorscheme;
+
   const part = (link) => link.split("/")[1];
-  const toggleColorScheme = () =>
-    colorscheme.update((value) => (value === "dark" ? "light" : "dark"));
+  
+  const toggleColorScheme = () => {
+    colorscheme = getColorScheme() === "dark" ? "light" : "dark";
+    setColorScheme(colorscheme);
+  }
 
   let highlight = (_) => "";
 
@@ -18,9 +23,8 @@
   };
 
   async function updated() {
-    colorscheme.subscribe((value) => {
-      updateThemeColor(value === "dark" ? "#161616" : "#ffffff");
-    });
+    colorscheme = getColorScheme();
+    updateThemeColor(colorscheme === "dark" ? "#161616" : "#ffffff");
 
     highlight = (link) =>
       part(link) === part(globalThis.window.location.pathname) ? "active" : "";
@@ -80,7 +84,9 @@
   onMount(() => {
     updated();
     globalThis.addEventListener("updated", updated);
-    return () => globalThis.removeEventListener("updated", updated);
+    return () => {
+      globalThis.removeEventListener("updated", updated);
+    }
   });
 </script>
 
@@ -107,7 +113,7 @@
     <div class="divider"></div>
 
     <button class="ic" on:click={toggleColorScheme}>
-      <Icon name={$colorscheme === "dark" ? "sun" : "moon"} />
+      <Icon name={colorscheme === "dark" ? "sun" : "moon"} />
     </button>
 
     {#each theme.links as link}
