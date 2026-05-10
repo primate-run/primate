@@ -43,9 +43,9 @@
     "pema": "workspace:^"
   },
   "imports": {
-    "#localStorage": {
-      "browser": "./components/localStorage.client.ts",
-      "default": "./components/localStorage.server.ts"
+    "#schemeStorage": {
+      "browser": "./components/schemeStorage.client.ts",
+      "default": "./components/schemeStorage.server.ts"
     }
   }
 }

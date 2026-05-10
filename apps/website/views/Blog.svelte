@@ -1,5 +1,6 @@
 <script>
   import Header from "#component/Header";
+  import { format, date } from "#component/dateTime";
 
   export let posts;
 
@@ -7,8 +8,7 @@
     const end = post.html.indexOf("</p>");
     return post.html.slice(0, end + "</p>".length);
   }
-  const format = { day: "2-digit", month: "short", year: "numeric" };
-  const date = (epoch) => new Date(epoch).toLocaleDateString("en-AU", format);
+
   const iso = (epoch) => new Date(epoch).toISOString().slice(0, 10);
 </script>
 
