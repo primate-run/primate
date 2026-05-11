@@ -8,12 +8,12 @@
     "bun:build": "bunx --bun primate build",
     "bun:serve": "bunx --bun primate serve",
     "bun:start": "bunx --bun primate",
-    "deps": "pnpm -r --filter={pema,@primate/core,@primate/handlebars,@primate/svelte,@primate/markdown,primate} build"
+    "deps": "pnpm -r --filter={pema,@primate/core,@primate/html,@primate/svelte,@primate/markdown,primate} build"
   },
   "dependencies": {
     "@plsp/svelte": "^0.1.0",
     "@primate/core": "workspace:^",
-    "@primate/handlebars": "workspace:^",
+    "@primate/html": "workspace:^",
     "@primate/markdown": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@rcompat/fs": "^0.33.2",

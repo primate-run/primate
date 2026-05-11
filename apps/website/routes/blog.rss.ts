@@ -26,6 +26,6 @@ export default route({
       partial: true,
     };
 
-    return response.view("blog.rss.hbs", props, options);
+    return response.view("blog.rss.html", props, options);
   },
 });
