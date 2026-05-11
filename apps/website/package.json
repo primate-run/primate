@@ -8,7 +8,7 @@
     "bun:build": "bunx --bun primate build",
     "bun:serve": "bunx --bun primate serve",
     "bun:start": "bunx --bun primate",
-    "deps": "pnpm -r --filter={pema,@primate/core,@primate/handlebars,@primate/svelte,@primate/markdown,primate} build"
+    "deps": "pnpm -r --filter={@primate/core,@primate/handlebars,@primate/svelte,@primate/markdown,primate} build"
   },
   "dependencies": {
     "@plsp/svelte": "^0.1.0",
@@ -39,8 +39,7 @@
     "@primate/sqlite": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@primate/vue": "workspace:^",
-    "marked": "^18.0.2",
-    "pema": "workspace:^"
+    "marked": "^18.0.2"
   },
   "imports": {
     "#schemeStorage": {
