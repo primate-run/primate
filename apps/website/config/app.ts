@@ -1,4 +1,4 @@
-import handlebars from "@primate/handlebars";
+import html from "@primate/html";
 import markdown from "@primate/markdown";
 import svelte from "@primate/svelte";
 import type { FileRef } from "@rcompat/fs";
@@ -97,7 +97,7 @@ export default config({
   },
   modules: [
     loader("woff2", "file"),
-    handlebars(),
+    html(),
     markdown({
       marked: {
         hooks: {

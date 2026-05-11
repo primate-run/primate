@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+  <channel>
+    <title>Primate Blog</title>
+    <link>https://primate.run/blog</link>
+    <description>Primate - ${description}</description>
+    ${entries.map(({ title, link, description }) =>
+    `<item>
+      <title>${title}</title>
+      <link>${link}</link>
+      <description>${description}</description>
+    </item>`).join("")}
+  </channel>
+</rss>

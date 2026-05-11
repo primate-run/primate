@@ -13,7 +13,7 @@
   "dependencies": {
     "@plsp/svelte": "^0.1.0",
     "@primate/core": "workspace:^",
-    "@primate/handlebars": "workspace:^",
+    "@primate/html": "workspace:^",
     "@primate/markdown": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@rcompat/fs": "^0.33.2",
