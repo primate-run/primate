@@ -65,7 +65,7 @@ import p from "pema";
 import store from "primate/store";
 
 export default store({
-  name: "session",
+  table: "session",
   db,
   schema: {
     id: store.key.primary(p.u32),

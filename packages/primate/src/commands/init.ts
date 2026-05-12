@@ -280,7 +280,7 @@ export default session({});`;
 }
 
 async function database_config(root: FileRef, db: Database) {
-  const file = root.join("config").join("database").join("index.ts");
+  const file = root.join("config").join("db.ts");
   await file.directory.create();
 
   const ident = to_ident(db);
@@ -427,11 +427,13 @@ async function tsconfig_json(root: FileRef, opts: { frontends: Frontend[] }) {
     compilerOptions: {
       baseUrl: "${configDir}",
       paths: {
-        "#config/*": ["config/*"],
         "#session": ["config/session"],
+        "#db": ["config/db"],
         "#i18n": ["config/i18n"],
+        "#config/*": ["config/*"],
         "#view/*": ["views/*"],
         "#component/*": ["components/*"],
+        "#route/*": ["routes/*"],
         "#store/*": ["stores/*"],
         "#locale/*": ["locales/*"],
         "#static/*": ["static/*"],
@@ -445,7 +447,6 @@ async function tsconfig_json(root: FileRef, opts: { frontends: Frontend[] }) {
       "stores",
       "locales",
       "static",
-      "test",
     ],
     exclude: ["node_modules"],
   };

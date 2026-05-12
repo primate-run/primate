@@ -55,7 +55,7 @@ export default postgresql({
 {
   "compilerOptions": {
     "paths": {
-      "#db": ["config/db.ts"]
+      "#db": ["config/db"]
     }
   }
 }
@@ -63,6 +63,17 @@ export default postgresql({
 
 The `#db` alias is conventional but not required — `@db`, `@/db`, or any other
 alias you prefer works equally well.
+
+If you plan to use your database or stores outside of Primate, make sure to add
+a `package.json` import as well.
+```json
+// package.json
+{
+  "imports": {
+    "#db": "./config/db.ts"
+  }
+}
+```
 
 ## Using a database in a store
 
