@@ -46,6 +46,7 @@
   "exports": {
     ".": {
       "@primate/source": "./src/public/index.ts",
+      "browser": "./lib/public/index.client.js",
       "default": "./lib/public/index.js"
     }
   }

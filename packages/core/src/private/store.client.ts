@@ -16,4 +16,14 @@ function store() {
   };
 }
 
+store.key = {
+  primary() { },
+  foreign() { },
+};
+store.relation = {
+  one() { },
+  many() { },
+  is() { },
+};
+
 export default store;

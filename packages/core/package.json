@@ -72,6 +72,11 @@
       "browser": "./lib/private/response.client.js",
       "default": "./lib/public/response.js"
     },
+    "./session/config": {
+      "@primate/source": "./src/public/session/config.ts",
+      "browser": "./lib/public/session/config.client.js",
+      "default": "./lib/public/session/config.js"
+    },
     "./store": {
       "@primate/source": "./src/public/store.ts",
       "browser": "./lib/private/store.client.js",

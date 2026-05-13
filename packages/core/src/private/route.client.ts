@@ -70,8 +70,8 @@ function headers(contentType: string | undefined): HeadersInit {
   return { "Content-Type": contentType };
 }
 
-function route<R extends RouteHandlers>(handlers: R) {
-  return {
+function route<R extends RouteHandlers>(handlers: R): ClientRoute<R> {
+  const r = {
     _handlers: Object.fromEntries(
       Object.entries(handlers).map(([method, value]) => {
         const options = is_with(value) ? value.options : {};
@@ -93,6 +93,7 @@ function route<R extends RouteHandlers>(handlers: R) {
       ) as ClientRoute<R>;
     },
   };
+  return r as never;
 }
 
 route.with = function <O extends RouteOptions>(
