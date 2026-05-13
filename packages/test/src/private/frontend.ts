@@ -221,6 +221,25 @@ function frontend(dirname: string) {
     assert(tab.window.location.search).equals("?foo=bar");
   });
 
+  if (csr) {
+    test.case("route client path param is interpolated", async assert => {
+      await using tab = await browser.open();
+      await tab.goto("/route-client/path/hello");
+      await tab.click("button");
+      await tab.waitfor(() => tab.get("#result").exists());
+      assert(tab.get("#result").json()).equals({ name: "hello" });
+    });
+
+    test.case("route client form with path param submits correctly", async assert => {
+      await using tab = await browser.open();
+      await tab.goto("/route-client/path-action/hello");
+      await tab.set("#foo", "world");
+      await tab.click("#send");
+      await tab.waitfor(() => tab.get("#result").exists());
+      assert(tab.get("#result").json()).equals({ name: "hello", foo: "world" });
+    });
+  }
+
   return browser;
 }
 

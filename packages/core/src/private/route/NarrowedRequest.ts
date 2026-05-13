@@ -1,3 +1,4 @@
+import type RequestBag from "#request/RequestBag";
 import type RequestBody from "#request/RequestBody";
 import type RequestFacade from "#request/RequestFacade";
 import type RouteOptions from "#route/Options";
@@ -21,8 +22,15 @@ type NarrowedBody<O extends RouteOptions, B extends RequestBody> =
   }
   : B;
 
-type NarrowedRequest<O extends RouteOptions> = Omit<RequestFacade, "body"> & {
-  body: NarrowedBody<O, RequestBody>;
-};
+type NarrowedPath<O extends RouteOptions> =
+  O extends { path: Parsed<infer T> }
+  ? RequestBag<Unpack<T>>
+  : RequestBag;
+
+type NarrowedRequest<O extends RouteOptions> =
+  Omit<RequestFacade, "body" | "path"> & {
+    body: NarrowedBody<O, RequestBody>;
+    path: NarrowedPath<O>;
+  };
 
 export type { NarrowedRequest as default };

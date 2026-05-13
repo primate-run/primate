@@ -15,7 +15,7 @@ function decode(s: string) {
   }
 };
 
-function normalize(k: string) {
+function normalize(k: any) {
   return k.toLowerCase();
 }
 

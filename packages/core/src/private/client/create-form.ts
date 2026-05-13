@@ -12,41 +12,52 @@ type FormErrors = {
   fields: Dict<FieldErrors>;
 };
 
-type FormSnapshot = {
+type FormSnapshot<Result = unknown> = {
   id: FormId;
   submitting: boolean;
   submitted: boolean;
+  result: Result | null;
   errors: FormErrors;
 };
 
-export type FormView = FormSnapshot & {
+export type FormView<Result = unknown> = FormSnapshot<Result> & {
   submit: (event?: Event) => Promise<void>;
 };
 
-type FormSubscriber = (snapshot: FormSnapshot) => void;
+type FormSubscriber<
+  Result = unknown,
+> = (snapshot: FormSnapshot<Result>) => void;
 
 export type MethodMeta = {
   contentType?: string;
 };
 
-export type ClientMethod<Values extends Dict = Dict> = MethodMeta &
-  ((args: { body: Values }) => Promise<Response>);
+export type ClientMethod<
+  Values extends Dict = Dict,
+  Path extends Dict = Dict,
+  Result = unknown,
+> = MethodMeta &
+  ((args: { body: Values; path: Path }) => Promise<Response>);
 
 export type FormInit = {
   id?: string;
   method?: "POST" | "PUT" | "PATCH" | "DELETE";
   url?: string;
   headers?: Dict<string>;
-  action?: (args: { body: unknown }) => Promise<Response>;
+  action?: (args: {
+    body: unknown;
+    path?: Dict<string>;
+  }) => Promise<Response>;
   contentType?: string;
+  path?: Dict<string>;
 };
 
-type FormController = {
+type FormController<Result = unknown> = {
   // reactive-like API for wrappers
-  subscribe(fn: FormSubscriber): () => void;
+  subscribe(fn: FormSubscriber<Result>): () => void;
 
   // sync read of current state
-  read(): FormSnapshot;
+  read(): FormSnapshot<Result>;
 
   // submit DOM form
   submit(event?: Event): Promise<void>;
@@ -95,17 +106,18 @@ function form_data_body(form_data: FormData): FormData | URLSearchParams {
   return new URLSearchParams(form_data as unknown as Record<string, string>);
 }
 
-export default function createForm(init: FormInit): FormController {
+function createForm<Result = unknown>(init: FormInit): FormController<Result> {
   const id = init.id ?? `form-${crypto.randomUUID()}`;
 
-  let snapshot: FormSnapshot = {
+  let snapshot: FormSnapshot<Result> = {
     id,
     submitting: false,
     submitted: false,
+    result: null,
     errors: { form: [], fields: {} },
   };
 
-  const subscribers = new Set<FormSubscriber>();
+  const subscribers = new Set<FormSubscriber<Result>>();
 
   function publish() {
     for (const s of subscribers) s(snapshot);
@@ -174,14 +186,25 @@ export default function createForm(init: FormInit): FormController {
 
     try {
       const response = await (is.defined(init.action)
-        ? init.action({ body: content_type_body(init.contentType, form_data) })
+        ? init.action({
+          body: content_type_body(init.contentType, form_data),
+          path: init.path,
+        })
         : submit(url, form_data_body(form_data), method)
       );
 
       if (response.ok) {
         // on success: clear errors, let the app decide what to do next
         // (redirect/reload)
-        snapshot = { ...snapshot, submitted: true, errors: { form: [], fields: {} } };
+        const result = response.status === 204
+          ? null
+          : await response.json() as Result;
+        snapshot = {
+          ...snapshot,
+          submitted: true,
+          result,
+          errors: { form: [], fields: {} },
+        };
         publish();
         return;
       }
@@ -191,13 +214,17 @@ export default function createForm(init: FormInit): FormController {
       setErrors(issues);
     } catch (error) {
       // network error
-      setErrors([{ type: "network_error", message: (error as Error).message, path: "" }]);
+      setErrors([{
+        type: "network_error",
+        message: (error as Error).message,
+        path: "",
+      }]);
     } finally {
       setSubmitting(false);
     }
   }
 
-  function subscribe(fn: FormSubscriber) {
+  function subscribe(fn: FormSubscriber<Result>) {
     subscribers.add(fn);
     fn(snapshot); // emit current
     return () => subscribers.delete(fn);
@@ -216,3 +243,5 @@ export default function createForm(init: FormInit): FormController {
     },
   };
 }
+
+export default createForm;

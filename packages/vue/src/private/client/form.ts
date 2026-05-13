@@ -3,10 +3,11 @@ import core from "@primate/core/client";
 import type { Dict } from "@rcompat/type";
 import { onUnmounted, shallowRef } from "vue";
 
-type FormView<Values extends Dict> = {
+type FormView<Values extends Dict, Result = unknown> = {
   id: string;
   submitting: boolean;
   submitted: boolean;
+  result: Result | null;
   submit: (event?: Event) => Promise<void>;
   errors: string[];
   field: <K extends keyof Values & string>(name: K) => {
@@ -19,13 +20,12 @@ type FormView<Values extends Dict> = {
 
 type Initial<Values extends Dict> = FormInit & { initial?: Values };
 
-function form<Values extends Dict>(
-  action: ClientMethod<Values>,
-  init?: Initial<Values>,
-): FormView<Values>;
+function form<Values extends Dict, Path extends Dict, Result = unknown>(
+  action: ClientMethod<Values, Path> & { _result?: Result },
+  init?: Initial<Values> & { path?: Path },
+): FormView<Values, Result>;
 function form<Values extends Dict>(init: Initial<Values>): FormView<Values>;
 function form(init?: FormInit): FormView<Dict>;
-
 function form<Values extends Dict = Dict>(
   action_or_init?: ClientMethod | Initial<Values>,
   maybe_init?: Initial<Values>,
@@ -41,7 +41,10 @@ function form<Values extends Dict = Dict>(
   const controller = core.createForm({
     ...form_init,
     ...action !== undefined && {
-      action: action as (args: { body: unknown }) => Promise<Response>,
+      action: action as (args: {
+        body: unknown;
+        path?: Dict<string>;
+      }) => Promise<Response>,
       contentType,
     },
   });
@@ -50,34 +53,29 @@ function form<Values extends Dict = Dict>(
   const unsubscribe = controller.subscribe(next => {
     snapshot.value = next;
   });
-
   onUnmounted(unsubscribe);
-
   return {
     get id() {
       return snapshot.value.id;
     },
-
     get submitting() {
       return snapshot.value.submitting;
     },
-
     get submitted() {
       return snapshot.value.submitted;
     },
-
+    get result() {
+      return snapshot.value.result;
+    },
     submit(event?: Event) {
       return controller.submit(event);
     },
-
     get errors() {
       return snapshot.value.errors.form;
     },
-
     field(name) {
       const key = name as string;
       const errors = snapshot.value.errors.fields[key] ?? [];
-
       return {
         name: key,
         value: values[name],

@@ -20,7 +20,7 @@ type ObjectInfer<P extends Dict<Parsed<unknown>>> = {
 };
 
 export default class ObjectType<
-  P extends Dict<Parsed<unknown>>,
+  P extends Dict<Parsed<unknown>> = Dict<Parsed<unknown>>,
   M extends Mode = undefined,
   I = ObjectInfer<P>,
 > extends GenericType<P, I, "ObjectType">

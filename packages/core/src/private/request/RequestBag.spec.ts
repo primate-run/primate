@@ -5,15 +5,15 @@ import undef from "@rcompat/test/undef";
 import type { Dict } from "@rcompat/type";
 import p from "pema";
 
-const toLower = (k: string) => k.toLowerCase();
+const toLower = (k: any) => k.toLowerCase();
 
-function bag(
+function bag<T extends Dict>(
   input: Dict<string | undefined>,
   name = "test",
   raw = "",
-  normalize?: (k: string) => string,
+  normalize?: (k: keyof T) => string,
 ) {
-  return new RequestBag(input, name, { normalize, raw });
+  return new RequestBag<T>(input as T, name, { normalize, raw });
 }
 
 test.case("construct: raw and name are set; toString mirrors raw", assert => {

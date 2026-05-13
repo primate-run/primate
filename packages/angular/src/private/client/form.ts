@@ -11,10 +11,11 @@ type Field<T> = {
   error: Signal<string | null>;
 };
 
-type FormView<Values extends Dict> = {
+type FormView<Values extends Dict, Result = unknown> = {
   id: string;
   submitting: Signal<boolean>;
   submitted: Signal<boolean>;
+  result: Signal<Result | null>;
   submit: (event?: Event) => Promise<void>;
   errors: Signal<string[]>;
   field: <K extends keyof Values & string>(name: K) => Field<Values[K]>;
@@ -30,10 +31,10 @@ function try_destroy_ref(): DestroyRef | null {
   }
 }
 
-function form<Values extends Dict>(
-  action: ClientMethod<Values>,
-  init?: Initial<Values>,
-): FormView<Values>;
+function form<Values extends Dict, Path extends Dict, Result = unknown>(
+  action: ClientMethod<Values, Path> & { _result?: Result },
+  init?: Initial<Values> & { path?: Path },
+): FormView<Values, Result>;
 function form<Values extends Dict>(init: Initial<Values>): FormView<Values>;
 function form(init?: FormInit): FormView<Dict>;
 function form<Values extends Dict = Dict>(
@@ -51,7 +52,10 @@ function form<Values extends Dict = Dict>(
   const controller = core.createForm({
     ...form_init,
     ...(action !== undefined && {
-      action: action as (args: { body: unknown }) => Promise<Response>,
+      action: action as (args: {
+        body: unknown;
+        path?: Dict<string>;
+      }) => Promise<Response>,
       contentType,
     }),
   });
@@ -61,9 +65,9 @@ function form<Values extends Dict = Dict>(
   try_destroy_ref()?.onDestroy(unsubscribe);
   const submitting = computed(() => snap().submitting);
   const submitted = computed(() => snap().submitted);
+  const result = computed(() => snap().result);
   const errors = computed(() => snap().errors.form);
   const cache = new Map<string, Field<any>>();
-
   function field<K extends keyof Values & string>(name: K): Field<Values[K]> {
     const cached = cache.get(name);
     if (cached) return cached as Field<Values[K]>;
@@ -77,11 +81,11 @@ function form<Values extends Dict = Dict>(
     cache.set(name, view);
     return view;
   }
-
   return {
     id: controller.id,
     submitting,
     submitted,
+    result,
     submit: (event?: Event) => controller.submit(event),
     errors,
     field,

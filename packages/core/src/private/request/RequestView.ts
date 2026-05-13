@@ -1,12 +1,11 @@
-import type { Dict } from "@rcompat/type";
-
+import type { Dict, PartialDict } from "@rcompat/type";
 type RequestView = {
   context: Dict;
-  cookies: Dict<string>;
-  headers: Dict<string>;
-  path: Dict<string>;
-  query: Dict<string>;
+  cookies: PartialDict<string>;
+  headers: PartialDict<string>;
+  path: PartialDict<string>;
+  query: PartialDict<string>;
   url: URL;
 };
 
-export type { RequestView as default };;
+export type { RequestView as default };

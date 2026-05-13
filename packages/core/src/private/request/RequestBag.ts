@@ -2,20 +2,18 @@ import E from "#errors";
 import assert from "@rcompat/assert";
 import fn from "@rcompat/fn";
 import symbol from "@rcompat/symbol";
-import type { PartialDict } from "@rcompat/type";
+import type { Dict } from "@rcompat/type";
 
-type Contents = PartialDict<string>;
-type Normalize = (key: string) => string;
-
-type Options = {
-  normalize?: Normalize;
+type Normalize<T> = (key: keyof T & string) => string;
+type Options<T> = {
+  normalize?: Normalize<T>;
   raw?: string;
 };
 
-export default class RequestBag {
-  #contents: Contents;
+export default class RequestBag<T extends Dict = Dict<string>> {
+  #contents: T;
   #name: string;
-  #normalize: Normalize;
+  #normalize: Normalize<T>;
   #raw: string;
 
   [symbol.parse]() {
@@ -29,27 +27,25 @@ export default class RequestBag {
    * @param name - Human-readable bag name used in error messages.
    * @param options - Optional `normalize` function and `raw` string.
    */
-  constructor(input: Contents, name: string, options?: Options) {
+  constructor(input: T, name: string, options?: Options<T>) {
     assert.dict(input);
     assert.string(name);
     assert.maybe.dict(options);
     assert.maybe.function(options?.normalize);
     assert.maybe.string(options?.raw);
-
     this.#name = name;
-    this.#normalize = options?.normalize ?? fn.identity;
+    this.#normalize = options?.normalize ?? (fn.identity as Normalize<T>);
     this.#raw = options?.raw ?? "";
-
-    const contents: Contents = Object.create(null);
-    for (const key of Object.keys(input)) {
-      // last-wins semantics if only case differs
-      contents[this.#normalize(key)] = input[key];
+    const contents = Object.create(null) as T;
+    for (const key of Object.keys(input as object)) {
+      contents[this.#normalize(key as keyof T & string) as keyof T] =
+        input[key as keyof T];
     }
     this.#contents = contents;
   }
 
   #hasOwn(k: string) {
-    return Object.hasOwn(this.#contents, k);
+    return Object.hasOwn(this.#contents as object, k);
   }
 
   /**
@@ -66,17 +62,19 @@ export default class RequestBag {
    * @returns the number of elements in the bag.
    */
   get size() {
-    return Object.keys(this.#contents).length;
+    return Object.keys(this.#contents as object).length;
   }
 
   /**
    * Iterate over `[key, value]` entries in the bag.
    * Keys are post-normalization; entries with `undefined` values are skipped.
    */
-  *[Symbol.iterator](): IterableIterator<readonly [string, string]> {
-    for (const k of Object.keys(this.#contents)) {
-      const v = this.#contents[k];
-      if (v !== undefined) yield [k, v] as const;
+  *[Symbol.iterator](): IterableIterator<[keyof T & string, T[keyof T & string]]> {
+    for (const k of Object.keys(this.#contents as object)) {
+      const v = this.#contents[k as keyof T];
+      if (v !== undefined) {
+        yield [k as keyof T & string, v as T[keyof T & string]] as const;
+      }
     }
   }
 
@@ -87,14 +85,12 @@ export default class RequestBag {
    * @returns The defined value.
    * @throws If the key is absent or its value is `undefined`.
    */
-  get(key: string): string {
-    const k = this.#normalize(key);
-
-    if (this.#hasOwn(k)) {
+  get<K extends keyof T & string>(key: K): T[K] {
+    const k = this.#normalize(key) as keyof T;
+    if (this.#hasOwn(k as string)) {
       const v = this.#contents[k];
-      if (v !== undefined) return v;
+      if (v !== undefined) return v as T[K];
     }
-
     throw E.request_bag_missing_key(this.#name, key);
   }
 
@@ -104,10 +100,9 @@ export default class RequestBag {
    * @param key - Key to look up (pre-normalization).
    * @returns The value, or `undefined` if absent/undefined.
    */
-  try(key: string): string | undefined {
-    const k = this.#normalize(key);
-
-    return this.#hasOwn(k) ? this.#contents[k] : undefined;
+  try<K extends keyof T & string>(key: K): T[K] | undefined {
+    const k = this.#normalize(key) as keyof T;
+    return this.#hasOwn(k as string) ? this.#contents[k] as T[K] : undefined;
   }
 
   /**
@@ -116,15 +111,14 @@ export default class RequestBag {
    * @param key - Key to test (pre-normalization).
    * @returns `true` if present with a defined value; otherwise `false`.
    */
-  has(key: string): boolean {
-    const k = this.#normalize(key);
-
-    return this.#hasOwn(k) && this.#contents[k] !== undefined;
+  has<K extends keyof T & string>(key: K): boolean {
+    const k = this.#normalize(key) as keyof T;
+    return this.#hasOwn(k as string) && this.#contents[k] !== undefined;
   }
 
   /** Returns {@link raw}. Useful in template strings. */
   toString() {
-    return this.raw;
+    return this.#raw;
   }
 
   /**
@@ -132,7 +126,7 @@ export default class RequestBag {
    *
    * @returns A shallow null-prototype clone of the bag's contents.
    */
-  toJSON() {
+  toJSON(): T {
     return Object.assign(Object.create(null), this.#contents);
   }
 }

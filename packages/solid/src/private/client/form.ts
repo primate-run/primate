@@ -3,10 +3,11 @@ import core from "@primate/core/client";
 import type { Dict } from "@rcompat/type";
 import { createSignal, onCleanup } from "solid-js";
 
-type FormView<Values extends Dict> = {
+type FormView<Values extends Dict, Result = unknown> = {
   id: string;
   submitting: boolean;
   submitted: boolean;
+  result: Result | null;
   submit: (event?: Event) => Promise<void>;
   errors: string[];
   field: <K extends keyof Values & string>(name: K) => {
@@ -19,13 +20,12 @@ type FormView<Values extends Dict> = {
 
 type Initial<Values extends Dict> = FormInit & { initial?: Values };
 
-function form<Values extends Dict>(
-  action: ClientMethod<Values>,
-  init?: Initial<Values>,
-): FormView<Values>;
+function form<Values extends Dict, Path extends Dict, Result = unknown>(
+  action: ClientMethod<Values, Path> & { _result?: Result },
+  init?: Initial<Values> & { path?: Path },
+): FormView<Values, Result>;
 function form<Values extends Dict>(init: Initial<Values>): FormView<Values>;
 function form(init?: FormInit): FormView<Dict>;
-
 function form<Values extends Dict = Dict>(
   action_or_init?: ClientMethod | Initial<Values>,
   maybe_init?: Initial<Values>,
@@ -34,16 +34,17 @@ function form<Values extends Dict = Dict>(
   const { initial, ...form_init } = (
     is_action ? (maybe_init ?? {}) : (action_or_init ?? {})
   ) as Initial<Values>;
-
   const action = is_action ? action_or_init : undefined;
   const contentType = is_action
     ? (action_or_init as MethodMeta).contentType
     : undefined;
-
   const controller = core.createForm({
     ...form_init,
     ...action !== undefined && {
-      action: action as (args: { body: unknown }) => Promise<Response>,
+      action: action as (args: {
+        body: unknown;
+        path?: Dict<string>;
+      }) => Promise<Response>,
       contentType,
     },
   });
@@ -51,31 +52,27 @@ function form<Values extends Dict = Dict>(
   const [snapshot, setSnapshot] = createSignal(controller.read());
   const unsubscribe = controller.subscribe(next => setSnapshot(next));
   onCleanup(unsubscribe);
-
   return {
     get id() {
       return snapshot().id;
     },
-
     get submitting() {
       return snapshot().submitting;
     },
-
     get submitted() {
       return snapshot().submitted;
     },
-
+    get result() {
+      return snapshot().result;
+    },
     submit(event?: Event) {
       return controller.submit(event);
     },
-
     get errors() {
       return snapshot().errors.form;
     },
-
     field(name) {
       const key = name as string;
-
       return {
         name: key,
         value: values[name],

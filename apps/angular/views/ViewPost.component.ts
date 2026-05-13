@@ -2,7 +2,6 @@ import t from "#i18n";
 import { Component, Input } from "@angular/core";
 
 @Component({
-  selector: "post-detail",
   template: `
     <h1>{{ t("title") }}: {{ post.title }}</h1>
     <div>Id: {{ post.id }}</div>

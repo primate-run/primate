@@ -27,6 +27,7 @@
     "svelte": "^5.55.5"
   },
   "devDependencies": {
-    "@primate/test": "workspace:^"
+    "@primate/test": "workspace:^",
+    "typescript": "^6.0.3"
   }
 }

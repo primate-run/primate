@@ -8,7 +8,7 @@
     "build:packages": "pnpm -r --filter='./packages/**' build",
     "build:apps": "pnpm -r --filter='./apps/**' build",
     "eject": "node scripts/eject.js",
-    "clean": "pnpm -r clean",
+    "clean": "pnpm clean",
     "publish": "pnpm -r --access=public publish",
     "upgrade": "pnpm -r update -i -L",
     "lint": "eslint .",
@@ -23,9 +23,10 @@
     "@rcompat/test": "^0.17.0",
     "@types/node": "^25.6.0",
     "@typescript/native-preview": "7.0.0-dev.20260508.1",
-    "apekit": "^0.0.53",
+    "apekit": "0.0.51",
     "eslint": "^9.39.2",
     "knip": "^6.9.0",
-    "proby": "^0.19.0"
+    "proby": "^0.19.0",
+    "typescript": "^6.0.3"
   }
 }

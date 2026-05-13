@@ -2,17 +2,18 @@ import type {
   ClientMethod,
   FormInit,
   FormView,
-  MethodMeta
+  MethodMeta,
 } from "@primate/core/client";
 import client from "@primate/core/client";
 import type { Dict } from "@rcompat/type";
 import type { Readable } from "svelte/store";
 import { writable } from "svelte/store";
 
-type SvelteFormView<Values extends Dict> = {
+type SvelteFormView<Values extends Dict, Result = unknown> = {
   id: string;
   submitting: boolean;
   submitted: boolean;
+  result: Result | null;
   submit: (event?: Event) => Promise<void>;
   errors: readonly string[];
   field: <K extends keyof Values & string>(name: K) => {
@@ -25,10 +26,10 @@ type SvelteFormView<Values extends Dict> = {
 
 type Initial<Values extends Dict> = FormInit & { initial?: Values };
 
-function form<Values extends Dict>(
-  action: ClientMethod<Values>,
-  init?: Initial<Values>,
-): Readable<SvelteFormView<Values>>;
+function form<Values extends Dict, Path extends Dict, Result = unknown>(
+  action: ClientMethod<Values, Path> & { _result?: Result },
+  init?: Initial<Values> & { path?: Path },
+): Readable<SvelteFormView<Values, Result>>;
 function form<Values extends Dict>(
   init: Initial<Values>,
 ): Readable<SvelteFormView<Values>>;
@@ -48,7 +49,10 @@ function form<Values extends Dict = Dict>(
   const controller = client.createForm({
     ...form_init,
     ...(action !== undefined && {
-      action: action as (args: { body: unknown }) => Promise<Response>,
+      action: action as (args: {
+        body: unknown;
+        path?: Dict<string>;
+      }) => Promise<Response>,
       contentType,
     }),
   });
@@ -59,6 +63,7 @@ function form<Values extends Dict = Dict>(
       id: snapshot.id,
       submitting: snapshot.submitting,
       submitted: snapshot.submitted,
+      result: snapshot.result,
       submit: controller.submit,
       errors: form_errors,
       field(name) {

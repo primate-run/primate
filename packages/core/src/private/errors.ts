@@ -46,6 +46,15 @@ function build_unrecognized_loader(seen: string) {
   const loaders = ["file"];
   return t`unrecognised loader ${seen}; supported loaders: ${loaders}`;
 }
+function build_path_schema_mismatch(
+  route: string,
+  method: string,
+  expected: string[],
+  declared: string[]) {
+  return t`route ${route} method ${method}:
+    path schema keys [${declared.join(", ")}] do not match
+    dynamic segments [${expected.join(", ")}]`;
+}
 
 const BUILD = error.coded({
   build_missing_binary_addon,
@@ -55,6 +64,7 @@ const BUILD = error.coded({
   build_no_path_schema,
   build_body_requires_content_type,
   build_unrecognized_loader,
+  build_path_schema_mismatch,
 });
 
 function config_file_missing() {

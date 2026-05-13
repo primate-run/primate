@@ -3,11 +3,12 @@ import core from "@primate/core/client";
 import type { Dict } from "@rcompat/type";
 import * as React from "react";
 
-type FormView<Values extends Dict> = {
+type FormView<Values extends Dict, Result = unknown> = {
   id: string;
   submitting: boolean;
   submitted: boolean;
-  submit: React.FormEventHandler<HTMLFormElement>;
+  result: Result | null;
+  submit: React.SubmitEventHandler<HTMLFormElement>;
   errors: string[];
   field: <K extends keyof Values & string>(name: K) => {
     name: string;
@@ -19,13 +20,12 @@ type FormView<Values extends Dict> = {
 
 type Initial<Values extends Dict> = FormInit & { initial?: Values };
 
-function form<Values extends Dict>(
-  action: ClientMethod<Values>,
-  init?: Initial<Values>,
-): FormView<Values>;
+function form<Values extends Dict, Path extends Dict, Result = unknown>(
+  action: ClientMethod<Values, Path> & { _result?: Result },
+  init?: Initial<Values> & { path?: Path },
+): FormView<Values, Result>;
 function form<Values extends Dict>(init: Initial<Values>): FormView<Values>;
 function form(init?: FormInit): FormView<Dict>;
-
 function form<Values extends Dict = Dict>(
   action_or_init?: ClientMethod | Initial<Values>,
   maybe_init?: Initial<Values>,
@@ -41,7 +41,10 @@ function form<Values extends Dict = Dict>(
   const controller = React.useMemo(() => core.createForm({
     ...form_init,
     ...action !== undefined && {
-      action: action as (args: { body: unknown }) => Promise<Response>,
+      action: action as (args: {
+        body: unknown;
+        path?: Dict<string>;
+      }) => Promise<Response>,
       contentType,
     },
   }), []);
@@ -51,7 +54,7 @@ function form<Values extends Dict = Dict>(
     controller.read,
     controller.read,
   );
-  const submit = React.useCallback<React.FormEventHandler<HTMLFormElement>>(
+  const submit = React.useCallback<React.SubmitEventHandler<HTMLFormElement>>(
     event => {
       controller.submit({
         preventDefault: () => event.preventDefault(),
@@ -61,12 +64,12 @@ function form<Values extends Dict = Dict>(
     },
     [controller],
   );
-
   return React.useMemo(() => {
     const view: FormView<Values> = {
       id: snapshot.id,
       submitting: snapshot.submitting,
       submitted: snapshot.submitted,
+      result: snapshot.result,
       submit,
       errors: snapshot.errors.form,
       field(name) {

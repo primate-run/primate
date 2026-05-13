@@ -16,13 +16,28 @@ class Router {
   #routes: Dict<RoutePath> = {};
   #hooks: Dict<RequestHook[]> = {};
 
-  add(path: string, method: Method, handler: RouteHandler, options?: RouteOptions) {
+  add(
+    path: string,
+    method: Method,
+    handler: RouteHandler,
+    options?: RouteOptions,
+  ) {
     assert.string(path);
     assert.string(method);
     assert.function(handler);
     assert.maybe.dict(options);
 
     if (is_hook_file(path)) throw E.hook_route_functions_not_allowed(path);
+
+    if (options?.path !== undefined) {
+      const declared = Object.keys(options.path.properties);
+      const expected = [...path.matchAll(/\[([^\]]+)\]/g)].map(m => m[1]);
+      const missing = expected.filter(k => !declared.includes(k));
+      const extra = declared.filter(k => !expected.includes(k));
+      if (missing.length > 0 || extra.length > 0) {
+        throw E.build_path_schema_mismatch(path, method, expected, declared);
+      }
+    }
 
     if (!(path in this.#routes)) this.#routes[path] = {};
     this.#routes[path][method] = { handler, options: options ?? {} };

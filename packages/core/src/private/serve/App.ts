@@ -480,7 +480,7 @@ export default class ServeApp extends App {
     }
     const handler = route_path.handler;
 
-    const { contentType, body } = route_path.options;
+    const { contentType, body, path } = route_path.options;
 
     if (contentType !== undefined) {
       const raw = request.headers.try("content-type") ?? "";
@@ -491,10 +491,15 @@ export default class ServeApp extends App {
     }
 
     const refined = Object.assign(Object.create(request), {
-      path: new RequestBag(matched.params as PartialDict<string>, "path", {
-        normalize: k => k.toLowerCase(),
-        raw: request.url.pathname,
-      }),
+      path: new RequestBag(is.defined(path)
+        ? path.parse(matched.params) as PartialDict<string>
+        : matched.params as PartialDict<string>,
+        "path",
+        {
+          normalize: k => k.toLowerCase(),
+          raw: request.url.pathname,
+        },
+      ),
       ...(body !== undefined && contentType !== undefined
         ? { body: request.body[BodyPatch]({ contentType, schema: body }) }
         : {}),
