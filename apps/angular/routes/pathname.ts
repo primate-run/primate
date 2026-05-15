@@ -1,8 +1,9 @@
+import Pathname from "#view/Pathname";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
   get() {
-    return response.view("Pathname.component.ts");
+    return response.view(Pathname);
   },
 });

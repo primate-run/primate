@@ -1,12 +1,11 @@
+import PathAction from "#view/RouteClient/PathAction";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
   get(request) {
-    return response.view("RouteClient/PathAction.component.ts", {
-      name: request.path.get("name"),
-    });
+    return response.view(PathAction, { name: request.path.get("name") });
   },
   post: route.with({
     contentType: "application/x-www-form-urlencoded",

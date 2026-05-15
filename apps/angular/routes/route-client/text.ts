@@ -1,10 +1,11 @@
+import View from "#view/RouteClient/Text";
+import TopLevel from "#view/RouteClient/TopLevel/Text";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
   get(request) {
-    const toplevel = request.query.has("top-level") ? "TopLevel/" : "";
-    return response.view(`RouteClient/${toplevel}Text.component.ts`);
+    return response.view(request.query.has("top-level") ? TopLevel : View);
   },
   post: route.with({ contentType: "text/plain" }, request => {
     return request.body.text();

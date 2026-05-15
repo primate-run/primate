@@ -1,7 +1,7 @@
 import t from "#i18n";
 import { CommonModule } from "@angular/common";
 import type { TemplateRef } from "@angular/core";
-import { Component, Input } from "@angular/core";
+import { Component, Input, input } from "@angular/core";
 
 @Component({
   imports: [CommonModule],
@@ -9,7 +9,7 @@ import { Component, Input } from "@angular/core";
     <ul>
       <li>
         <a href="/">overview</a>
-        <div>Id: {{ user.name }}</div>
+        <div>Id: {{ $user.name }}</div>
       </li>
     </ul>
     <div>
@@ -22,13 +22,16 @@ layout start — <ng-container *ngTemplateOutlet="slot"></ng-container> — layo
   `,
 })
 export default class LayoutComponent {
-  @Input() user: any;
+  user = input<any>();
   @Input({ required: true }) slot!: TemplateRef<unknown>;
 
-  // Expose t to the template
-  t = (key: string) => t(key);
+  t = t;
 
   setLocale(locale: string) {
     t.locale.set(locale);
+  }
+
+  get $user() {
+    return this.user();
   }
 }

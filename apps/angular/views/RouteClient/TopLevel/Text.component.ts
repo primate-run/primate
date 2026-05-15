@@ -8,5 +8,5 @@ const result = await response.text();
   template: `<span id="result">{{ result }}</span>`,
 })
 export default class TopLevelText {
-  result = result;
+  result: string = result;
 }

@@ -1,5 +1,4 @@
-import { Component, Input } from "@angular/core";
-import type { Validated } from "@primate/angular";
+import { Component, computed, input } from "@angular/core";
 import { client } from "@primate/angular";
 
 @Component({
@@ -20,32 +19,29 @@ import { client } from "@primate/angular";
   `,
 })
 export default class CounterComponent {
-  @Input() id: string = "";
-  @Input("counter") initial: number = 0;
-
-  counter!: Validated<number>;
+  id = input<boolean>(false);
+  counter = input<number>(0);
+  c = computed(() => {
+    return client.field(this.counter()).post(`/counter?id=${this.id()}`);
+  });
 
   get value() {
-    return this.counter.value();
+    return this.c().value();
   }
 
   get loading() {
-    return this.counter.loading();
+    return this.c().loading();
   }
 
   get error() {
-    return this.counter.error();
-  }
-
-  ngOnInit() {
-    this.counter = client.field(this.initial).post(`/counter?id=${this.id}`);
+    return this.c().error();
   }
 
   increment() {
-    this.counter.update(n => n + 1);
+    this.c().update(n => n + 1);
   }
 
   decrement() {
-    this.counter.update(n => n - 1);
+    this.c().update(n => n - 1);
   }
 }

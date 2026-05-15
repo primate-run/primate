@@ -1,3 +1,37 @@
 {
-  "extends": "../tsconfig.json"
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "#view/*": [
+        "views/*.component.ts"
+      ],
+      "#route/*": [
+        "routes/*"
+      ],
+      "#component/*": [
+        "components/*.component.ts"
+      ],
+      "#store/*": [
+        "stores/*"
+      ],
+      "#locale/*": [
+        "locales/*"
+      ],
+      "#config/*": [
+        "config/*"
+      ],
+      "#static/*": [
+        "static/*"
+      ],
+      "#app": [
+        "config/app"
+      ],
+      "#session": [
+        "config/session"
+      ],
+      "#i18n": [
+        "config/i18n"
+      ]
+    }
+  }
 }

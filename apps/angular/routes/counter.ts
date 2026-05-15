@@ -1,4 +1,5 @@
 import Counter from "#store/Counter";
+import CounterView from "#view/Counter";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
@@ -13,7 +14,7 @@ export default route({
       ? await Counter.insert({ counter: 10 })
       : counters[0];
 
-    return response.view("Counter.component.ts", counter);
+    return response.view(CounterView, counter);
   },
   async post(request) {
     // validate that an id was provided

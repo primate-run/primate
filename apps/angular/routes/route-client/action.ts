@@ -1,10 +1,11 @@
+import Action from "#view/RouteClient/Action";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
   get() {
-    return response.view("RouteClient/Action.component.ts");
+    return response.view(Action);
   },
   post: route.with({
     contentType: "application/x-www-form-urlencoded",

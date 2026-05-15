@@ -1,7 +1,7 @@
 import Link from "#component/Link";
 import t from "#i18n";
 import { CommonModule } from "@angular/common";
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 
 @Component({
   imports: [CommonModule, Link],
@@ -10,7 +10,7 @@ import { Component, Input } from "@angular/core";
     <h1 (click)="onHeaderClick()">
       {{ t("all_posts") }}
     </h1>
-    <ng-container *ngFor="let post of posts">
+    <ng-container *ngFor="let post of $posts">
       <app-link [post]="post"></app-link>
     </ng-container>
     <h3>{{ t("counter") }}</h3>
@@ -26,10 +26,13 @@ import { Component, Input } from "@angular/core";
   `,
 })
 export default class PostIndex {
-  @Input() posts: any[] = [];
-  @Input() title: string = "";
-
+  posts = input<[]>([]);
+  title = input<string>("");
   count: number = 0;
+
+  get $posts() {
+    return this.posts();
+  }
 
   // Expose t to the template
   t = (key: string) => t(key);

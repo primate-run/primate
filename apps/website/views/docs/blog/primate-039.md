@@ -95,6 +95,56 @@ const form = client.form(route.post);
 `form.result` is `null` until the form is successfully submitted, and `null`
 again on a `204 No Content` response.
 
+## Angular modernization
+
+### Signal inputs
+
+Angular 20 introduces signal-based inputs as the new preferred way to declare
+component inputs, using `input()` and `input.required()`:
+
+```ts
+export default class CounterComponent {
+  id = input<string>("");
+  counter = input<number>(0);
+}
+```
+
+### `NgIf` → `@if`
+
+Angular 20 deprecates `NgIf` in favor of the built-in `@if` control flow syntax:
+
+```ts
+// before
+<p *ngIf="form.submitted()">submitted</p>
+
+// after
+@if (form.submitted()) {
+  <p>submitted</p>
+}
+```
+
+No import needed — `@if` is built into Angular's template compiler.
+
+### Importing components in routes
+
+Routes can now import Angular components directly instead of referencing them
+by filename string:
+
+```ts
+// before
+return response.view("Counter.component.ts", counter);
+
+// after
+import CounterView from "#view/Counter";
+return response.view(CounterView, counter);
+```
+
+Note that props are not yet type-checked against the component's inputs — that
+requires deeper integration with Angular's type system which is planned for a
+future release. That said, the import form is already preferable: you get
+jump-to-definition on the component and TypeScript will catch references to
+views that don't exist.
+
 ## Fin
 
 If you like Primate, consider [joining our Discord server][discord] or starring

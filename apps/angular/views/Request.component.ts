@@ -1,8 +1,6 @@
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 
-@Component({
-  template: `<span id="request">{{ request }}</span>`,
-})
+@Component({ template: `<span id="request">{{ request() }}</span>` })
 export default class Request {
-  @Input() request: string | undefined = undefined;
+  request = input<string>();
 }

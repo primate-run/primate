@@ -1,8 +1,9 @@
+import Layout from "#view/Layout";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
   get() {
-    return response.view("Layout.component.ts", { user: { name: "John" } });
+    return response.view(Layout, { user: { name: "John" } });
   },
 });

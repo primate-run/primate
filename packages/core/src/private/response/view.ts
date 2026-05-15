@@ -23,6 +23,11 @@ const backmap: Dict<string> = {
   jsx: "react",
 };
 
+function view(
+  component: abstract new (...args: any[]) => any,
+  props?: Dict,
+  options?: ViewOptions,
+): ResponseFunction;
 function view<Props>(
   component: (props: Props) => any,
   props: Props,
@@ -38,13 +43,6 @@ function view(
   props?: Dict,
   options?: ViewOptions,
 ): ResponseFunction;
-/**
- * Render a view component using a frontend for the given filename extension
- * @param view path to view
- * @param props props for view
- * @param options rendering options
- * @return Response rendering function
- */
 function view(name: any, props?: Dict, options?: ViewOptions): ResponseFunction {
   const view_name: string = name;
   return async (app, transfer, request) => {
@@ -53,7 +51,6 @@ function view(name: any, props?: Dict, options?: ViewOptions): ResponseFunction 
       .find(extension => extension !== undefined)
       ?.(view_name, props, options)(app, transfer, request);
     if (found_view !== undefined) return found_view;
-
     const extension = fs.ref(view_name).fullExtension.slice(1);
     throw E.frontend_missing(view_name, backmap[extension]);
   };

@@ -1,7 +1,31 @@
 import create_root from "#create-root";
 import init from "#init";
+import signal_inputs from "#signal-inputs";
 import frontend from "@primate/core/frontend";
-import * as ts from "typescript";
+import ts from "typescript";
+
+function compile(text: string, lib: string[]) {
+  const result = ts.transpileModule(signal_inputs(text), {
+    compilerOptions: {
+      module: ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ES2020,
+      experimentalDecorators: true,
+      emitDecoratorMetadata: true,
+      lib,
+      moduleResolution: ts.ModuleResolutionKind.NodeNext,
+    },
+  });
+
+  const style_match = text.match(/styles:\s*\[([\s\S]*?)\]/);
+
+  return {
+    js: result.outputText,
+    css: style_match === null ? "" : style_match[1]
+      .replace(/['"`]/g, "")
+      .replace(/\\n/g, "\n")
+      .trim(),
+  };
+}
 
 export default frontend({
   ...init,
@@ -12,45 +36,10 @@ export default frontend({
     filter: /\.component\.(css)$/,
   },
   compile: {
-    client: (text: string) => {
-      const result = ts.transpileModule(text, {
-        compilerOptions: {
-          module: ts.ModuleKind.ESNext,
-          target: ts.ScriptTarget.ES2020,
-          experimentalDecorators: true,
-          emitDecoratorMetadata: true,
-          lib: ["es2020", "dom"],
-          moduleResolution: ts.ModuleResolutionKind.NodeJs,
-        },
-      });
-
-      // extract inline styles
-      const style_match = text.match(/styles:\s*\[([\s\S]*?)\]/);
-
-      return {
-        js: result.outputText,
-        css: style_match === null ? "" : style_match[1]
-          .replace(/['"`]/g, "")
-          .replace(/\\n/g, "\n")
-          .trim(),
-      };
-    },
-
+    client: (text: string) => compile(text, ["es2020", "dom"]),
     server: (text: string) => {
-      // TypeScript compilation for server (SSR)
-      const result = ts.transpileModule(text, {
-        compilerOptions: {
-          module: ts.ModuleKind.ESNext,
-          target: ts.ScriptTarget.ES2020,
-          experimentalDecorators: true,
-          emitDecoratorMetadata: true,
-          lib: ["es2020"],
-          moduleResolution: ts.ModuleResolutionKind.NodeJs,
-        },
-      });
-
-      // hinder treeshaking
-      return `import "@angular/compiler";\n${result.outputText}`;
+      const result = compile(text, ["es2020"]);
+      return `import "@angular/compiler";\n${result.js}`;
     },
   },
 });

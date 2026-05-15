@@ -1,4 +1,5 @@
 import Counter from "#store/Counter";
+import Form from "#view/Form";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
@@ -13,7 +14,7 @@ export default route({
       ? await Counter.insert({ counter: 10 })
       : counters[0];
 
-    return response.view("Form.component.ts", counter);
+    return response.view(Form, counter);
   },
   async post(request) {
     const id = p.loose.u32.parse(request.query.get("id"));

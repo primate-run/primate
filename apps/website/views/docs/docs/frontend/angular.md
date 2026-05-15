@@ -30,7 +30,9 @@ import config from "primate/config";
 import angular from "@primate/angular";
 
 export default config({
-  modules: [angular()],
+  modules: [
+    angular(),
+  ],
 });
 ```
 
@@ -40,22 +42,24 @@ Create Angular components in `views`.
 
 ```ts
 // views/PostIndex.component.ts
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
 @Component({
   imports: [CommonModule],
   template: `
-    <h1>{{ title }}</h1>
-    <article *ngFor="let post of posts">
+    <h1>{{ title() }}</h1>
+    <article *ngFor="let post of posts()">
       <h2>{{ post.title }}</h2>
-      <p *ngIf="post.excerpt">{{ post.excerpt }}</p>
+      @if (post.excerpt) {
+        <p>{{ post.excerpt }}</p>
+      }
     </article>
   `,
 })
 export default class PostIndex {
-  @Input() title = "Blog";
-  @Input() posts: Array<{ title: string; excerpt?: string }> = [];
+  title = input("Blog");
+  posts = input<{ title: string; excerpt?: string }[]>([]);
 }
 ```
 
@@ -66,48 +70,44 @@ programmatically and do not need a selector.
 
 When referencing child components by tag (e.g., `<app-link>`), the child must
 declare a selector and the parent must include the child in `imports: [Child]`.
-Retain `CommonModule` when using `*ngIf` or `*ngFor`.
+Retain `CommonModule` when using `*ngFor`.
 !!!
 
 Serve the component from a route.
 
 ```ts
 // routes/posts.ts
+import PostIndex from "#view/PostIndex";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
   get() {
-      const posts = [
-        {
-          title: "First Post",
-          excerpt: "Introduction to Primate with Angular"
-        },
-        {
-          title: "Second Post",
-          excerpt: "Building reactive applications"
-        },
-      ];
+    const posts = [
+      { title: "First Post", excerpt: "Introduction to Primate with Angular" },
+      { title: "Second Post", excerpt: "Building reactive applications" },
+    ];
 
-      return response.view("PostIndex.component.ts", { title: "Blog", posts });
+    return response.view(PostIndex, { title: "Blog", posts });
   },
 });
 ```
 
 ## Props
 
-Props passed to `response.view` are mapped to `@Input()`s inside Angular
+Props passed to `response.view` are mapped to `input()` signals inside Angular
 components.
 
 Pass props from a route:
 
 ```ts
+import UserView from "#view/User";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
   get() {
-    return response.view("User.component.ts", {
+    return response.view(UserView, {
       user: { name: "John", role: "Developer" },
       permissions: ["read", "write"],
     });
@@ -115,27 +115,27 @@ export default route({
 });
 ```
 
-These props become `@Input()` properties in the component:
+These props become `input()` properties in the component:
 
 ```ts
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
 @Component({
   imports: [CommonModule],
   template: `
     <div>
-      <h2>{{ user.name }}</h2>
-      <p>Role: {{ user.role }}</p>
+      <h2>{{ user().name }}</h2>
+      <p>Role: {{ user().role }}</p>
       <ul>
-        <li *ngFor="let permission of permissions">{{ permission }}</li>
+        <li *ngFor="let permission of permissions()">{{ permission }}</li>
       </ul>
     </div>
   `,
 })
 export default class User {
-  @Input() user: any;
-  @Input() permissions: string[] = [];
+  user = input();
+  permissions = input<string[]>([]);
 }
 ```
 
@@ -203,36 +203,28 @@ export default class Counter {
 Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```ts
-import { Component, Input } from "@angular/core";
-import type { Validated } from "@primate/angular";
+import { Component, OnInit, computed, input } from "@angular/core";
 import { client } from "@primate/angular";
 
 @Component({
   template: `
     <h2>Counter</h2>
-    <button (click)="decrement()" [disabled]="loading">-</button>
-    <span>{{ value }}</span>
-    <button (click)="increment()" [disabled]="loading">+</button>
+    <button (click)="decrement()" [disabled]="c().loading()">-</button>
+    <span>{{ c().value() }}</span>
+    <button (click)="increment()" [disabled]="c().loading()">+</button>
 
-    @if (error) { <p style="color:red">{{ error.message }}</p> }
+    @if (c().error()) {
+      <p style="color:red">{{ c().error().message }}</p>
+    }
   `,
 })
 export default class Counter {
-  @Input() id = "";
-  @Input("counter") initial = 0;
+  id = input<string>("");
+  counter = input<number>(0);
+  c = computed(() => client.field(this.counter()).post(`/counter?id=${this.id()}`));
 
-  counter!: Validated<number>;
-
-  get value() { return this.counter.value(); }
-  get loading() { return this.counter.loading(); }
-  get error() { return this.counter.error(); }
-
-  ngOnInit() {
-    this.counter = client.field(this.initial).post(`/counter?id=${this.id}`);
-  }
-
-  increment() { this.counter.update(n => n + 1); }
-  decrement() { this.counter.update(n => n - 1); }
+  increment() { this.c().update(n => n + 1); }
+  decrement() { this.c().update(n => n - 1); }
 }
 ```
 
@@ -240,6 +232,7 @@ Add corresponding backend validation in the route:
 
 ```ts
 // routes/counter.ts
+import CounterView from "#view/Counter";
 import Counter from "#store/Counter";
 import route from "primate/route";
 import response from "primate/response";
@@ -247,86 +240,63 @@ import p from "pema";
 
 await Counter.create();
 
-// GET page
-
-// POST updates (called by validate().post)
-
 export default route({
   async get() {
-      const [existing] = await Counter.find({});
-      const counter = existing ?? await Counter.insert({ value: 10 });
+    const [existing] = await Counter.find({});
+    const counter = existing ?? await Counter.insert({ value: 10 });
 
-      return response.view("Counter.component.ts", {
-        id: counter.id,
-        counter: counter.value
-      });
+    return response.view(CounterView, {
+      id: counter.id,
+      counter: counter.value,
+    });
   },
   async post(request) {
-      // Ensure id is present
-      const id = p.string.parse(request.query.get("id"));
-      // Validate
-      const body = p.loose({ value: p.number }).parse(await request.body.form());
-      // Persist changes
-      await Counter.update(id, { set: { value: body.value } });
-      return null; // 204
+    const id = p.string.parse(request.query.get("id"));
+    const body = p.loose({ value: p.number }).parse(await request.body.form());
+    await Counter.update(id, { set: { value: body.value } });
+    return null;
   },
 });
 ```
 
-The wrapper automatically tracks loading states, captures validation errors, and
-posts updates on `update()` calls.
-
 ## Forms
-
-Install the Angular Forms package:
-
-```bash
-npm install @angular/forms
-```
 
 Create the form view:
 
 ```ts
-import { CommonModule } from "@angular/common";
-import { Component, inject } from "@angular/core";
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators
-} from "@angular/forms";
+import { Component, OnInit, input } from "@angular/core";
+import { client } from "@primate/angular";
+import route from "#route/login";
 
 @Component({
-  imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <input formControlName="email" placeholder="Email">
-      <div *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
-        Email is required and must be valid
-      </div>
+    @if (form) {
+      <form [id]="form.id" method="post" (submit)="form.submit($event)">
+        <input name="email" placeholder="Email" />
+        @if (form.field('email').error()) {
+          <div>{{ form.field('email').error() }}</div>
+        }
 
-      <input formControlName="password" type="password" placeholder="Password">
-      <div *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
-        Password must be at least 8 characters
-      </div>
+        <input name="password" type="password" placeholder="Password" />
+        @if (form.field('password').error()) {
+          <div>{{ form.field('password').error() }}</div>
+        }
 
-      <button type="submit" [disabled]="!form.valid">Submit</button>
-    </form>
+        @if (form.submitted()) {
+          <p>Logged in successfully.</p>
+        }
+
+        <button type="submit" [disabled]="form.submitting()">Submit</button>
+      </form>
+    }
   `,
 })
-export default class LoginForm {
-  fb = inject(FormBuilder);
-  form = this.fb.group({
-    email: ["", [Validators.required, Validators.email]],
-    password: ["", [Validators.required, Validators.minLength(8)]],
-  });
+export default class LoginForm implements OnInit {
+  form!: ReturnType<typeof client.form>;
 
-  async onSubmit() {
-    if (!this.form.valid) return;
-
-    await fetch("/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(this.form.value),
+  ngOnInit() {
+    this.form = client.form(route.post, {
+      initial: { email: "", password: "" },
     });
   }
 }
@@ -336,32 +306,31 @@ Add the corresponding route:
 
 ```ts
 // routes/login.ts
-import route from "primate/route";
+import LoginForm from "#view/LoginForm";
 import p from "pema";
-
-const LoginSchema = p({
-  email: p.string.email(),
-  password: p.string.min(8),
-});
+import response from "primate/response";
+import route from "primate/route";
 
 export default route({
   get() {
-    return response.view("LoginForm.component.ts");
+    return response.view(LoginForm);
   },
-  async post(request) {
-      const body = LoginSchema.parse(await request.body.json());
-
-      // implement authentication logic
-
-      return null; // 204 or redirect/response
-  },
+  post: route.with({
+    contentType: "application/json",
+    body: p({ email: p.string.email(), password: p.string.min(8) }),
+  }, async request => {
+    const { email, password } = await request.body.json();
+    // implement authentication logic
+    return null;
+  }),
 });
 ```
 
 ## Layouts
 
 For SSR with hydration, layouts accept a `slot: TemplateRef` and render it
-using `*ngTemplateOutlet`.
+using `*ngTemplateOutlet`. Note that `slot` must remain as `@Input()` since it
+is a template reference passed internally by Angular, not a regular prop.
 
 Create a layout view:
 
@@ -396,31 +365,29 @@ Next, register the layout using a `+layout.ts` file:
 
 ```ts
 // routes/+layout.ts
+import Layout from "#view/Layout";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
   get() {
-    return response.view("Layout.component.ts");
+    return response.view(Layout);
   },
 });
 ```
 
-This layout applies to all pages under this route subtree, rendering them
-inside the layout's slot.
-
 ### Passing Props to Layouts
-
-Pass props from `+layout.ts` to the layout view as standard inputs:
 
 ```ts
 // views/Layout.component.ts
-import { Component, Input, TemplateRef } from "@angular/core";
+import { Component, Input, TemplateRef, input } from "@angular/core";
+import { CommonModule } from "@angular/common";
 
 @Component({
+  imports: [CommonModule],
   template: `
     <header>
-      <h1>{{ brand }}</h1>
+      <h1>{{ brand() }}</h1>
       <nav>
         <a href="/">Home</a>
         <a href="/about">About</a>
@@ -434,22 +401,19 @@ import { Component, Input, TemplateRef } from "@angular/core";
 })
 export default class Layout {
   @Input({ required: true }) slot!: TemplateRef<unknown>;
-  @Input() brand = "My App";
+  brand = input("My App");
 }
 ```
 
-Then update the layout registration to pass the props:
-
 ```ts
 // routes/+layout.ts
+import Layout from "#view/Layout";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
   get() {
-    return response.view("Layout.component.ts", {
-      brand: "Primate Angular Demo"
-    });
+    return response.view(Layout, { brand: "Primate Angular Demo" });
   },
 });
 ```
@@ -505,25 +469,19 @@ export default class Page implements OnInit {
 
   ngOnInit() {
     this.title.setTitle(this.pageTitle);
-    this.meta.addTag({
-      name: "description",
-      content: "Learn more about us"
-    });
-    this.meta.addTag({
-      property: "og:title",
-      content: this.pageTitle
-    });
+    this.meta.addTag({ name: "description", content: "Learn more about us" });
+    this.meta.addTag({ property: "og:title", content: this.pageTitle });
   }
 }
 ```
 
 ## Configuration
 
-| Option     | Type       | Default       | Description                  |
-| ---------- | ---------- | ------------- | ---------------------------- |
-| extensions | `string[]` | `[".svelte"]` | Associated file extensions   |
-| ssr        | `boolean`  | `true`        | Enable server-side rendering |
-| csr        | `boolean`  | `true`        | Enable client-side rendering |
+| Option     | Type       | Default             | Description                  |
+| ---------- | ---------- | ------------------- | ---------------------------- |
+| extensions | `string[]` | `[".component.ts"]` | Associated file extensions   |
+| ssr        | `boolean`  | `true`              | Enable server-side rendering |
+| csr        | `boolean`  | `true`              | Enable client-side rendering |
 
 ### Example
 
@@ -534,7 +492,6 @@ import angular from "@primate/angular";
 export default config({
   modules: [
     angular({
-      // add `.ng.ts` to associated file extensions
       extensions: [".component.ts", ".ng.ts"],
     }),
   ],

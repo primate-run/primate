@@ -1,10 +1,9 @@
 import route from "#route/route-client/path-action/[name]";
 import type { OnInit } from "@angular/core";
-import { Component, Input } from "@angular/core";
+import { Component, input } from "@angular/core";
 import { client } from "@primate/angular";
 
 @Component({
-  selector: "app-path-action",
   template: `
     <form [id]="form.id" (submit)="form.submit($event)">
       <input id="foo" name="foo" />
@@ -19,11 +18,11 @@ import { client } from "@primate/angular";
   `,
 })
 export default class PathAction implements OnInit {
-  @Input() name!: string;
-  stringify = JSON.stringify;
+  name = input.required<string>();
   form!: ReturnType<typeof client.form>;
+  stringify = JSON.stringify;
 
   ngOnInit() {
-    this.form = client.form(route.post, { path: { name: this.name } });
+    this.form = client.form(route.post, { path: { name: this.name() } });
   }
 }

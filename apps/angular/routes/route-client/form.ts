@@ -1,10 +1,11 @@
+import View from "#view/RouteClient/Form";
+import TopLevel from "#view/RouteClient/TopLevel/Form";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
   get(request) {
-    const toplevel = request.query.has("top-level") ? "TopLevel/" : "";
-    return response.view(`RouteClient/${toplevel}Form.component.ts`);
+    return response.view(request.query.has("top-level") ? TopLevel : View);
   },
   post: route.with({
     contentType: "application/x-www-form-urlencoded",

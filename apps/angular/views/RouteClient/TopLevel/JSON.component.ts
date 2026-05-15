@@ -8,5 +8,5 @@ const result = JSON.stringify(await response.json());
   template: `<span id="result">{{ result }}</span>`,
 })
 export default class TopLevel {
-  result = result;
+  result: string = result;
 }
