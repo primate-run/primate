@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed } from "vue";
-import client from "@primate/vue/client";
+import { client } from "@primate/vue";
 
 interface Props { id: string; counter: number };
 

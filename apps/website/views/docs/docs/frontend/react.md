@@ -181,7 +181,7 @@ export default function Counter() {
 Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```tsx
-import client from "@primate/react/client";
+import { client } from "@primate/react";
 
 interface Props {
   id: string;

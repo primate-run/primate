@@ -23,7 +23,12 @@ Load the Solid module in your configuration.
 ```ts
 import config from "primate/config";
 import solid from "@primate/solid";
-export default config({ modules: [solid()] });
+
+export default config({
+  modules: [
+    solid(),
+  ],
+});
 ```
 
 ---

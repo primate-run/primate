@@ -1,5 +1,5 @@
 ---
-title: Use Vue components
+title: Use Vue
 ---
 
 Add Vue components with the `@primate/vue` module.
@@ -23,7 +23,12 @@ Load the Vue module in your configuration.
 ```ts
 import config from "primate/config";
 import vue from "@primate/vue";
-export default config({ modules: [vue()] });
+
+export default config({
+  modules: [
+    vue(),
+  ],
+});
 ```
 
 ---

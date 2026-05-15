@@ -27,9 +27,9 @@ const Signup = p({ email: p.string.email() });
 
 export default route({
   async post(request) {
-      // throws a `ParseError` if the `email` field does not contain a valid email
-      const { email } = Signup.parse(await request.body.form());
-      return `Signed up with ${email}`;
+    // throws a `ParseError` if the `email` field does not contain a valid email
+    const { email } = Signup.parse(await request.body.form());
+    return `Signed up with ${email}`;
   },
 });
 ```
@@ -46,17 +46,17 @@ import ParseError from "pema/ParseError";
 
 export default route({
   async post(request) {
-      try {
-        const { email } = Signup.parse(await request.body.form());
-        return `Signed up with ${email}`;
-      } catch (error) {
-        if (error instanceof ParseError) {
-          // returned as JSON
-          return { error: "Please provide a valid email address." };
-        }
-        // will show an error page
-        throw error;
+    try {
+      const { email } = Signup.parse(await request.body.form());
+      return `Signed up with ${email}`;
+    } catch (error) {
+      if (ParseError.is(error)) {
+        // returned as JSON
+        return { error: "Please provide a valid email address." };
       }
+      // will show an error page
+      throw error;
+    }
   },
 });
 ```
@@ -78,15 +78,15 @@ import response from "primate/response";
 
 export default route({
   async post(request) {
-      try {
-        const { email } = Signup.parse(await request.body.form());
-        return `Signed up with ${email}`;
-      } catch (error) {
-        if (error instanceof ParseError) {
-          return response.error("error.jsx", { message: "Invalid signup details" });
-        }
-        throw error;
+    try {
+      const { email } = Signup.parse(await request.body.form());
+      return `Signed up with ${email}`;
+    } catch (error) {
+      if (ParseError.is(error)) {
+        return response.error("error.jsx", { message: "Invalid signup details" });
       }
+      throw error;
+    }
   },
 });
 ```

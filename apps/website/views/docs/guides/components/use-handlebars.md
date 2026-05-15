@@ -1,5 +1,5 @@
 ---
-title: Use Handlebars templates
+title: Use Handlebars
 ---
 
 Add Handlebars templating with the `@primate/handlebars` module.
@@ -23,7 +23,12 @@ Load the Handlebars module in your configuration.
 ```ts
 import config from "primate/config";
 import handlebars from "@primate/handlebars";
-export default config({ modules: [handlebars()] });
+
+export default config({
+  modules: [
+    handlebars(),
+  ],
+});
 ```
 
 ---

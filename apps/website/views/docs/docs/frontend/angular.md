@@ -205,8 +205,8 @@ Use Primate's validated state wrapper to synchronize with backend routes.
 ```ts
 import { Component, Input } from "@angular/core";
 import { NgIf } from "@angular/common";
-import type { Validated } from "@primate/angular/client";
-import client from "@primate/angular/client";
+import type { Validated } from "@primate/angular";
+import { client } from "@primate/angular";
 
 @Component({
   imports: [NgIf],

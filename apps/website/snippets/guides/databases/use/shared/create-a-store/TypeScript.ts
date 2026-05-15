@@ -1,9 +1,9 @@
 import p from "pema";
 import store from "primate/store";
-import db from "../config/db/index.ts";
+import db from "../config/db.ts";
 
 export default store({
-  name: "user",
+  table: "user",
   db,
   schema: {
     id: store.key.primary(p.uuid),

@@ -18,7 +18,7 @@ npm install @primate/sqlite
 ### Configure
 
 ```ts
-// config/db/index.ts
+// config/db.ts
 import sqlite from "@primate/sqlite";
 
 export default sqlite({

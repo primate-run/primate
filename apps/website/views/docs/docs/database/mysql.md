@@ -19,7 +19,7 @@ You need a running MySQL server. Create a database and user with access.
 ### Configure
 
 ```ts
-// config/db/index.ts
+// config/db.ts
 import mysql from "@primate/mysql";
 
 export default mysql({

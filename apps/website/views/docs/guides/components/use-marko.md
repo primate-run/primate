@@ -1,5 +1,5 @@
 ---
-title: Use Marko components
+title: Use Marko
 ---
 
 Add Marko components with the `@primate/marko` module.
@@ -23,7 +23,12 @@ Load the Marko module in your configuration.
 ```ts
 import config from "primate/config";
 import marko from "@primate/marko";
-export default config({ modules: [marko()] });
+
+export default config({
+  modules: [
+    marko(),
+  ],
+});
 ```
 
 ---
