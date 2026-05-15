@@ -23,11 +23,20 @@ Use `json()` to get the body as JSON (`Record`).
 
 ---
 
-### Form -> `Record`
+### Form -> `Record<string, string>`
 
-Use `form()` to get the body as form (`Record<string, string | File>`).
+Use `form()` to get the body as a form (`Record<string, string>`).
 
 [s=guides/requests/read-body/form-record]
+
+---
+
+### Multipart -> `Record<string, string | File>`
+
+Use `multipart()` to get the body as a multpart form
+(`Record<string, string | File>`).
+
+[s=guides/requests/read-body/multipart-record]
 
 ---
 

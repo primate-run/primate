@@ -19,7 +19,7 @@ You need a running MongoDB server.
 ### Configure
 
 ```ts
-// config/db/index.ts
+// config/db.ts
 import mongodb from "@primate/mongodb";
 
 export default mongodb({

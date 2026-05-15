@@ -24,6 +24,7 @@ function path(request: RequestFacade) {
   return request.path.get("segments"); // e.g., "users/42"
 }
 ```
+
 ---
 
 ### 2) Dispatch per method (and optionally by path)

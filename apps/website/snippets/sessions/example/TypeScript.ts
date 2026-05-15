@@ -2,7 +2,7 @@ import p from "pema";
 import session from "primate/config/session";
 
 // shape of session data
-const SessionData = pema({
+const SessionData = p({
   userId: p.uint,
   lastActivity: p.date.default(() => new Date()),
 });

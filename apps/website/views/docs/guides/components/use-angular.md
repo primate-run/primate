@@ -1,5 +1,5 @@
 ---
-title: Use Angular components
+title: Use Angular
 ---
 
 Add Angular components with the `@primate/angular` module.
@@ -23,7 +23,12 @@ Load the Angular module in your configuration.
 ```ts
 import config from "primate/config";
 import angular from "@primate/angular";
-export default config({ modules: [angular()] });
+
+export default config({
+  modules: [
+    angular(),
+  ],
+});
 ```
 
 ---
@@ -37,7 +42,6 @@ Compose a component in TypeScript.
 import { Component, Input } from "@angular/core";
 
 @Component({
-  selector: "app-welcome",
   template: `<h1>Hello, {{ name }}!</h1>`,
 })
 export class WelcomeComponent {

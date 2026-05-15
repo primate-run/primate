@@ -1,5 +1,5 @@
 ---
-title: Use React components
+title: Use React
 ---
 
 Add React components with the `@primate/react` module.

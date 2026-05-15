@@ -4,8 +4,6 @@ import { Component, Input } from "@angular/core";
 
 @Component({
   imports: [CommonModule],
-  selector: "app-counter",
-  standalone: true,
   template: `
     <div style="text-align: center; margin-top: 2rem;">
       <h2>Counter Example</h2>

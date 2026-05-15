@@ -1,5 +1,5 @@
 ---
-title: Use Voby components
+title: Use Voby
 ---
 
 Add Voby components with the `@primate/voby` module.
@@ -23,7 +23,12 @@ Load the Voby module in your configuration.
 ```ts
 import config from "primate/config";
 import voby from "@primate/voby";
-export default config({ modules: [voby()] });
+
+export default config({
+  modules: [
+    voby(),
+  ],
+});
 ```
 
 ---

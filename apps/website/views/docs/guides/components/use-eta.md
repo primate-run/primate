@@ -1,5 +1,5 @@
 ---
-title: Use Eta templates
+title: Use Eta
 ---
 
 Add Eta templating with the `@primate/eta` module.
@@ -23,7 +23,11 @@ Load the Eta module in your configuration.
 ```ts
 import config from "primate/config";
 import eta from "@primate/eta";
-export default config({ modules: [eta()] });
+export default config({
+  modules: [
+    eta(),
+  ],
+});
 ```
 
 ---

@@ -23,7 +23,12 @@ Load the HTMX module in your configuration.
 ```ts
 import config from "primate/config";
 import htmx from "@primate/htmx";
-export default config({ modules: [htmx()] });
+
+export default config({
+  modules: [
+    htmx(),
+  ],
+});
 ```
 
 ---

@@ -20,9 +20,9 @@ Schema for query string.
 import route from "primate/route";
 import p from "pema";
 
-const Query = p({
+const Query = p.loose({
   q: p.string.min(1),
-  limit: p.loose.uint.max(100).default(10),
+  limit: p.uint.max(100).default(10),
 });
 
 export default route({
@@ -62,11 +62,15 @@ Schema for headers.
 import route from "primate/route";
 import p from "pema";
 
+const IsBearer = p({
+  Authorization: p.string.startsWith("Bearer "),
+});
+
 export default route({
   get(request) {
-    const auth = p.string.startsWith("Bearer ")
-      .parse(request.headers.get("Authorization"));
-    return { auth };
+    const { Authorization } = IsBearer.parse(request.headers);
+
+    return { auth: Authorization };
   },
 });
 ```

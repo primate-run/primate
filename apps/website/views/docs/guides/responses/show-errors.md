@@ -2,8 +2,8 @@
 title: Show errors
 ---
 
-Return error responses with appropriate status codes. Use `response()` for
-custom errors.
+Return error responses with appropriate status codes. Use `Response` for custom
+errors.
 
 !!!
 Throw errors to trigger `+error.ts`; return responses for controlled errors.

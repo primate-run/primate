@@ -1,5 +1,5 @@
 ---
-title: Use Svelte components
+title: Use Svelte
 ---
 
 Add Svelte components with the `@primate/svelte` module.
@@ -23,7 +23,12 @@ Load the Svelte module in your configuration.
 ```ts
 import config from "primate/config";
 import svelte from "@primate/svelte";
-export default config({ modules: [svelte()] });
+
+export default config({
+  modules: [
+    svelte(),
+  ],
+});
 ```
 
 ---

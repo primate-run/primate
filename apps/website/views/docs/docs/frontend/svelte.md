@@ -163,7 +163,7 @@ Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```svelte
 <script lang="ts">
-  import client from "@primate/svelte/client";
+  import { client } from "@primate/svelte";
   const props: { id: string; counter: number } = $props();
   const counter = client.field(props.counter).post(`/counter?id=${props.id}`);
 </script>

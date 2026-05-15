@@ -26,8 +26,13 @@ Load the Web Components module in your configuration.
 
 ```ts
 import config from "primate/config";
-import webComponents from "@primate/web-components";
-export default config({ modules: [webComponents()] });
+import WebComponents from "@primate/web-components";
+
+export default config({
+  modules: [
+    WebComponents(),
+  ],
+});
 ```
 
 ---
