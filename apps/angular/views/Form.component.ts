@@ -1,21 +1,19 @@
-import { NgIf } from "@angular/common";
 import type { OnInit } from "@angular/core";
 import { Component, Input } from "@angular/core";
 import { client } from "@primate/angular";
 
 @Component({
-  imports: [NgIf],
   template: `
-    <form
-      *ngIf="form"
-      [id]="form.id"
-      method="post"
-      [attr.action]="'/form?id=' + id"
-      (submit)="form.submit($event)"
-    >
-      <p *ngIf="form.errors().length" style="color: red">
-        {{ form.errors()[0] }}
-      </p>
+    @if (form) {
+      <form
+        [id]="form.id"
+        method="post"
+        [attr.action]="'/form?id=' + id"
+        (submit)="form.submit($event)"
+      >
+      @if (form.errors().length) {
+        <p style="color: red">{{ form.errors()[0] }}</p>
+      }
 
       <label>
         Counter:
@@ -26,13 +24,18 @@ import { client } from "@primate/angular";
         />
       </label>
 
-      <p *ngIf="counterField.error() as err" id="counter-error" style="color: red">
-        {{ err }}
-      </p>
+      @if (counterField.error()) {
+        <p id="counter-error" style="color: red">
+          {{ counterField.error() }}
+        </p>
+      }
 
-      <span *ngIf="form.submitted" id="submitted">saved</span>
+      @if (form.submitted()) {
+        <span id="submitted">saved</span>
+      }
       <button type="submit" [disabled]="form.submitting()">Save</button>
-    </form>
+      </form>
+    }
   `,
 })
 export default class FormComponent implements OnInit {

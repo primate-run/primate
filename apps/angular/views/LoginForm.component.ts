@@ -7,14 +7,14 @@ import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
   template: `
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <input formControlName="email" placeholder="Email">
-      <div *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
-        Email is required and must be valid
-      </div>
+      @if (form.get('email')?.invalid && form.get('email').touched)) {
+        <div>Email is required and must be valid</div>
+      }
 
       <input formControlName="password" type="password" placeholder="Password">
-      <div *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
-        Password must be at least 8 characters
-      </div>
+      @if (form.get('password')?.invalid && form.get('password').touched)) {
+        <div>Password must be at least 8 characters</div>
+      }
 
       <button type="submit" [disabled]="!form.valid">Submit</button>
     </form>

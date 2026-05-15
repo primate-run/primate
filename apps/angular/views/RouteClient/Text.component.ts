@@ -1,12 +1,10 @@
 import route from "#route/route-client/text";
-import { NgIf } from "@angular/common";
 import { ChangeDetectorRef, Component, inject } from "@angular/core";
 
 @Component({
-  imports: [NgIf],
   template: `
     <button (click)="send()">Send</button>
-    <span id="result" *ngIf="result !== null">{{ result }}</span>
+    @if (result !== null) { <span id="result">{{ result }}</span> }
   `,
 })
 export default class TextComponent {

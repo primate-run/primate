@@ -204,19 +204,17 @@ Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```ts
 import { Component, Input } from "@angular/core";
-import { NgIf } from "@angular/common";
 import type { Validated } from "@primate/angular";
 import { client } from "@primate/angular";
 
 @Component({
-  imports: [NgIf],
   template: `
     <h2>Counter</h2>
     <button (click)="decrement()" [disabled]="loading">-</button>
     <span>{{ value }}</span>
     <button (click)="increment()" [disabled]="loading">+</button>
 
-    <p *ngIf="error" style="color:red">{{ error?.message }}</p>
+    @if (error) { <p style="color:red">{{ error.message }}</p> }
   `,
 })
 export default class Counter {

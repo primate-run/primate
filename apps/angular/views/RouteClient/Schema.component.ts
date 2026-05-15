@@ -1,14 +1,12 @@
 import route from "#route/route-client/schema";
-import { NgIf } from "@angular/common";
 import { ChangeDetectorRef, Component, inject } from "@angular/core";
 
 @Component({
-  imports: [NgIf],
   template: `
     <button id="send" (click)="send()">Send</button>
     <button id="send-invalid" (click)="send_invalid()">Send Invalid</button>
-    <span id="result" *ngIf="result !== null">{{ result }}</span>
-    <span id="error" *ngIf="error !== null">{{ error }}</span>
+    @if (result !== null) { <span id="result">{{ result }}</span> }
+    @if (error !== null) { <span id="error">{{ error }}</span> }
   `,
 })
 export default class SchemaComponent {

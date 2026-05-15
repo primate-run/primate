@@ -162,6 +162,7 @@ function frontend(dirname: string) {
     test.case("url-bound form succeeds", async assert => {
       await using tab = await browser.open();
       await tab.goto("/form");
+      assert(tab.get("#submitted").exists()).false();
       await tab.click("button");
       await tab.waitfor(() => tab.get("#submitted").exists());
       assert(tab.get("#submitted").exists()).true();

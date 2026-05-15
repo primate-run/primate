@@ -1,10 +1,8 @@
-import { NgIf } from "@angular/common";
 import { Component, Input } from "@angular/core";
 import type { Validated } from "@primate/angular";
 import { client } from "@primate/angular";
 
 @Component({
-  imports: [NgIf],
   template: `
     <div style="margin-top: 2rem; text-align: center;">
       <h2>Counter Example</h2>
@@ -13,9 +11,11 @@ import { client } from "@primate/angular";
         <span style="margin: 0 1rem;">{{ value }}</span>
         <button (click)="increment()" [disabled]="loading">+</button>
       </div>
-      <p *ngIf="error" style="color:red; margin-top: 1rem;">
-        {{ error?.message }}
-      </p>
+      @if (error) {
+        <p style="color:red; margin-top: 1rem;">
+          {{ error.message }}
+        </p>
+      }
     </div>
   `,
 })

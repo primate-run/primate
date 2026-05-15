@@ -9,7 +9,7 @@ export default route({
   },
   post: route.with({
     contentType: "application/x-www-form-urlencoded",
-    path: p({ name: p.loose.number }),
+    path: p({ name: p.string }),
     body: p({ foo: p.string.min(5) }),
   }, async request => {
     const name = request.path.get("name");
