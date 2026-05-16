@@ -22,7 +22,7 @@ class TestApp extends BuildApp {
   constructor() {
     super(root, test_config, {
       mode: "testing",
-      target: "web",
+      target: "node",
       outdir: "build",
       log: "warn",
     });

@@ -5,4 +5,6 @@ export default interface Target {
   name: string;
   runner: (app: App) => MaybePromise<void>;
   target: string;
+  conditions: string[];
+  externals: string[];
 };

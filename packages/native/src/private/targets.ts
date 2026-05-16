@@ -14,6 +14,8 @@ const targets: NativeTarget[] = [
     name: "linux-x64",
     runner,
     target: "linux-x64",
+    conditions: ["bun", "node"],
+    externals: ["bun:*", "node:*"],
   },
   {
     exe: "app.exe",
@@ -21,6 +23,8 @@ const targets: NativeTarget[] = [
     name: "windows-x64",
     runner,
     target: "windows-x64",
+    conditions: ["bun", "node"],
+    externals: ["bun:*", "node:*"],
   },
   {
     exe: "app",
@@ -28,6 +32,8 @@ const targets: NativeTarget[] = [
     name: "darwin-x64",
     runner,
     target: "darwin-x64",
+    conditions: ["bun", "node"],
+    externals: ["bun:*", "node:*"],
   },
   {
     exe: "app",
@@ -35,6 +41,8 @@ const targets: NativeTarget[] = [
     name: "darwin-arm64",
     runner,
     target: "darwin-arm64",
+    conditions: ["bun", "node"],
+    externals: ["bun:*", "node:*"],
   },
 ];
 
