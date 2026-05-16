@@ -1,7 +1,6 @@
 import AppContext from "#context/app";
-import type API from "@primate/core/i18n/API";
-import type Catalogs from "@primate/core/i18n/Catalogs";
-import sInternal from "@primate/core/i18n/sInternal";
+import type { API, Catalogs } from "@primate/core/i18n";
+import { internal } from "@primate/core/i18n";
 import { useContext, type ReactNode } from "react";
 
 export default function I18nBridge<C extends Catalogs>(
@@ -9,7 +8,7 @@ export default function I18nBridge<C extends Catalogs>(
 ) {
   const { context } = useContext(AppContext);
 
-  t[sInternal].init(context.i18n.locale);
+  t[internal].init(context.i18n.locale);
 
   return <>{children}</>;
 }

@@ -11,22 +11,22 @@ export default (depth: number, i18n_active: boolean) => {
       {/if}
     `, `<svelte:component this={p.views[${n}]} {...p.props[${n}]}/>`);
 
-  const i18nImports = i18n_active
+  const i18n_imports = i18n_active
     ? `
       import t from "#i18n";
-      import sInternal from "primate/s/internal";
+      import { internal } from "primate/i18n";
       import { onMount } from "svelte";`
     : "";
 
-  const i18nInit = i18n_active
+  const i18n_init = i18n_active
     ? `
       const server = p.request.context.i18n.locale;
       if (server !== undefined && server !== t.locale.get()) {
-        t[sInternal].init(server);
+        t[internal].init(server);
       }
 
       // after hydration: in storage modes, flip to saved locale once
-      onMount(() => { t[sInternal].restore(); });`
+      onMount(() => { t[internal].restore(); });`
     : "";
 
   return `
@@ -34,7 +34,7 @@ export default (depth: number, i18n_active: boolean) => {
       import { afterUpdate, setContext } from "svelte";
       import context_name from "@primate/svelte/context-name";
       import { request } from "@primate/svelte/app";
-      ${i18nImports}
+      ${i18n_imports}
 
       export let p;
 
@@ -43,7 +43,7 @@ export default (depth: number, i18n_active: boolean) => {
       const { context, path, ...public_request } = p.request;
       request.set(public_request);
 
-      ${i18nInit}
+      ${i18n_init}
 
       afterUpdate(() => {
          const { context, path, ...public_request } = p.request;

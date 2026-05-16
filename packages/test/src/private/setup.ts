@@ -82,8 +82,8 @@ export default function setup(dirname: string) {
         async json(url: string) {
           return basefetch(url).then(r => r.json());
         },
-        async text(url: string) {
-          return basefetch(url).then(r => r.text());
+        async text(url: string, options?: RequestInit) {
+          return basefetch(url, options).then(r => r.text());
         },
         async status(url: string) {
           return (await basefetch(url)).status;

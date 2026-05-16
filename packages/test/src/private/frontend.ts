@@ -241,6 +241,68 @@ function frontend(dirname: string) {
     });
   }
 
+  test.group("i18n", () => {
+    test.case("renders default locale", async assert => {
+      await using tab = await browser.open();
+      await tab.goto("/i18n");
+      assert(tab.get("#locale").text()).equals("en-US");
+      assert(tab.get("#title").text()).equals("Title");
+    });
+
+    if (!csr) {
+      test.case("renders german from Accept-Language header", async assert => {
+        await using tab = await browser.open();
+        const html = await tab.text("/i18n", {
+          headers: { "Accept-Language": "de-DE" },
+        });
+        assert(html.includes("de-DE")).true();
+        assert(html.includes("en-US")).false();
+      });
+    }
+
+    if (csr) {
+      test.case("switches locale on button click", async assert => {
+        await using tab = await browser.open();
+        await tab.goto("/i18n");
+        assert(tab.get("#title").text()).equals("Title");
+        await tab.click("#de");
+        await tab.waitfor(() => tab.get("#title").text() === "Titel");
+        assert(tab.get("#title").text()).equals("Titel");
+        await tab.click("#en");
+        await tab.waitfor(() => tab.get("#title").text() === "Title");
+        assert(tab.get("#title").text()).equals("Title");
+      });
+
+      test.case("persists locale after reload", async assert => {
+        await using tab = await browser.open();
+        await tab.goto("/i18n");
+        await tab.click("#de");
+        await tab.waitfor(() => tab.get("#title").text() === "Titel");
+        await tab.goto("/i18n");
+        assert(tab.get("#title").text()).equals("Titel");
+      });
+
+      test.case("persists locale during client navigation", async assert => {
+        await using tab = await browser.open();
+        await tab.goto("/i18n");
+        await tab.click("#de");
+        await tab.waitfor(() => tab.get("#title").text() === "Titel");
+        await tab.goto("/");
+        await tab.goto("/i18n");
+        await tab.waitfor(() => tab.get("#title").text() === "Titel");
+        assert(tab.get("#title").text()).equals("Titel");
+      });
+
+      test.case("propagates locale to layout", async assert => {
+        await using tab = await browser.open();
+        await tab.goto("/i18n");
+        await tab.click("#de");
+        await tab.waitfor(() => tab.get("#layout-locale").text() === "de-DE");
+        assert(tab.get("#layout-locale").text()).equals("de-DE");
+      });
+    }
+  });
+
   return browser;
 }
 

@@ -45,10 +45,10 @@
     "pema": "workspace:^"
   },
   "imports": {
-    "#i18n/index": {
-      "@primate/source": "./src/private/i18n/index/client.ts",
-      "browser": "./lib/private/i18n/index/client.js",
-      "default": "./lib/private/i18n/index/server.js"
+    "#i18n/config": {
+      "@primate/source": "./src/private/i18n/config.client.ts",
+      "browser": "./lib/private/i18n/config.client.js",
+      "default": "./lib/private/i18n/config.server.js"
     },
     "#*": {
       "@primate/source": "./src/private/*.ts",

@@ -1,8 +1,8 @@
 import AppContext from "#context/app";
-import type API from "@primate/core/i18n/API";
-import type Catalogs from "@primate/core/i18n/Catalogs";
-import sInternal from "@primate/core/i18n/sInternal";
-import { useContext, useEffect, type ReactNode } from "react";
+import type { API, Catalogs } from "@primate/core/i18n";
+import { internal } from "@primate/core/i18n";
+import type { ReactNode } from "react";
+import { useContext, useEffect } from "react";
 
 export default function I18nBridge<C extends Catalogs>(
   { t, children }: { t: API<C>; children?: ReactNode },
@@ -10,10 +10,10 @@ export default function I18nBridge<C extends Catalogs>(
   const { context, setContext } = useContext(AppContext);
   const server = context.i18n.locale;
   if (server !== undefined && server !== t.locale.get()) {
-    t[sInternal].init(server);
+    t[internal].init(server);
   }
 
-  useEffect(() => { t[sInternal].restore(); }, []);
+  useEffect(() => { t[internal].restore(); }, []);
 
   useEffect(() => t.subscribe(() => {
     setContext(prev => ({

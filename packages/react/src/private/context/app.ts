@@ -1,4 +1,4 @@
-import type ContextData from "@primate/core/i18n/ContextData";
+import type { ContextData } from "@primate/core/i18n";
 import type { Dict } from "@rcompat/type";
 import { createContext } from "react";
 

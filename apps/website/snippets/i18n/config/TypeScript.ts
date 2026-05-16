@@ -1,6 +1,6 @@
 import de from "#locale/de-DE";
 import en from "#locale/en-US";
-import i18n from "primate/config/i18n";
+import i18n from "primate/i18n";
 
 export default i18n({
   defaultLocale: "en-US",

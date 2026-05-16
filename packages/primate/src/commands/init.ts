@@ -252,15 +252,15 @@ async function i18n_config(root: FileRef) {
   await en_us.directory.create();
   await i18i.directory.create();
 
-  const locale = `import locale from "primate/i18n/locale";
-export default locale({
+  const locale = `import i18n from "primate/i18n";
+export default i18n.locale({
   hi: "Hello",
   placeheld: "Hello, {name}",
 });`;
   await en_us.write(locale);
 
   const config = `import en from "#locale/en-US";
-import i18n from "primate/config/i18n";
+import i18n from "primate/i18n";
 
 export default i18n({
   defaultLocale: "en-US",

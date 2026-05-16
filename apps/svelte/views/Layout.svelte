@@ -1,5 +1,7 @@
 <script>
   import { ModeWatcher } from "mode-watcher";
+
+  const { children } = $props();
 </script>
 
 <ModeWatcher />
@@ -10,5 +12,5 @@
   </li>
 </ul>
 <div>
-  <slot></slot>
+  {@render children()}
 </div>

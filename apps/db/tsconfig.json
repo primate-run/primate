@@ -18,9 +18,6 @@
       "#static/*": [
         "static/*"
       ],
-      "#db/*": [
-        "config/db/*"
-      ],
       "#app": [
         "config/app"
       ],
@@ -31,8 +28,7 @@
         "config/i18n"
       ],
       "#db": [
-        "config/db/index",
-        "config/db/default"
+        "config/db"
       ]
     }
   },

@@ -24,15 +24,15 @@ export default (depth: number, i18n_active: boolean) => {
 
   const i18n_imports = i18n_active
     ? `import t from "#i18n";
-import sInternal from "primate/s/internal";`
+import { internal } from "primate/i18n";`
     : "";
 
   const i18n_setup = i18n_active ?
     `if (this.#p.request.context.i18n.locale) {
-  t[sInternal].init(this.#p.request.context.i18n.locale);
+  t[internal].init(this.#p.request.context.i18n.locale);
   }
   this.#off = t.subscribe(() => this.#cdr.markForCheck());
-`
+internal`
     : "";
 
   return `
@@ -107,7 +107,7 @@ export default class RootComponent implements OnDestroy {
   }
 
   ${i18n_active ? `ngAfterViewInit() {
-    t[sInternal].restore();
+    t[internal].restore();
   }` : ""}
 
   ngOnDestroy() { this.#off?.(); }

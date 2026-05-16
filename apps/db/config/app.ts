@@ -1,4 +1,4 @@
-import db from "../config/db/index.ts";
+import db from "#db";
 import config from "primate/config";
 
 export default config({

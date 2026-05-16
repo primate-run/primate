@@ -8,14 +8,14 @@ import PERSIST_METHOD from "#i18n/constant/PERSIST_METHOD";
 import PERSIST_STORAGE_KEY from "#i18n/constant/PERSIST_STORAGE_KEY";
 import format from "#i18n/format";
 import Formatter from "#i18n/Formatter";
+import resolve from "#i18n/resolve";
+import sInternal from "#i18n/symbol/internal";
 import type {
   DotPaths,
   EntriesOf,
   ParamsFromEntries,
   PathValue,
-} from "#i18n/index/types";
-import resolve from "#i18n/resolve";
-import sInternal from "#i18n/symbol/internal";
+} from "#i18n/types";
 import validate from "#i18n/validate";
 import sConfig from "#symbol/config";
 import type { Dict, MaybePromise } from "@rcompat/type";

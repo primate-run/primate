@@ -3,6 +3,6 @@ import route from "primate/route";
 
 export default route({
   get() {
-    return i18n("welcome", { "name": "John", "count": 5 });
+    return i18n("welcome", { name: "John", count: 5 });
   },
 });

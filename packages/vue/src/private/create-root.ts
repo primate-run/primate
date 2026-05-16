@@ -18,20 +18,20 @@ export default function createRoot(depth: number, i18n_active: boolean) {
   const i18n_imports = i18n_active
     ? `
 import t from "#i18n";
-import sInternal from "primate/s/internal";`
+import { internal } from "primate/i18n";`
     : "";
   const i18n_setup = i18n_active
     ? `
 const initialLocale = props.p?.request?.context?.i18n?.locale;
-if (initialLocale) t[sInternal].init(initialLocale);
+if (initialLocale) t[internal].init(initialLocale);
 
-onMounted(() => { t[sInternal].restore(); });
+onMounted(() => { t[internal].restore(); });
 
 if (typeof window !== "undefined") {
-  const version = ref(t[sInternal].version);
-  const removeDepend = t[sInternal].depend(() => { void version.value; });
+  const version = ref(t[internal].version);
+  const removeDepend = t[internal].depend(() => { void version.value; });
   const unsubscribe = t.onChange(() => {
-    version.value = t[sInternal].version;
+    version.value = t[internal].version;
   });
   onUnmounted(() => { unsubscribe?.(); removeDepend?.(); });
 }`

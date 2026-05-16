@@ -5,19 +5,19 @@ import type Config from "#i18n/Config";
 import DEFAULT_PERSIST_MODE from "#i18n/constant/DEFAULT_PERSIST_MODE";
 import format from "#i18n/format";
 import Formatter from "#i18n/Formatter";
+import resolve from "#i18n/resolve";
+import server_storage from "#i18n/storage";
+import sInternal from "#i18n/symbol/internal";
 import type {
   DotPaths,
   EntriesOf,
   ParamsFromEntries,
   PathValue,
-} from "#i18n/index/types";
-import resolve from "#i18n/resolve";
-import server_storage from "#i18n/storage";
-import sInternal from "#i18n/symbol/internal";
+} from "#i18n/types";
 import validate from "#i18n/validate";
 import sConfig from "#symbol/config";
-import type { Dict } from "@rcompat/type";
 import is from "@rcompat/is";
+import type { Dict } from "@rcompat/type";
 
 export default function i18n<const C extends Catalogs>(config: Config<C>) {
   type Locale = keyof C & string;

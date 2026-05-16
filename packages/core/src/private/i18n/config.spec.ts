@@ -1,5 +1,5 @@
+import i18n from "#i18n/config.server";
 import { Code } from "#i18n/errors";
-import i18n from "#i18n/index/server";
 import locale from "#i18n/locale";
 import type TypeOf from "#i18n/TypeOf";
 import test from "@rcompat/test";
