@@ -214,9 +214,9 @@ calls `next(request)` to pass control to the next hook; finally the route runs.
 
 ```ts
 // routes/admin/+hook.ts
-import hook from "primate/route/hook";
+import route from "primate/route";
 
-hook((request, next) => {
+export default route.hook((request, next) => {
   if (request.query.try("password") === "opensesame") {
     return next(request);
   }
@@ -238,9 +238,9 @@ Set context in a hook with `request.set()`:
 
 ```ts
 // routes/+hook.ts
-import hook from "primate/route/hook";
+import route from "primate/route";
 
-hook((request, next) => {
+export default route.hook((request, next) => {
   request.set("user", { id: 1, name: "John" });
   return next(request);
 });

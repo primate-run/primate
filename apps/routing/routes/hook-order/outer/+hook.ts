@@ -1,3 +1,5 @@
-import hook from "primate/route/hook";
+import route from "primate/route";
 
-export default hook((request, next) => next(request.set("foo", "outer")));
+export default route.hook((request, next) => {
+  return next(request.set("foo", "outer"));
+});

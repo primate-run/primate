@@ -1,7 +1,7 @@
 import User from "#store/User";
-import hook from "primate/route/hook";
+import route from "primate/route";
 
-export default hook(async (request, next) => {
+export default route.hook(async (request, next) => {
   await User.drop();
   await User.create();
 

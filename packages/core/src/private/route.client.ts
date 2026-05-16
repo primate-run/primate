@@ -1,6 +1,7 @@
 import type ResponseLike from "#response/ResponseLike";
 import type ContentTypeMap from "#route/ContentTypeMap";
 import type RouteHandler from "#route/Handler";
+import hook from "#route/hook";
 import type RouteOptions from "#route/Options";
 import type { Dict, Unpack } from "@rcompat/type";
 import type { Parsed } from "pema";
@@ -121,5 +122,7 @@ route.with = function <O extends RouteOptions, R extends ResponseLike>(
 ): WithResult<O, R> {
   return { handler, options };
 };
+
+route.hook = hook;
 
 export default route;

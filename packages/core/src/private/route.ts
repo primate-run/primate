@@ -1,5 +1,6 @@
 import E from "#errors";
 import type RouteHandler from "#route/Handler";
+import hook from "#route/hook";
 import type RouteOptions from "#route/Options";
 import type { Method } from "@rcompat/http";
 import is from "@rcompat/is";
@@ -41,5 +42,7 @@ route.with = function <O extends RouteOptions>(
   }
   return { [BRAND]: true, handler, options };
 };
+
+route.hook = hook;
 
 export default route;

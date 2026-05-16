@@ -177,9 +177,9 @@ You can use hooks to authenticate in a hook, and then use in a route.
 
 ```ts
 // routes/+hook.ts
-import hook from "primate/route/hook";
+import route from "primate/route";
 
-hook(async (request, next) => {
+export default route.hook(async (request, next) => {
   const user = await authenticate(request);
   return next(request.set("auth.user", user));
 });
