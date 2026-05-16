@@ -274,7 +274,7 @@ export default i18n({
 async function session_config(root: FileRef) {
   const file = root.join("config").join("session.ts");
   await file.directory.create();
-  const body = `import session from "primate/config/session";
+  const body = `import session from "primate/session";
 export default session({});`;
   await file.write(body);
 }

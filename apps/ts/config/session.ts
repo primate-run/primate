@@ -1,5 +1,5 @@
-import session from "primate/config/session";
 import Session from "#store/Session";
+import session from "primate/session";
 
 export default session({
   store: Session,

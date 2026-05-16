@@ -50,6 +50,11 @@
       "browser": "./lib/private/i18n/config.client.js",
       "default": "./lib/private/i18n/config.server.js"
     },
+    "#session/config": {
+      "@primate/source": "./src/private/session/config.server.ts",
+      "browser": "./lib/private/session/config.client.js",
+      "default": "./lib/private/session/config.server.js"
+    },
     "#*": {
       "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
@@ -71,11 +76,6 @@
       "@primate/source": "./src/public/response.ts",
       "browser": "./lib/private/response.client.js",
       "default": "./lib/public/response.js"
-    },
-    "./session/config": {
-      "@primate/source": "./src/public/session/config.ts",
-      "browser": "./lib/public/session/config.client.js",
-      "default": "./lib/public/session/config.js"
     },
     "./store": {
       "@primate/source": "./src/public/store.ts",

@@ -1,4 +1,4 @@
-import session from "primate/config/session";
+import session from "primate/session";
 
 export default session/*<SessionShape>*/({
   /* options */

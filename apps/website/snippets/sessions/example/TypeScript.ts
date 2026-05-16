@@ -1,5 +1,5 @@
 import p from "pema";
-import session from "primate/config/session";
+import session from "primate/session";
 
 // shape of session data
 const SessionData = p({

@@ -7,7 +7,6 @@
     "build": "npx primate build",
     "serve": "npx primate serve",
     "pretest": "bundle install",
-    "test": "npx proby",
     "test:deno": "deno run -A npm:proby",
     "test:bun": "bunx --bun proby"
   },

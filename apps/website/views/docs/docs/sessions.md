@@ -80,7 +80,7 @@ export default store({
 Then refer to it in your configuration file.
 
 ```ts
-import session from "primate/config/session";
+import session from "primate/session";
 import Session from "#store/Session";
 
 export default session({
@@ -115,12 +115,12 @@ import route from "primate/route";
 
 export default route({
   get() {
-      if (!session.exists) {
-        session.create({ user_id: 42 });
-      }
+    if (!session.exists) {
+      session.create({ user_id: 42 });
+    }
 
-      const data = session.get();
-      return `User ${data.user_id} last active at ${data.last_active.toISOString()}`;
+    const data = session.get();
+    return `User ${data.user_id} last active at ${data.last_active.toISOString()}`;
   },
 });
 ```
