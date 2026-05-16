@@ -4,11 +4,6 @@
 
   export let posts;
 
-  function toExcerpt(post) {
-    const end = post.html.indexOf("</p>");
-    return post.html.slice(0, end + "</p>".length);
-  }
-
   const iso = (epoch) => new Date(epoch).toISOString().slice(0, 10);
 </script>
 
@@ -26,12 +21,12 @@
               {@html post.meta.title.replace(/`([^`]+)`/g, "<code>$1</code>")}
             </h2>
 
-            <p class="entry__excerpt">{@html toExcerpt(post)}</p>
+            <p class="entry__excerpt">{@html post.html_excerpt}</p>
 
             <div class="entry__meta">
-              <time datetime={iso(post.meta.epoch)}
-                >{date(post.meta.epoch)}</time
-              >
+              <time datetime={iso(post.meta.epoch)}>
+                {date(post.meta.epoch)}
+              </time>
             </div>
           </a>
         </li>
