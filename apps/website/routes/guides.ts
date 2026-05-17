@@ -21,10 +21,9 @@ async function guide_list() {
 }
 
 export default route({
-  async get(request) {
+  async get() {
     const guides = await guide_list();
-    const options = { placeholders: request.get("placeholders") };
 
-    return response.view(Guides, { guides }, options);
+    return response.view(Guides, { guides });
   },
 });

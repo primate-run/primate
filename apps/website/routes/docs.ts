@@ -13,8 +13,6 @@ export default route({
       toc,
     };
 
-    return response.view(Static, props, {
-      placeholders: request.get("placeholders"),
-    });
+    return response.view(Static, props);
   },
 });

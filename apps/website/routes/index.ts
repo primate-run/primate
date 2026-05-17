@@ -24,7 +24,7 @@ async function guide_list() {
 }
 
 export default route({
-  async get(request) {
+  async get() {
     const examples = Object.fromEntries(await Promise.all(example_names
       .map(async section => [
         section,
@@ -33,8 +33,7 @@ export default route({
 
     const guides = await guide_list();
     const props = { examples, guides };
-    const options = { placeholders: request.get("placeholders") };
 
-    return response.view(Index, props, options);
+    return response.view(Index, props);
   },
 });

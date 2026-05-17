@@ -19,8 +19,6 @@ export default route({
       }))
       .toSorted((a, b) => a.meta.epoch < b.meta.epoch ? 1 : -1);
 
-    return response.view(Blog, { posts }, {
-      placeholders: request.get("placeholders"),
-    });
+    return response.view(Blog, { posts });
   },
 });

@@ -3,17 +3,16 @@
   import Icons from "#component/Icons";
   import Icon from "#component/Icon";
   import theme from "#config/theme";
-  import { getColorScheme, setColorScheme } from "#schemeStorage";
 
   export let title;
 
-  let colorscheme;
+  let colorscheme = globalThis.window?.colorscheme.name;
 
   const part = (link) => link.split("/")[1];
   
   const toggleColorScheme = () => {
-    colorscheme = getColorScheme() === "dark" ? "light" : "dark";
-    setColorScheme(colorscheme);
+    colorscheme = globalThis.window.colorscheme.getColorScheme() === "dark" ? "light" : "dark";
+    globalThis.window.colorscheme.setColorScheme(colorscheme);
   }
 
   let highlight = (_) => "";
@@ -23,8 +22,8 @@
   };
 
   async function updated() {
-    colorscheme = getColorScheme();
-    updateThemeColor(colorscheme === "dark" ? "#161616" : "#ffffff");
+    colorscheme = globalThis.window?.colorscheme.getColorScheme();
+    globalThis.window?.colorscheme.setColorScheme(colorscheme);
 
     highlight = (link) =>
       part(link) === part(globalThis.window.location.pathname) ? "active" : "";
@@ -72,13 +71,6 @@
         });
       });
     });
-  }
-
-  function updateThemeColor(color) {
-    let meta = document.querySelector("meta[name='theme-color']");
-    if (meta) {
-      meta.setAttribute("content", color);
-    }
   }
 
   onMount(() => {
