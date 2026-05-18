@@ -86,7 +86,6 @@ export default {
         "Handlebars",
         "HTML",
         "HTMX",
-        "Markdown",
         "Marko",
         "React",
         "Solid",
@@ -125,6 +124,7 @@ export default {
         "Oracle",
         "PostgreSQL",
         "SQLite",
+        "Markdown",
       ].toSorted().map(title => ({
         href: `/database/${title.replaceAll(" ", "-").toLowerCase()}`,
         title,
