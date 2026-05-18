@@ -261,6 +261,14 @@ const OPENAPI = error.coded({
   openapi_no_operation_for,
 });
 
+function bag_value_missing(key: string) {
+  return t`missing bag value for ${key}`;
+}
+
+const BAG = error.coded({
+  bag_value_missing,
+});
+
 const errors = {
   ...APP,
   ...BUILD,
@@ -275,6 +283,7 @@ const errors = {
   ...VIEW,
   ...ENV,
   ...OPENAPI,
+  ...BAG,
 };
 
 export const Code = error.names(errors);

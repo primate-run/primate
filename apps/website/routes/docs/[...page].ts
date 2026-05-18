@@ -1,22 +1,24 @@
-import app from "#app";
+import DocPage from "#store/DocPage";
 import Static from "#view/Static";
-import type { Component } from "@primate/markdown";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
-  get(request) {
+  async get(request) {
     const page = request.path.get("page");
-    const $page = page.endsWith(".md") ? page.slice(0, -".md".length) : page;
-    const { html, toc, md } = app.view<Component>(`docs/docs/${$page}.md`);
+    const markdown = page.endsWith(".md");
+    const id = markdown ? page.slice(0, -".md".length) : page;
 
-    if (page.endsWith(".md")) return response.text(md);
+    const { html, toc, body } = await DocPage.get(id);
+
+    if (markdown) return response.text(body);
 
     const props = {
       content: html,
       path: "/" + request.url.pathname.slice("/docs/".length),
       toc,
     };
+
     return response.view(Static, props, {
       placeholders: request.get("placeholders"),
     });

@@ -1,5 +1,4 @@
 import type EnvSchema from "#app/EnvSchema";
-import type ServerView from "#client/ServerView";
 import type Config from "#config/Config";
 import E from "#errors";
 import type ServeApp from "#serve/App";
@@ -59,10 +58,6 @@ export default class AppFacade<T extends EnvSchema = EnvSchema> {
     if (!this.#app) throw new Error("ServeApp not bound yet (used too early)");
     return this.#app;
   }
-
-  view<SV = ServerView>(name: string) {
-    return this.#with.loadView<SV>(name);
-  };
 
   get root() {
     return this.#with.root;

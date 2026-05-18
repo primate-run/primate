@@ -20,7 +20,6 @@ const cases: Dict<{
   index: { type: "json", expected: { count: 0 } },
   insert: { type: "json", expected: { name: "Donald", age: 30 } },
   update: { type: "json", expected: { name: "Donald", age: 35 } },
-  programmatic: { type: "text", expected: "User" },
 };
 
 for (const [name, { type, expected }] of Object.entries(cases)) {

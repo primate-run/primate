@@ -40,9 +40,9 @@ import Page from "#view/Page";
 
 export default route({
   get() {
-      const title = app.config("name");
-    
-      return response.view(Page, { title });
+    const title = app.config("name");
+
+    return response.view(Page, { title });
   },
 });
 ```

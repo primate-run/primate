@@ -55,17 +55,17 @@
       "browser": "./lib/private/session/config.client.js",
       "default": "./lib/private/session/config.server.js"
     },
+    "#app/Facade": {
+      "@primate/source": "./src/private/app/Facade.server.ts",
+      "browser": "./lib/private/app/Facade.client.js",
+      "default": "./lib/private/app/Facade.server.js"
+    },
     "#*": {
       "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"
     }
   },
   "exports": {
-    "./AppFacade": {
-      "@primate/source": "./src/public/AppFacade.ts",
-      "browser": "./lib/private/app/Facade.browser.js",
-      "default": "./lib/public/AppFacade.js"
-    },
     "./route": {
       "types": "./lib/public/route.client.js",
       "@primate/source": "./src/public/route.ts",

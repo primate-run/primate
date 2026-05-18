@@ -6,7 +6,7 @@ import type { Plugin } from "esbuild";
 
 const requirer = runtime.toRequire(import.meta.url);
 
-export default function plugin_server_store(app: BuildApp): Plugin {
+export default function plugin_native_addons(app: BuildApp): Plugin {
   return {
     name: "primate/server/native-addons",
     setup(build) {

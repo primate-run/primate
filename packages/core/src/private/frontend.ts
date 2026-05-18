@@ -109,7 +109,7 @@ export default function frontend_module<
 
     function load(name: string, props: Dict, app: ServeApp) {
       if (!ssr()) return { view: null, name, props };
-      const view = app.loadView(name)!;
+      const view = app.views.get(name) as ServerView;
       return { view, name, props };
     }
 
@@ -197,7 +197,7 @@ export default function frontend_module<
         try {
           const server = init.layouts
             ? {
-              view: app.loadView<S>(rootname),
+              view: app.views.get(rootname) as S,
               props: {
                 views: views.map(c => c.view),
                 props: views.map(c => c.props),
@@ -205,7 +205,7 @@ export default function frontend_module<
               },
             }
             : {
-              view: app.loadView<S>(view),
+              view: app.views.get(view) as S,
               props,
               request: $request,
             };

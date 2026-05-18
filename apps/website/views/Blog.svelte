@@ -1,6 +1,6 @@
 <script>
   import Header from "#component/Header";
-  import { format, date } from "#component/dateTime";
+  import { date } from "#component/dateTime";
 
   export let posts;
 

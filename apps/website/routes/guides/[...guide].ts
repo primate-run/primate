@@ -1,18 +1,19 @@
-import app from "#app";
+import GuideStore from "#store/Guide";
 import Guide from "#view/Guide";
-import type { Component } from "@primate/markdown";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
-  get(request) {
+  async get(request) {
     const guide = request.path.get("guide");
-    const { html, meta } = app.view<Component>(`docs/guides/${guide}.md`);
+    const { html, frontmatter } = await GuideStore.get(guide);
+
     const props = {
       category: guide.split("/")[0],
       content: html,
-      meta,
+      meta: frontmatter,
     };
+
     return response.view(Guide, props, {
       placeholders: request.get("placeholders"),
     });

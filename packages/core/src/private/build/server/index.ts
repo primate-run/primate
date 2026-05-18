@@ -9,7 +9,6 @@ import plugin_requires from "#build/server/plugin/requires";
 import plugin_roots from "#build/server/plugin/roots";
 import plugin_route from "#build/server/plugin/route";
 import plugin_route_client from "#build/server/plugin/route-client";
-import plugin_stores from "#build/server/plugin/stores";
 import plugin_view from "#build/server/plugin/view";
 import plugin_views from "#build/server/plugin/views";
 import plugin_virtual_pages from "#build/server/plugin/virtual-pages";
@@ -30,7 +29,6 @@ export default async function build_server(app: BuildApp) {
   app.plugin("server", plugin_roots(app));
   app.plugin("server", plugin_views(app));
   app.plugin("server", plugin_assets(app));
-  app.plugin("server", plugin_stores(app));
   app.plugin("server", plugin_native_addons(app));
   app.plugin("server", plugin_requires(app));
   app.plugin("server", plugin_config(app));

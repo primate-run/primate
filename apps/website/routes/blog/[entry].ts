@@ -1,14 +1,17 @@
-import app from "#app";
+import BlogEntryStore from "#store/BlogEntry";
 import BlogEntry from "#view/BlogEntry";
-import type { Component } from "@primate/markdown";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
   async get(request) {
     const entry = request.path.get("entry");
-    const { html, meta } = app.view<Component>(`docs/blog/${entry}.md`);
-    return response.view(BlogEntry, { content: html, meta }, {
+    const { html, frontmatter } = await BlogEntryStore.get(entry);
+
+    return response.view(BlogEntry, {
+      content: html,
+      meta: frontmatter,
+    }, {
       placeholders: request.get("placeholders"),
     });
   },

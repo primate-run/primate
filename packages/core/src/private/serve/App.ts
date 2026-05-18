@@ -4,6 +4,7 @@ import type Asset from "#asset/Asset";
 import type Font from "#asset/Font";
 import type Script from "#asset/Script";
 import type Style from "#asset/Style";
+import Bag from "#Bag";
 import type ServerView from "#client/ServerView";
 import type ViewOptions from "#client/ViewOptions";
 import type ViewResponse from "#client/ViewResponse";
@@ -103,14 +104,10 @@ interface PublishOptions {
   type: string;
 };
 
-type Import = {
-  default: unknown;
-} & Dict;
-
 export default class ServeApp extends App {
   #init: ServeInit;
   #server?: Server;
-  #views: PartialDict<Import>;
+  #views: Bag;
   #csp: CSP = {};
   #assets: Asset[] = [];
   #serve_assets: {
@@ -119,7 +116,6 @@ export default class ServeApp extends App {
   };
 
   #pages: Dict<string>;
-  #stores: Dict;
   #frontends: Map<string, ViewResponse> = new Map();
   #router: FileRouter;
   #i18n_config?: I18NConfig;
@@ -133,9 +129,17 @@ export default class ServeApp extends App {
     });
 
     this.#init = init;
-    this.#views = Object.fromEntries(init.views ?? []);
-    this.#stores = Object.fromEntries((init.stores?.map(([k, s]) =>
-      [k, s.default])) ?? []);
+    this.#views = new Bag(
+      (init.views ?? []).map(([k, v]) => {
+        if (is.undefined(v.default)) throw E.view_missing_default_export(k);
+        return [k, v.default] as [string, ServerView];
+      }),
+      name => {
+        const f = fs.ref(name).path;
+        const extension = Object.keys(this.frontends).find(e => f.endsWith(e));
+        return is.undefined(extension) ? name : f.slice(0, -extension.length);
+      },
+    );
     this.#serve_assets = init.assets;
     this.#pages = init.pages;
 
@@ -204,24 +208,13 @@ export default class ServeApp extends App {
     return Object.fromEntries(this.#frontends);
   }
 
-  get stores() {
-    return this.#stores;
-  }
-
   get i18n() {
     return this.#i18n_config;
   }
 
-  loadView<T = ServerView>(name: string) {
-    const f = fs.ref(name).path;
-    const frontends = Object.keys(this.frontends);
-    const extension = frontends.find(client => f.endsWith(client));
-    const base = is.undefined(extension) ? name : f.slice(0, -extension.length);
-    const view = this.#views[base];
-    if (is.undefined(view)) throw E.view_missing(name);
-    if (is.undefined(view.default)) throw E.view_missing_default_export(name);
-    return view.default as T;
-  };
+  get views() {
+    return this.#views;
+  }
 
   headers(csp = {}) {
     const base = Object.entries(this.config("http.csp") ?? {}) as Entry<CSP>[];
