@@ -11,8 +11,6 @@ export default route({
     return response.view(BlogEntry, {
       content: html,
       meta: frontmatter,
-    }, {
-      placeholders: request.get("placeholders"),
     });
   },
 });

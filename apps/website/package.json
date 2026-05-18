@@ -40,14 +40,9 @@
     "@primate/sqlite": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@primate/vue": "workspace:^",
+    "esbuild": "^0.28.0",
     "marked": "^18.0.2",
     "pema": "workspace:^"
-  },
-  "imports": {
-    "#schemeStorage": {
-      "browser": "./components/schemeStorage.client.ts",
-      "default": "./components/schemeStorage.server.ts"
-    }
   }
 }
 

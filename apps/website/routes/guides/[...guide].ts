@@ -14,8 +14,6 @@ export default route({
       meta: frontmatter,
     };
 
-    return response.view(Guide, props, {
-      placeholders: request.get("placeholders"),
-    });
+    return response.view(Guide, props);
   },
 });
