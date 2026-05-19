@@ -85,6 +85,43 @@ const render_head = (assets: Asset[], head?: string) => {
     ).join("\n")).concat("\n", head ?? "");
 };
 
+function entrypoint_name(src: string) {
+  const file = src.split("/").at(-1) ?? src;
+  return file.replace(/-[A-Z0-9]+(?=\.(?:js|css)$)/i, "")
+    .replace(/\.(?:js|css)$/i, "");
+}
+
+function render_entrypoint(asset: Asset) {
+  if (asset.type === "style") {
+    return tags.style({
+      code: asset.code as string,
+      href: asset.src,
+      inline: asset.inline,
+    } as Style);
+  }
+
+  return tags.script({
+    code: asset.code as string,
+    inline: asset.inline,
+    integrity: asset.integrity,
+    src: asset.src,
+    type: "module",
+  } as Script);
+}
+
+function render_entrypoints(assets: Asset[], names: string[]) {
+  return Object.fromEntries(names.map(name => {
+    const asset = assets.find(asset =>
+      asset.src !== undefined && entrypoint_name(asset.src) === name);
+
+    if (asset === undefined) {
+      throw new Error(`entrypoint ${name} not emitted`);
+    }
+
+    return [name, render_entrypoint(asset)];
+  }));
+}
+
 const s_http = Symbol("s_http");
 
 const content_type_method = {
@@ -96,13 +133,6 @@ const content_type_method = {
 } as const;
 
 const asset_extensions = [".js", ".css", ".woff2"];
-
-interface PublishOptions {
-  code: string;
-  inline: boolean;
-  src?: string;
-  type: string;
-};
 
 export default class ServeApp extends App {
   #init: ServeInit;
@@ -119,6 +149,8 @@ export default class ServeApp extends App {
   #frontends: Map<string, ViewResponse> = new Map();
   #router: FileRouter;
   #i18n_config?: I18NConfig;
+  #entrypoints: Dict<string> = {};
+
   constructor(rootfile: string, init: ServeInit) {
     const dir = fs.ref(rootfile).directory;
     super(dir, init.facade[s_config], {
@@ -234,7 +266,13 @@ export default class ServeApp extends App {
     const { body, head, page, partial, placeholders = {} } = content;
     ["body", "head"].forEach(key => assert.undefined(placeholders[key]));
 
-    return partial === true ? body : Object.entries(placeholders)
+    const all_placeholders = {
+      ...this.#entrypoints,
+      ...placeholders,
+    };
+    const entrypoint_names = Object.keys(this.config("entrypoints") ?? {});
+
+    return partial === true ? body : Object.entries(all_placeholders)
       // replace given placeholders, defaulting to ""
       .reduce((rendered, [key, value]) => rendered
         .replaceAll(`%${key}%`, value?.toString() ?? ""), this.page(page))
@@ -242,7 +280,13 @@ export default class ServeApp extends App {
       .replaceAll(/(?<keep>%(?:head|body)%)|%.*?%/gus, "$1")
       // replace body and head
       .replace("%body%", body)
-      .replace("%head%", render_head(this.#assets, head));
+      .replace("%head%", render_head(
+        this.#assets.filter(asset =>
+          asset.src === undefined
+          || !entrypoint_names.includes(entrypoint_name(asset.src)),
+        ),
+        head,
+      ));
   }
 
   body_length(body: BodyInit | null): number {
@@ -277,21 +321,6 @@ export default class ServeApp extends App {
       headers: { ...response.headers, "Content-Type": content_type },
       status: response.status ?? http.Status.OK,
     };
-  };
-
-  async publish({ code, inline = false, src, type = "" }: PublishOptions) {
-    if (inline || type === "style") {
-      this.#assets.push({
-        code: inline ? code : "",
-        inline,
-        integrity: await hash(code),
-        src: fs.join(this.config("http.static.root"), src ?? "").path,
-        type,
-      });
-    }
-
-    // rehash assets_csp
-    this.create_csp();
   };
 
   create_csp() {
@@ -406,6 +435,13 @@ export default class ServeApp extends App {
           };
         }));
     }
+
+    this.#entrypoints = render_entrypoints(
+      this.#assets,
+      Object.keys(this.config("entrypoints") ?? {}),
+    );
+
+    this.create_csp();
 
     this.#server = await serve(async request => {
       try {

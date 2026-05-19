@@ -9,8 +9,15 @@ export default config({
   http: {
     host: "0.0.0.0",
   },
-  loader: {
+  loaders: {
     ".woff2": "file",
+  },
+  entrypoints: {
+    colorscheme: "colorscheme.ts",
+    css: "master.css",
+  },
+  livereload: {
+    host: "localhost",
   },
   modules: [
     html(),

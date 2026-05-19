@@ -9,11 +9,12 @@
   let colorscheme = globalThis.window?.colorscheme.name;
 
   const part = (link) => link.split("/")[1];
-  
-  const toggleColorScheme = () => {
-    colorscheme = globalThis.window.colorscheme.getColorScheme() === "dark" ? "light" : "dark";
-    globalThis.window.colorscheme.setColorScheme(colorscheme);
-  }
+
+  const toggle_color_scheme = () => {
+    colorscheme =
+      globalThis.window.colorscheme.get() === "dark" ? "light" : "dark";
+    globalThis.window.colorscheme.set(colorscheme);
+  };
 
   let highlight = (_) => "";
 
@@ -22,8 +23,8 @@
   };
 
   async function updated() {
-    colorscheme = globalThis.window?.colorscheme.getColorScheme();
-    globalThis.window?.colorscheme.setColorScheme(colorscheme);
+    colorscheme = globalThis.window?.colorscheme.get();
+    globalThis.window?.colorscheme.set(colorscheme);
 
     highlight = (link) =>
       part(link) === part(globalThis.window.location.pathname) ? "active" : "";
@@ -78,7 +79,7 @@
     globalThis.addEventListener("updated", updated);
     return () => {
       globalThis.removeEventListener("updated", updated);
-    }
+    };
   });
 </script>
 
@@ -104,7 +105,7 @@
 
     <div class="divider"></div>
 
-    <button class="ic" on:click={toggleColorScheme}>
+    <button class="ic" on:click={toggle_color_scheme}>
       <Icon name={colorscheme === "dark" ? "sun" : "moon"} />
     </button>
 

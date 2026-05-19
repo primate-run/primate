@@ -16,7 +16,6 @@
     "@primate/html": "workspace:^",
     "@primate/markdown": "workspace:^",
     "@primate/svelte": "workspace:^",
-    "@rcompat/fs": "^0.33.2",
     "@rcompat/http": "^0.30.0",
     "@rcompat/runtime": "^0.16.0",
     "@rcompat/string": "^0.21.0",
@@ -40,9 +39,8 @@
     "@primate/sqlite": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@primate/vue": "workspace:^",
-    "esbuild": "^0.28.0",
+    "@rcompat/fs": "^0.33.2",
     "marked": "^18.0.2",
     "pema": "workspace:^"
   }
 }
-

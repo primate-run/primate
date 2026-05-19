@@ -440,6 +440,7 @@ async function tsconfig_json(root: FileRef, opts: { frontends: Frontend[] }) {
       },
     },
     include: [
+      "client",
       "config",
       "views",
       "components",
