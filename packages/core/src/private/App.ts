@@ -117,6 +117,10 @@ export default class App {
     return this.#mode;
   }
 
+  get loader() {
+    return this.#config.loader;
+  }
+
   get secure() {
     const ssl = this.config("http.ssl");
 

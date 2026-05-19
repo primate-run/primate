@@ -34,6 +34,7 @@ export default p({
   env: {
     schema: p.pure<ObjectType<Dict<Parsed<unknown>>>>().optional(),
   },
+  loader: p.record(p.string, p.literal("file")).optional(),
   modules: p.array(p.object({
     name: p.string,
     setup: p.function,

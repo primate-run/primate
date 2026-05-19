@@ -1,7 +1,7 @@
-import fs from "@rcompat/fs";
+import E from "#errors";
 import type Module from "#Module";
 import assert from "@rcompat/assert";
-import E from "#errors";
+import fs from "@rcompat/fs";
 
 type Loader = "file";
 
@@ -28,7 +28,7 @@ export default function loader(extension: string, loader: Loader) {
         });
       });
     },
-  }
+  };
 
   return Loader;
 }

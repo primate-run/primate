@@ -86,6 +86,7 @@ export default async function build_client(app: BuildApp) {
     bundle: true,
     format: "esm",
     logLevel: "silent",
+    loader: app.loader,
   };
   const NO_HR = app.config("livereload.exclude") ?? [];
   const mode_options: esbuild.BuildOptions = app.mode === "development"
