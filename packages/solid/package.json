@@ -29,7 +29,7 @@
     "@types/babel__core": "^7.20.5"
   },
   "dependencies": {
-    "@babel/core": "^7.28.6",
+    "@babel/core": "^7.29.0",
     "@primate/core": "workspace:^",
     "@rcompat/fs": "^0.33.2",
     "@rcompat/runtime": "^0.16.0",
