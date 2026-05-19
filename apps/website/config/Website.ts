@@ -66,10 +66,9 @@ const website: () => Module = () => {
         if (mode !== "production") return next(request);
         const requestedAsset = request.url.pathname.slice(1);
         if (requestedAsset.startsWith(extraJSFileName)) {
-          const response = await next(request);
           return new Response((await extraJSFileRef.text()), {
             headers: {
-              ...response.headers,
+              "Content-Type": http.MIME.TEXT_JAVASCRIPT,
             },
             status: http.Status.OK,
           });
