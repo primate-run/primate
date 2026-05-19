@@ -1,8 +1,8 @@
-import type { Module } from "primate";
-import fs from "@rcompat/fs";
 import type { FileRef } from "@rcompat/fs";
+import fs from "@rcompat/fs";
 import http from "@rcompat/http";
 import esbuild from "esbuild";
+import type { Module } from "primate";
 
 const website: () => Module = () => {
   const extraJSFileName = "scheme-storage";
@@ -14,6 +14,27 @@ const website: () => Module = () => {
 
     setup({ onBuild, onServe, onHandle }) {
       onBuild(async app => {
+        const views = app.path.views;
+
+        // collect guide categories and names
+        const base = views.join("docs", "guides");
+        const guides = await base.files({
+          recursive: true,
+          filter: info => info.type === "file",
+        });
+        const categories = new Map<string, { name: string; path: string }[]>;
+        for (const guide of guides) {
+          const name = ((await guide.text()).split("\n")[1].slice("name: ".length));
+          const [category, path] = guide.debase(base).path.slice(1).split("/");
+
+          categories.set(category, (categories.get(category) ?? []).concat({
+            name,
+            path: path.slice(0, -".md".length),
+          }));
+        }
+
+        await app.runpath("guides.json").writeJSON([...categories.entries()]);
+
         app.done(async () => {
           const schemeStorageFile = app.path.client.join(`${extraJSFileName}.ts`);
           const clientDir = app.path.build.join("client");
@@ -33,9 +54,9 @@ const website: () => Module = () => {
             });
 
             const buildOutFiles = await fs.files(clientDir.path, {
-              filter: new RegExp(`${extraJSFileName}-.+?\\.js$`)
+              filter: new RegExp(`${extraJSFileName}-.+?\\.js$`),
             });
-            const targetName = buildOutFiles[0].path.split('/').pop();
+            const targetName = buildOutFiles[0].path.split("/").pop();
 
             const serverFile = app.path.build.join("server.js");
             const replaced = (await serverFile.text()).split(`${extraJSFileName}.js`)
@@ -50,15 +71,15 @@ const website: () => Module = () => {
               minify: false,
             });
           }
-        })
+        });
       });
 
       onServe(async app => {
         mode = app.mode;
         if (mode !== "production") return;
         const assetFileRefs = await app.path.client.files({
-          filter: new RegExp(`${extraJSFileName}-.+?\\.js$`)
-        })
+          filter: new RegExp(`${extraJSFileName}-.+?\\.js$`),
+        });
         extraJSFileRef = assetFileRefs[0];
       });
 

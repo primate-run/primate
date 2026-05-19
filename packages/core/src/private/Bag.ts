@@ -24,15 +24,15 @@ export default class Bag {
     return this.#resolve(name) in this.#entries;
   }
 
-  keys(): string[] {
+  keys() {
     return Object.keys(this.#entries);
   }
 
-  values(): unknown[] {
+  values() {
     return Object.values(this.#entries);
   }
 
-  entries(): [string, unknown][] {
-    return Object.entries(this.#entries) as [string, unknown][];
+  entries() {
+    return Object.entries(this.#entries);
   }
 }

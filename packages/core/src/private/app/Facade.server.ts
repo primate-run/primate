@@ -59,6 +59,10 @@ export default class AppFacade<T extends EnvSchema = EnvSchema> {
     return this.#app;
   }
 
+  get views() {
+    return this.#with.views;
+  }
+
   get root() {
     return this.#with.root;
   }

@@ -1,9 +1,9 @@
 <script>
   import Header from "#component/Header";
   import Icon from "#component/Icon";
-  import { format, date } from "#component/dateTime";
+  import { date } from "#component/dateTime";
 
-  export let content, meta;
+  export let html, meta;
 
   const { author, epoch, title } = meta;
 </script>
@@ -17,6 +17,6 @@
       {date(epoch)} by
       <a class="author" href="https://github.com/{author}">{author}</a>
     </div>
-    {@html content}
+    {@html html}
   </article>
 </main>

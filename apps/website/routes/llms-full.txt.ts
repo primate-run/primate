@@ -1,21 +1,17 @@
-import DocPage from "#store/DocPage";
-import GuideStore from "#store/Guide";
+import app from "#app";
+import type { Component } from "@primate/markdown";
 import route from "primate/route";
 
 const base = "https://primate.run";
 
 export default route({
   async get() {
-    const docs = (await DocPage.find()).map(page => {
-      const source = `${base}/docs/${page.id}`;
-      return `Source: ${source}${page.body}`;
-    });
-
-    const guides = (await GuideStore.find()).map(guide => {
-      const source = `${base}/guides/${guide.id}`;
-      return `Source: ${source}${guide.body}`;
-    });
-
-    return [...docs, ...guides].join("\n\n\n");
+    return app.views.entries()
+      .filter(name => name[0].startsWith("docs/docs")
+        || name[0].startsWith("docs/guides"))
+      .map(view => {
+        const source = `${base}/${view[0].slice("docs/".length)}`;
+        return `Source: ${source}${(view[1] as Component).md}`;
+      }).join("\n\n\n");
   },
 });

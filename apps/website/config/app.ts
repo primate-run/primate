@@ -1,7 +1,9 @@
 import html from "@primate/html";
+import markdown from "@primate/markdown";
 import svelte from "@primate/svelte";
 import config from "primate/config";
 import loader from "primate/loader";
+import markdownOptions from "./markdown.options.ts";
 import website from "./Website.ts";
 
 export default config({
@@ -13,5 +15,6 @@ export default config({
     html(),
     svelte(),
     website(),
+    markdown(markdownOptions),
   ],
 });

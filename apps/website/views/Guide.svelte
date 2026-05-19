@@ -3,10 +3,10 @@
   import Footer from "#component/Footer";
   import Icon from "#component/Icon";
 
-  export let content, meta, category;
+  export let html, meta, category;
 
   // split page into sections at <hr> or <hr/>
-  const sections = content
+  const sections = html
     .split(/<hr>/i)
     .map((s) => s.trim())
     .filter(Boolean);

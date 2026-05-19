@@ -1,11 +1,12 @@
-import DocPage from "#store/DocPage";
+import app from "#app";
 import Static from "#view/Static";
+import type { Component } from "@primate/markdown";
 import response from "primate/response";
 import route from "primate/route";
 
 export default route({
-  async get(request) {
-    const { html, toc } = await DocPage.get("index");
+  get(request) {
+    const { html, toc } = app.views.get<Component>("docs/docs/index.md");
 
     const props = {
       content: html,
