@@ -135,9 +135,7 @@ export default async function build_client(app: BuildApp) {
     }
   } catch (cause: any) {
     const original = cause?.errors?.[0]?.detail;
-    if (CodeError.is(original)) {
-      throw original;
-    }
+    if (CodeError.is(original)) throw original;
     throw cause;
   }
 

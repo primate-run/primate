@@ -1,7 +1,7 @@
 <svelte:head>
-  <title>About Us - Primate Solid Demo</title>
+  <title>About Us - Primate Svelte Demo</title>
   <meta name="description" content="Learn more about our company and mission" />
-  <meta property="og:title" content="About Us - Primate Solid Demo" />
+  <meta property="og:title" content="About Us - Primate Svelte Demo" />
   <meta
     property="og:description"
     content="Learn more about our company and mission"

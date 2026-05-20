@@ -29,6 +29,7 @@
     "marko": "^6.0.171"
   },
   "devDependencies": {
+    "@rcompat/type": "^0.17.0",
     "@types/marko": "^4.6.9"
   },
   "imports": {
@@ -40,8 +41,13 @@
   "exports": {
     ".": {
       "@primate/source": "./src/public/default.ts",
+      "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
+    },
+    "./*": {
+      "@primate/source": "./src/public/*.ts",
+      "default": "./lib/public/*.js"
     }
   }
 }

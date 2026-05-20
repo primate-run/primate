@@ -48,7 +48,7 @@ export interface Init<
     create: (depth: number, i18n_active: boolean) => string;
   };
   compile?: {
-    client?: (text: string, file: FileRef, root: boolean) =>
+    client?: (text: string, file: FileRef, root: boolean, hydrate: boolean) =>
       MaybePromise<{ css?: null | string; js: string }>;
     server?: (text: string, file: FileRef) => MaybePromise<string>;
   };
@@ -293,7 +293,7 @@ export default function frontend_module<
                   build.onLoad({ filter }, async () => {
                     const contents = (await compile_client(root.create(
                       app.depth(), app.i18n_active),
-                      fs.ref("/tmp"), true)).js;
+                      fs.ref("/tmp"), true, options.ssr)).js;
                     return contents.length > 0 ? {
                       contents,
                       loader: "js",
@@ -342,7 +342,7 @@ export default function frontend_module<
                   const file = fs.ref(args.path);
                   // compile file to JavaScript and potentially CSS
                   const compiled = await compile_client(await file.text(), file
-                    , false);
+                    , false, options.ssr);
                   let contents = compiled.js;
 
                   if (init.css !== undefined

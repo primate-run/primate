@@ -1,57 +1,24 @@
-export default (depth: number, i18n_active: boolean) => {
-  const n = depth;
-  const body = Array.from({ length: n }, (_, i) => i - 1)
-    .reduceRight((child, _, i) => `
-      {#if p.views[${i + 1}]}
-        <svelte:component this={p.views[${i}]} {...p.props[${i}]}>
-          ${child}
-        </svelte:component>
-      {:else}
-        <svelte:component this={p.views[${i}]} {...p.props[${i}]}/>
-      {/if}
-    `, `<svelte:component this={p.views[${n}]} {...p.props[${n}]}/>`);
+export default (depth: number) => {
+  const view = (i: number) =>
+    `<\${input.views[${i}]} ...input.props[${i}] request=primateRequest />`;
 
-  const i18n_imports = i18n_active
-    ? `
-      import t from "#i18n";
-      import { internal } from "primate/i18n";
-      import { onMount } from "svelte";`
-    : "";
+  const layout = (i: number, child: string) => [
+    `<if=input.views[${i + 1}]>`,
+    `<\${input.views[${i}]} ...input.props[${i}] request=primateRequest>`,
+    child,
+    "</>",
+    "</if>",
+    "<else>",
+    view(i),
+    "</else>",
+  ].join("\n");
 
-  const i18n_init = i18n_active
-    ? `
-      const server = p.request.context.i18n.locale;
-      if (server !== undefined && server !== t.locale.get()) {
-        t[internal].init(server);
-      }
-
-      // after hydration: in storage modes, flip to saved locale once
-      onMount(() => { t[internal].restore(); });`
-    : "";
-
-  return `
-    <script>
-      import { afterUpdate, setContext } from "svelte";
-      import context_name from "@primate/svelte/context-name";
-      import { request } from "@primate/svelte/app";
-      ${i18n_imports}
-
-      export let p;
-
-      setContext(context_name, p.request.context);
-
-      const { context, path, ...public_request } = p.request;
-      request.set(public_request);
-
-      ${i18n_init}
-
-      afterUpdate(() => {
-         const { context, path, ...public_request } = p.request;
-         request.set(public_request);
-         p.update?.();
-      });
-    </script>
-
-    ${body}
-  `;
+  return [
+    "<const/primateRequest={ ...input.request, url: new URL(input.request.url) }/>",
+    Array.from({ length: depth }, (_, i) => i)
+      .reduceRight(
+        (child, i) => layout(i, child),
+        view(depth),
+      ),
+  ].join("\n");
 };

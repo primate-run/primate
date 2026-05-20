@@ -39,9 +39,9 @@ export default function setup(dirname: string) {
         suppressInsecureJavaScriptEnvironmentWarning: true,
       },
     });
+
     return { server: app, browser };
   })();
-
   async function close() {
     const { server, browser } = await ready;
     await browser.close();
@@ -52,6 +52,7 @@ export default function setup(dirname: string) {
     async open() {
       const { server, browser } = await ready;
       const page = browser.newPage();
+      page.console.error = (error: any) => console.error("page error:", error);
 
       function basefetch(url: string, options?: RequestInit) {
         return globalThis.fetch(`${server.url}${url}`, options ?? {});
@@ -61,6 +62,17 @@ export default function setup(dirname: string) {
         async goto(url: string) {
           await page.goto(`${server.url}${url}`);
           await page.waitUntilComplete();
+          await page.evaluate(`
+            if (typeof MessageChannel === "undefined") {
+              globalThis.MessageChannel = class {
+                constructor() {
+                  let h;
+                  this.port1 = { set onmessage(fn) { h = fn; } };
+                  this.port2 = { postMessage() { Promise.resolve().then(() => h?.({data:0})); } };
+                }
+              };
+            }
+          `);
         },
         get(selector: string) {
           return Selector(page.mainFrame.document.querySelector(selector));

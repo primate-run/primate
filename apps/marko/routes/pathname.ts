@@ -3,6 +3,6 @@ import route from "primate/route";
 
 export default route({
   get() {
-    return response.view("Index.marko");
+    return response.view("Pathname.marko");
   },
 });
