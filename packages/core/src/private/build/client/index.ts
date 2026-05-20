@@ -9,6 +9,7 @@ import plugin_server_stamp from "#build/client/plugin/server-stamp";
 import plugin_view from "#build/client/plugin/view";
 import plugin_app_request from "#build/shared/plugin/app-request";
 import location from "#location";
+import E from "#errors"
 import { CodeError } from "@rcompat/error";
 import * as esbuild from "esbuild";
 
@@ -55,10 +56,11 @@ const write_bootstrap = async (app: BuildApp) => {
 
 function user_entrypoints(app: BuildApp) {
   const configured = app.config("entrypoints") ?? {};
+  const reserved = ["app", "head", "body"];
 
-  if ("app" in configured || "head" in configured || "body" in configured) {
-    throw new Error("entrypoint name app is reserved");
-  }
+  const conflicts = Object.keys(configured).filter(name => reserved.includes(name));
+
+  if (conflicts.length) throw E.build_reserved_entrypoints(conflicts);
 
   return Object.fromEntries(
     Object.entries(configured).map(([name, file]) => [

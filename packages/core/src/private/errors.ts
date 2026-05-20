@@ -55,6 +55,10 @@ function build_path_schema_mismatch(
     path schema keys [${declared.join(", ")}] do not match
     dynamic segments [${expected.join(", ")}]`;
 }
+function build_reserved_entrypoints(
+  conflicts: string[]) {
+  return t`entrypoint name(s) reserved: ${conflicts.map(n => `"${n}"`).join(", ")}`;
+}
 
 const BUILD = error.coded({
   build_missing_binary_addon,
@@ -65,6 +69,7 @@ const BUILD = error.coded({
   build_body_requires_content_type,
   build_unrecognized_loader,
   build_path_schema_mismatch,
+  build_reserved_entrypoints,
 });
 
 function config_file_missing() {
