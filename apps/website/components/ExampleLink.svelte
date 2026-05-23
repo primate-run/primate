@@ -1,7 +1,7 @@
 <script>
   export let title, url;
 
-  $: href = url ?? title.toLowerCase().replaceAll(" ", "-");
+  const href = url ?? title.toLowerCase().replaceAll(" ", "-");
 </script>
 
 <a class="example-link" href={`/guides/${href}`}>
