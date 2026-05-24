@@ -187,5 +187,6 @@ Locale persistance mode.
 ## `db/*.ts`
 
 [s=configuration/db-ts]
+
 [Application]: /docs/application
 [Stores]: /docs/stores
