@@ -9,3 +9,8 @@ declare module "marko:root" {
   const Root: Template;
   export default Root;
 }
+
+declare module "#tags/*" {
+  const Field: unknown;
+  export default Field;
+}

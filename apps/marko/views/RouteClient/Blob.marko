@@ -1,0 +1,15 @@
+import route from "#route/route-client/blob";
+
+<let/result=(null as string | null)/>
+
+<const/send=async () => {
+  const body = new Blob(["hello"], { type: "application/octet-stream" });
+  const response = await route.post({ body });
+  result = new TextDecoder().decode(await response.arrayBuffer());
+}/>
+
+<button onClick=send>Send</button>
+
+<if=result !== null>
+  <span id="result">${result}</span>
+</if>

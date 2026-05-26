@@ -1,0 +1,14 @@
+import route from "#route/route-client/json";
+
+<let/result=null/>
+
+<const/send=async () => {
+  const response = await route.post({ body: { foo: "bar" } });
+  result = await response.json();
+}/>
+
+<button onClick=send>Send</button>
+
+<if=result !== null>
+  <span id="result">${JSON.stringify(result)}</span>
+</if>

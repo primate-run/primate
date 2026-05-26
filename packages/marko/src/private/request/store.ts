@@ -1,10 +1,10 @@
-import type { RequestView } from "@primate/core";
+import type { RequestPublic } from "@primate/core";
 
-type Input = Omit<RequestView, "url"> & {
+type Input = Omit<RequestPublic, "url"> & {
   url: string | URL;
 };
 
-type MarkoRequest = Omit<RequestView, "url"> & {
+type MarkoRequest = Omit<RequestPublic, "url"> & {
   url: URL;
   set: (value: Input) => void;
 };

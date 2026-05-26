@@ -1,7 +1,30 @@
-<let/count = input.initial/>
+import { Field } from "@primate/marko/tags";
 
-<div>
-  <p>Count: ${count}</p>
-  <button on-click() { count-- }>-</button>
-  <button on-click() { count++ }>+</button>
+export interface Input {
+  id: number;
+  counter: number;
+}
+
+<Field/counter value=input.counter method="post" url=`/counter?id=${input.id}`/>
+
+<div style="margin-top: 2rem; text-align: center;">
+  <h2>Counter Example</h2>
+
+  <div>
+    <button onClick() { counter.update(n => n - 1); } disabled=counter.loading>
+      -
+    </button>
+
+    <span style="margin: 0 1rem;">${counter.value}</span>
+
+    <button onClick() { counter.update(n => n + 1); } disabled=counter.loading >
+      +
+    </button>
+  </div>
+
+  <if=counter.error>
+    <p style="color: red; margin-top: 1rem;">
+      ${counter.error.message}
+    </p>
+  </if>
 </div>

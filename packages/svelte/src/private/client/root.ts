@@ -1,13 +1,11 @@
 import type Data from "#client/Data";
 import type { Dict } from "@rcompat/type";
+import type { Component } from "svelte";
 import { hydrate, mount } from "svelte";
 import * as views from "svelte:views";
-import type { Component } from "svelte";
-
-type ViewComponent = Component<any>;
 
 export type RootProps = {
-  views: ViewComponent[];
+  views: Component<any>[];
   props: Dict[];
   request: Data["request"] & {
     url: URL;

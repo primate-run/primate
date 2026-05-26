@@ -52,7 +52,6 @@ export default function setup(dirname: string) {
     async open() {
       const { server, browser } = await ready;
       const page = browser.newPage();
-      page.console.error = (error: any) => console.error("page error:", error);
 
       function basefetch(url: string, options?: RequestInit) {
         return globalThis.fetch(`${server.url}${url}`, options ?? {});

@@ -1,17 +1,18 @@
+import type Data from "#client/Data";
 import type { Dict } from "@rcompat/type";
 import * as views from "marko:views";
 
-type Data = {
-  views: string[];
+export type RootProps = {
+  views: unknown[];
   props: Dict[];
-  request: Dict & {
-    url: string;
+  request: Data["request"] & {
+    url: URL;
   };
 };
 
-function toProps(data: Data) {
+function toProps(data: Data): RootProps {
   return {
-    views: data.views.map(name => (views as Record<string, unknown>)[name]),
+    views: data.views.map(name => views[name]),
     props: data.props,
     request: {
       ...data.request,

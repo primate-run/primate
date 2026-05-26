@@ -103,6 +103,16 @@ function frontend(dirname: string) {
     assert(tab.get("#pathname").text()).equals("/pathname");
   });
 
+  test.case("app:request is reactive", async assert => {
+    await using tab = await browser.open();
+    await tab.goto("/pathname");
+    assert(tab.get("#pathname").text()).equals("/pathname");
+    await tab.click("#next");
+    assert(tab.get("#pathname").text()).equals("/pathnamed");
+    await tab.click("#previous");
+    assert(tab.get("#pathname").text()).equals("/pathname");
+  });
+
   const cases = {
     json: JSON.stringify({ foo: "bar" }),
     text: "hello",
@@ -180,8 +190,6 @@ function frontend(dirname: string) {
     test.case("field increments and shows error at limit", async assert => {
       await using tab = await browser.open();
       await tab.goto("/counter");
-
-      // starts at 10, click + 10 times to reach 20
       for (let i = 0; i < 10; i++) {
         const expected = String(11 + i);
         await tab.click("button:last-of-type");
@@ -189,8 +197,6 @@ function frontend(dirname: string) {
       }
       assert(tab.get("span").text()).equals("20");
       assert(tab.get("p").exists()).false();
-
-      // one more push over the limit
       await tab.click("button:last-of-type");
       await tab.waitfor(() => tab.get("p").exists());
       assert(tab.get("p").exists()).true();

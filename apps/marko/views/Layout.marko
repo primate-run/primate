@@ -1,6 +1,13 @@
-<section id="layout">
-  <h2>${input.title}</h2>
-  <main>
-    <${input.content}/>
-  </main>
-</section>
+export interface Input {
+  content: Marko.Body;
+}
+
+<ul>
+  <li>
+    <a href="/">overview</a>
+  </li>
+</ul>
+
+<div>
+  <${input.content}/>
+</div>

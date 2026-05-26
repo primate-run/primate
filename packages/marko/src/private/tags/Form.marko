@@ -1,0 +1,75 @@
+import client from "@primate/core/client";
+
+<const/error_view=errors => {
+  const view = [...errors.form];
+
+  Object.defineProperty(view, "fields", {
+    value: errors.fields,
+    enumerable: false,
+  });
+
+  return view;
+}/>
+
+<let/id=`form-${crypto.randomUUID()}`/>
+<let/submitting=false/>
+<let/submitted=false/>
+<let/result/>
+<let/errors=error_view({ form: [], fields: {} })/>
+<let/values=input.initial ?? {}/>
+<let/controller/>
+<let/action/>
+<let/contentType/>
+<const/action_meta=typeof document === "undefined" ? {
+  contentType: input.action?.contentType,
+} : {
+  action: input.action,
+  contentType: input.action?.contentType,
+}/>
+<const/set_action=meta => {
+  if ("action" in meta) {
+    action = meta.action;
+  }
+  contentType = meta.contentType;
+}/>
+<const/_action=set_action(action_meta)/>
+
+<const/create_controller=() => {
+  if (controller !== undefined) return controller;
+
+  controller = client.createForm({
+    id,
+    action,
+    contentType,
+    path: input.path,
+  });
+
+  return controller;
+}/>
+
+<const/submit=async event => {
+  event?.preventDefault?.();
+  const controller = create_controller();
+
+  submitting = true;
+  await controller.submit(event);
+  const snapshot = controller.read();
+  id = snapshot.id;
+  submitting = snapshot.submitting;
+  submitted = snapshot.submitted;
+  result = snapshot.result;
+  errors = error_view(snapshot.errors);
+}/>
+
+<const/field=name => {
+  const field_errors = errors.fields[name] ?? [];
+
+  return {
+    name,
+    value: values[name],
+    error: field_errors[0] ?? null,
+    errors: field_errors,
+  };
+}/>
+
+<return={ id, submitting, submitted, result, errors, values, field, submit }/>

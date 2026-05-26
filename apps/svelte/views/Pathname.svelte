@@ -3,3 +3,4 @@
 </script>
 
 <span id="pathname">{$request.url.pathname}</span>
+<a id="next" href="/pathnamed">next</a>

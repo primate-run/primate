@@ -16,6 +16,7 @@
     "@primate/marko": "workspace:^",
     "@rcompat/env": "^0.22.1",
     "marko": "^6.0.171",
+    "pema": "workspace:^",
     "primate": "workspace:^"
   },
   "devDependencies": {

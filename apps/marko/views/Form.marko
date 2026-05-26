@@ -1,0 +1,31 @@
+import { Form } from "@primate/marko/tags";
+
+export interface Input {
+  id: number;
+  counter: number;
+}
+
+<Form/form initial={ counter: input.counter} />
+<const/counter=form.field("counter") />
+
+<form
+  method="post"
+  action=`/form?id=${input.id}`
+  id=form.id
+  onSubmit=form.submit
+>
+  <if=form.errors.length><p style="color: red">${form.errors[0]}</p></if>
+
+  <label>
+    Counter:
+    <input type="number" name=counter.name value=counter.value />
+  </label>
+
+  <if=counter.error>
+    <p id="counter-error" style="color: red">${counter.error}</p>
+  </if>
+
+  <if=form.submitted><span id="submitted">saved</span></if>
+
+  <button type="submit" disabled=form.submitting>Save</button>
+</form>

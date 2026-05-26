@@ -1,0 +1,44 @@
+import client from "@primate/core/client";
+
+export interface Input {
+  value: unknown;
+  method: "delete" | "patch" | "post" | "put";
+  url: string;
+  headers?: Record<string, string>;
+  map?: (value: unknown) => unknown;
+  path?: string;
+}
+
+<let/value=input.value/>
+<let/error=null/>
+<let/loading=false/>
+
+<const/update=async (updater) => {
+  const previous = value;
+  const next = updater(value);
+  error = null;
+  loading = true;
+  value = next;
+  try {
+    await client.validateField({
+      initial: input.value,
+      method: input.method.toUpperCase(),
+      url: input.url,
+      headers: input.headers,
+      map: input.map,
+      path: input.path,
+    }, next);
+    loading = false;
+  } catch (e) {
+    error = e;
+    loading = false;
+    value = previous;
+  }
+}/>
+
+<return={
+  value,
+  error,
+  loading,
+  update
+}/>

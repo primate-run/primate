@@ -1,0 +1,17 @@
+import route from "#route/route-client/form-level";
+import { Form } from "@primate/marko/tags";
+
+<Form/form action=route.post />
+
+<form id=form.id onSubmit=form.submit>
+  <input id="foo" name="foo" />
+  <button id="send" type="submit">Send</button>
+
+  <if=form.submitted>
+    <span id="result">ok</span>
+  </if>
+
+  <if=(form.errors.length > 0)>
+    <span id="error">${form.errors[0]}</span>
+  </if>
+</form>

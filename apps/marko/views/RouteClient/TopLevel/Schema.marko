@@ -1,0 +1,10 @@
+import route from "#route/route-client/schema";
+
+static async function send() {
+  const response = await route.post({ body: { foo: "bar" } });
+  return response.json();
+}
+
+<await|result|=send()>
+  <span id="result">${JSON.stringify(result)}</span>
+</await>

@@ -18,6 +18,7 @@
   ],
   "scripts": {
     "build": "npm run clean && tsgo",
+    "postbuild": "node scripts/compile-tags.js",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
@@ -33,6 +34,10 @@
     "@types/marko": "^4.6.9"
   },
   "imports": {
+    "#tags/*": {
+      "browser": "./lib/private/tags/*.browser.js",
+      "default": "./lib/private/tags/*.server.js"
+    },
     "#*": {
       "@primate/source": "./src/private/*.ts",
       "default": "./lib/private/*.js"

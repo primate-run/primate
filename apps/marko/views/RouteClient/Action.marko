@@ -1,0 +1,18 @@
+import route from "#route/route-client/action";
+import { Form } from "@primate/marko/tags";
+
+<Form/form action=route.post />
+<const/foo=form.field("foo") />
+
+<form id=form.id onSubmit=form.submit>
+  <input id="foo" name=foo.name />
+  <button id="send" type="submit">Send</button>
+
+  <if=form.submitted>
+    <span id="result">${JSON.stringify({ foo: "hello" })}</span>
+  </if>
+
+  <if=foo.error>
+    <span id="error">${foo.error}</span>
+  </if>
+</form>

@@ -1,7 +1,7 @@
 import { transformSync } from "@babel/core";
 import transform from "@primate/core/build/transform";
-// @ts-expect-error no types
 import fs from "@rcompat/fs";
+// @ts-expect-error no types
 import solid from "babel-preset-solid";
 
 function compile(text) {
