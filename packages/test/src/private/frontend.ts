@@ -1,3 +1,6 @@
+import head from "#frontend/head";
+import imports from "#frontend/imports";
+import style from "#frontend/style";
 import setup from "#setup";
 import env from "@rcompat/env";
 import test from "@rcompat/test";
@@ -311,5 +314,9 @@ function frontend(dirname: string) {
 
   return browser;
 }
+
+frontend.head = head;
+frontend.imports = imports;
+frontend.style = style;
 
 export default frontend;

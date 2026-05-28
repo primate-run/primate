@@ -6,6 +6,10 @@ import { Browser } from "happy-dom";
 
 function Selector(element: Element | null) {
   return {
+    get() {
+      if (element === null) throw new Error("missing element");
+      return element;
+    },
     text() {
       if (element === null) return undefined;
       return element.textContent.trim();
@@ -24,6 +28,12 @@ function Selector(element: Element | null) {
     hasAttribute(a: string) {
       if (element === null) return undefined;
       return element.hasAttribute(a);
+    },
+    attribute(name: string) {
+      if (element === null) throw new Error("missing element");
+      const attribute = element.getAttribute(name);
+      if (attribute === null) throw new Error(`missing attribute ${name}`);
+      return attribute;
     },
   };
 }
