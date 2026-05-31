@@ -12,10 +12,12 @@
 
 :root {
   --shadow-height: 0.5rem;
-  --shadow-gradient: linear-gradient(to bottom,
-      rgba(0, 0, 0, 0.1) 0%,
-      rgba(0, 0, 0, 0.05) 30%,
-      transparent 100%);
+  --shadow-gradient: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.05) 30%,
+    transparent 100%
+  );
   --height: 60px;
   --scrollbar: rgba(0, 0, 0, 0.3);
   --prs-back-1: hsl(206, 20%, 80%);
@@ -68,7 +70,7 @@
     --caption-hr: #36394b;
     --border: #5a5a5a;
     --tabbed: var(--bg);
-    --scrollbar: rgba(255, 255, 255, .4);
+    --scrollbar: rgba(255, 255, 255, 0.4);
     --sidebar-border: rgba(255, 255, 255, 0.12);
     --sidebar-link: #b8c2d7;
     --sidebar-link-hover: #e1e7f6 color-scheme: dark;
@@ -103,7 +105,7 @@
   --caption-hr: #36394b;
   --border: #5a5a5a;
   --tabbed: var(--bg);
-  --scrollbar: rgba(255, 255, 255, .4);
+  --scrollbar: rgba(255, 255, 255, 0.4);
   --sidebar-border: rgba(255, 255, 255, 0.12);
   --sidebar-link: #b8c2d7;
   --sidebar-link-hover: #e1e7f6 color-scheme: dark;
@@ -439,7 +441,8 @@ pre,
 code {
   padding: 0 0.4rem;
   font-size: var(--prs-text-s);
-  font-family: droid-sans-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family:
+    droid-sans-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 code {
@@ -493,7 +496,7 @@ article :where(h2, h3, h4, h5, h6):hover a.deeplink {
 
 article a.deeplink {
   opacity: 0;
-  transition: opacity .2s;
+  transition: opacity 0.2s;
   color: var(--fg);
 }
 

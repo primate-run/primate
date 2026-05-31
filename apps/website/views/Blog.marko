@@ -18,21 +18,21 @@ static function iso(epoch: number) {
 
 <Header title="Blog"/>
 
-<main class=styles.blog>
+<main class="blog">
   <article>
-    <h1 class=styles.title>Blog</h1>
+    <h1 class="title">Blog</h1>
 
-    <ul class=styles.entries>
+    <ul class="entries">
       <for|post| of=input.posts>
-        <li class=styles.entry>
+        <li class="entry">
           <a href=("/blog/" + post.href)>
-            <h2 class=styles["entry__title"]>
+            <h2 class="entry__title">
               $!{post.meta.title.replace(/`([^`]+)`/g, "<code>$1</code>")}
             </h2>
 
-            <p class=styles["entry__excerpt"]>$!{post.html_excerpt}</p>
+            <p class="entry__excerpt">$!{post.html_excerpt}</p>
 
-            <div class=styles["entry__meta"]>
+            <div class="entry__meta">
               <time datetime=iso(post.meta.epoch)>
                 ${date(post.meta.epoch)}
               </time>
@@ -44,7 +44,7 @@ static function iso(epoch: number) {
   </article>
 </main>
 
-<style/styles>
+<style>
   .blog {
     padding-top: var(--height);
   }
@@ -58,46 +58,46 @@ static function iso(epoch: number) {
     text-decoration: none;
   }
 
-  .entries {
+  .blog .entries {
     list-style: none;
     padding: 0;
     margin: 0;
   }
 
-  .entry {
+  .blog .entry {
     padding: 18px;
     border-radius: 5px;
     list-style-type: none;
   }
 
-  .entry:hover {
+  .blog .entry:hover {
     background: var(--caption-bg);
   }
 
-  .entry__title {
+  .blog .entry__title {
     margin: 0 0 0.45rem;
     line-height: 1.25;
     letter-spacing: -0.01em;
   }
 
-  .entry__excerpt {
+  .blog .entry__excerpt {
     margin: 0;
     color: var(--fg2);
     line-height: 1.6;
   }
 
-  .entry__meta {
+  .blog .entry__meta {
     margin-top: 5px;
     font-size: 14px;
     color: var(--fg1);
   }
 
   @media (max-width: 700px) {
-    .entry {
+    .blog .entry {
       padding: 1.3rem 0 1.5rem;
     }
 
-    .entry__excerpt {
+    .blog .entry__excerpt {
       font-size: 1rem;
     }
   }
