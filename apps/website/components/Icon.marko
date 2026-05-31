@@ -6,7 +6,7 @@ export interface Input {
 <const/name=input.name>
 <const/size=input.size ?? 16>
 
-<style/styles>
+<style>
   .icon {
     position: relative;
     overflow: hidden;
@@ -21,6 +21,6 @@ export interface Input {
   }
 </style>
 
-<svg class=styles.icon width=size height=size>
+<svg class="icon" width=size height=size>
   <use href=`#${name}`/>
 </svg>
