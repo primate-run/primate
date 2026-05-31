@@ -1,6 +1,6 @@
 {
   "name": "@primate/angular",
-  "version": "0.9.0",
+  "version": "0.10.0-pre",
   "description": "Angular for Primate",
   "homepage": "https://primate.run/docs/frontend/angular",
   "bugs": "https://github.com/primate-run/primate/issues",
