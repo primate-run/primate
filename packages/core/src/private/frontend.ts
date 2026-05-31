@@ -265,11 +265,7 @@ export default function frontend_module<
             app.addRoot(rootname, source);
           }
 
-          // publsh
-          if (app.mode === "development") {
-            app.frontends.set(module_name, [...extensions]);
-          }
-
+          // publish
           if (compile_client !== undefined) {
             if (init.client) {
               app.frontends.set(module_name, [...extensions]);
