@@ -1,5 +1,5 @@
 import route from "#route/route-client/action";
-import { client } from "@primate/solid";
+import client from "@primate/solid/client";
 
 export default function ClientRouteAction() {
   const form = client.form(route.post);

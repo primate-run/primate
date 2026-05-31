@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import route from "#route/route-client/path-action/[name]";
-import { client } from "@primate/vue";
+import client from "@primate/vue/client";
 
 const { name } = defineProps<{ name: string }>();
 const form = client.form(route.post, { path: { name } });

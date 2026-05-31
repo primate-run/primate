@@ -22,7 +22,9 @@ import config from "primate/config";
 import vue from "@primate/vue";
 
 export default config({
-  modules: [vue()],
+  modules: [
+    vue(),
+  ],
 });
 ```
 
@@ -68,12 +70,12 @@ import route from "primate/route";
 
 export default route({
   get() {
-      const posts = [
-        { title: "First Post", excerpt: "Introduction to Primate with Vue" },
-        { title: "Second Post", excerpt: "Building reactive applications" },
-      ];
+    const posts = [
+      { title: "First Post", excerpt: "Introduction to Primate with Vue" },
+      { title: "Second Post", excerpt: "Building reactive applications" },
+    ];
 
-      return response.view("PostIndex.vue", { title: "Blog", posts });
+    return response.view("PostIndex.vue", { title: "Blog", posts });
   },
 });
 ```
@@ -137,9 +139,9 @@ navigation.
 
 ```vue
 <script lang="ts" setup>
-  import { useRequest } from "app:vue";
+import { useRequest } from "app:vue";
 
-  const request = useRequest();
+const request = useRequest();
 </script>
 
 <template>
@@ -186,11 +188,11 @@ Use Primate's validated state wrapper to synchronize with backend routes.
 ```vue
 <script lang="ts" setup>
 import { computed } from "vue";
-import { client } from "@primate/vue";
+import client from "@primate/vue/client";
 
 interface Props {
   id: string;
-  counter: number
+  counter: number;
 }
 
 const props = defineProps<Props>();
@@ -234,22 +236,22 @@ await Counter.create();
 
 export default route({
   async get() {
-      const counters = await Counter.find({});
+    const counters = await Counter.find({});
 
-      const counter = counters.length === 0
-        ? await Counter.insert({ counter: 10 })
-        : counters[0];
+    const counter = counters.length === 0
+      ? await Counter.insert({ counter: 10 })
+      : counters[0];
 
-      return response.view("Counter.vue", {
-        id: counter.id,
-        counter: counter.counter
-      });
+    return response.view("Counter.vue", {
+      id: counter.id,
+      counter: counter.counter,
+    });
   },
   async post(request) {
-      const id = p.string.parse(request.query.get("id"));
-      const body = p.loose.number.parse(await request.body.json());
-      await Counter.update(id, { set: { counter: body } });
-      return null;
+    const id = p.string.parse(request.query.get("id"));
+    const body = p.loose.number.parse(await request.body.json());
+    await Counter.update(id, { set: { counter: body } });
+    return null;
   },
 });
 ```
@@ -259,75 +261,52 @@ and posts updates on state changes.
 
 ## Forms
 
-Create forms with Vue's Composition API and reactive data.
+Use `client.form` from `@primate/vue/client` to wire forms to backend routes
+with automatic field-level validation and error display.
 
 ```vue
+<!-- views/LoginForm.vue -->
 <script lang="ts" setup>
-import { ref, computed } from "vue";
+import client from "@primate/vue/client";
 
-const email = ref("");
-const password = ref("");
-const errors = ref<{email?: string; password?: string}>({});
-
-const isFormValid = computed(() => email.value && password.value);
-
-const validateForm = () => {
-  errors.value = {};
-
-  if (!email.value) {
-    errors.value.email = "Email is required";
-  } else if (!/\S+@\S+\.\S+/.test(email.value)) {
-    errors.value.email = "Email must be valid";
-  }
-
-  if (!password.value) {
-    errors.value.password = "Password is required";
-  } else if (password.value.length < 8) {
-    errors.value.password = "Password must be at least 8 characters";
-  }
-
-  return Object.keys(errors.value).length === 0;
-};
-
-const handleSubmit = async (e: Event) => {
-  e.preventDefault();
-
-  if (!validateForm()) return;
-
-  await fetch("/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email: email.value,
-      password: password.value
-    }),
-  });
-};
+const form = client.form({ initial: { email: "", password: "" } });
 </script>
 
 <template>
-  <form @submit="handleSubmit" style="max-width: 400px; margin: 2rem auto;">
-    <h2>Login</h2>
+  <form
+    method="post"
+    action="/login"
+    :id="form.id"
+    @submit="form.submit"
+  >
+    <p v-if="form.errors.length" style="color: red;">{{ form.errors[0] }}</p>
 
     <div style="margin-bottom: 1rem;">
-      <input type="email" placeholder="Email" v-model="email" />
-      <p v-if="errors.email">{{ errors.email }}</p>
+      <input
+        type="email"
+        :name="form.field('email').name"
+        :value="form.field('email').value"
+        placeholder="Email"
+      />
+      <p v-if="form.field('email').error" style="color: red;">
+        {{ form.field('email').error }}
+      </p>
     </div>
 
     <div style="margin-bottom: 1rem;">
-      <input type="password" placeholder="Password" v-model="password" />
-      <p v-if="errors.password">{{ errors.password }}</p>
+      <input
+        type="password"
+        :name="form.field('password').name"
+        :value="form.field('password').value"
+        placeholder="Password"
+      />
+      <p v-if="form.field('password').error" style="color: red;">
+        {{ form.field('password').error }}
+      </p>
     </div>
 
-    <button
-      type="submit"
-      :disabled="!isFormValid"
-      :style="{
-        backgroundColor: isFormValid ? '#007bff' : '#ccc',
-        cursor: isFormValid ? 'pointer' : 'not-allowed'
-      }"
-    >
-      Submit
+    <button type="submit" :disabled="form.submitting">
+      {{ form.submitting ? "Submitting..." : "Submit" }}
     </button>
   </form>
 </template>
@@ -351,20 +330,41 @@ export default route({
     return response.view("LoginForm.vue");
   },
   async post(request) {
-      const body = LoginSchema.parse(await request.body.json());
+    const body = LoginSchema.parse(await request.body.form());
 
-      // implement authentication logic
+    // implement authentication logic
 
-      return null;
+    return null;
   },
 });
 ```
 
+Validation errors from the server are automatically surfaced per-field via
+`form.field(name).error`. The `form.submitting` flag disables the submit
+button while the request is in flight.
+
+### Form API
+
+| Property           | Type                  | Description                         |
+| ------------------ | --------------------- | ----------------------------------- |
+| `form.id`          | `string`              | Unique form ID for the `id` attr    |
+| `form.submit`      | `(event?) => Promise` | Submit handler for `@submit`        |
+| `form.submitting`  | `boolean`             | True while the request is in flight |
+| `form.errors`      | `string[]`            | Form-level errors                   |
+| `form.field(name)` | `Field`               | Access a named field                |
+
+### Field API
+
+| Property       | Type           | Description                     |
+| -------------- | -------------- | ------------------------------- |
+| `field.name`   | `string`       | Field name for the `name` attr  |
+| `field.value`  | `T`            | Initial field value             |
+| `field.error`  | `string\|null` | First validation error or null  |
+| `field.errors` | `string[]`     | All validation errors for field |
+
 ## Layouts
 
 Create layout components that wrap your pages using `<slot>`.
-
-Create a layout component:
 
 ```vue
 <!-- views/Layout.vue -->
@@ -374,7 +374,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  brand: "My App"
+  brand: "My App",
 });
 </script>
 
@@ -392,8 +392,7 @@ const props = withDefaults(defineProps<Props>(), {
       <slot />
     </main>
 
-    <footer style="padding: 1rem; background-color: #f8f9fa;
-                   text-align: center;">
+    <footer style="padding: 1rem; background-color: #f8f9fa; text-align: center;">
       © 1996 {{ brand }}
     </footer>
   </div>

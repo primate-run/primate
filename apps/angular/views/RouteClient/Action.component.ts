@@ -1,7 +1,7 @@
 import route from "#route/route-client/action";
 import type { OnInit } from "@angular/core";
 import { Component } from "@angular/core";
-import { client } from "@primate/angular";
+import client from "@primate/angular/client";
 
 @Component({
   template: `

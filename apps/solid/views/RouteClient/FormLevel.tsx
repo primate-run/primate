@@ -1,5 +1,5 @@
 import route from "#route/route-client/form-level";
-import { client } from "@primate/solid";
+import client from "@primate/solid/client";
 
 export default function ClientRouteFormLevel() {
   const form = client.form(route.post);

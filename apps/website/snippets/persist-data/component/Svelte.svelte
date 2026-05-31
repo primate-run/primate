@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { client } from "@primate/svelte";
+  import client from "@primate/svelte/client";
   export let id, value;
 
   const counter = client.field<number>(value).post(`/counter?id=${id}`);

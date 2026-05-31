@@ -22,7 +22,9 @@ import config from "primate/config";
 import svelte from "@primate/svelte";
 
 export default config({
-  modules: [svelte()],
+  modules: [
+    svelte(),
+  ],
 });
 ```
 
@@ -33,8 +35,10 @@ Create Svelte components in `views`.
 ```svelte
 <!-- views/PostIndex.svelte -->
 <script lang="ts">
-  export let title: string;
-  export let posts: Array<{title: string; excerpt?: string}> = [];
+  const { title, posts = [] }: {
+    title: string;
+    posts: {title: string; excerpt?: string}[];
+  } = $props();
 </script>
 
 <div>
@@ -61,12 +65,12 @@ import route from "primate/route";
 
 export default route({
   get() {
-      const posts = [
-        { title: "First Post", excerpt: "Introduction to Primate with Svelte" },
-        { title: "Second Post", excerpt: "Building reactive applications" },
-      ];
+    const posts = [
+      { title: "First Post", excerpt: "Introduction to Primate with Svelte" },
+      { title: "Second Post", excerpt: "Building reactive applications" },
+    ];
 
-      return response.view("PostIndex.svelte", { title: "Blog", posts });
+    return response.view("PostIndex.svelte", { title: "Blog", posts });
   },
 });
 ```
@@ -96,8 +100,10 @@ Access the props in the component:
 ```svelte
 <!-- views/User.svelte -->
 <script lang="ts">
-  export let user: {name: string; role: string};
-  export let permissions: string[] = [];
+  const { user, permissions = [] }: {
+    user: {name: string; role: string};
+    permissions: string[];
+  } = $props();
 </script>
 
 <div>
@@ -134,26 +140,21 @@ The `request` store exposes a `RequestPublic` object.
 | `headers` | `Dict<string>` | request headers         |
 | `cookies` | `Dict<string>` | request cookies         |
 
-## Reactivity with stores
+## Reactivity
 
-Svelte's reactivity system uses reactive statements and stores for state
-management.
+Svelte 5 uses runes for fine-grained reactivity.
 
 ```svelte
 <script lang="ts">
-  import { writable } from 'svelte/store';
-
-  const count = writable(0);
-  const doubled = writable(0);
-
-  $: doubled.set($count * 2);
+  let count = $state(0);
+  const doubled = $derived(count * 2);
 </script>
 
 <div>
-  <button on:click={() => count.update(n => n - 1)}>-</button>
-  <span>{$count}</span>
-  <button on:click={() => count.update(n => n + 1)}>+</button>
-  <p>Doubled: {$doubled}</p>
+  <button onclick={() => count--}>-</button>
+  <span>{count}</span>
+  <button onclick={() => count++}>+</button>
+  <p>Doubled: {doubled}</p>
 </div>
 ```
 
@@ -163,7 +164,8 @@ Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```svelte
 <script lang="ts">
-  import { client } from "@primate/svelte";
+  import client from "@primate/svelte/client";
+
   const props: { id: string; counter: number } = $props();
   const counter = client.field(props.counter).post(`/counter?id=${props.id}`);
 </script>
@@ -172,7 +174,7 @@ Use Primate's validated state wrapper to synchronize with backend routes.
   <h2>Counter Example</h2>
   <div>
     <button
-      on:click={() => counter.update((n) => n - 1)}
+      onclick={() => counter.update((n) => n - 1)}
       disabled={$counter.loading}
     >
       -
@@ -181,7 +183,7 @@ Use Primate's validated state wrapper to synchronize with backend routes.
     <span style="margin: 0 1rem;">{$counter.value}</span>
 
     <button
-      on:click={() => counter.update((n) => n + 1)}
+      onclick={() => counter.update((n) => n + 1)}
       disabled={$counter.loading}
     >
       +
@@ -209,22 +211,22 @@ await Counter.create();
 
 export default route({
   async get() {
-      const counters = await Counter.find({});
+    const counters = await Counter.find({});
 
-      const counter = counters.length === 0
-        ? await Counter.insert({ counter: 10 })
-        : counters[0];
+    const counter = counters.length === 0
+      ? await Counter.insert({ counter: 10 })
+      : counters[0];
 
-      return response.view("Counter.svelte", {
-        id: counter.id,
-        value: counter.counter
-      });
+    return response.view("Counter.svelte", {
+      id: counter.id,
+      value: counter.counter
+    });
   },
   async post(request) {
-      const id = p.string.parse(request.query.get("id"));
-      const body = p.loose.number.parse(await request.body.json());
-      await Counter.update(id, { set: { counter: body } });
-      return null;
+    const id = p.string.parse(request.query.get("id"));
+    const body = p.loose.number.parse(await request.body.json());
+    await Counter.update(id, { set: { counter: body } });
+    return null;
   },
 });
 ```
@@ -234,76 +236,58 @@ and posts updates on state changes.
 
 ## Forms
 
-Create forms with Svelte's reactive statements and two-way binding.
+Use `client.form` from `@primate/svelte/client` to wire forms to backend
+routes with automatic field-level validation and error display.
 
 ```svelte
+<!-- views/LoginForm.svelte -->
 <script lang="ts">
-  let email = "";
-  let password = "";
-  let errors: {email?: string; password?: string} = {};
+  import client from "@primate/svelte/client";
 
-  function validateForm() {
-    errors = {};
-
-    if (!email) {
-      errors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      errors.email = "Email must be valid";
-    }
-
-    if (!password) {
-      errors.password = "Password is required";
-    } else if (password.length < 8) {
-      errors.password = "Password must be at least 8 characters";
-    }
-
-    return Object.keys(errors).length === 0;
-  }
-
-  async function handleSubmit(e: Event) {
-    e.preventDefault();
-
-    if (!validateForm()) return;
-
-    await fetch("/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-  }
+  const form = client.form({ initial: { email: "", password: "" } });
 </script>
 
-<form on:submit={handleSubmit} style="max-width: 400px; margin: 2rem auto;">
-  <h2>Login</h2>
+<form
+  method="post"
+  action="/login"
+  id={$form.id}
+  onsubmit={$form.submit}
+>
+  {#if $form.errors.length}
+    <p style="color: red">{$form.errors[0]}</p>
+  {/if}
 
   <div style="margin-bottom: 1rem;">
-    <input type="email" placeholder="Email" bind:value={email} />
-    {#if errors.email}
-      <p>{errors.email}</p>
+    <input
+      type="email"
+      name={$form.field("email").name}
+      value={$form.field("email").value}
+      placeholder="Email"
+    />
+    {#if $form.field("email").error}
+      <p style="color: red">{$form.field("email").error}</p>
     {/if}
   </div>
 
   <div style="margin-bottom: 1rem;">
-    <input type="password" placeholder="Password" bind:value={password} />
-    {#if errors.password}
-      <p>{errors.password}</p>
+    <input
+      type="password"
+      name={$form.field("password").name}
+      value={$form.field("password").value}
+      placeholder="Password"
+    />
+    {#if $form.field("password").error}
+      <p style="color: red">{$form.field("password").error}</p>
     {/if}
   </div>
 
-  <button
-    type="submit"
-    disabled={!email || !password}
-    style="width: 100%; padding: 0.75rem;
-           background-color: {!email || !password ? '#ccc' : '#007bff'};
-           color: white; border: none; border-radius: 4px; font-size: 1rem;
-           cursor: {!email || !password ? 'not-allowed' : 'pointer'};"
-  >
-    Submit
+  <button type="submit" disabled={$form.submitting}>
+    {$form.submitting ? "Submitting..." : "Submit"}
   </button>
 </form>
 ```
 
-Add the corresponding route:
+Add the corresponding route with server-side validation:
 
 ```ts
 // routes/login.ts
@@ -321,25 +305,51 @@ export default route({
     return response.view("LoginForm.svelte");
   },
   async post(request) {
-      const body = LoginSchema.parse(await request.body.json());
+    const body = LoginSchema.parse(await request.body.form());
 
-      // implement authentication logic
+    // implement authentication logic
 
-      return null;
+    return null;
   },
 });
 ```
 
+Validation errors from the server are automatically surfaced per-field via
+`$form.field(name).error`. The `$form.submitting` flag disables the submit
+button while the request is in flight.
+
+### Form API
+
+| Property              | Type                    | Description                        |
+| --------------------- | ----------------------- | ---------------------------------- |
+| `$form.id`            | `string`                | Unique form ID for the `id` attr   |
+| `$form.submit`        | `(event?) => Promise`   | Submit handler for `onsubmit`      |
+| `$form.submitting`    | `boolean`               | True while the request is in flight |
+| `$form.errors`        | `string[]`              | Form-level errors                  |
+| `$form.field(name)`   | `Field`                 | Access a named field               |
+
+### Field API
+
+| Property              | Type           | Description                        |
+| --------------------- | -------------- | ---------------------------------- |
+| `field.name`          | `string`       | Field name for the `name` attr     |
+| `field.value`         | `T`            | Initial field value                |
+| `field.error`         | `string\|null` | First validation error or null     |
+| `field.errors`        | `string[]`     | All validation errors for field    |
+
 ## Layouts
 
-Create layout components that wrap your pages using `<slot>`.
+Create layout components that wrap your pages using `{@render children()}`.
 
 Create a layout component:
 
 ```svelte
 <!-- views/Layout.svelte -->
 <script lang="ts">
-  export let brand = "My App";
+  const { brand = "My App", children }: {
+    brand?: string;
+    children: import("svelte").Snippet;
+  } = $props();
 </script>
 
 <div>
@@ -352,7 +362,7 @@ Create a layout component:
   </header>
 
   <main style="padding: 2rem;">
-    <slot />
+    {@render children()}
   </main>
 
   <footer style="padding: 1rem; background-color: #f8f9fa; text-align: center;">
@@ -375,7 +385,7 @@ export default route({
 });
 ```
 
-Pages under this route subtree render inside the layout's `<slot>`.
+Pages under this route subtree render inside the layout's `{@render children()}`.
 
 ## Internationalization
 
@@ -388,8 +398,8 @@ Primate's `t` function is framework-agnostic. In Svelte, call it directly:
 
 <div>
   <h1>{$t("welcome")}</h1>
-  <button on:click={() => t.locale.set("en-US")}>{$t("english")}</button>
-  <button on:click={() => t.locale.set("de-DE")}>{$t("german")}</button>
+  <button onclick={() => t.locale.set("en-US")}>{$t("english")}</button>
+  <button onclick={() => t.locale.set("de-DE")}>{$t("german")}</button>
   <p>{$t("current_locale")}: {t.locale.get()}</p>
 </div>
 ```
@@ -402,10 +412,6 @@ rerenders when switching languages.
 Use Svelte's `<svelte:head>` to manage document head elements.
 
 ```svelte
-<script lang="ts">
-  // component logic here
-</script>
-
 <svelte:head>
   <title>About Us - Primate Svelte Demo</title>
   <meta name="description" content="Learn more about our company" />
@@ -452,7 +458,7 @@ export default config({
 
 - [Documentation]
 - [Tutorial](https://svelte.dev/tutorial)
-- [Reactive statements](https://svelte.dev/docs#component-format-script-3-assignments)
+- [Runes](https://svelte.dev/docs/svelte/what-are-runes)
 - [Stores](https://svelte.dev/docs#run-time-svelte-store)
 
 [Documentation]: https://svelte.dev

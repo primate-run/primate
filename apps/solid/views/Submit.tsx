@@ -1,4 +1,4 @@
-import { client } from "@primate/solid";
+import client from "@primate/solid/client";
 
 export default function Submit() {
   const form = client.form({ initial: { email: "" } });

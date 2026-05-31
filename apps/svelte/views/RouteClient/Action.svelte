@@ -1,6 +1,6 @@
 <script>
   import route from "#route/route-client/action";
-  import { client } from "@primate/svelte";
+  import client from "@primate/svelte/client";
 
   const form = client.form(route.post);
 </script>

@@ -1,6 +1,6 @@
 <script setup>
 import route from "#route/route-client/action";
-import { client } from "@primate/vue";
+import client from "@primate/vue/client";
 
 const form = client.form(route.post);
 </script>

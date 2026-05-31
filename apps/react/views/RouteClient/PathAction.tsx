@@ -1,5 +1,5 @@
 import route from "#route/route-client/path-action/[name]";
-import { client } from "@primate/react";
+import client from "@primate/react/client";
 
 export default function PathAction({ name }: { name: string }) {
   const form = client.form(route.post, { path: { name } });

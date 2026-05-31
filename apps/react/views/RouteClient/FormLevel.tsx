@@ -1,5 +1,5 @@
-import { client } from "@primate/react";
 import route from "#route/route-client/form-level";
+import client from "@primate/react/client";
 
 export default function ClientRouteFormLevel() {
   const form = client.form(route.post);

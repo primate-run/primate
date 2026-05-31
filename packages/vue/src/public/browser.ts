@@ -6,5 +6,3 @@ export default function vue() {
 }
 
 export { default as app } from "#client/app";
-export { default as client } from "#client/index";
-

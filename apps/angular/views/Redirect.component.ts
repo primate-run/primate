@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { client } from "@primate/angular";
+import client from "@primate/angular/client";
 
 @Component({
   standalone: true,

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { client } from "@primate/svelte";
-  const props: { id: number; counter: number } = $props();
+  import client from "@primate/svelte/client";
 
+  const props: { id: number; counter: number } = $props();
   const form = client.form({ initial: { counter: props.counter } });
 </script>
 

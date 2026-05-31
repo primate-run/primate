@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { client } from "@primate/vue";
+import client from "@primate/vue/client";
 
 const form = client.form({ initial: { email: "" } });
 </script>

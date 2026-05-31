@@ -1,6 +1,6 @@
 import { Component, Input } from "@angular/core";
 import type { Validated } from "@primate/angular";
-import { client } from "@primate/angular";
+import client from "@primate/angular/client";
 
 @Component({
   template: `

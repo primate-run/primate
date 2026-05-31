@@ -203,8 +203,8 @@ export default class Counter {
 Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```ts
-import { Component, OnInit, computed, input } from "@angular/core";
-import { client } from "@primate/angular";
+import { Component, computed, input } from "@angular/core";
+import client from "@primate/angular/client";
 
 @Component({
   template: `
@@ -259,13 +259,18 @@ export default route({
 });
 ```
 
+The wrapper automatically tracks loading states, captures validation errors,
+and posts updates on state changes.
+
 ## Forms
 
-Create the form view:
+Use `client.form` from `@primate/angular` to wire forms to backend routes with
+automatic field-level validation and error display.
 
 ```ts
-import { Component, OnInit, input } from "@angular/core";
-import { client } from "@primate/angular";
+// views/LoginForm.component.ts
+import { Component, OnInit } from "@angular/core";
+import client from "@primate/angular/client";
 import route from "#route/login";
 
 @Component({
@@ -274,19 +279,21 @@ import route from "#route/login";
       <form [id]="form.id" method="post" (submit)="form.submit($event)">
         <input name="email" placeholder="Email" />
         @if (form.field('email').error()) {
-          <div>{{ form.field('email').error() }}</div>
+          <p style="color: red;">{{ form.field('email').error() }}</p>
         }
 
         <input name="password" type="password" placeholder="Password" />
         @if (form.field('password').error()) {
-          <div>{{ form.field('password').error() }}</div>
+          <p style="color: red;">{{ form.field('password').error() }}</p>
         }
 
-        @if (form.submitted()) {
-          <p>Logged in successfully.</p>
+        @if (form.errors().length) {
+          <p style="color: red;">{{ form.errors()[0] }}</p>
         }
 
-        <button type="submit" [disabled]="form.submitting()">Submit</button>
+        <button type="submit" [disabled]="form.submitting()">
+          {{ form.submitting() ? "Submitting..." : "Submit" }}
+        </button>
       </form>
     }
   `,
@@ -320,11 +327,36 @@ export default route({
     body: p({ email: p.string.email(), password: p.string.min(8) }),
   }, async request => {
     const { email, password } = await request.body.json();
+
     // implement authentication logic
+
     return null;
   }),
 });
 ```
+
+Validation errors from the server are automatically surfaced per-field via
+`form.field(name).error()`. The `form.submitting()` signal disables the submit
+button while the request is in flight.
+
+### Form API
+
+| Property           | Type                  | Description                         |
+| ------------------ | --------------------- | ----------------------------------- |
+| `form.id`          | `string`              | Unique form ID for the `id` attr    |
+| `form.submit`      | `(event?) => Promise` | Submit handler for `(submit)`       |
+| `form.submitting`  | `() => boolean`       | True while the request is in flight |
+| `form.errors`      | `() => string[]`      | Form-level errors                   |
+| `form.field(name)` | `Field`               | Access a named field                |
+
+### Field API
+
+| Property       | Type                 | Description                     |
+| -------------- | -------------------- | ------------------------------- |
+| `field.name`   | `string`             | Field name for the `name` attr  |
+| `field.value`  | `T`                  | Initial field value             |
+| `field.error`  | `() => string\|null` | First validation error or null  |
+| `field.errors` | `() => string[]`     | All validation errors for field |
 
 ## Layouts
 
@@ -504,6 +536,5 @@ export default config({
 - [Components guide](https://angular.dev/guide/components)
 - [Reactive forms](https://angular.dev/guide/forms/reactive-forms)
 - [Signals](https://angular.dev/guide/signals)
-
 
 [Documentation]: https://angular.dev

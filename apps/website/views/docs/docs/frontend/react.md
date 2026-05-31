@@ -22,7 +22,9 @@ import config from "primate/config";
 import react from "@primate/react";
 
 export default config({
-  modules: [react()],
+  modules: [
+    react(),
+  ],
 });
 ```
 
@@ -32,8 +34,6 @@ Create React JSX components in `views` using TypeScript or JavaScript.
 
 ```tsx
 // views/PostIndex.tsx
-import { useState } from "react";
-
 interface Post {
   title: string;
   excerpt?: string;
@@ -70,12 +70,12 @@ import route from "primate/route";
 
 export default route({
   get() {
-      const posts = [
-        { title: "First Post", excerpt: "Introduction to Primate with React" },
-        { title: "Second Post", excerpt: "Building reactive applications" },
-      ];
+    const posts = [
+      { title: "First Post", excerpt: "Introduction to Primate with React" },
+      { title: "Second Post", excerpt: "Building reactive applications" },
+    ];
 
-      return response.view("PostIndex.tsx", { title: "Blog", posts });
+    return response.view("PostIndex.tsx", { title: "Blog", posts });
   },
 });
 ```
@@ -181,15 +181,15 @@ export default function Counter() {
 Use Primate's validated state wrapper to synchronize with backend routes.
 
 ```tsx
-import { client } from "@primate/react";
+import client from "@primate/react/client";
 
 interface Props {
   id: string;
   counter: number;
 }
 
-export default function Counter(props: initial }: Props) {
-  const counter = client.field(props.counter).post(`/counter?id=${props.id}`);
+export default function Counter({ id, counter: initial }: Props) {
+  const counter = client.field(initial).post(`/counter?id=${id}`);
 
   return (
     <div style={{ marginTop: "2rem", textAlign: "center" }}>
@@ -230,22 +230,22 @@ await Counter.create();
 
 export default route({
   async get() {
-      const counters = await Counter.find({});
+    const counters = await Counter.find({});
 
-      const counter = counters.length === 0
-        ? await Counter.insert({ counter: 10 })
-        : counters[0];
+    const counter = counters.length === 0
+      ? await Counter.insert({ counter: 10 })
+      : counters[0];
 
-      return response.view("Counter.tsx", {
-        id: counter.id,
-        counter: counter.counter
-      });
+    return response.view("Counter.tsx", {
+      id: counter.id,
+      counter: counter.counter,
+    });
   },
   async post(request) {
-      const id = p.string.parse(request.query.get("id"));
-      const body = p.loose.number.parse(await request.body.json());
-      await Counter.update(id, { set: { counter: body } });
-      return null;
+    const id = p.string.parse(request.query.get("id"));
+    const body = p.loose.number.parse(await request.body.json());
+    await Counter.update(id, { set: { counter: body } });
+    return null;
   },
 });
 ```
@@ -255,119 +255,53 @@ and posts updates on state changes.
 
 ## Forms
 
-Create forms with React hooks for state management and validation.
+Use `client.form` from `@primate/react/client` to wire forms to backend
+routes with automatic field-level validation and error display.
 
 ```tsx
-import { useState } from "react";
+// views/LoginForm.tsx
+import client from "@primate/react/client";
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{
-    email?: string;
-    password?: string
-  }>({});
-
-  const validateForm = () => {
-    const newErrors: {email?: string; password?: string} = {};
-
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email must be valid";
-    }
-
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) return;
-
-    await fetch("/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-  };
+  const form = client.form({ initial: { email: "", password: "" } });
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: "400px", margin: "2rem auto" }}>
-      <h2>Login</h2>
+    <form
+      method="post"
+      action="/login"
+      id={form.id}
+      onSubmit={form.submit}
+    >
+      {form.errors.length > 0 && (
+        <p style={{ color: "red" }}>{form.errors[0]}</p>
+      )}
 
       <div style={{ marginBottom: "1rem" }}>
         <input
           type="email"
+          name={form.field("email").name}
+          defaultValue={form.field("email").value}
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "0.5rem",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            fontSize: "1rem"
-          }}
         />
-        {errors.email && (
-          <p style={{
-            color: "red",
-            fontSize: "0.875rem",
-            marginTop: "0.25rem"
-          }}>
-            {errors.email}
-          </p>
+        {form.field("email").error && (
+          <p style={{ color: "red" }}>{form.field("email").error}</p>
         )}
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
         <input
           type="password"
+          name={form.field("password").name}
+          defaultValue={form.field("password").value}
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "0.5rem",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            fontSize: "1rem"
-          }}
         />
-        {errors.password && (
-          <p style={{
-            color: "red",
-            fontSize: "0.875rem",
-            marginTop: "0.25rem"
-          }}>
-            {errors.password}
-          </p>
+        {form.field("password").error && (
+          <p style={{ color: "red" }}>{form.field("password").error}</p>
         )}
       </div>
 
-      <button
-        type="submit"
-        disabled={!email || !password}
-        style={{
-          width: "100%",
-          padding: "0.75rem",
-          backgroundColor: (!email || !password) ? "#ccc" : "#007bff",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          fontSize: "1rem",
-          cursor: (!email || !password) ? "not-allowed" : "pointer"
-        }}
-      >
-        Submit
+      <button type="submit" disabled={form.submitting}>
+        {form.submitting ? "Submitting..." : "Submit"}
       </button>
     </form>
   );
@@ -392,20 +326,41 @@ export default route({
     return response.view("LoginForm.tsx");
   },
   async post(request) {
-      const body = LoginSchema.parse(await request.body.json());
+    const body = LoginSchema.parse(await request.body.form());
 
-      // implement authentication logic
+    // implement authentication logic
 
-      return null;
+    return null;
   },
 });
 ```
 
+Validation errors from the server are automatically surfaced per-field via
+`form.field(name).error`. The `form.submitting` flag disables the submit
+button while the request is in flight.
+
+### Form API
+
+| Property           | Type                  | Description                         |
+| ------------------ | --------------------- | ----------------------------------- |
+| `form.id`          | `string`              | Unique form ID for the `id` attr    |
+| `form.submit`      | `(event?) => Promise` | Submit handler for `onSubmit`       |
+| `form.submitting`  | `boolean`             | True while the request is in flight |
+| `form.errors`      | `string[]`            | Form-level errors                   |
+| `form.field(name)` | `Field`               | Access a named field                |
+
+### Field API
+
+| Property       | Type           | Description                     |
+| -------------- | -------------- | ------------------------------- |
+| `field.name`   | `string`       | Field name for the `name` attr  |
+| `field.value`  | `T`            | Initial field value             |
+| `field.error`  | `string\|null` | First validation error or null  |
+| `field.errors` | `string[]`     | All validation errors for field |
+
 ## Layouts
 
 Create layout components that wrap your components using `children`.
-
-Create a layout component:
 
 ```tsx
 // views/Layout.tsx
@@ -434,7 +389,7 @@ export default function Layout({ children, brand = "My App" }: Props) {
       <footer style={{
         padding: "1rem",
         backgroundColor: "#f8f9fa",
-        textAlign: "center"
+        textAlign: "center",
       }}>
         © 1996 {brand}
       </footer>
@@ -502,7 +457,8 @@ export default function About() {
       <h1>About Us</h1>
       <p>
         Welcome to our Primate React demo application. This page demonstrates
-        how to manage document head elements including the title and meta tags.
+        how to manage document head elements including the title and meta tags
+        for better SEO and social media sharing.
       </p>
     </div>
   );
@@ -512,7 +468,7 @@ export default function About() {
 ## Configuration
 
 | Option     | Type       | Default            | Description                  |
-| -----------| ---------- | ------------------ | ---------------------------- |
+| ---------- | ---------- | ------------------ | ---------------------------- |
 | extensions | `string[]` | `[".tsx", ".jsx"]` | Associated file extensions   |
 | ssr        | `boolean`  | `true`             | Enable server-side rendering |
 | csr        | `boolean`  | `true`             | Enable client-side rendering |

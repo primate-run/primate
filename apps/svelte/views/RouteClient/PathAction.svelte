@@ -1,6 +1,6 @@
 <script lang="ts">
   import route from "#route/route-client/path-action/[name]";
-  import { client } from "@primate/svelte";
+  import client from "@primate/svelte/client";
 
   const { name } = $props<{ name: string }>();
   const form = client.form(route.post, { path: { name } });

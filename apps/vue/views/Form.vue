@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { client } from "@primate/vue";
+import client from "@primate/vue/client";
 
 interface Props { counter: number; id: number }
 const props = defineProps<Props>();
