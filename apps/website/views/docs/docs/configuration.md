@@ -32,6 +32,10 @@ value at runtime — including `app.config()`, `app.env()`, `app.view()`, and
 |[http.static.root](#http-static-root)|`"/"`|web path of static assets|
 |[env.schema](#env-schema)|`undefined`|schema for typed environment variables|
 |[modules](#modules)|`[]`|extension modules|
+|[defaultLocale](#default-locale)|undefined|default locale|
+|[locales](#locales)|[]|list of locales|
+|[currency](#currency)|`"USD"`|active currency|
+|[persist](#persist)|`"cookie"`|locale persistence mode|
 
 ### `db.migrations`
 
@@ -121,6 +125,22 @@ starts serving and becomes type-aware. See the [Application] page for usage.
 ### `modules`
 Additional modules to load at runtime.
 
+### `i18n.defaultLocale`
+
+The default locale to use, must be one from the `locales` list.
+
+### `i18n.locales`
+
+List of locales to use, must have at least one locale.
+
+### `i18n.currency`
+
+Currency to use in localization.
+
+### `i18n.persist`
+
+Locale persistance mode.
+
 ### Reference
 [s=configuration/app]
 
@@ -154,35 +174,6 @@ between websites.
 ### `manager`
 The session cookie manager. By default, we use an in-memory session manager
 that resets when the app restarts.
-
-## `i18n.ts`
-
-[s=configuration/i18n-ts]
-
-### i18n options
-
-|Option|Default|Description|
-|-|-|-|
-|[defaultLocale](#default-locale)|undefined|default locale|
-|[locales](#locales)|[]|list of locales|
-|[currency](#currency)|`"USD"`|active currency|
-|[persist](#persist)|`"cookie"`|locale persistence mode|
-
-### `defaultLocale`
-
-The default locale to use, must be one from the `locales` list.
-
-### `locales`
-
-List of locales to use, must have at least one locale.
-
-### `currency`
-
-Currency to use in localization.
-
-### `persist`
-
-Locale persistance mode.
 
 ## `db/*.ts`
 

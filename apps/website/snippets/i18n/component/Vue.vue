@@ -1,3 +1,11 @@
+<script setup lang="ts">
+import t from "#lib/i18n";
+
+defineProps<{
+  count: number;
+}>();
+</script>
+
 <template>
   <h1>{{ t("title") }}</h1>
   <p>{{ t("greet_user", { name: "John" }) }}</p>
@@ -6,10 +14,3 @@
   <button @click="() => t.locale.set('de')">{{ t("german") }}</button>
 </template>
 
-<script setup lang="ts">
-import t from "#i18n";
-
-defineProps<{
-  count: number;
-}>();
-</script>

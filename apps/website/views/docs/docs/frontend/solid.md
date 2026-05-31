@@ -419,7 +419,18 @@ Pages under this route subtree render inside the layout as `children`.
 
 ## Internationalization
 
-Primate's `t` function is framework-agnostic. In Solid, call it directly:
+Create an i18n bridge file that adapts Primate's headless translator to Solid's
+reactivity model:
+
+```ts
+// lib/i18n.ts
+import app from "#app";
+import i18n from "@primate/solid/i18n";
+
+export default i18n(app.i18n);
+```
+
+Import and use the bridged translator directly in views:
 
 ```tsx
 import t from "#i18n";

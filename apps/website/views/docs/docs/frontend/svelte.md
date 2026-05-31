@@ -389,11 +389,22 @@ Pages under this route subtree render inside the layout's `{@render children()}`
 
 ## Internationalization
 
-Primate's `t` function is framework-agnostic. In Svelte, call it directly:
+Create an i18n bridge file that adapts Primate's headless translator to
+Svelte's reactivity model:
+
+```ts
+// lib/i18n.ts
+import app from "#app";
+import i18n from "@primate/svelte/i18n";
+
+export default i18n(app.i18n);
+```
+
+Import and use the bridged translator directly in views:
 
 ```svelte
 <script lang="ts">
-  import t from "#i18n";
+  import t from "#lib/i18n";
 </script>
 
 <div>

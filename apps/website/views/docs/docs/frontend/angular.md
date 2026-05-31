@@ -452,7 +452,18 @@ export default route({
 
 ## Internationalization
 
-Primate's `t` function is framework-agnostic. In Angular, call it directly:
+Create an i18n bridge file that adapts Primate's headless translator to
+Angular's reactivity model:
+
+```ts
+// lib/i18n.ts
+import app from "#app";
+import i18n from "@primate/angular/i18n";
+
+export default i18n(app.i18n);
+```
+
+Import and use the bridged translator directly in views:
 
 ```ts
 import { Component } from "@angular/core";

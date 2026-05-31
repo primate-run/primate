@@ -1,1 +1,1 @@
-export default () => "config/i18n.ts";
+export default () => "config/app.ts";

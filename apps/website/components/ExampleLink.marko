@@ -6,7 +6,7 @@ export interface Input {
 <const/title=input.title>
 <const/href=input.url ?? title.toLowerCase().replaceAll(" ", "-")>
 
-<style/styles>
+<style>
   .example-link {
     display: block;
     padding: 6px 10px;
@@ -19,7 +19,7 @@ export interface Input {
   }
 </style>
 
-<a class=styles["example-link"] href=`/guides/${href}`>
+<a class=example-link href=`/guides/${href}`>
   <for|part, i| of=title.split(/`([^`]+)`/)>
     <if=i % 2>
       <code>${part}</code>

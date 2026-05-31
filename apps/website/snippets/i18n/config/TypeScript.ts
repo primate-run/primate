@@ -1,11 +1,13 @@
-import de from "#locale/de-DE";
-import en from "#locale/en-US";
-import i18n from "primate/i18n";
+import config from "primate/config";
+import de from "../locales/de-DE.ts";
+import en from "../locales/en-US.ts";
 
-export default i18n({
-  defaultLocale: "en-US",
-  locales: {
-    "en-US": en,
-    "de-DE": de,
-  },
-});
+export default config({
+  i18n: {
+    defaultLocale: "en-US",
+    locales: {
+      "en-US": en,
+      "de-DE": de,
+    },
+  }
+})
