@@ -1,4 +1,4 @@
-export default (length: number, i18n_active: boolean) => {
+export default (length: number) => {
   const n = length;
   const body = Array.from({ length: n }, (_, i) => i - 1).reduceRight(
     (child, _, i) => `views[${i + 1}] !== undefined
@@ -10,33 +10,17 @@ export default (length: number, i18n_active: boolean) => {
     `createComponent(views[${n}], props[${n}])`,
   );
 
-  const i18n_imports = i18n_active
-    ? `
-      import I18nBridge from "@primate/solid/i18n/Bridge";
-      import t from "#i18n";`
-    : "";
-
-  const tree = i18n_active
-    ? `<I18nBridge t={t}>{${body}}</I18nBridge>`
-    : `{${body}}`;
-
   return `
-    import { createSignal } from "solid-js";
     import { createComponent } from "solid-js/web";
     import { setRequest } from "@primate/solid/app";
-    import AppContext from "@primate/solid/context/app";
-    import HeadContext from "@primate/solid/context/head";${i18n_imports}
+    import HeadContext from "@primate/solid/context/head";
 
     export default ({ views, props, request, push_heads: value }) => {
       setRequest(request);
-      const [context, setContext] = createSignal(request.context);
-      const $value = { context, setContext };
 
-      return <AppContext.Provider value={$value}>
-          <HeadContext.Provider value={value}>
-            ${tree}
-          </HeadContext.Provider>
-        </AppContext.Provider>
+      return <HeadContext.Provider value={value}>
+        {${body}}
+      </HeadContext.Provider>
     }
   `;
 };

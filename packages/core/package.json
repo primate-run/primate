@@ -46,18 +46,27 @@
   },
   "imports": {
     "#i18n/config": {
-      "@primate/source": "./src/private/i18n/config.client.ts",
-      "browser": "./lib/private/i18n/config.client.js",
+      "browser": {
+        "@primate/source": "./src/private/i18n/config.client.ts",
+        "default": "./lib/private/i18n/config.client.js"
+      },
+      "@primate/source": "./src/private/i18n/config.server.ts",
       "default": "./lib/private/i18n/config.server.js"
     },
     "#session/config": {
+      "browser": {
+        "@primate/source": "./src/private/session/config.client.ts",
+        "default": "./lib/private/session/config.client.js"
+      },
       "@primate/source": "./src/private/session/config.server.ts",
-      "browser": "./lib/private/session/config.client.js",
       "default": "./lib/private/session/config.server.js"
     },
     "#app/Facade": {
+      "browser": {
+        "@primate/source": "./src/private/app/Facade.client.ts",
+        "default": "./lib/private/app/Facade.client.js"
+      },
       "@primate/source": "./src/private/app/Facade.server.ts",
-      "browser": "./lib/private/app/Facade.client.js",
       "default": "./lib/private/app/Facade.server.js"
     },
     "#*": {

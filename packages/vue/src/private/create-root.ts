@@ -1,55 +1,32 @@
-export default function createRoot(depth: number, i18n_active: boolean) {
+export default function createRoot(depth: number) {
   const build_view = (index: number): string => {
     if (index > depth) return `h("div")`;
     if (index === depth) return `h(p.views[${index}], p.props[${index}] || {})`;
+
     const child = build_view(index + 1);
+
     return `h(p.views[${index}], p.props[${index}] || {}, () => [${child}])`;
   };
 
   const body = `h(Suspense, null, { default: () => ${build_view(0)} })`;
 
-  const vue_imports = `
-    import {
-      defineComponent, h, Suspense
-      ${i18n_active ? ", ref, onMounted, onUnmounted" : ""}
-    } from "vue";
-    import { setRequest } from "@primate/vue/app";
-    `;
-  const i18n_imports = i18n_active
-    ? `
-import t from "#i18n";
-import { internal } from "primate/i18n";`
-    : "";
-  const i18n_setup = i18n_active
-    ? `
-const initialLocale = props.p?.request?.context?.i18n?.locale;
-if (initialLocale) t[internal].init(initialLocale);
-
-onMounted(() => { t[internal].restore(); });
-
-if (typeof window !== "undefined") {
-  const version = ref(t[internal].version);
-  const removeDepend = t[internal].depend(() => { void version.value; });
-  const unsubscribe = t.onChange(() => {
-    version.value = t[internal].version;
-  });
-  onUnmounted(() => { unsubscribe?.(); removeDepend?.(); });
-}`
-    : "";
   return `
-${vue_imports}
-${i18n_imports}
+import { defineComponent, h, Suspense } from "vue";
+import { setRequest } from "@primate/vue/app";
+
 export default defineComponent({
   name: "root",
   props: { p: { type: Object, required: true } },
+
   setup(props) {
-    ${i18n_setup}
     return () => {
       const p = props.p;
-      setRequest(props.p.request);
+
+      setRequest(p.request);
+
       return ${body};
     };
   },
 });
 `;
-};
+}

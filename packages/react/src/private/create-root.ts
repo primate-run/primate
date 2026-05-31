@@ -1,4 +1,4 @@
-export default (length: number, i18n_active: boolean) => {
+export default (length: number) => {
   const n = length;
   const body = Array.from({ length: n }, (_, i) => i - 1)
     .reduceRight((child, _, i) => `views[${i + 1}] !== undefined
@@ -6,34 +6,20 @@ export default (length: number, i18n_active: boolean) => {
         : createElement(views[${i}], props[${i}])
     `, `createElement(views[${n}], props[${n}])`);
 
-  const i18n_imports = i18n_active
-    ? `
-      import I18nBridge from "@primate/react/i18n/Bridge";
-      import t from "#i18n";`
-    : "";
-
-  const tree = i18n_active
-    ? `createElement(I18nBridge, { t }, ${body})`
-    : body;
-
   return `
-    import { createElement, useState } from "react";
-    import AppContext from "@primate/react/context/app";
+    import { createElement } from "react";
     import HeadContext from "@primate/react/context/head";
     import platform from "@primate/react/platform";
     import { useRequest } from "@primate/react/app";
-    ${i18n_imports}
 
     export default ({ views, props, request, push_heads: value }) => {
       useRequest.set(request);
-      const [context, setContext] = useState(request.context);
-      const $value = { context, setContext };
-      const tree = ${tree};
+
+      const tree = ${body};
 
       return platform === "browser"
-        ? createElement(AppContext.Provider, { value: $value }, tree)
-        : createElement(AppContext.Provider, { value: $value },
-            createElement(HeadContext.Provider, { value }, tree))
+        ? tree
+        : createElement(HeadContext.Provider, { value }, tree)
       ;
     }
   `;

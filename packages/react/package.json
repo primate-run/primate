@@ -40,10 +40,6 @@
     "react-dom": "19"
   },
   "imports": {
-    "#i18n/Bridge.default": {
-      "@primate/source": "./src/private/i18n/Bridge.default.tsx",
-      "default": "./lib/private/i18n/Bridge.default.js"
-    },
     "#request/default": {
       "@primate/source": "./src/private/request/default.tsx",
       "default": "./lib/private/request/default.js"
@@ -56,9 +52,12 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
+      "browser": {
+        "@primate/source": "./src/public/browser.ts",
+        "default": "./lib/public/browser.js"
+      },
       "@primate/runtime": "./src/public/runtime.ts",
       "@primate/source": "./src/public/default.ts",
-      "browser": "./lib/public/browser.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     },
@@ -67,19 +66,20 @@
       "default": "./lib/public/*.js"
     },
     "./app": {
+      "browser": {
+        "@primate/source": "./src/public/app/browser.ts",
+        "default": "./lib/public/app/browser.js"
+      },
       "@primate/source": "./src/public/app/default.ts",
-      "browser": "./lib/public/app/browser.js",
       "default": "./lib/public/app/default.js"
     },
     "./Head": {
+      "browser": {
+        "@primate/source": "./src/public/Head/browser.ts",
+        "default": "./lib/public/Head/browser.js"
+      },
       "@primate/source": "./src/public/Head/default.ts",
-      "browser": "./lib/public/Head/browser.js",
       "default": "./lib/public/Head/default.js"
-    },
-    "./i18n/Bridge": {
-      "@primate/source": "./src/public/i18n/Bridge/default.ts",
-      "browser": "./lib/public/i18n/Bridge/browser.js",
-      "default": "./lib/public/i18n/Bridge/default.js"
     }
   }
 }

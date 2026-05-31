@@ -11,22 +11,43 @@ import is from "@rcompat/is";
 
 type Locale = string;
 
+type I18NContext = {
+  currency: string;
+  locale: Locale;
+  locales: Locale[];
+  mode: PersistMode;
+};
+
 function toLowerCase(string: string) {
   return string.toLowerCase();
 }
 
 function pick(client: Locale[], server: Locale[]): string | undefined {
   const lower = server.map(toLowerCase);
+
   for (const raw of client.map(toLowerCase)) {
     const locale = raw.trim();
     if (!is.text(locale)) continue;
+
     const exact = lower.indexOf(locale);
     if (exact !== -1) return server[exact];
+
     const base = locale.split("-")[0];
     const index = lower.findIndex(s => s === base || s.startsWith(`${base}-`));
     if (index !== -1) return server[index];
   }
+
   return undefined;
+}
+
+function no_content(headers: HeadersInit = {}) {
+  return new Response(null, {
+    headers: {
+      ...headers,
+      "Content-Length": String(0),
+    },
+    status: http.Status.NO_CONTENT,
+  });
 }
 
 export default function i18n_module(config: Config) {
@@ -44,81 +65,59 @@ export default function i18n_module(config: Config) {
 
   return create({
     name: "builtin/i18n",
-    setup({ onServe, onHandle, onRoute }) {
+
+    setup({ onServe, onHandle }) {
       onServe(app => {
         secure = app.secure;
       });
 
-      onHandle(async (request, next) => {
+      onHandle((request, next) => {
         const requested = request.headers.try(PERSIST_HEADER);
-        if (requested === undefined) {
-          const locale = request.cookies.try(COOKIE_NAME);
-          if (locale === undefined) return next(request);
 
-          // if has cookie, run route with i18n
-          return await new Promise<Response>((resolve, reject) => {
-            storage().run({ locale }, async () => {
-              try {
-                resolve(await next(request));
-              } catch (e) {
-                reject(e);
-              }
-            });
+        if (requested !== undefined) {
+          if (persist !== "cookie") return no_content();
+          if (!locales.includes(requested)) return no_content();
+
+          const header = cookie(COOKIE_NAME, requested, {
+            secure,
+            path: "/",
+            sameSite: "Strict",
+          });
+
+          return no_content({
+            "Set-Cookie": header,
           });
         }
 
-        // only cookie-persistance is server-supported
-        if (persist !== "cookie")
-          return new Response(null, {
-            headers: {
-              "Content-Length": String(0),
-            },
-            status: http.Status.NO_CONTENT,
-          });
-
-        // only accept existing locales
-        if (!locales.includes(requested))
-          return new Response(null, {
-            headers: {
-              "Content-Length": String(0),
-            },
-            status: http.Status.NO_CONTENT,
-          });
-
-        const header = cookie(COOKIE_NAME, requested, {
-          secure,
-          path: "/",
-          sameSite: "Strict",
-        });
-
-        return new Response(null, {
-          headers: {
-            "Set-Cookie": header,
-            "Content-Length": String(0),
-          },
-          status: http.Status.NO_CONTENT,
-        });
-      });
-
-      onRoute((request, next) => {
         const accept_language = request.headers.try("Accept-Language") ?? "";
         const client_locales = accept_language
           .split(",")
           .map(s => s.split(";")[0].trim())
           .filter(Boolean);
+
         const cookie_locale = persist === "cookie"
           ? request.cookies.try(COOKIE_NAME)
           : undefined;
-        const locale = cookie_locale ??
-          pick(client_locales, locales) ??
-          default_locale;
 
-        return next(request.set("i18n", {
+        const persisted_locale = cookie_locale !== undefined
+          && locales.includes(cookie_locale)
+          ? cookie_locale
+          : undefined;
+
+        const locale = persisted_locale
+          ?? pick(client_locales, locales)
+          ?? default_locale;
+
+        const context: I18NContext = {
           currency,
-          mode: persist,
           locale,
           locales,
-        }));
+          mode: persist,
+        };
+
+        return storage().run(context, () => {
+          return next(request.set("i18n", context));
+        });
       });
     },
   });

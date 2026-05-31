@@ -2,6 +2,9 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "paths": {
+      "#lib/*": [
+        "lib/*"
+      ],
       "#view/*": [
         "views/*.component.ts"
       ],

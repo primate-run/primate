@@ -27,9 +27,6 @@ async function pre(app: BuildApp) {
   await stamp.write("export default 0;\n");
   const router = await $router(app.path.routes, app.extensions);
   app.set(s_layout_depth, router.depth("layout"));
-  const i18n_ts = app.path.config.join("i18n.ts");
-  const i18n_js = app.path.config.join("i18n.js");
-  app.i18n_active = await i18n_ts.exists() || await i18n_js.exists();
   const session_ts = app.path.config.join("session.ts");
   const session_js = app.path.config.join("session.js");
   app.session_active = await session_ts.exists() || await session_js.exists();

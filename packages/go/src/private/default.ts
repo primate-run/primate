@@ -65,10 +65,10 @@ function wrap(route_id: string) {
     import route from "primate/route";
     import wrapper from "@primate/go/wrapper";
     import bytes from "app:wasm/${route_id}.wasm" with { type: "bytes" };
-    import i18n from "app:config:i18n";
+    import app from "$:app";
     import session from "app:config:session";
     const handlers = await wrapper(bytes, ${JSON.stringify(route_id)}, {
-      i18n, session,
+      i18n: app.i18n, session,
     });
     export default route(handlers);
   `;

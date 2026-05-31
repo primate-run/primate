@@ -23,6 +23,9 @@
       "#route/*": [
         "routes/*"
       ],
+      "#lib/*": [
+        "lib/*"
+      ],
       "#component/*": [
         "components/*"
       ],
@@ -43,13 +46,11 @@
       ],
       "#session": [
         "config/session"
-      ],
-      "#i18n": [
-        "config/i18n"
       ]
     }
   },
   "include": [
+    "${configDir}/lib",
     "${configDir}/config",
     "${configDir}/routes",
     "${configDir}/views",

@@ -45,10 +45,10 @@ function wrap(source: string, id: string, root: FileRef) {
   return `
     import route from "primate/route";
     import wrapper from "@primate/ruby/wrapper";
-    import i18n from "app:config:i18n";
+    import app from "$:app";
     import session from "app:config:session";
     const handlers = await wrapper(${JSON.stringify(source)}, ${JSON.stringify(id)}, {
-      i18n, session,
+      i18n: app.i18n, session,
     }, ${JSON.stringify(root.path)});
     export default route(handlers);
   `;

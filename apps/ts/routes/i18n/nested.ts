@@ -1,8 +1,8 @@
-import i18n from "#i18n";
+import app from "#app";
 import route from "primate/route";
 
 export default route({
   get() {
-    return i18n("foo.bar", { s: 4 });
+    return app.i18n("foo.bar", { s: 4 });
   },
 });

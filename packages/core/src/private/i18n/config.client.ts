@@ -2,6 +2,7 @@ import type API from "#i18n/API";
 import type Catalog from "#i18n/Catalog";
 import type Catalogs from "#i18n/Catalogs";
 import type Config from "#i18n/Config";
+import COOKIE_NAME from "#i18n/constant/COOKIE_NAME";
 import DEFAULT_PERSIST_MODE from "#i18n/constant/DEFAULT_PERSIST_MODE";
 import PERSIST_HEADER from "#i18n/constant/PERSIST_HEADER";
 import PERSIST_METHOD from "#i18n/constant/PERSIST_METHOD";
@@ -9,7 +10,6 @@ import PERSIST_STORAGE_KEY from "#i18n/constant/PERSIST_STORAGE_KEY";
 import format from "#i18n/format";
 import Formatter from "#i18n/Formatter";
 import resolve from "#i18n/resolve";
-import sInternal from "#i18n/symbol/internal";
 import type {
   DotPaths,
   EntriesOf,
@@ -17,8 +17,12 @@ import type {
   PathValue,
 } from "#i18n/types";
 import validate from "#i18n/validate";
-import sConfig from "#symbol/config";
-import type { Dict, MaybePromise } from "@rcompat/type";
+import is from "@rcompat/is";
+import type { Dict } from "@rcompat/type";
+
+type RestoreRequest = {
+  cookies?: Record<string, string | undefined>;
+};
 
 export default function i18n<const C extends Catalogs>(config: Config<C>) {
   type Locale = keyof C & string;
@@ -31,100 +35,97 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
   type Message<K extends Key> = Extract<Resolved<K>, string>;
   type Params<K extends Key> = ParamsFromEntries<EntriesOf<Message<K>>>;
 
-  const catalogs: Catalogs = config.locales as Catalogs;
+  const catalogs = config.locales;
   for (const [locale, catalog] of Object.entries(catalogs)) {
     validate(catalog, locale);
   }
-  const default_catalog = catalogs[config.defaultLocale] as Schema;
-  let active_locale: Locale = config.defaultLocale;
-  const currency = config.currency ?? "USD";
-  const formatter = new Formatter(active_locale);
 
-  // reactive core
-  let version = 0;
-  const subscribers = new Set<() => void>();
-  const touch = () => {
-    for (const subscriber of subscribers) {
-      try {
-        subscriber();
-      } catch {
-        // ignore
-      }
+  const default_catalog = catalogs[config.defaultLocale] as Schema;
+  const currency = config.currency ?? "USD";
+  const persist = config.persist ?? DEFAULT_PERSIST_MODE;
+  const locales = Object.keys(catalogs) as Locale[];
+
+  let active_locale: Locale = config.defaultLocale;
+
+  const get_locale = (): Locale => active_locale;
+
+  const restore_cookie = (request?: RestoreRequest) => {
+    const saved = request?.cookies?.[COOKIE_NAME] as Locale | undefined;
+
+    if (saved !== undefined && saved in catalogs) {
+      active_locale = saved;
     }
   };
 
-  let persist_fn: ((locale: Locale) => MaybePromise<void>) | undefined;
-  let loading: Promise<void> | null = null;
+  const restore_storage = (
+    kind: "localStorage" | "sessionStorage",
+  ) => {
+    try {
+      const storage = kind === "localStorage"
+        ? localStorage
+        : sessionStorage;
 
-  const listeners = new Set<(locale: Locale) => void>();
-  const notify = (locale: Locale) => {
-    for (const fn of listeners) fn(locale);
+      const saved = storage.getItem(PERSIST_STORAGE_KEY) as Locale | null;
+
+      if (saved !== null && saved in catalogs) {
+        active_locale = saved;
+      }
+    } catch {
+      // ignore storage failures
+    }
   };
 
-  function apply(locale: Locale, options: {
-    emit?: boolean; persist?: boolean;
-  } = {}) {
-    const { emit = false, persist = false } = options;
-    if (locale === active_locale) return;
+  const restore = (request?: RestoreRequest) => {
+    if (persist === false) return;
+
+    if (persist === "cookie") {
+      restore_cookie(request);
+      return;
+    }
+
+    restore_storage(persist);
+  };
+
+  const persist_locale = (locale: Locale) => {
+    if (persist === false) return;
+
+    if (persist === "cookie") {
+      void fetch("/", {
+        method: PERSIST_METHOD,
+        headers: {
+          [PERSIST_HEADER]: locale,
+        },
+        keepalive: true,
+      }).then(response => {
+        if (!response.ok) {
+          console.warn(`[i18n] persist failed: ${response.status}`);
+        }
+      }).catch(error => {
+        console.warn("[i18n] persist failed", error);
+      });
+
+      return;
+    }
+
+    try {
+      const storage = persist === "localStorage"
+        ? localStorage
+        : sessionStorage;
+
+      storage.setItem(PERSIST_STORAGE_KEY, locale);
+    } catch {
+      // ignore storage failures
+    }
+  };
+
+  const set_locale = (locale: Locale) => {
+    if (!(locale in catalogs)) {
+      throw new Error(`[i18n] Unknown locale "${locale}".`);
+    }
 
     active_locale = locale;
-    formatter.locale = locale;
-    version++;
-
-    if (emit) notify(locale);
-
-    if (persist && persist_fn) {
-      const run = async (l: Locale) => { await persist_fn!(l); };
-      loading = run(locale)
-        .catch(e => { console.warn("[i18n]: persist failed", e); })
-        .finally(() => {
-          loading = null;
-          version++;
-          notify(active_locale);
-        });
-    }
-  }
-
-  const set = (locale: Locale) => apply(locale, {
-    emit: true, persist: true,
-  });
-  const init = (locale: Locale) => apply(locale);
-
-  const mode = config.persist ?? DEFAULT_PERSIST_MODE;
-
-  if (mode === "cookie") {
-    persist_fn = async (locale: Locale) => {
-      const res = await fetch("/", {
-        method: PERSIST_METHOD, headers: { [PERSIST_HEADER]: locale },
-      });
-      if (!res.ok) throw new Error(`[i18n] persist failed: ${res.status}`);
-    };
-  } else if (mode === "localStorage") {
-    persist_fn = (locale: Locale) => {
-      try {
-        localStorage.setItem(PERSIST_STORAGE_KEY, locale);
-      } catch { } // ignore
-    };
-  } else if (mode === "sessionStorage") {
-    persist_fn = (locale: Locale) => {
-      try {
-        sessionStorage.setItem(PERSIST_STORAGE_KEY, locale);
-      } catch { } // ignore
-    };
-  } // no persistence
-
-  function storage_restore() {
-    const mode = config.persist ?? DEFAULT_PERSIST_MODE;
-    if (mode === "localStorage" || mode === "sessionStorage") {
-      try {
-        const store = mode === "localStorage" ? localStorage : sessionStorage;
-        const saved = store.getItem(PERSIST_STORAGE_KEY) as Locale | null;
-        if (saved && (saved as string) in catalogs) {
-          set(saved as Locale);
-        }
-      } catch { } //
-    }
-  }
+    persist_locale(locale);
+  };
 
   type Args<K extends string> =
     K extends Key
@@ -139,63 +140,60 @@ export default function i18n<const C extends Catalogs>(config: Config<C>) {
     : string;
 
   function t<K extends string>(...args: Args<K>): Result<K> {
-    touch(); // reactive read
-
+    const formatter = new Formatter(active_locale);
     const [key, params] = args as [string, Dict?];
+
     const translated =
       resolve(catalogs[active_locale], key) ??
       resolve(default_catalog, key) ??
       String(key);
 
-    if (typeof translated === "string") {
+    if (is.string(translated)) {
       return format(translated, params ?? {}, currency, formatter) as Result<K>;
     }
-    return translated as Result<K>;
 
+    return translated as Result<K>;
   }
 
   type TFn = typeof t;
   type Translator = TFn & API<C>;
-  type ReadableT = { subscribe(run: (value: Translator) => void): () => void };
 
-  const api = t as Translator & ReadableT;
+  const api = t as Translator;
 
-  api.onChange = (fn: (locale: Locale) => void) => {
-    listeners.add(fn);
-    try { fn(active_locale); } catch { } // ignore
-    return () => { listeners.delete(fn); };
-  };
+  Object.defineProperties(api, {
+    defaultLocale: {
+      value: config.defaultLocale,
+      enumerable: true,
+    },
 
-  api.locale = {
-    get: () => { touch(); return active_locale; },
-    set,
-  };
+    locales: {
+      value: locales,
+      enumerable: true,
+    },
 
-  Object.defineProperty(api, "loading", {
-    get: () => { touch(); return loading !== null; },
-  });
-  Object.defineProperty(api, sConfig, {
-    get: () => config,
-  });
+    catalogs: {
+      value: catalogs,
+      enumerable: true,
+    },
 
-  Object.defineProperty(api, sInternal, {
-    value: {
-      init,
-      wait: () => loading ?? Promise.resolve(),
-      depend(fn: () => void) {
-        subscribers.add(fn);
-        return () => subscribers.delete(fn);
+    currency: {
+      value: currency,
+      enumerable: true,
+    },
+
+    locale: {
+      value: {
+        get: get_locale,
+        set: set_locale,
       },
-      get version() { return version; },
-      touch,
-      restore: storage_restore,
+      enumerable: true,
+    },
+
+    restore: {
+      value: restore,
+      enumerable: true,
     },
   });
-
-  // svelte-style store interface
-  api.subscribe = (run: (value: Translator) => void) => {
-    return api.onChange(() => run(api));
-  };
 
   return api;
 }

@@ -1,12 +1,22 @@
 import type EnvSchema from "#app/EnvSchema";
 import AppFacade from "#app/Facade";
 import schema from "#config/schema";
+import type I18NConfig from "#i18n/Config";
 import type { ObjectType } from "pema";
 
-export default function config<P extends EnvSchema = EnvSchema>(
-  input: typeof schema.input & {
-    env?: { schema?: ObjectType<P> };
-  } = {},
-): AppFacade<P> {
-  return new AppFacade<P>(schema.parse(input as typeof schema.input));
+type ConfigInput<
+  P extends EnvSchema,
+  I extends I18NConfig | undefined,
+> = typeof schema.input & {
+  env?: { schema?: ObjectType<P> };
+  i18n?: I;
+};
+
+export default function config<
+  P extends EnvSchema = EnvSchema,
+  const I extends I18NConfig | undefined = undefined,
+>(
+  input: ConfigInput<P, I> = {} as ConfigInput<P, I>,
+): AppFacade<P, I> {
+  return new AppFacade<P, I>(schema.parse(input as typeof schema.input));
 }

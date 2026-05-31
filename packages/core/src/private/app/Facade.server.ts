@@ -1,6 +1,9 @@
 import type EnvSchema from "#app/EnvSchema";
 import type Config from "#config/Config";
 import E from "#errors";
+import create_i18n from "#i18n/config";
+import type I18NConfig from "#i18n/Config";
+import missing_i18n from "#i18n/missing";
 import type ServeApp from "#serve/App";
 import dict from "@rcompat/dict";
 import env from "@rcompat/env";
@@ -14,13 +17,27 @@ export { s_attach, s_config };
 
 type Env<P extends EnvSchema> = { [K in keyof P]: P[K]["infer"] };
 
-export default class AppFacade<T extends EnvSchema = EnvSchema> {
+type I18NRuntime<I extends I18NConfig | undefined> =
+  I extends I18NConfig<infer C>
+  ? ReturnType<typeof create_i18n<C>>
+  : ReturnType<typeof create_i18n>;
+
+export default class AppFacade<
+  T extends EnvSchema = EnvSchema,
+  I extends I18NConfig | undefined = undefined,
+> {
   #config: Config;
   #app?: ServeApp;
   #env?: Env<T>;
+  #i18n: I18NRuntime<I>;
 
   constructor(config: Config) {
     this.#config = config;
+    this.#i18n = (
+      config.i18n === undefined
+        ? missing_i18n()
+        : create_i18n(config.i18n)
+    ) as I18NRuntime<I>;
   }
 
   [s_attach](app: ServeApp) {
@@ -39,6 +56,10 @@ export default class AppFacade<T extends EnvSchema = EnvSchema> {
 
   get [s_config]() {
     return this.#config;
+  }
+
+  get i18n(): I18NRuntime<I> {
+    return this.#i18n;
   }
 
   config<P extends string>(path: P) {

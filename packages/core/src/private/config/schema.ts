@@ -1,4 +1,5 @@
 import type DB from "#db/DB";
+import type I18NConfig from "#i18n/Config";
 import type Module from "#Module";
 import fs from "@rcompat/fs";
 import type { Dict } from "@rcompat/type";
@@ -13,8 +14,8 @@ export default p({
     host: p.string.default("localhost"),
     port: p.uint.port().default(6161),
     ssl: {
-      cert: p.union(p.is(fs.isRef), p.string).optional(),
-      key: p.union(p.is(fs.isRef), p.string).optional(),
+      cert: p.string.optional(),
+      key: p.string.optional(),
     },
     static: {
       root: p.string.default("/"),
@@ -34,6 +35,7 @@ export default p({
   env: {
     schema: p.pure<ObjectType<Dict<Parsed<unknown>>>>().optional(),
   },
+  i18n: p.pure<I18NConfig>().optional(),
   loaders: p.dict(p.literal("file")).optional(),
   entrypoints: p.dict(p.string).optional(),
   modules: p.array(p.object({

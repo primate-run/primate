@@ -46,14 +46,14 @@ function wrap(source: string, id: string, packages_str: string, primate_run: str
   return `
     import route from "primate/route";
     import wrapper from "@primate/python/wrapper";
-    import i18n from "app:config:i18n";
+    import app from "$:app";
     import session from "app:config:session";
     const handlers = await wrapper(
       ${JSON.stringify(source)},
       ${packages_str},
       ${JSON.stringify(primate_run)},
       ${JSON.stringify(id)},
-      { i18n, session }
+      { i18n: app.i18n, session }
     );
     export default route(handlers);
   `;

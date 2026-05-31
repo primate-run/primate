@@ -14,11 +14,11 @@
   "files": [
     "/lib/**/*.js",
     "/lib/**/*.d.ts",
+    "/src/**/*.marko",
     "!/**/*.spec.*"
   ],
   "scripts": {
     "build": "npm run clean && tsgo",
-    "postbuild": "node scripts/compile-tags.js",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
@@ -31,12 +31,12 @@
   },
   "devDependencies": {
     "@rcompat/type": "^0.17.0",
-    "@types/marko": "^4.6.9"
+    "@types/marko": "^4.6.9",
+    "esbuild": "^0.28.0"
   },
   "imports": {
     "#tags/*": {
-      "browser": "./lib/private/tags/*.browser.js",
-      "default": "./lib/private/tags/*.server.js"
+      "marko": "./src/private/tags/*.marko"
     },
     "#*": {
       "@primate/source": "./src/private/*.ts",

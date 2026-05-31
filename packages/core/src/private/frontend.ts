@@ -45,7 +45,7 @@ export interface Init<
   conditions?: string[];
   render?: Render<S>;
   root?: {
-    create: (depth: number, i18n_active: boolean) => string;
+    create: (depth: number) => string;
   };
   compile?: {
     client?: (text: string, file: FileRef, root: boolean, hydrate: boolean) =>
@@ -261,8 +261,7 @@ export default function frontend_module<
           // build
           if (init.root !== undefined && compile_server !== undefined) {
             const source = await compile_server(
-              init.root.create(app.depth(), app.i18n_active),
-              fs.ref(`root:${module_name}`));
+              init.root.create(app.depth()), fs.ref(`root:${module_name}`));
             app.addRoot(rootname, source);
           }
 
@@ -292,7 +291,7 @@ export default function frontend_module<
                   });
                   build.onLoad({ filter }, async () => {
                     const contents = (await compile_client(root.create(
-                      app.depth(), app.i18n_active),
+                      app.depth()),
                       fs.ref("/tmp"), true, options.ssr)).js;
                     return contents.length > 0 ? {
                       contents,

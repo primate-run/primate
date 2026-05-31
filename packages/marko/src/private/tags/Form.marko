@@ -20,40 +20,75 @@ import client from "@primate/core/client";
 <let/controller/>
 <let/action/>
 <let/contentType/>
+<let/method/>
+
 <const/action_meta=typeof document === "undefined" ? {
+  method: input.action === undefined ? undefined : "POST",
   contentType: input.action?.contentType,
 } : {
   action: input.action,
+  method: input.action === undefined ? undefined : "POST",
   contentType: input.action?.contentType,
 }/>
+
 <const/set_action=meta => {
   if ("action" in meta) {
     action = meta.action;
   }
+
+  method = meta.method;
   contentType = meta.contentType;
 }/>
+
 <const/_action=set_action(action_meta)/>
 
 <const/create_controller=() => {
   if (controller !== undefined) return controller;
 
+  const fallback_action = action === undefined && method !== undefined
+    ? ({ body }) => fetch(globalThis.location.pathname, {
+      method,
+      headers: contentType === undefined || contentType === "multipart/form-data"
+        ? {}
+        : { "Content-Type": contentType },
+      body: contentType === "application/json"
+        ? JSON.stringify(body)
+        : contentType === "application/x-www-form-urlencoded"
+          ? new URLSearchParams(body)
+          : body,
+    })
+    : undefined;
+
   controller = client.createForm({
     id,
-    action,
+    action: action ?? fallback_action,
     contentType,
+    method,
     path: input.path,
   });
 
   return controller;
 }/>
 
-<const/submit=async event => {
+<const/submit=async (event, element) => {
   event?.preventDefault?.();
+
   const controller = create_controller();
 
   submitting = true;
-  await controller.submit(event);
+
+  await controller.submit({
+    preventDefault() {
+      event?.preventDefault?.();
+    },
+    stopPropagation() {
+      event?.stopPropagation?.();
+    },
+    currentTarget: element ?? document.getElementById(id),
+  });
+
   const snapshot = controller.read();
+
   id = snapshot.id;
   submitting = snapshot.submitting;
   submitted = snapshot.submitted;

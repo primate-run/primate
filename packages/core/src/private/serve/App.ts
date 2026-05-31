@@ -11,7 +11,6 @@ import type ViewResponse from "#client/ViewResponse";
 import type CSP from "#CSP";
 import E from "#errors";
 import hash from "#hash";
-import type I18NConfig from "#i18n/Config";
 import i18n_module from "#i18n/module";
 import location from "#location";
 import create from "#module/create";
@@ -148,7 +147,6 @@ export default class ServeApp extends App {
   #pages: Dict<string>;
   #frontends: Map<string, ViewResponse> = new Map();
   #router: FileRouter;
-  #i18n_config?: I18NConfig;
   #entrypoints: Dict<string> = {};
 
   constructor(rootfile: string, init: ServeInit) {
@@ -176,7 +174,6 @@ export default class ServeApp extends App {
     this.#pages = init.pages;
 
     const http_config = this.#init.facade[s_config].http;
-    this.#i18n_config = init.i18n;
 
     this.set(s_http, {
       host: http_config.host,
@@ -205,7 +202,8 @@ export default class ServeApp extends App {
       this.register(session_module(init.session));
     }
 
-    if (init.i18n !== undefined) this.register(i18n_module(init.i18n));
+    const i18n_config = init.facade[s_config].i18n;
+    if (i18n_config !== undefined) this.register(i18n_module(i18n_config));
 
     this.register(create({
       name: "builtin/handle",
@@ -238,10 +236,6 @@ export default class ServeApp extends App {
 
   get frontends() {
     return Object.fromEntries(this.#frontends);
-  }
-
-  get i18n() {
-    return this.#i18n_config;
   }
 
   get views() {

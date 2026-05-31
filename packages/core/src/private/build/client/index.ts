@@ -8,8 +8,8 @@ import plugin_routes from "#build/client/plugin/routes";
 import plugin_server_stamp from "#build/client/plugin/server-stamp";
 import plugin_view from "#build/client/plugin/view";
 import plugin_app_request from "#build/shared/plugin/app-request";
+import E from "#errors";
 import location from "#location";
-import E from "#errors"
 import { CodeError } from "@rcompat/error";
 import * as esbuild from "esbuild";
 
@@ -29,13 +29,6 @@ const write_bootstrap = async (app: BuildApp) => {
     `}
     import facade from "$:app";
 
-    ${app.i18n_active ? `
-    import i18n from "app:config:i18n";
-    const i18n_config = i18n[s_config];
-    ` : `
-    const i18n_config = undefined;
-    `}
-
     const app = await serve(import.meta.url, {
       assets,
       facade,
@@ -43,7 +36,6 @@ const write_bootstrap = async (app: BuildApp) => {
       views,
       pages,
       session: session_config,
-      i18n: i18n_config,
       mode: "${app.mode}",
       target: "${app.target.name}",
       log: "${app.log.level}"
@@ -100,6 +92,7 @@ export default async function build_client(app: BuildApp) {
     logLevel: "silent",
     loader: app.config("loaders"),
   };
+
   if (app.mode === "development") {
     const NO_HR = app.config("livereload.exclude") ?? [];
 
@@ -122,6 +115,7 @@ export default async function build_client(app: BuildApp) {
       minify: true,
       splitting: true,
     };
+
   const options: esbuild.BuildOptions = { ...build_options, ...mode_options };
 
   try {

@@ -4,6 +4,7 @@ import type { Template } from "marko/src/runtime/html/index.js";
 const module: Init<Template> = {
   name: "marko",
   extensions: [".marko"],
+  conditions: ["marko"],
   layouts: true,
   client: true,
   async render(component, props) {

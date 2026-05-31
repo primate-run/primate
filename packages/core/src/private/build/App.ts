@@ -16,7 +16,6 @@ export default class BuildApp extends App {
   #postbuild: (() => void)[] = [];
   #roots: Dict<string> = {};
   #id = crypto.randomUUID().slice(0, 8);
-  #i18n_active = false;
   #session_active = false;
   #paths!: Dict<string[]>;
   #bindings: [string, Binder][] = [
@@ -120,14 +119,6 @@ export default class BuildApp extends App {
 
   depth(): number {
     return this.get<number>(s_layout_depth);
-  }
-
-  get i18n_active() {
-    return this.#i18n_active;
-  }
-
-  set i18n_active(active: boolean) {
-    this.#i18n_active = active;
   }
 
   get session_active() {

@@ -10,7 +10,7 @@ export interface Input {
 
 <form
   method="post"
-  action=`/form?id=${input.id}`
+  data-action-id=input.id
   id=form.id
   onSubmit=form.submit
 >
@@ -29,3 +29,8 @@ export interface Input {
 
   <button type="submit" disabled=form.submitting>Save</button>
 </form>
+
+<script>
+  const form = document.querySelector("form");
+  form.action = "/form?id=" + form.getAttribute("data-action-id");
+</script>

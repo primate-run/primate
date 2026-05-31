@@ -1,5 +1,4 @@
 import type AppFacade from "#app/Facade";
-import type I18NConfig from "#i18n/Config";
 import type { Schema as LogSchema } from "#logger";
 import type Mode from "#Mode";
 import type SessionConfig from "#session/Config";
@@ -22,7 +21,6 @@ type ServeInit = {
   log: typeof LogSchema.infer;
   pages: Dict<string>;
   session?: SessionConfig;
-  i18n?: I18NConfig;
 };
 
 export type { ServeInit as default };

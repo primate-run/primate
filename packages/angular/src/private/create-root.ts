@@ -1,6 +1,6 @@
 import root_selector from "#root-selector";
 
-export default (depth: number, i18n_active: boolean) => {
+export default (depth: number) => {
   const n = depth;
 
   const layer = (i: number, child: string | null) => {
@@ -22,33 +22,17 @@ export default (depth: number, i18n_active: boolean) => {
   let body = layer(n, null);
   for (let i = n - 1; i >= 0; i--) body = layer(i, body);
 
-  const i18n_imports = i18n_active
-    ? `import t from "#i18n";
-import { internal } from "primate/i18n";`
-    : "";
-
-  const i18n_setup = i18n_active ?
-    `if (this.#p.request.context.i18n.locale) {
-  t[internal].init(this.#p.request.context.i18n.locale);
-  }
-  this.#off = t.subscribe(() => this.#cdr.markForCheck());
-internal`
-    : "";
-
   return `
 import {
   Component,
   Input,
   inject,
   ChangeDetectorRef,
-  OnDestroy,
   TemplateRef,
-  AfterViewInit,
 } from "@angular/core";
 import { CommonModule, NgComponentOutlet } from "@angular/common";
 import INITIAL_PROPS from "@primate/angular/INITIAL_PROPS";
 import { request } from "@primate/angular/app";
-${i18n_imports}
 
 type Dict = Record<string, any>;
 type RootProps = {
@@ -64,10 +48,9 @@ type RootProps = {
   imports: [CommonModule, NgComponentOutlet],
   template: \`<ng-container *ngIf="P as P">${body}</ng-container>\`
 })
-export default class RootComponent implements OnDestroy {
+export default class RootComponent {
   #p!: RootProps;
   #cdr = inject(ChangeDetectorRef);
-  #off?: () => void;
 
   constructor() {
     try {
@@ -77,40 +60,30 @@ export default class RootComponent implements OnDestroy {
         request.set(initial.request);
       }
     } catch {}
-    ${i18n_setup}
   }
 
   @Input({ required: true })
   set p(value: RootProps) {
     this.#p = value;
     request.set(value.request);
-    this.#cdr.markForCheck();  // root on default CD
+    this.#cdr.markForCheck();
   }
+
   get p(): RootProps { return this.#p; }
   get P(): RootProps { return this.#p; }
 
-  // is there a view at index i?
   has(i: number) { return !!this.P?.views?.[i]; }
 
-  // view type for index i
   comp(i: number) { return this.P?.views?.[i]; }
 
-  // per-layer inputs without slot
   inputs(i: number) {
     return (this.P?.props?.[i] ?? {}) as Dict;
   }
 
-  // per-layer inputs + slot template (only used when has(i+1) is true)
   slotInputs(i: number, slot: TemplateRef<unknown>) {
     const base = (this.P?.props?.[i] ?? {}) as Dict;
     return { ...base, slot };
   }
-
-  ${i18n_active ? `ngAfterViewInit() {
-    t[internal].restore();
-  }` : ""}
-
-  ngOnDestroy() { this.#off?.(); }
 }
 `;
 };
