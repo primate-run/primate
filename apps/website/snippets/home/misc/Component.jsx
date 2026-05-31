@@ -1,16 +1,15 @@
-import t from "@primate/react/i18n";
-import locale from "@primate/react/locale";
+import t from "#lib/i18n";
 
 export default function({ username }) {
   return <>
     <h3>{t("switch-language")}</h3>
     <div>
-      <a onClick={() => locale.set("en-US")}>
+      <a onClick={() => t.locale.set("en-US")}>
         {t("English")}
       </a>
     </div>
     <div>
-      <a onClick={() => locale.set("de-DE")}>
+      <a onClick={() => t.locale.set("de-DE")}>
         {t("German")}
       </a>
     </div>

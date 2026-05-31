@@ -467,7 +467,7 @@ Import and use the bridged translator directly in views:
 
 ```ts
 import { Component } from "@angular/core";
-import t from "#i18n";
+import t from "#lib/i18n";
 
 @Component({
   template: `

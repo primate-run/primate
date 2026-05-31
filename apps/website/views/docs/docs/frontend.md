@@ -9,24 +9,24 @@ mix them in the same app.
 
 ## Overview
 
-| Frontend                    | SSR | Hydration | CSR | Layouts | Head | Validation | i18n |
-| --------------------------- | --- | --------- | --- | ------- | ---- | ---------- | ---- |
-| *Reactive frontends*        |     |           |     |         |      |            |      |
-| [Angular]                   | ✓   | ✓         | ✓   | ✓       | ✓    | ✓          | ✓    |
-| [React]                     | ✓   | ✓         | ✓   | ✓       | ✓    | ✓          | ✓    |
-| [Solid]                     | ✓   | ✓         | ✓   | ✓       | ✓    | ✓          | ✓    |
-| [Svelte]                    | ✓   | ✓         | ✓   | ✓       | ✓    | ✓          | ✓    |
-| [Vue]                       | ✓   | ✓         | ✓   | ✓       | ✓    | ✓          | ✓    |
-| *Component-based frontends* |     |           |     |         |      |            |      |
-| [HTML]                      | ✓   |           |     |         |      |            |      |
-| [HTMX]                      | ✓   |           |     |         |      |            |      |
-| [Marko]                     | ✓   |           |     |         |      |            |      |
-| [Voby]                      | ✓   |           |     |         |      |            |      |
-| [Web Components]            |     | ✓         |     |         |      |            |      |
-| *Template engines*          |     |           |     |         |      |            |      |
-| [Eta]                       | ✓   |           |     |         |      |            |      |
-| [Handlebars]                | ✓   |           |     |         |      |            |      |
-| [Markdown]                  | ✓   |           |     |         |      |            |      |
+| Frontend                    | SSR | Hydration | CSR | Layouts | Head | Forms | i18n |
+| --------------------------- | --- | --------- | --- | ------- | ---- | ----- | ---- |
+| *Reactive frontends*        |     |           |     |         |      |       |      |
+| [Angular]                   | ✓   | ✓         | ✓   | ✓       | ✓    | ✓     | ✓    |
+| [React]                     | ✓   | ✓         | ✓   | ✓       | ✓    | ✓     | ✓    |
+| [Solid]                     | ✓   | ✓         | ✓   | ✓       | ✓    | ✓     | ✓    |
+| [Svelte]                    | ✓   | ✓         | ✓   | ✓       | ✓    | ✓     | ✓    |
+| [Vue]                       | ✓   | ✓         | ✓   | ✓       |      | ✓     | ✓    |
+| [Marko]                     | ✓   | ✓         | ✓   | ✓       |      | ✓     | ✓    |
+| *Component-based frontends* |     |           |     |         |      |       |      |
+| [HTML]                      | ✓   |           |     |         |      |       |      |
+| [HTMX]                      | ✓   |           |     |         |      |       |      |
+| [Voby]                      | ✓   |           |     |         |      |       |      |
+| [Web Components]            |     | ✓         |     |         |      |       |      |
+| *Template engines*          |     |           |     |         |      |       |      |
+| [Eta]                       | ✓   |           |     |         |      |       |      |
+| [Handlebars]                | ✓   |           |     |         |      |       |      |
+| [Markdown]                  | ✓   |           |     |         |      |       |      |
 
 [Angular]: /docs/frontend/angular
 [React]: /docs/frontend/react
