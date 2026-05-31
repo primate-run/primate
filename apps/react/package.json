@@ -17,7 +17,7 @@
     "@primate/react": "workspace:^",
     "@primate/sqlite": "workspace:^",
     "@rcompat/assert": "^0.13.0",
-    "@rcompat/env": "^0.22.0",
+    "@rcompat/env": "^0.22.2",
     "pema": "workspace:^",
     "primate": "workspace:^",
     "react": "^19.2.6",
@@ -25,6 +25,6 @@
   },
   "devDependencies": {
     "@primate/test": "workspace:^",
-    "@types/react": "^19.2.14"
+    "@types/react": "^19.2.15"
   }
 }

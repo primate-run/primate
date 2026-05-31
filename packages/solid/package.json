@@ -28,7 +28,7 @@
     "@types/babel__core": "^7.20.5"
   },
   "dependencies": {
-    "@babel/core": "^7.29.0",
+    "@babel/core": "^7.29.7",
     "@primate/core": "workspace:^",
     "@rcompat/runtime": "^0.16.0",
     "babel-preset-solid": "^1.9.12"
