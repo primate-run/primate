@@ -1,0 +1,44 @@
+export interface Input {
+  section: {
+    title: string;
+    items: Array<{
+      title: string;
+      href: string;
+    }>;
+  };
+  path: string;
+  toc?: Array<{
+    depth: number;
+    slug: string;
+    text: string;
+  }>;
+}
+
+<const/section=input.section>
+<const/path=input.path>
+<const/tocItems=(input.toc ?? []).filter((item) => item.depth > 1)>
+
+<li class="heading">${section.title}</li>
+
+<for|item| of=section.items>
+  <li class=(item.href === path ? "current" : "")>
+    <a href=`/docs${item.href}`>${item.title}</a>
+  </li>
+
+  <if=item.href === path>
+    <for|tocitem| of=tocItems>
+      <li class=`depth-${tocitem.depth}`>
+        <a href=`/docs${path === "/" ? "" : path}#${tocitem.slug}`>
+          <for|part, i| of=tocitem.text.split(/`([^`]+)`/)>
+            <if=i % 2>
+              <code>${part}</code>
+            </if>
+            <else>
+              ${part}
+            </else>
+          </for>
+        </a>
+      </li>
+    </for>
+  </if>
+</for>

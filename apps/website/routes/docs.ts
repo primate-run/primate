@@ -1,5 +1,4 @@
 import app from "#app";
-import Static from "#view/Static";
 import type { Component } from "@primate/markdown";
 import response from "primate/response";
 import route from "primate/route";
@@ -14,6 +13,6 @@ export default route({
       toc,
     };
 
-    return response.view(Static, props);
+    return response.view("Static.marko", props);
   },
 });

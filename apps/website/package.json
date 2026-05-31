@@ -8,21 +8,20 @@
     "bun:build": "bunx --bun primate build",
     "bun:serve": "bunx --bun primate serve",
     "bun:start": "bunx --bun primate",
-    "deps": "pnpm -r --filter={pema,core,html,svelte,markdown,primate} build"
+    "deps": "pnpm -r --filter={pema,core,html,marko,markdown,primate} build"
   },
   "dependencies": {
-    "@plsp/svelte": "^0.1.0",
     "@primate/core": "workspace:^",
     "@primate/html": "workspace:^",
     "@primate/markdown": "workspace:^",
-    "@primate/svelte": "workspace:^",
+    "@primate/marko": "workspace:^",
     "@rcompat/http": "^0.30.0",
     "@rcompat/runtime": "^0.16.0",
     "@rcompat/string": "^0.21.0",
+    "marko": "^6.0.172",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "shiki": "^4.0.2",
-    "svelte": "^5.55.5"
+    "shiki": "^4.0.2"
   },
   "devDependencies": {
     "@angular/common": "^21.2.12",

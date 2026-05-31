@@ -1,32 +1,32 @@
-<script>
-  import Header from "#component/Header";
-  import Footer from "#component/Footer";
-  import Icon from "#component/Icon";
-  import Guides from "#component/Guides";
+import Header from "#component/Header";
+import Footer from "#component/Footer";
+import Icon from "#component/Icon";
+import Guides from "#component/Guides";
 
-  export let title = "The Universal Web Framework";
-  export let examples = { frontend: "", backend: "", runtime: "", i18n: "" };
-  export let guides;
+export interface Input {
+  title?: string;
+  examples?: {
+    frontend?: string;
+    backend?: string;
+    runtime?: string;
+    i18n?: string;
+  };
+  guides: Array<[string, Array<{ name: string; path: string }>]>;
+}
 
-  const initCmd = "npx primate init";
-  let copied = false;
-  async function copyInit() {
-    try {
-      await navigator.clipboard.writeText(initCmd);
-      copied = true;
-      setTimeout(() => (copied = false), 1200);
-    } catch {}
-  }
-</script>
+<const/title=input.title ?? "The Universal Web Framework">
+<const/examples=input.examples ?? { frontend: "", backend: "", runtime: "", i18n: "" }>
+<const/initCmd="npx primate init">
+<let/copied=false>
 
-<Header {title} />
+<Header title=title/>
 
 <main class="homepage">
   <section class="hero">
     <div class="hero__bg"></div>
 
     <div class="hero__inner">
-      <h1 class="hero__title">{title}</h1>
+      <h1 class="hero__title">${title}</h1>
       <div class="hero__lead" style="line-height: 1.8em; margin-bottom: 7rem;">
         Frontend, backend, runtime — Primate lets you pick the tools you love
         and <span class="emphasis">combine them however you like</span>, without
@@ -35,9 +35,20 @@
 
       <div class="hero__actions">
         <a class="button primary" href="/docs/quickstart">Get started</a>
-        <button class="button button--ghost" on:click={copyInit}>
-          <span class="prompt">$ {initCmd}</span>
-          <span class="pill">{copied ? "Copied" : "Copy"}</span>
+        <button
+          class="button button--ghost"
+          onClick=async () => {
+            try {
+              await navigator.clipboard.writeText(initCmd);
+              copied = true;
+              setTimeout(() => {
+                copied = false;
+              }, 1200);
+            } catch {}
+          }
+        >
+          <span class="prompt">$ ${initCmd}</span>
+          <span class="pill">${copied ? "Copied" : "Copy"}</span>
         </button>
       </div>
     </div>
@@ -49,7 +60,7 @@
         <h3 class="bento__title">Frontends</h3>
         <p class="bento__lead">React, Angular, Vue, Svelte — side by side</p>
         <span class="bento__cta">
-          Examples <Icon name="chevron-right" />
+          Examples <Icon name="chevron-right"/>
         </span>
       </a>
 
@@ -59,7 +70,7 @@
           JavaScript/TypeScript routes, plus WebAssembly backends
         </p>
         <span class="bento__cta">
-          Examples <Icon name="chevron-right" />
+          Examples <Icon name="chevron-right"/>
         </span>
       </a>
 
@@ -69,7 +80,7 @@
           Node, Deno, Bun — consistent APIs, native execution paths
         </p>
         <span class="bento__cta">
-          Examples <Icon name="chevron-right" />
+          Examples <Icon name="chevron-right"/>
         </span>
       </a>
 
@@ -77,7 +88,7 @@
         <h3 class="bento__title">Ecosystem</h3>
         <p class="bento__lead">Databases, sessions, auth, i18n, native apps</p>
         <span class="bento__cta">
-          Examples <Icon name="chevron-right" />
+          Examples <Icon name="chevron-right"/>
         </span>
       </a>
     </div>
@@ -95,7 +106,7 @@
           <a class="button" href="/docs/frontend">Docs</a>
         </div>
       </div>
-      <div class="feature__demo">{@html examples.frontend}</div>
+      <div class="feature__demo">$!{examples.frontend}</div>
     </div>
   </section>
 
@@ -111,7 +122,7 @@
           <a class="button" href="/docs/backend">Docs</a>
         </div>
       </div>
-      <div class="feature__demo">{@html examples.backend}</div>
+      <div class="feature__demo">$!{examples.backend}</div>
     </div>
   </section>
 
@@ -127,7 +138,7 @@
           <a class="button" href="/docs/platform">Docs</a>
         </div>
       </div>
-      <div class="feature__demo">{@html examples.runtime}</div>
+      <div class="feature__demo">$!{examples.runtime}</div>
     </div>
   </section>
 
@@ -146,23 +157,25 @@
           <a class="button" href="/docs/target/native">Native</a>
         </div>
       </div>
-      <div class="feature__demo">{@html examples.i18n}</div>
+      <div class="feature__demo">$!{examples.i18n}</div>
     </div>
   </section>
 
-  <Guides {guides} />
+  <Guides guides=input.guides/>
 
-  <Footer />
+  <Footer/>
 </main>
 
 <style>
   section {
     border-bottom: 1px solid var(--border);
   }
+
   .emphasis {
     font-weight: bold;
     color: var(--fg);
   }
+
   main.homepage {
     display: block;
     padding-top: var(--height);
@@ -175,6 +188,7 @@
     overflow: hidden;
     isolation: isolate;
   }
+
   .hero__inner {
     max-width: 900px;
     margin: 0 auto;
@@ -183,22 +197,26 @@
     position: relative;
     z-index: 1;
   }
+
   .hero__title {
     font-size: clamp(3.2rem, 7vw, 6rem);
     margin: 5rem 0;
   }
+
   .hero__lead {
     max-width: 58ch;
     margin: 0 auto 2.4rem;
     color: var(--fg2);
     font-size: 1.9rem;
   }
+
   .hero__actions {
     display: inline-flex;
     gap: 1rem;
     justify-content: center;
     align-items: center;
   }
+
   .button {
     display: inline-flex;
     align-items: center;
@@ -208,6 +226,7 @@
     background: var(--bg);
     color: var(--fg);
   }
+
   .button.primary {
     background: var(--primary);
     color: #fff;
@@ -215,9 +234,11 @@
     font-size: 14px;
     padding: 7.5px 15px;
   }
+
   .button--ghost {
     font-family: droid-sans-mono;
   }
+
   .button .pill {
     font-size: 12px;
     background: color-mix(in srgb, var(--fg) 10%, transparent);
@@ -262,6 +283,7 @@
     position: relative;
     padding: 48px 0;
   }
+
   .bento__inner {
     max-width: 1100px;
     margin: 0 auto;
@@ -270,6 +292,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 3rem;
   }
+
   .bento__card {
     display: grid;
     gap: 0.4rem;
@@ -283,26 +306,31 @@
       border-color 0.2s ease,
       background-color 0.2s ease;
   }
+
   .bento__card:hover {
     transform: translateY(-2px);
     border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
     background: color-mix(in srgb, var(--caption-bg) 80%, transparent);
   }
+
   .bento__title {
     margin: 0;
     font-size: 20px;
     color: var(--fg);
   }
+
   .bento__lead {
     margin: 0;
     color: var(--fg2);
     font-size: 1.6rem;
   }
+
   .bento__cta {
     margin-top: 0.2rem;
     font-size: 1.3rem;
     color: var(--primary);
   }
+
   @media (max-width: 900px) {
     .bento__inner {
       grid-template-columns: 1fr;
@@ -314,9 +342,11 @@
     padding: 72px 0;
     isolation: isolate;
   }
+
   .feature--alt {
     background: color-mix(in srgb, var(--caption-bg) 35%, transparent);
   }
+
   .feature__inner {
     max-width: 1100px;
     margin: 0 auto;
@@ -329,6 +359,7 @@
     gap: clamp(1.6rem, 4vw, 3.2rem);
     align-items: center;
   }
+
   .feature--alt .feature__inner {
     grid-template-areas: "demo text";
   }
@@ -338,11 +369,13 @@
     max-width: 56ch;
     margin-bottom: 1rem;
   }
+
   .feature__title {
     font-size: clamp(2.8rem, 3.2vw + 1rem, 4.2rem);
     line-height: 1.1;
     margin: 0 0 3rem;
   }
+
   .feature__lead {
     color: var(--fg2);
     font-size: 1.8rem;
@@ -373,15 +406,18 @@
     .hero {
       padding: 80px 0 72px;
     }
+
     .feature {
       padding: 56px 0;
     }
+
     .feature__inner {
       grid-template-columns: 1fr;
       grid-template-areas:
         "text"
         "demo";
     }
+
     .feature__demo {
       margin-top: 1.2rem;
     }

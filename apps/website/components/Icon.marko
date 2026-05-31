@@ -1,13 +1,12 @@
-<script>
-  export let name;
-  export let size = 16;
-</script>
+export interface Input {
+  name: string;
+  size?: number;
+}
 
-<svg class="icon" width={size} height={size}>
-  <use href="#{name}" />
-</svg>
+<const/name=input.name>
+<const/size=input.size ?? 16>
 
-<style>
+<style/styles>
   .icon {
     position: relative;
     overflow: hidden;
@@ -21,3 +20,7 @@
     fill: none;
   }
 </style>
+
+<svg class=styles.icon width=size height=size>
+  <use href=`#${name}`/>
+</svg>

@@ -1,0 +1,52 @@
+import Header from "#component/Header";
+import Sidebar from "#component/Sidebar";
+import theme from "#config/theme";
+
+export interface Input {
+  content: string;
+  toc: Array<{
+    depth: number;
+    slug: string;
+    text: string;
+  }>;
+  path: string;
+}
+
+<const/sidebar=theme.sidebar>
+<const/flattened=(sidebar ?? []).flatMap((item) => item.items)>
+<const/index=flattened.findIndex((item) => item.href === input.path)>
+<const/previous=flattened[index - 1]>
+<const/next=flattened[index + 1]>
+<const/pageTitle=input.toc[0]?.text ?? "Docs">
+
+<Header title=pageTitle/>
+
+<main>
+  <if=sidebar !== undefined>
+    <Sidebar
+      sidebar=sidebar
+      toc=input.toc
+      path=input.path
+    />
+  </if>
+
+  <article>
+    $!{input.content}
+
+    <div class="controls">
+      <span class="prev">
+        <if=previous !== undefined>
+          <div class="heading">Previous</div>
+          <a href=("/docs" + previous.href)>${previous.title}</a>
+        </if>
+      </span>
+
+      <span class="next">
+        <if=next !== undefined>
+          <div class="heading">Next</div>
+          <a href=("/docs" + next.href)>${next.title}</a>
+        </if>
+      </span>
+    </div>
+  </article>
+</main>

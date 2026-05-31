@@ -1,8 +1,8 @@
-<script>
-  import ExampleLink from "#component/ExampleLink";
+import ExampleLink from "#component/ExampleLink";
 
-  export let guides;
-</script>
+export interface Input {
+  guides: Array<[string, Array<{ name: string; path: string }>]>;
+}
 
 <section class="examples">
   <div class="examples__bg"></div>
@@ -15,21 +15,21 @@
     </div>
 
     <div class="example-groups">
-      {#each guides as category}
+      <for|category| of=input.guides>
         <div class="example-group">
-          <h3 class="example-group__title">{category[0]}</h3>
+          <h3 class="example-group__title">${category[0]}</h3>
           <ul class="example-list">
-            {#each category[1] as guide}
+            <for|guide| of=category[1]>
               <li>
                 <ExampleLink
-                  title={guide.name}
-                  url={`${category[0]}/${guide.path}`}
+                  title=guide.name
+                  url=(category[0] + "/" + guide.path)
                 />
               </li>
-            {/each}
+            </for>
           </ul>
         </div>
-      {/each}
+      </for>
     </div>
   </div>
 </section>
@@ -38,12 +38,14 @@
   section {
     border-bottom: 1px solid var(--border);
   }
+
   .examples {
     position: relative;
     padding: 72px 0;
     overflow: hidden;
     isolation: isolate;
   }
+
   .examples__bg {
     position: absolute;
     inset: -10% -10%;
@@ -72,6 +74,7 @@
     pointer-events: none;
     z-index: 0;
   }
+
   .examples__inner {
     position: relative;
     z-index: 1;
@@ -79,12 +82,14 @@
     margin: 0 auto;
     padding: 0 var(--prs-page-padding-side);
   }
+
   .examples__head {
     position: static;
     display: grid;
     gap: 0.6rem;
     margin-bottom: 1.6rem;
   }
+
   .examples__title {
     font-size: clamp(2.8rem, 3.2vw + 1rem, 4.2rem);
     line-height: 1.1;
@@ -92,6 +97,7 @@
     text-align: center;
     margin-bottom: 10px;
   }
+
   .examples__lead {
     margin: 0;
     color: var(--fg2);
@@ -99,16 +105,19 @@
     text-align: center;
     margin-bottom: 20px;
   }
+
   .example-groups {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 2rem 3rem;
   }
+
   @media (max-width: 1100px) {
     .example-groups {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
+
   @media (max-width: 720px) {
     .example-groups {
       grid-template-columns: 1fr;
@@ -118,6 +127,7 @@
   .example-group {
     min-width: 0;
   }
+
   .example-group__title {
     margin: 0 0 0.8rem;
     padding: 6px 10px;
@@ -136,6 +146,7 @@
     display: grid;
     gap: 6px;
   }
+
   .example-list li {
     min-width: 0;
   }
