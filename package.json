@@ -24,7 +24,6 @@
     "@typescript/native-preview": "7.0.0-dev.20260527.2",
     "apekit": "0.0.58",
     "eslint": "^10.4.1",
-    "knip": "^6.14.2",
     "proby": "^0.19.1",
     "typescript": "^6.0.3"
   }
