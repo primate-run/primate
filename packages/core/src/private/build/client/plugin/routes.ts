@@ -9,7 +9,7 @@ export default function plugin_client_routes(app: BuildApp): Plugin {
     setup(build) {
       build.onResolve({ filter: /.*/ }, async args => {
         if (args.pluginData === "primate-client-route-inner") return null;
-        if (intercept(args, app.path.views)) return null;
+        if (intercept(args, app.root)) return null;
 
         const result = await build.resolve(args.path, {
           resolveDir: args.resolveDir,

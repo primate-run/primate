@@ -19,8 +19,9 @@ function is_npm_package(path: string, resolve_dir: string) {
   }
 }
 
-export default function intercept(args: OnResolveArgs, views: FileRef) {
-  if (!args.resolveDir.startsWith(views.path)) return true;
+export default function intercept(args: OnResolveArgs, root: FileRef) {
+  if (!args.resolveDir.startsWith(root.path)) return true;
+  if (args.resolveDir.includes("node_modules")) return true;
   if (is_bare(args.path)) return true;
   if (is_npm_package(args.path, args.resolveDir)) return true;
   return false;
