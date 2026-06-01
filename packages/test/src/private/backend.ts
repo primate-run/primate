@@ -212,6 +212,21 @@ function backend(dirname: string) {
       assert(await response.json()).equals({ foo: "bar" });
     });
 
+    test.case("stale-cookie", async assert => {
+      await using tab = await browser.open();
+
+      // Send a request with a cookie that doesn't exist in the store
+      const response = await tab.fetch("/session/get", {
+        headers: {
+          Cookie: "session_id=a1b2c3d4-e5f6-4a7b-8c9d-e0f1a2b3c4d5",
+        },
+      });
+
+      assert(response.status).equals(http.Status.NO_CONTENT);
+      const set_cookie = response.headers.get("Set-Cookie");
+      assert(set_cookie?.includes("Max-Age=0")).true();
+    });
+
     /*test.case("new", async assert => {
       await using tab = await browser.open();
       assert(await tab.text("/session/new")).equals("no session");

@@ -71,7 +71,7 @@ export default function session_module(config: Config) {
         const session_type = p.omit(store.schema, "id", "session_id");
 
         const session = new SessionHandle<Dict>(
-          sid,
+          exists ? sid : undefined,
           data,
           session_type,
         );

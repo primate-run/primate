@@ -178,7 +178,7 @@ function session_id_string() {
   return t`session store session_id must be a string type`;
 }
 function session_id_data() {
-  return t`"both ${"id"} and ${"data"} must be defined or undefined`;
+  return t`both ${"id"} and ${"data"} must be defined or undefined`;
 }
 function session_handle_unavailable() {
   return t`session handle not available in this context`;
