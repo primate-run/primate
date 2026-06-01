@@ -432,7 +432,7 @@ Import and use the bridged translator directly in views:
 
 ```vue
 <script lang="ts" setup>
-import t from "#i18n";
+import t from "#lib/i18n";
 </script>
 
 <template>

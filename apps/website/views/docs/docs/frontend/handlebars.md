@@ -22,7 +22,9 @@ import config from "primate/config";
 import handlebars from "@primate/handlebars";
 
 export default config({
-  modules: [handlebars()],
+  modules: [
+    handlebars(),
+  ],
 });
 ```
 
@@ -53,7 +55,7 @@ export default route({
         { id: 1, title: "First Post" },
         { id: 2, title: "Second Post" },
       ];
-    
+
       return response.view("post-index.hbs", { posts });
   },
 });

@@ -22,7 +22,9 @@ import config from "primate/config";
 import html from "@primate/html";
 
 export default config({
-  modules: [html()],
+  modules: [
+    html(),
+  ],
 });
 ```
 
@@ -55,7 +57,7 @@ export default route({
         { id: 1, title: "First Post" },
         { id: 2, title: "Second Post" },
       ];
-    
+
       return response.view("post-index.html", { posts });
   },
 });

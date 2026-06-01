@@ -24,7 +24,9 @@ import config from "primate/config";
 import markdown from "@primate/markdown";
 
 export default config({
-  modules: [markdown()],
+  modules: [
+    markdown(),
+  ],
 });
 ```
 
@@ -146,7 +148,7 @@ export default route({
   get(request) {
       const page = request.path.get("page");
       const { html, toc, meta } = app.view<Component>(`docs/${page}.md`);
-    
+
       return response.view("DocPage.html", {
         content: html,
         toc,

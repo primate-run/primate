@@ -22,7 +22,9 @@ import config from "primate/config";
 import htmx from "@primate/htmx";
 
 export default config({
-  modules: [htmx()],
+  modules: [
+    htmx(),
+  ],
 });
 ```
 
@@ -56,7 +58,7 @@ export default route({
         { id: 1, title: "First Post" },
         { id: 2, title: "Second Post" },
       ];
-    
+
       return response.view("post-index.htmx", { posts });
   },
 });

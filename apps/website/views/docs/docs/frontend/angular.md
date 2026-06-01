@@ -19,10 +19,6 @@ provides the server implementation itself.
 npm install @primate/angular @angular/core @angular/common @angular/compiler
 ```
 
-!!!
-Install additional packages like `@angular/forms` as needed.
-!!!
-
 ### Configure
 
 ```ts

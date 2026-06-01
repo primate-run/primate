@@ -22,7 +22,9 @@ import config from "primate/config";
 import eta from "@primate/eta";
 
 export default config({
-  modules: [eta()],
+  modules: [
+    eta(),
+  ],
 });
 ```
 
@@ -53,7 +55,7 @@ export default route({
         { id: 1, title: "First Post" },
         { id: 2, title: "Second Post" },
       ];
-    
+
       return response.view("post-index.eta", { posts });
   },
 });

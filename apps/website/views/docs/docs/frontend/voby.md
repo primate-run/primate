@@ -21,7 +21,9 @@ import config from "primate/config";
 import voby from "@primate/voby";
 
 export default config({
-  modules: [voby()],
+  modules: [
+    voby(),
+  ],
 });
 ```
 
@@ -58,7 +60,7 @@ export default route({
         { id: 1, title: "First Post" },
         { id: 2, title: "Second Post" },
       ];
-    
+
       return response.view("post-index.jsx", { posts, title: "Blog" });
   },
 });
