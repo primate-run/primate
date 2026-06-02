@@ -12,12 +12,13 @@ and files used in a Primate app.
 | Directory                     | Purpose                                              |
 | ----------------------------- | ---------------------------------------------------- |
 | `build`                       | build artefacts — add to `.gitignore`                |
+| `client`                      | client entrypoints — CSS, JS, fonts                  |
 | [config](/docs/configuration) | configuration files                                  |
 | [locales](/docs/i18n#locales) | I18N locales                                         |
 | `node_modules`                | install artefacts — add to `.gitignore`              |
 | `pages`                       | app and error HTML template pages                    |
 | [routes](/docs/routing)       | filesystem-based routes                              |
-| `static`                      | static assets — image, font, global JS and CSS files |
+| `static`                      | static assets served as-is — images, downloads       |
 | [stores](/docs/stores)        | data stores                                          |
 | [views](/docs/views)          | frontend views                                       |
 
@@ -90,6 +91,16 @@ must be uniquely handled by one frontend.
 [React]: /docs/frontend/react
 [Solid]: /docs/frontend/solid
 [Voby]: /docs/frontend/voby
+
+## Client files
+
+Files inside the `client` directory are bundled by Primate and made available
+as named placeholders in `pages/app.html` via the
+[`entrypoints`](/docs/configuration#entrypoints) config option.
+
+Any file type supported by your active frontend modules works here — if you
+have `@primate/svelte` configured, you can point an entrypoint at a `.svelte`
+file and it will be bundled and injected just like CSS or plain TypeScript.
 
 ## Store files
 

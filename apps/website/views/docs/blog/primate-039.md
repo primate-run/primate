@@ -339,7 +339,72 @@ future release. That said, the import form is already preferable: you get
 jump-to-definition on the component and TypeScript will catch references to
 views that don't exist.
 
+## Client entrypoints
+
+Primate now supports named client entrypoints — a dedicated `client` directory
+for files that should be bundled and injected into your HTML page as named
+placeholders.
+
+Place your global CSS, client-side scripts, or any other bundleable assets in
+`client`, then declare them in `config/app.ts`:
+
+```ts
+export default config({
+  entrypoints: {
+    css: "master.css",
+    colorscheme: "colorscheme.ts",
+  },
+});
+```
+
+Each key becomes a placeholder you can place anywhere in `pages/app.html`:
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    %colorscheme% %css% %head%
+  </head>
+  <body>
+    %body%
+  </body>
+</html>
+```
+
+Any file type supported by your active frontend modules works as an entrypoint
+— if you have `@primate/svelte` configured, you can point an entrypoint at a
+`.svelte` file and it will be bundled and injected just like CSS or plain
+TypeScript. Fonts and other binary assets referenced from CSS are handled via
+the new `loaders` config option:
+
+```ts
+export default config({
+  loaders: {
+    ".woff2": "file",
+  },
+  entrypoints: {
+    css: "master.css",
+  },
+});
+```
+
 ## Breaking changes
+
+### Static directory no longer auto-bundled
+
+Previously, `.js`, `.ts`, and `.css` files placed in `static` were
+automatically picked up and bundled into the client. This is no longer the
+case — `static` is now served as-is, with no processing.
+
+If you had bundleable assets in `static`, migrate them to `client` and declare
+them as entrypoints:
+
+1. Move the files from `static` to `client`
+2. Add them to `entrypoints` in `config/app.ts`
+3. Add the corresponding `%name%` placeholder to `pages/app.html` (create the
+   file if it doesn't exist — Primate will use its default otherwise)
 
 ### Client imports debarrelled
 

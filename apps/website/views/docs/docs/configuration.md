@@ -23,19 +23,21 @@ value at runtime — including `app.config()`, `app.env()`, `app.view()`, and
 |Option|Default|Description|
 |-|-|-|
 |[db.migrations](#db-migrations)|`undefined`|database migration configuration|
-|[http.csp](#http-csp)|`{}`|
+|[entrypoints](#entrypoints)|`{}`|named client entrypoints|
+|[http.csp](#http-csp)|`{}`|content security policy|
 |[http.headers](#http-headers)|`{}`|default HTTP response headers|
 |[http.host](#http-host)|`"localhost"`|server host|
 |[http.port](#http-port)|`6161`|server port|
 |[http.ssl.cert](#http-ssl-cert)|`undefined`|path to SSL certificate|
 |[http.ssl.key](#http-ssl-key)|`undefined`|path to SSL private key|
 |[http.static.root](#http-static-root)|`"/"`|web path of static assets|
+|[loaders](#loaders)|`{}`|esbuild file loaders by extension|
 |[env.schema](#env-schema)|`undefined`|schema for typed environment variables|
 |[modules](#modules)|`[]`|extension modules|
-|[defaultLocale](#default-locale)|undefined|default locale|
-|[locales](#locales)|[]|list of locales|
-|[currency](#currency)|`"USD"`|active currency|
-|[persist](#persist)|`"cookie"`|locale persistence mode|
+|[i18n.defaultLocale](#i18n-defaultlocale)|`undefined`|default locale|
+|[i18n.locales](#i18n-locales)|`[]`|list of locales|
+|[i18n.currency](#i18n-currency)|`"USD"`|active currency|
+|[i18n.persist](#i18n-persist)|`"cookie"`|locale persistence mode|
 
 ### `db.migrations`
 
@@ -57,6 +59,45 @@ export default config({
 
 See the [Stores] page for the migration workflow.
 
+### `entrypoints`
+
+Named client entrypoints bundled from the `client` directory and injected into
+`pages/app.html` as placeholders.
+
+```ts
+import config from "primate/config";
+
+export default config({
+  entrypoints: {
+    css: "master.css",
+    colorscheme: "colorscheme.ts",
+  },
+});
+```
+
+Each key becomes a placeholder in your HTML page. For a key `css`, add
+`%css%` wherever you want the asset injected:
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    %css% %head%
+  </head>
+  <body>
+    %body%
+  </body>
+</html>
+```
+
+Any file type supported by your active frontend modules works as an entrypoint
+— if you have `@primate/svelte` configured, you can point an entrypoint at a
+`.svelte` file and it will be bundled and injected like any other asset.
+
+The names `app`, `head`, and `body` are reserved and cannot be used as
+entrypoint keys.
+
 ### `http.csp`
 The Content Security Policy (CSP) to use.
 
@@ -77,8 +118,8 @@ Example of a restrictive policy.
 // allow only own origin in <base>
 "base-uri": ["'self'"],
 }
-
 ```
+
 ### `http.headers`
 HTTP headers to use when generating requests using the `view` handler.
 
@@ -100,6 +141,22 @@ valid key/certificate pair, Primate uses https instead of http.
 The path at which to serve static assets (those located in the `static`
 directory). Static assets take precedence over routes. This option allows you
 to have all static assets served at a subpath, like `/public`.
+
+### `loaders`
+
+A map of file extensions to esbuild loaders. Currently only `"file"` is
+supported, which copies the asset into the build output and replaces the import
+with its URL — useful for fonts and other binary assets referenced from CSS.
+
+```ts
+import config from "primate/config";
+
+export default config({
+  loaders: {
+    ".woff2": "file",
+  },
+});
+```
 
 ### `env.schema`
 A Pema object schema used to validate and type environment variables exposed
@@ -139,7 +196,7 @@ Currency to use in localization.
 
 ### `i18n.persist`
 
-Locale persistance mode.
+Locale persistence mode.
 
 ### Reference
 [s=configuration/app]
