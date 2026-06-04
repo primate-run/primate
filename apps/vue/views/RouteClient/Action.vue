@@ -4,6 +4,7 @@ import client from "@primate/vue/client";
 
 const form = client.form(route.post);
 </script>
+
 <template>
   <form :id="form.id" @submit="form.submit">
     <input id="foo" name="foo" />

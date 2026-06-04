@@ -248,6 +248,17 @@ function frontend(dirname: string) {
       await tab.waitfor(() => tab.get("#result").exists());
       assert(tab.get("#result").json()).equals({ name: "hello", foo: "world" });
     });
+
+    test.case("route client action form redirect navigates to new page", async assert => {
+      await using tab = await browser.open();
+      await tab.goto("/route-client/action-redirect");
+      await tab.click("#send");
+      await tab.waitfor(() =>
+        tab.pathname() === "/redirected" && tab.get("h1").text() === "Redirected",
+      );
+      assert(tab.pathname()).equals("/redirected");
+      assert(tab.get("h1").text()).equals("Redirected");
+    });
   }
 
   test.group("i18n", () => {

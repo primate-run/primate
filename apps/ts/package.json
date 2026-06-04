@@ -6,6 +6,7 @@
     "start": "npx primate",
     "build": "npx primate build",
     "test": "npx proby",
+    "test:backend": "npm run test",
     "test:deno": "deno run -A npm:proby",
     "test:bun": "bunx --bun proby"
   },
