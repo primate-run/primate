@@ -342,4 +342,19 @@ testSQL(db, setup => {
       assert(true).equals(true);
     });
   });
+
+  test.case("introspects datetime columns", async assert => {
+    await db.schema.create("datetime_test", { name: "id", generate: true }, {
+      id: "u32",
+      created_at: "datetime",
+    });
+
+    assert(await db.schema.introspect("datetime_test")).equals({
+      id: ["u32", "i64"],
+      created_at: ["datetime"],
+    });
+
+    await db.schema.delete("datetime_test");
+  });
 });
+
