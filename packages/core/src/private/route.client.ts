@@ -27,16 +27,21 @@ type MethodMeta = {
   contentType?: string;
 };
 
+type RequestMeta = {
+  headers?: HeadersInit;
+};
+
 type ClientMethod<O extends RouteOptions, R = unknown> = MethodMeta & {
   _result?: R;
 } & (
     Body<O> extends never
     ? Path<O> extends never
-    ? () => Promise<Response>
-    : (args: { path: Path<O> }) => Promise<Response>
+    ? (args?: RequestMeta) => Promise<Response>
+    : (args: { path: Path<O> } & RequestMeta) => Promise<Response>
     : Path<O> extends never
-    ? (args: { body: Body<O> }) => Promise<Response>
-    : (args: { body: Body<O>; path: Path<O> }) => Promise<Response>
+    ? (args: { body: Body<O> } & RequestMeta) => Promise<Response>
+    : (args: { body: Body<O>; path: Path<O> } & RequestMeta) =>
+      Promise<Response>
   );
 
 type ClientRoute<R> = {
@@ -45,7 +50,7 @@ type ClientRoute<R> = {
     result?: infer Result;
   }
   ? ClientMethod<O, Result>
-  : () => Promise<Response>;
+  : (args?: RequestMeta) => Promise<Response>;
 };
 
 type WithResult<O extends RouteOptions, R = unknown> = {
@@ -96,18 +101,24 @@ function route<R extends RouteHandlers>(handlers: R): ClientRoute<R> {
           const fn = async (args: {
             body?: unknown;
             path?: Dict<string>;
+            headers?: HeadersInit;
           } = {}) => {
             const resolved = args.path !== undefined
               ? path.replace(/\[([^\]]+)\]/g, (_, key) =>
                 encodeURIComponent((args.path as Dict<string>)[key] ?? `[${key}]`),
               )
               : path;
+
             return fetch(resolved, {
               method: method.toUpperCase(),
-              headers: headers(contentType),
+              headers: {
+                ...headers(contentType),
+                ...(args.headers ?? {}),
+              },
               body: serialize_body(contentType, args.body),
             });
           };
+
           return [method, Object.assign(fn, { contentType })];
         }),
       ) as ClientRoute<R>;

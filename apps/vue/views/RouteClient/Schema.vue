@@ -9,11 +9,13 @@ async function send() {
   const response = await route.post({ body: { foo: "bar" } });
   result.value = JSON.stringify(await response.json());
 }
+
 async function send_invalid() {
   const response = await route.post({ body: { foo: 123 } });
   error.value = response.status;
 }
 </script>
+
 <template>
   <button id="send" @click="send">Send</button>
   <button id="send-invalid" @click="send_invalid">Send Invalid</button>

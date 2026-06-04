@@ -8,6 +8,7 @@
     "serve": "npx primate serve",
     "pretest": "uv venv --clear && uv pip install --refresh -r requirements.txt",
     "test": "npx proby",
+    "test:backend": "npm run test",
     "test:deno": "deno run -A npm:proby",
     "test:bun": "bunx --bun proby"
   },

@@ -1,5 +1,9 @@
 import extract_issues from "#client/extract-issues";
+import root from "#client/root";
+import storage from "#client/storage";
 import submit from "#client/submit";
+import transport from "#client/transport";
+import http from "@rcompat/http";
 import is from "@rcompat/is";
 import type { Dict } from "@rcompat/type";
 import type { Issue, JSONPayload } from "pema";
@@ -37,7 +41,11 @@ export type ClientMethod<
   Path extends Dict = Dict,
   Result = unknown,
 > = MethodMeta &
-  ((args: { body: Values; path: Path }) => Promise<Response>);
+  ((args: {
+    body: Values;
+    path: Path;
+    headers?: HeadersInit;
+  }) => Promise<Response>);
 
 export type FormInit = {
   id?: string;
@@ -47,6 +55,7 @@ export type FormInit = {
   action?: (args: {
     body: unknown;
     path?: Dict<string>;
+    headers?: HeadersInit;
   }) => Promise<Response>;
   contentType?: string;
   path?: Dict<string>;
@@ -104,6 +113,31 @@ function form_data_body(form_data: FormData): FormData | URLSearchParams {
     if (value instanceof File && value.size > 0) return form_data;
   }
   return new URLSearchParams(form_data as unknown as Record<string, string>);
+}
+
+async function redirect(response: Response) {
+  if (!response.redirected) return false;
+
+  if (!transport.is_json(response)) {
+    globalThis.location.assign(response.url);
+    return true;
+  }
+
+  const { location, document, history } = globalThis;
+  const scrollTop = document.scrollingElement?.scrollTop ?? 0;
+
+  root.update(await response.json());
+
+  storage.new({
+    hash: location.hash,
+    pathname: location.pathname,
+    scrollTop,
+  });
+
+  const url = new URL(response.url);
+  history.pushState({}, "", url.pathname + url.search);
+
+  return true;
 }
 
 function createForm<Result = unknown>(init: FormInit): FormController<Result> {
@@ -189,9 +223,15 @@ function createForm<Result = unknown>(init: FormInit): FormController<Result> {
         ? init.action({
           body: content_type_body(init.contentType, form_data),
           path: init.path,
+          headers: {
+            Accept: http.MIME.APPLICATION_JSON,
+            ...(init.headers ?? {}),
+          },
         })
         : submit(url, form_data_body(form_data), method)
       );
+
+      if (await redirect(response)) return;
 
       if (response.ok) {
         // on success: clear errors, let the app decide what to do next

@@ -9,6 +9,7 @@
     "test:ssr": "SSR=1 CSR=0 npx proby test/test.spec.ts",
     "test:hydration": "SSR=1 CSR=1 npx proby test/test.spec.ts",
     "test": "npm run test:ssr && npm run test:csr && npm run test:hydration",
+    "test:frontend": "npm run test",
     "test:deno": "deno run -A npm:proby",
     "test:bun": "bunx --bun proby"
   },
