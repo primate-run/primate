@@ -1,7 +1,8 @@
 import typemap from "#typemap";
 import type {
-  As, DataDict,
+  As,
   CheckPlaceholders,
+  DataDict,
   ExtractPlaceholders,
   PK, ReadArgs, ReadRelationsArgs,
   Schema,
@@ -132,7 +133,10 @@ function columns_to_types(row: IntrospectRow): DataKey[] {
   if (data_type === "integer") return ["u16", "i32"];
   if (data_type === "real") return ["f32"];
   if (data_type === "double precision") return ["f64"];
-  if (data_type === "timestamp without time zone") return ["datetime"];
+  if (
+    data_type === "timestamp with time zone" ||
+    data_type === "timestamp without time zone"
+  ) return ["datetime"];
   if (data_type === "time without time zone") return ["time"];
   if (data_type === "jsonb") return ["json"];
   if (data_type === "bytea") return ["blob"];
