@@ -2,31 +2,5 @@
   "name": "@primate/monorepo",
   "type": "module",
   "license": "MIT",
-  "private": true,
-  "scripts": {
-    "build": "pnpm -r build",
-    "build:packages": "pnpm -r --filter='./packages/**' build",
-    "build:apps": "pnpm -r --filter='./apps/**' build",
-    "eject": "node scripts/eject.js",
-    "publish": "pnpm -r --access=public publish",
-    "upgrade": "pnpm -r update -i -L",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "test": "pnpm --workspace-concurrency=1 -r test",
-    "test:apps": "pnpm -r --filter='./apps/**' test",
-    "test:backend": "pnpm -r --filter='./apps/**' test:backend",
-    "test:frontend": "pnpm -r --filter='./apps/**' test:frontend",
-    "test:packages": "pnpm -r --filter='./packages/**' test",
-    "sweep": "rm -rf node_modules pnpm-lock.yaml {app,package}s/*/node_modules apps/*/build",
-    "knip": "knip"
-  },
-  "devDependencies": {
-    "@rcompat/test": "^0.17.0",
-    "@types/node": "^25.9.1",
-    "@typescript/native-preview": "7.0.0-dev.20260527.2",
-    "apekit": "0.0.58",
-    "eslint": "^10.4.1",
-    "proby": "^0.19.1",
-    "typescript": "^6.0.3"
-  }
+  "private": true
 }
