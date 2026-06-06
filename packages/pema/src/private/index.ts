@@ -1,3 +1,5 @@
+import E from "#errors";
+
 export type { default as ArrayType } from "#ArrayType";
 export type { default as BlobType } from "#BlobType";
 export type { default as BooleanType } from "#BooleanType";
@@ -154,6 +156,7 @@ schema.union = union.vanilla;
 schema.unknown = unknown.vanilla;
 schema.url = url.vanilla;
 schema.uuid = uuid.vanilla;
+schema.error = E.field;
 
 loose.array = array.loose;
 loose.bigint = bigint.loose;
