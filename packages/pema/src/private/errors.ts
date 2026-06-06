@@ -55,6 +55,15 @@ function not_in_set(input: unknown, message: string, path: JSONPointer = "") {
   return new ParseError([{ type: "not_in_set", input, message, path }]);
 }
 
+function field(path: JSONPointer, message: string) {
+  return new ParseError([{
+    type: "invalid_format",
+    input: undefined,
+    message,
+    path: `/${path}`,
+  }]);
+}
+
 export default {
   invalid_type,
   invalid_format,
@@ -63,4 +72,5 @@ export default {
   out_of_range,
   duplicate,
   not_in_set,
+  field,
 };
