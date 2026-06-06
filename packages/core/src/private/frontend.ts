@@ -323,9 +323,14 @@ export default function frontend_module<
                     const { path } = view.debase(views_base, "/");
 
                     contents += `export { default as ${await normalize(path)} }
-                from "view:${path}";\n`;
+                      from "view:${path}";\n`;
                   }
-                  return { contents, resolveDir: app.root.path };
+                  return {
+                    contents,
+                    resolveDir: app.root.path,
+                    watchDirs: [views_base.path],
+                    watchFiles: views.map(view => view.path),
+                  };
                 });
 
                 const filter = new RegExp(`(${extensions.map(e =>
