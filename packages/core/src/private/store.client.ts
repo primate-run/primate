@@ -13,6 +13,7 @@ function store() {
     insert: method(),
     update: async () => 0,
     delete: async () => 0,
+    extend: () => { },
   };
 }
 
