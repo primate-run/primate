@@ -8,7 +8,7 @@
     "bun:build": "bunx --bun primate build",
     "bun:serve": "bunx --bun primate serve",
     "bun:start": "bunx --bun primate",
-    "prebuild": "pnpm --dir ../.. -r --filter-prod @primate/app/website^... build"
+    "predeploy": "pnpm --dir ../.. -r --filter-prod @primate/app/website^... build"
   },
   "dependencies": {
     "@primate/core": "workspace:^",
