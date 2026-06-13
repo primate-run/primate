@@ -11,7 +11,8 @@
     "test:hydration": "SSR=1 CSR=1 npx proby test/test.spec.ts",
     "test": "npm run test:ssr && npm run test:csr && npm run test:hydration",
     "test:deno": "deno run -A npm:proby",
-    "test:bun": "bunx --bun proby"
+    "test:bun": "bunx --bun proby",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @primate/app/svelte^... build"
   },
   "dependencies": {
     "@lucide/svelte": "^1.17.0",
