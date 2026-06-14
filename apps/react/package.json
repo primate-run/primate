@@ -12,7 +12,8 @@
     "test": "npm run test:ssr && npm run test:csr && npm run test:hydration",
     "test:frontend": "npm run test",
     "test:deno": "deno run -A npm:proby",
-    "test:bun": "bunx --bun proby"
+    "test:bun": "bunx --bun proby",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @primate/app/react^... build"
   },
   "dependencies": {
     "@primate/react": "workspace:^",
