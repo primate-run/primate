@@ -1,7 +1,7 @@
 import type DB from "#db/DB";
 import type I18NConfig from "#i18n/Config";
 import type Module from "#Module";
-import fs from "@rcompat/fs";
+import env from "@rcompat/env";
 import type { Dict } from "@rcompat/type";
 import type { ObjectType, Parsed } from "pema";
 import p from "pema";
@@ -11,8 +11,8 @@ export default p({
   http: {
     csp: p.dict(p.array(p.string)).optional(),
     headers: p.dict().optional(),
-    host: p.string.default("localhost"),
-    port: p.uint.port().default(6161),
+    host: p.string.default(() => env.try("HOST") ?? "localhost"),
+    port: p.uint.port().default(() => +(env.try("PORT") ?? 6161)),
     ssl: {
       cert: p.string.optional(),
       key: p.string.optional(),
