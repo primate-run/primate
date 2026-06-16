@@ -1,9 +1,10 @@
 {
-  "name": "@primate/app/native",
+  "name": "@app/native",
   "description": "Primate native template",
   "type": "module",
   "scripts": {
-    "start": "npx primate",
+    "start": "primate",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @app/native^... build",
     "build": "bunx --bun primate build --target=desktop",
     "build:linux-x64": "bunx --bun primate build --target=linux-x64",
     "build:darwin-x64": "bunx --bun primate build --target=darwin-x64",

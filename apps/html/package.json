@@ -1,11 +1,13 @@
 {
-  "name": "@primate/app/html",
+  "name": "@app/html",
   "description": "Primate HTML template",
   "type": "module",
   "scripts": {
-    "start": "npx primate",
-    "build": "npx primate build",
-    "test": "npx proby",
+    "start": "primate",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @app/html^... build",
+    "build": "primate build",
+    "serve": "primate serve",
+    "test": "proby",
     "test:deno": "deno run -A npm:proby",
     "test:bun": "bunx --bun proby"
   },

@@ -5,9 +5,6 @@ import en from "../locales/en-US.js";
 
 export default config({
   conditions: ["@primate/source"],
-  http: {
-    port: 10057, // 100JS,
-  },
   modules: [
     svelte(),
   ],

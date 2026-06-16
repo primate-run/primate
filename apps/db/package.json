@@ -1,12 +1,13 @@
 {
-  "name": "@primate/app/db",
+  "name": "@app/db",
   "description": "Primate database template",
   "type": "module",
   "scripts": {
-    "start": "npx primate",
-    "build": "npx primate build",
-    "serve": "npx primate serve",
-    "test": "npx proby",
+    "start": "primate",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @app/db^... build",
+    "build": "primate build",
+    "serve": "primate serve",
+    "test": "proby",
     "test:deno": "deno run -A npm:proby",
     "test:bun": "bunx --bun proby"
   },

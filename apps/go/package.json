@@ -1,12 +1,13 @@
 {
-  "name": "@primate/app/go",
+  "name": "@app/go",
   "type": "module",
   "scripts": {
-    "start": "npx primate",
-    "build": "npx primate build",
-    "serve": "npx primate serve",
+    "start": "primate",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @app/go^... build",
+    "build": "primate build",
+    "serve": "primate serve",
     "pretest": "go mod download github.com/primate-run/go",
-    "test": "npx proby",
+    "test": "proby",
     "test:backend": "npm run test",
     "test:deno": "deno run -A npm:proby",
     "test:bun": "bunx --bun proby"

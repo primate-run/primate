@@ -4,9 +4,6 @@ import de from "../locales/de-DE.ts";
 import en from "../locales/en-US.ts";
 
 export default config({
-  http: {
-    port: 10087, // 100TS,
-  },
   modules: [
     svelte(),
   ],

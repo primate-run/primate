@@ -1,18 +1,19 @@
 {
-  "name": "@primate/app/marko",
+  "name": "@app/marko",
   "description": "Primate Marko template",
   "type": "module",
   "scripts": {
-    "start": "npx primate",
-    "build": "npx primate build",
-    "test:csr": "SSR=0 CSR=1 npx proby test/test.spec.ts",
-    "test:ssr": "SSR=1 CSR=0 npx proby test/test.spec.ts",
-    "test:hydration": "SSR=1 CSR=1 npx proby test/test.spec.ts",
-    "test": "npm run test:ssr && npm run test:csr && npm run test:hydration",
+    "start": "primate",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @app/marko^... build",
+    "build": "primate build",
+    "serve": "primate serve",
+    "test:csr": "SSR=0 CSR=1 proby test/test.spec.ts",
+    "test:ssr": "SSR=1 CSR=0 proby test/test.spec.ts",
+    "test:hydrate": "SSR=1 CSR=1 proby test/test.spec.ts",
+    "test": "npm run test:ssr && npm run test:csr && npm run test:hydrate",
     "test:frontend": "npm run test",
     "test:deno": "deno run -A npm:proby",
-    "test:bun": "bunx --bun proby",
-    "prebuild": "pnpm --dir ../.. -r --filter-prod @primate/app/marko^... build"
+    "test:bun": "bunx --bun proby"
   },
   "dependencies": {
     "@primate/marko": "workspace:^",

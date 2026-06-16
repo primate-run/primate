@@ -1,12 +1,13 @@
 {
-  "name": "@primate/app/eta",
+  "name": "@app/eta",
   "description": "Primate Eta template",
   "type": "module",
   "scripts": {
-    "start": "npx primate",
-    "build": "npx primate build",
-    "serve": "npx primate serve",
-    "test": "npx proby",
+    "start": "primate",
+    "build": "primate build",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @app/eta^... build",
+    "serve": "primate serve",
+    "test": "proby",
     "test:deno": "deno run -A npm:proby",
     "test:bun": "bunx --bun proby"
   },

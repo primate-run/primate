@@ -1,13 +1,14 @@
 {
-  "name": "@primate/app/ruby",
+  "name": "@app/ruby",
   "description": "Primate Ruby template",
   "type": "module",
   "scripts": {
-    "start": "npx primate",
-    "build": "npx primate build",
-    "serve": "npx primate serve",
+    "start": "primate",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @app/ruby^... build",
+    "build": "primate build",
+    "serve": "primate serve",
     "pretest": "bundle install",
-    "test": "npx proby",
+    "test": "proby",
     "test:backend": "npm run test",
     "test:deno": "deno run -A npm:proby",
     "test:bun": "bunx --bun proby"

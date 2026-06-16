@@ -1,14 +1,11 @@
 {
-  "name": "@primate/app/website",
+  "name": "@app/website",
   "type": "module",
   "scripts": {
-    "build": "npx primate build",
-    "serve": "npx primate serve",
-    "start": "npx primate",
-    "bun:build": "bunx --bun primate build",
-    "bun:serve": "bunx --bun primate serve",
-    "bun:start": "bunx --bun primate",
-    "prebuild": "pnpm --dir ../.. -r --filter-prod @primate/app/website^... build"
+    "start": "primate",
+    "build": "primate build",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @primate/website^... build",
+    "serve": "primate serve"
   },
   "dependencies": {
     "@primate/core": "workspace:^",

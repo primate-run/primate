@@ -1,10 +1,12 @@
 {
-  "name": "@primate/app/tailwind",
+  "name": "@app/tailwind",
   "description": "Primate Tailwind template",
   "type": "module",
   "scripts": {
-    "start": "npx primate",
-    "build": "npx primate build",
+    "start": "primate",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @app/tailwind^... build",
+    "build": "primate build",
+    "serve": "primate serve",
     "test:deno": "deno run -A npm:primate test",
     "test:bun": "bun x --bun primate test"
   },

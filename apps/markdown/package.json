@@ -1,11 +1,13 @@
 {
-  "name": "@primate/app/markdown",
+  "name": "@app/markdown",
   "description": "Primate Markdown template",
   "type": "module",
   "scripts": {
-    "start": "npx primate",
-    "build": "npx primate build",
-    "test": "npx proby",
+    "start": "primate",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @app/markdown^... build",
+    "build": "primate build",
+    "serve": "primate serve",
+    "test": "proby",
     "test:deno": "deno run -A npm:proby",
     "test:bun": "bunx --bun proby"
   },

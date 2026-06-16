@@ -6,9 +6,6 @@ import en from "../locales/en-US.ts";
 
 export default config({
   conditions: ["@primate/source"],
-  http: {
-    port: 10046, // 100GO
-  },
   modules: [
     go(),
     svelte(),

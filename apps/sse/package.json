@@ -1,11 +1,12 @@
 {
-  "name": "@primate/app/sse",
+  "name": "@app/sse",
   "description": "Primate SSE template",
   "type": "module",
   "scripts": {
-    "start": "npx primate",
-    "build": "npx primate build",
-    "serve": "npx primate serve"
+    "start": "primate",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @app/sse^... build",
+    "build": "primate build",
+    "serve": "primate serve"
   },
   "dependencies": {
     "@primate/html": "workspace:^",

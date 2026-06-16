@@ -9,9 +9,6 @@ const csr = env.try("CSR") !== "0";
 
 export default config({
   conditions: ["@primate/runtime", "@primate/source"],
-  http: {
-    port: 10064, // 100NG
-  },
   modules: [
     angular({ ssr, csr }),
   ],
