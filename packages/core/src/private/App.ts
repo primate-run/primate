@@ -11,6 +11,7 @@ import type ServeApp from "#serve/App";
 import TargetManager from "#target/Manager";
 import dict from "@rcompat/dict";
 import type { FileRef } from "@rcompat/fs";
+import fs from "@rcompat/fs";
 import is from "@rcompat/is";
 import p from "pema";
 
@@ -44,8 +45,13 @@ export default class App {
     for (const module of config.modules) this.register(create(module));
     this.#path = dict.map({
       ...location,
-      build: flags.outdir,
+      build: "build",
     }, (_, path) => root.join(path));
+    if (flags.outdir.startsWith("/")) {
+      this.#path.build = fs.ref(flags.outdir);
+    } else {
+      this.#path.build = root.join(flags.outdir);
+    }
     this.#mode = flags.mode;
     this.#target = new TargetManager(this);
     this.#target_name = flags.target;
