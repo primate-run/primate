@@ -28,6 +28,7 @@ interface ExplainRow {
 type UnsafeParams = Parameters<Sql["unsafe"]>[1];
 
 const VALID_IDENTIFIER = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+const PLACEHOLDER_RE = /(?<!:):(\w+)/g;
 
 function Q(strings: TemplateStringsArray, ...values: (string | unknown[])[]) {
   return strings.reduce((result, string, i) => {
@@ -773,7 +774,7 @@ export default class PostgreSQL implements SQLDB<Sql> {
       => Promise<O extends Parsed<unknown> ? O["infer"] : void> {
     if (is.defined(options.input)) {
       const placeholders = new Set(
-        [...options.query.matchAll(/:(\w+)/g)].map(m => m[1]),
+        [...options.query.matchAll(PLACEHOLDER_RE)].map(m => m[1]),
       );
       const input_keys = new Set(Object.keys(options.input.properties));
       for (const key of input_keys) {
@@ -790,7 +791,7 @@ export default class PostgreSQL implements SQLDB<Sql> {
 
       const params: unknown[] = [];
       const name_to_index = new Map<string, number>();
-      const query = options.query.replace(/:(\w+)/g, (_, name) => {
+      const query = options.query.replace(PLACEHOLDER_RE, (_, name) => {
         if (!name_to_index.has(name)) {
           name_to_index.set(name, params.length + 1);
           const types = Object.fromEntries(
