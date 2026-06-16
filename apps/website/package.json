@@ -24,8 +24,8 @@
     "shiki": "^4.1.0"
   },
   "devDependencies": {
-    "@angular/common": "^21.2.15",
-    "@angular/core": "^21.2.15",
+    "@angular/common": "^22.0.1",
+    "@angular/core": "^22.0.1",
     "@primate/angular": "workspace:^",
     "@primate/go": "workspace:^",
     "@primate/mongodb": "workspace:^",
