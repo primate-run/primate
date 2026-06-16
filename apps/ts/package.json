@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@primate/svelte": "workspace:^",
-    "@rcompat/fs": "^0.35.0",
+    "@rcompat/fs": "^0.35.1",
     "@rcompat/http": "^0.31.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
