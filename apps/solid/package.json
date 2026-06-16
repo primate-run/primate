@@ -17,8 +17,8 @@
   "dependencies": {
     "@primate/solid": "workspace:^",
     "@primate/sqlite": "workspace:^",
-    "@rcompat/assert": "^0.13.0",
-    "@rcompat/env": "^0.22.2",
+    "@rcompat/assert": "^0.14.0",
+    "@rcompat/env": "^0.23.0",
     "babel-preset-solid": "^1.9.12",
     "pema": "workspace:^",
     "primate": "workspace:^",

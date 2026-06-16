@@ -16,16 +16,16 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/env": "^0.22.2",
-    "@rcompat/fn": "^0.10.0",
-    "@rcompat/fs": "^0.33.2",
-    "@rcompat/http": "^0.30.0",
-    "@rcompat/runtime": "^0.16.0",
-    "@rcompat/test": "^0.17.0",
-    "happy-dom": "^20.10.3"
+    "@rcompat/env": "^0.23.0",
+    "@rcompat/fn": "^0.11.0",
+    "@rcompat/fs": "^0.35.0",
+    "@rcompat/http": "^0.31.0",
+    "@rcompat/runtime": "^0.17.0",
+    "@rcompat/test": "^0.18.0",
+    "happy-dom": "^20.10.4"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.17.0"
+    "@rcompat/type": "^0.18.0"
   },
   "imports": {
     "#*": {

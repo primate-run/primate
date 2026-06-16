@@ -25,14 +25,14 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.13.0",
-    "@rcompat/fs": "^0.33.2",
-    "@rcompat/string": "^0.21.0",
-    "marked": "^18.0.4",
+    "@rcompat/assert": "^0.14.0",
+    "@rcompat/fs": "^0.35.0",
+    "@rcompat/string": "^0.22.0",
+    "marked": "^18.0.5",
     "pema": "workspace:^"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.17.0"
+    "@rcompat/type": "^0.18.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"

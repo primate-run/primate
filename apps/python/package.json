@@ -19,7 +19,7 @@
     "pema": "workspace:^",
     "primate": "workspace:^",
     "pyodide": "314.0.0",
-    "svelte": "^5.56.0"
+    "svelte": "^5.56.3"
   },
   "devDependencies": {
     "@primate/test": "workspace:^"

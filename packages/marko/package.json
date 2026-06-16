@@ -24,13 +24,13 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@marko/compiler": "^5.39.64",
+    "@marko/compiler": "^5.39.65",
     "@primate/core": "workspace:^",
-    "@rcompat/fs": "^0.33.2",
+    "@rcompat/fs": "^0.35.0",
     "marko": "^6.1.2"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.17.0",
+    "@rcompat/type": "^0.18.0",
     "@types/marko": "^4.6.9",
     "esbuild": "^0.28.1"
   },

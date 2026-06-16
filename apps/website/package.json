@@ -15,13 +15,13 @@
     "@primate/html": "workspace:^",
     "@primate/markdown": "workspace:^",
     "@primate/marko": "workspace:^",
-    "@rcompat/http": "^0.30.0",
-    "@rcompat/runtime": "^0.16.0",
-    "@rcompat/string": "^0.21.0",
+    "@rcompat/http": "^0.31.0",
+    "@rcompat/runtime": "^0.17.0",
+    "@rcompat/string": "^0.22.0",
     "marko": "^6.1.2",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "shiki": "^4.1.0"
+    "shiki": "^4.2.0"
   },
   "devDependencies": {
     "@angular/common": "^22.0.1",
@@ -38,8 +38,8 @@
     "@primate/sqlite": "workspace:^",
     "@primate/svelte": "workspace:^",
     "@primate/vue": "workspace:^",
-    "@rcompat/fs": "^0.33.2",
-    "marked": "^18.0.4",
+    "@rcompat/fs": "^0.35.0",
+    "marked": "^18.0.5",
     "pema": "workspace:^"
   }
 }

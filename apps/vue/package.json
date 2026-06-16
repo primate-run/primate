@@ -17,11 +17,11 @@
   "dependencies": {
     "@primate/sqlite": "workspace:^",
     "@primate/vue": "workspace:^",
-    "@rcompat/assert": "^0.13.0",
-    "@rcompat/env": "^0.22.2",
+    "@rcompat/assert": "^0.14.0",
+    "@rcompat/env": "^0.23.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "vue": "^3.5.35"
+    "vue": "^3.5.38"
   },
   "devDependencies": {
     "@primate/test": "workspace:^"

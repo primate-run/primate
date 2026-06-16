@@ -27,12 +27,12 @@
   },
   "dependencies": {
     "@primate/core": "workspace:^",
-    "@rcompat/assert": "^0.13.0",
-    "@rcompat/is": "^0.11.0",
-    "@rcompat/sqlite": "^0.16.0"
+    "@rcompat/assert": "^0.14.0",
+    "@rcompat/is": "^0.12.0",
+    "@rcompat/sqlite": "^0.17.0"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.17.0",
+    "@rcompat/type": "^0.18.0",
     "pema": "workspace:^"
   },
   "peerDependencies": {
