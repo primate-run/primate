@@ -26,7 +26,7 @@
     "@primate/core": "workspace:^",
     "@rcompat/cli": "^0.24.0",
     "@rcompat/error": "^0.8.0",
-    "@rcompat/io": "^0.10.0",
+    "@rcompat/io": "^0.10.1",
     "@rcompat/runtime": "^0.16.0",
     "@rcompat/webview": "^0.25.0",
     "pema": "workspace:^"

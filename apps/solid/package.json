@@ -22,7 +22,7 @@
     "babel-preset-solid": "^1.9.12",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "solid-js": "^1.9.12"
+    "solid-js": "^1.9.13"
   },
   "devDependencies": {
     "@primate/test": "workspace:^"

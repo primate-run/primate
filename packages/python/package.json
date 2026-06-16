@@ -27,7 +27,7 @@
     "@rcompat/assert": "^0.13.0",
     "@rcompat/error": "^0.8.0",
     "@rcompat/fs": "^0.33.2",
-    "@rcompat/io": "^0.10.0",
+    "@rcompat/io": "^0.10.1",
     "@rcompat/is": "^0.11.0",
     "pema": "workspace:^",
     "pyodide": "^0.29.4"

@@ -28,7 +28,7 @@
     "@rcompat/fs": "^0.33.2",
     "@tailwindcss/postcss": "^4.3.0",
     "autoprefixer": "^10.5.0",
-    "esbuild": "^0.28.0",
+    "esbuild": "^0.28.1",
     "pema": "workspace:^",
     "postcss": "^8.5.15"
   },

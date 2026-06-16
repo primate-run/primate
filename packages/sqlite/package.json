@@ -1,7 +1,7 @@
 {
   "name": "@primate/sqlite",
   "version": "0.11.0-pre",
-  "description": "SQLite databases for Primate",
+  "description": "SQLite for Primate",
   "homepage": "https://primate.run/docs/database/sqlite",
   "bugs": "https://github.com/primate-run/primate/issues",
   "type": "module",

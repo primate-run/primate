@@ -1,7 +1,7 @@
 {
   "name": "@primate/oracledb",
   "version": "0.3.0-pre",
-  "description": "OracleDB databases for Primate",
+  "description": "Oracle database for Primate",
   "homepage": "https://primate.run/docs/database/oracledb",
   "bugs": "https://github.com/primate-run/primate/issues",
   "type": "module",
