@@ -4,7 +4,7 @@
   "scripts": {
     "start": "primate",
     "build": "primate build",
-    "prebuild": "pnpm --dir ../.. -r --filter-prod @primate/website^... build",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @app/website^... build",
     "serve": "primate serve"
   },
   "dependencies": {
