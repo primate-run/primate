@@ -23,6 +23,8 @@ const errors = error.coded({
     t`extend: key ${key} already exists and cannot be overridden`,
   union_at_least_two_members: () =>
     t`union type must have at least two members`,
+  enum_invalid_key: (key: string) =>
+    t`enum: key ${key} must be SCREAMING_SNAKE_CASE`,
 });
 
 export type Code = keyof typeof errors;

@@ -10,6 +10,7 @@ import test from "@rcompat/test";
 import any from "@rcompat/test/any";
 import type { Dict, MaybePromise } from "@rcompat/type";
 import p from "pema";
+import ParseError from "pema/ParseError";
 
 type Body = (assert: Asserter) => Promise<void>;
 
@@ -204,6 +205,8 @@ export default <D extends DB>(db: D) => {
 
   const USER_STORES = [User, UserN, UserB];
 
+  const Status = p.enum({ UNCONFIRMED: 0, CONFIRMED: 1 });
+
   const Type = store({
     table: "type",
     db,
@@ -226,6 +229,7 @@ export default <D extends DB>(db: D) => {
       u64: p.u64.optional(),
       u8: p.u8.optional(),
       json: p.json().optional(),
+      status: Status.optional(),
     },
   });
 
@@ -888,6 +892,59 @@ export default <D extends DB>(db: D) => {
       await Type.update(t.id, { set: { [k]: ub } });
       assert((await Type.get(t.id))[any(k)]).equals(ub);
     });
+  });
+
+  $type("enum: stores and retrieves by underlying value", async assert => {
+    const t = await Type.insert({ status: Status.CONFIRMED });
+    assert(t.status).equals(1);
+    assert((await Type.get(t.id)).status).equals(1);
+  });
+
+  $type("enum: round-trips both declared members", async assert => {
+    const u = await Type.insert({ status: Status.UNCONFIRMED });
+    const c = await Type.insert({ status: Status.CONFIRMED });
+
+    assert((await Type.get(u.id)).status).equals(0);
+    assert((await Type.get(c.id)).status).equals(1);
+  });
+
+  $type("enum: update changes stored value", async assert => {
+    const t = await Type.insert({ status: Status.UNCONFIRMED });
+    await Type.update(t.id, { set: { status: Status.CONFIRMED } });
+    assert((await Type.get(t.id)).status).equals(Status.CONFIRMED);
+  });
+
+  $type("enum: rejects value outside declared set", async assert => {
+    try {
+      // 2 is a valid u8 but not a declared enum member
+      await Type.insert({ status: 2 as any });
+      assert("[did not throw]").equals("[threw]");
+    } catch (e) {
+      assert((e as Error).message).type<string>();
+    }
+  });
+
+  $type("enum: nameOf resolves stored value to its key", async assert => {
+    const t = await Type.insert({ status: Status.CONFIRMED });
+    const got = await Type.get(t.id);
+    assert(Status.nameOf(got.status!)).equals("CONFIRMED");
+  });
+
+  $type("enum: optional field can be omitted", async assert => {
+    const t = await Type.insert({ string: "no-status" });
+    assert(t.status).undefined();
+    assert((await Type.get(t.id)).status).undefined();
+  });
+
+  $type("enum: where clause matches on underlying value", async assert => {
+    await Type.insert({ string: "enum-where", status: Status.CONFIRMED });
+    await Type.insert({ string: "enum-where", status: Status.UNCONFIRMED });
+
+    const confirmed = await Type.find({
+      where: { string: "enum-where", status: Status.CONFIRMED },
+    });
+    assert(confirmed.length).equals(1);
+    assert(confirmed[0].status).equals(Status.CONFIRMED);
   });
 
   [64n, 128n].forEach(i => {
@@ -2325,7 +2382,8 @@ export default <D extends DB>(db: D) => {
   $user("find: offset skips records", async assert => {
     const all = await User.find({ sort: { name: "asc" } });
     const offset = await User.find({
-      sort: { name: "asc" }, offset: 2, limit: all.length - 2 });
+      sort: { name: "asc" }, offset: 2, limit: all.length - 2
+    });
     assert(offset.length).equals(all.length - 2);
     assert(offset[0].name).equals(all[2].name);
   });
@@ -2333,7 +2391,8 @@ export default <D extends DB>(db: D) => {
   $user("find: offset 0 is same as no offset", async assert => {
     const without = await User.find({ sort: { name: "asc" } });
     const with_zero = await User.find({
-      sort: { name: "asc" }, offset: 0, limit: without.length });
+      sort: { name: "asc" }, offset: 0, limit: without.length
+    });
     assert(with_zero.length).equals(without.length);
     assert(with_zero.map(r => r.name)).equals(without.map(r => r.name));
   });
@@ -2368,5 +2427,5 @@ export default <D extends DB>(db: D) => {
     await throws(assert, Code.offset_requires_limit, () => {
       return User.find({ offset: 1 } as any);
     });
-});
+  });
 };

@@ -35,7 +35,7 @@ type StructuralSerialized =
   | { type: "schema"; of: Serialized }
   | { type: "json"; datatype: "json"; of?: Serialized }
   | { type: "omit"; properties: Dict<Serialized> }
-  | { type: "enum"; values: string[] }
+  | { type: "enum"; datatype: "u8"; values: Dict<number> }
   | { type: "pure" }
   | { type: "is" }
   ;
