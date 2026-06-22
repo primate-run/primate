@@ -3,6 +3,7 @@ import init from "#init";
 import frontend from "@primate/core/frontend";
 import type { TemplateError } from "@rcompat/error";
 import type { FileRef } from "@rcompat/fs";
+import is from "@rcompat/is";
 import string from "@rcompat/string";
 
 const CLIENT_SIDE_TEMPLATES = {
@@ -41,15 +42,15 @@ export default frontend({
   ...init,
   async onBuild(app, options) {
     await ensure("htmx.org", app.root, () => E.htmx_package_required());
-    const templates = options.clientSideTemplates;
+    const templates = options.templates;
     const lines = [
       `import htmx from "htmx.org";`,
       "globalThis.htmx = htmx;",
     ];
 
-    if (templates !== undefined) {
+    if (is.defined(templates)) {
       await ensure("htmx-ext-client-side-templates", app.root,
-        () => E.client_side_templates_required());
+        E.client_side_templates_required);
       const engine = CLIENT_SIDE_TEMPLATES[templates.engine];
       await ensure(engine.package, app.root, () => {
         throw E.template_engine_required(

@@ -10,8 +10,8 @@ const CLIENT_SIDE_TEMPLATE_ENGINES = [
 ] as const;
 
 const schema = p({
-  clientSideTemplates: p({
-    engine: p.enum(CLIENT_SIDE_TEMPLATE_ENGINES),
+  templates: p({
+    engine: p.union(...CLIENT_SIDE_TEMPLATE_ENGINES),
   }).optional(),
 });
 

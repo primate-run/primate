@@ -5,7 +5,7 @@ export default config({
   conditions: ["@primate/source"],
   modules: [
     htmx({
-      clientSideTemplates: {
+      templates: {
         engine: "mustache",
       },
     }),
