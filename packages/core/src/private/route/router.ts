@@ -31,7 +31,8 @@ class Router {
 
     if (options?.path !== undefined) {
       const declared = Object.keys(options.path.properties);
-      const expected = [...path.matchAll(/\[([^\]]+)\]/g)].map(m => m[1]);
+      const expected = [...path.matchAll(/\[([^\]]+)\]/g)]
+        .map(m => m[1].replace(/^[\[.]+/, ""));
       const missing = expected.filter(k => !declared.includes(k));
       const extra = declared.filter(k => !expected.includes(k));
       if (missing.length > 0 || extra.length > 0) {

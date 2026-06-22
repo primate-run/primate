@@ -1,11 +1,11 @@
 import route from "#route/route-client/path/[name]";
 import { useState } from "react";
 
-export default function Path() {
+export default function Path(props: { name: string }) {
   const [result, setResult] = useState(null);
 
   async function send() {
-    const response = await route.post({ path: { name: "hello" } });
+    const response = await route.post({ path: { name: props.name } });
     setResult(await response.json());
   }
 

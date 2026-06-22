@@ -2,14 +2,16 @@ import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
 
+const PathSchema = p({
+  name: p.string,
+});
+
 export default route({
-  get() {
-    return response.view("RouteClient/Path.vue");
-  },
-  post: route.with({
-    path: p({ name: p.string }),
-  }, request => {
-    const { name } = request.path.toJSON();
-    return { name };
+  get: route.with({ path: PathSchema }, request => {
+    const name = request.path.get("name");
+    return response.view("RouteClient/Path.vue", { name });
+  }),
+  post: route.with({ path: PathSchema }, request => {
+    return { name: request.path.get("name") };
   }),
 });

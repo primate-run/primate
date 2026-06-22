@@ -3,6 +3,7 @@ import type ContentTypeMap from "#route/ContentTypeMap";
 import type RouteHandler from "#route/Handler";
 import hook from "#route/hook";
 import type RouteOptions from "#route/Options";
+import is from "@rcompat/is";
 import type { Dict, Unpack } from "@rcompat/type";
 import type { Parsed } from "pema";
 
@@ -103,10 +104,14 @@ function route<R extends RouteHandlers>(handlers: R): ClientRoute<R> {
             path?: Dict<string>;
             headers?: HeadersInit;
           } = {}) => {
-            const resolved = args.path !== undefined
-              ? path.replace(/\[([^\]]+)\]/g, (_, key) =>
-                encodeURIComponent((args.path as Dict<string>)[key] ?? `[${key}]`),
-              )
+            const resolved = is.defined(args.path)
+              ? path.replace(/\[{1,2}\.{0,3}([^\]]+)\]{1,2}/g, (match, key) => {
+                const is_rest = match.includes("...");
+                const is_optional = match.startsWith("[[");
+                const value = (args.path as Dict<string>)[key];
+                if (value === undefined) return is_optional ? "" : match;
+                return is_rest ? value : encodeURIComponent(value);
+              })
               : path;
 
             return fetch(resolved, {

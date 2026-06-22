@@ -1,8 +1,8 @@
-import route from "#route/route-client/path/[name]";
-import { createSignal } from "solid-js";
+import route from "#route/route-client/optional-rest-path/[[...name]]";
+import { useState } from "react";
 
 export default function Path(props: { name: string }) {
-  const [result, setResult] = createSignal(null);
+  const [result, setResult] = useState(null);
 
   async function send() {
     const response = await route.post({ path: { name: props.name } });
@@ -11,6 +11,6 @@ export default function Path(props: { name: string }) {
 
   return <>
     <button onClick={send}>Send</button>
-    {result() !== null && <span id="result">{JSON.stringify(result())}</span>}
+    {result !== null && <span id="result">{JSON.stringify(result)}</span>}
   </>;
 }

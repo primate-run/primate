@@ -1,4 +1,3 @@
-import View from "#view/RouteClient/Path";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
@@ -9,7 +8,8 @@ const PathSchema = p({
 
 export default route({
   get: route.with({ path: PathSchema }, request => {
-    return response.view(View, { name: request.path.get("name") });
+    const name = request.path.get("name");
+    return response.view("RouteClient/OptionalRestPath.vue", { name });
   }),
   post: route.with({ path: PathSchema }, request => {
     return { name: request.path.get("name") };

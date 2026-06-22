@@ -234,10 +234,34 @@ function frontend(dirname: string) {
   if (csr) {
     test.case("route client path param is interpolated", async assert => {
       await using tab = await browser.open();
-      await tab.goto("/route-client/path/hello");
+      await tab.goto("/route-client/path/foo");
       await tab.click("button");
       await tab.waitfor(() => tab.get("#result").exists());
-      assert(tab.get("#result").json()).equals({ name: "hello" });
+      assert(tab.get("#result").json()).equals({ name: "foo" });
+    });
+
+    test.case("route client optional path param is interpolated", async assert => {
+      await using tab = await browser.open();
+      await tab.goto("/route-client/optional-path/foo");
+      await tab.click("button");
+      await tab.waitfor(() => tab.get("#result").exists());
+      assert(tab.get("#result").json()).equals({ name: "foo" });
+    });
+
+    test.case("route client rest path param is interpolated", async assert => {
+      await using tab = await browser.open();
+      await tab.goto("/route-client/rest-path/foo/bar");
+      await tab.click("button");
+      await tab.waitfor(() => tab.get("#result").exists());
+      assert(tab.get("#result").json()).equals({ name: "foo/bar" });
+    });
+
+    test.case("route client optional rest path param is interpolated", async assert => {
+      await using tab = await browser.open();
+      await tab.goto("/route-client/optional-rest-path/foo/bar");
+      await tab.click("button");
+      await tab.waitfor(() => tab.get("#result").exists());
+      assert(tab.get("#result").json()).equals({ name: "foo/bar" });
     });
 
     test.case("route client form with path param submits correctly", async assert => {
