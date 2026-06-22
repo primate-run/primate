@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@rcompat/http": "^0.31.0",
+    "pema": "workspace:^",
     "primate": "workspace:^"
   },
   "devDependencies": {
