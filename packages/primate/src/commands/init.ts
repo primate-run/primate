@@ -174,8 +174,7 @@ const command_init: Command = async () => {
   // files
   await gitignore(target);
   await tsconfig_json(target, { frontends });
-  await app_config(target, { frontends, backends, runtime });
-  if (with_i18n) await i18n_config(target);
+  await app_config(target, { frontends, backends, runtime, with_i18n });
   if (with_sessions) await session_config(target);
   if (is.defined(db)) await database_config(target, db);
   await package_json(target, { directory, runtime: runtime });
@@ -214,68 +213,72 @@ type AppChoices = {
   frontends: Frontend[];
   backends: Backend[];
   runtime: Runtime;
+  with_i18n: boolean;
 };
 
-async function app_config(root: FileRef, c: AppChoices) {
+function app_config_imports(choices: AppChoices) {
+  const config = `import config from "primate/config";`;
+  const frontend = choices.frontends.length > 0
+    ? choices.frontends
+      .map(i => `import ${to_ident(i)} from "@primate/${i}";`)
+      .join("\n")
+    : false;
+  const backend = choices.backends.length > 0
+    ? choices.backends
+      .map(i => `import ${to_ident(i)} from "@primate/${i}";`)
+      .join("\n")
+    : false;
+  const i18n = choices.with_i18n
+    ? `import en from "../locales/en-US.ts";`
+    : false;
+  return [config, frontend, backend, i18n, "\n"].filter(Boolean).join("\n");
+}
+
+function app_config_export(choices: AppChoices) {
+  const modules = [
+    ...choices.frontends.map((f) => `${to_ident(f)}()`),
+    ...choices.backends.map((b) => `${to_ident(b)}()`),
+  ];
+
+  const i18n = choices.with_i18n
+    ? `  i18n: {
+    defaultLocale: "en-US",
+    locales: {
+      "en-US": en,
+    },
+  },\n`
+    : "";
+
+  return `export default config({
+${i18n}  modules: [
+    ${modules.join(",\n    ")},
+  ],
+});`;
+}
+
+async function app_config(root: FileRef, choices: AppChoices) {
   const config = root.join("config").join("app.ts");
   await config.directory.create();
 
-  const frontend_imports = c.frontends
-    .map((f) => `import ${to_ident(f)} from "@primate/${f}";`)
-    .join("\n");
-  const backend_imports = c.backends
-    .map((b) => `import ${to_ident(b)} from "@primate/${b}";`)
-    .join("\n");
+  if (choices.with_i18n) {
+    const locale = root.join("locales").join("en-US.ts");
+    await locale.directory.create();
+    await locale.write(`import i18n from "primate/i18n";
 
-  const modules = [
-    ...c.frontends.map((f) => `${to_ident(f)}()`),
-    ...c.backends.map((b) => `${to_ident(b)}()`),
-  ];
-
-  const body = `import config from "primate/config";
-${frontend_imports}
-${backend_imports}
-export default config({
-  modules: [
-    ${modules.join(",\n    ")}
-  ],
-});`;
-  await config.write(body);
-}
-
-// i18n scaffold: config + a default locale file
-async function i18n_config(root: FileRef) {
-  const locales = root.join("locales");
-  const en_us = locales.join("en-US.ts");
-  const i18i = root.join("config").join("i18n.ts");
-
-  await en_us.directory.create();
-  await i18i.directory.create();
-
-  const locale = `import i18n from "primate/i18n";
 export default i18n.locale({
-  hi: "Hello",
+  hi: "Hi",
   placeheld: "Hello, {name}",
-});`;
-  await en_us.write(locale);
+});`);
+  }
 
-  const config = `import en from "#locale/en-US";
-import i18n from "primate/i18n";
-
-export default i18n({
-  defaultLocale: "en-US",
-  locales: {
-    "en-US": en,
-  },
-});`;
-  await i18i.write(config);
+  await config.write(app_config_imports(choices) + app_config_export(choices));
 }
 
 async function session_config(root: FileRef) {
   const file = root.join("config").join("session.ts");
   await file.directory.create();
   const body = `import session from "primate/session";
-export default session({});`;
+export default session({}); `;
   await file.write(body);
 }
 
@@ -285,7 +288,7 @@ async function database_config(root: FileRef, db: Database) {
 
   const ident = to_ident(db);
   const body = `import ${ident} from "@primate/${db}";
-export default ${ident}();`;
+export default ${ident} (); `;
   await file.write(body);
 }
 
@@ -334,7 +337,6 @@ function safe(s: string) {
 }
 
 function to_ident(token: string) {
-  // turn tokens like "web-components" into valid identifiers: "web_components"
   return token.replace(/[^a-zA-Z0-9_$]/g, "_");
 }
 
@@ -427,9 +429,9 @@ async function tsconfig_json(root: FileRef, opts: { frontends: Frontend[] }) {
     compilerOptions: {
       baseUrl: "${configDir}",
       paths: {
+        "#app": ["config/app"],
         "#session": ["config/session"],
         "#db": ["config/db"],
-        "#i18n": ["config/i18n"],
         "#config/*": ["config/*"],
         "#view/*": ["views/*"],
         "#component/*": ["components/*"],
