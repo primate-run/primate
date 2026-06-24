@@ -26,7 +26,7 @@
     "mode-watcher": "^1.1.0",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "svelte": "^5.56.3"
+    "svelte": "^5.56.4"
   },
   "devDependencies": {
     "@primate/test": "workspace:^",

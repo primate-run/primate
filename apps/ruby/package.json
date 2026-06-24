@@ -19,7 +19,7 @@
     "@ruby/head-wasm-wasi": "2.9.3-2.9.4",
     "pema": "workspace:^",
     "primate": "workspace:^",
-    "svelte": "^5.56.3"
+    "svelte": "^5.56.4"
   },
   "devDependencies": {
     "@primate/test": "workspace:^"
