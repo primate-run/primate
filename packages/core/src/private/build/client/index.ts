@@ -14,12 +14,15 @@ import { CodeError } from "@rcompat/error";
 import * as esbuild from "esbuild";
 
 const write_bootstrap = async (app: BuildApp) => {
+  const migrate_auto = app.config("db.migrations")?.autoapply === true;
   const build_start_script = `
     import serve from "primate/serve";
     import views from "app:views";
     import routes from "app:routes";
     import pages from "app:pages";
     import assets from "app:assets";
+    ${migrate_auto ? `import migrations from "app:migrations";` : ""}
+    ${migrate_auto ? `import autoapply from "app:migrations/autoapply";` : ""}
     import s_config from "primate/symbol/config";
     ${app.session_active ? `
     import session from "app:config:session";
@@ -28,6 +31,8 @@ const write_bootstrap = async (app: BuildApp) => {
     const session_config = undefined;
     `}
     import facade from "$:app";
+
+    ${migrate_auto ? `await autoapply(facade, migrations);` : ""}
 
     const app = await serve(import.meta.url, {
       assets,

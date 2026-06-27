@@ -30,6 +30,7 @@ export default p({
     migrations: p.object({
       table: p.string,
       db: p.pure<DB>(),
+      autoapply: p.boolean.default(false),
     }).optional(),
   },
   env: {

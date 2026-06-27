@@ -6,6 +6,7 @@ export default config({
     migrations: {
       table: "migration",
       db,
+      autoapply: true,
     },
   },
 });
