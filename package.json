@@ -21,12 +21,12 @@
     "knip": "knip"
   },
   "devDependencies": {
-    "@rcompat/test": "^0.19.0",
-    "@types/node": "^26.0.0",
-    "@typescript/native-preview": "7.0.0-dev.20260624.1",
+    "@rcompat/test": "^0.19.1",
+    "@types/node": "^26.0.1",
+    "@typescript/native-preview": "7.0.0-dev.20260627.2",
     "apekit": "0.0.58",
-    "eslint": "^10.5.0",
-    "proby": "^0.20.0",
+    "eslint": "^10.6.0",
+    "proby": "^0.21.0",
     "typescript": "^6.0.3"
   }
 }
