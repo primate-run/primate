@@ -52,6 +52,7 @@ export default config({
     migrations: {
       table: "migration",
       db,
+      autoapply: false, // default
     },
   },
 });

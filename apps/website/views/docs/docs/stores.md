@@ -346,6 +346,7 @@ export default config({
     migrations: {
       table: "migration",
       db,
+      autoapply: false, // default
     },
   },
 });
@@ -365,6 +366,10 @@ npx primate migrate:apply
 new numbered migration file into `migrations/`. `migrate:status` shows which
 migrations are applied and which are pending. `migrate:apply` runs pending
 migrations in order and records them in the migration table.
+
+Set `db.migrations.autoapply` to `true` to apply pending migrations
+automatically when starting a built app. Migrations are bundled at build time
+and run before the server starts serving requests.
 
 Primate is strict about unapplied migrations. If migration files exist that
 have not yet been applied, `migrate:create` refuses to generate another one on
