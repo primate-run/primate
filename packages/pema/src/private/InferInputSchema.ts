@@ -7,8 +7,8 @@ import type Schema from "#Schema";
 import type { ImpliedOptional, UndefinedToOptional } from "@rcompat/type";
 
 type InferInputSchema<S> =
-  S extends DefaultType<infer T, unknown> ? T["infer"] | undefined :
-  S extends OptionalType<infer T> ? T["infer"] | undefined :
+  S extends DefaultType<infer T, unknown> ? InferInputSchema<T> | undefined :
+  S extends OptionalType<infer T> ? InferInputSchema<T> | undefined :
   S extends ObjectType<infer P> ?
   ImpliedOptional<UndefinedToOptional<{
     [K in keyof P]: InferInputSchema<P[K]>

@@ -3,6 +3,7 @@ import plugin_assets from "#build/server/plugin/assets";
 import plugin_config from "#build/server/plugin/config";
 import plugin_frontend from "#build/server/plugin/frontend";
 import plugin_live_reload from "#build/server/plugin/live-reload";
+import plugin_migrations from "#build/server/plugin/migrations";
 import plugin_native_addons from "#build/server/plugin/native-addons";
 import plugin_node_imports from "#build/server/plugin/node-imports";
 import plugin_requires from "#build/server/plugin/requires";
@@ -29,6 +30,9 @@ export default async function build_server(app: BuildApp) {
   app.plugin("server", plugin_roots(app));
   app.plugin("server", plugin_views(app));
   app.plugin("server", plugin_assets(app));
+  if (app.config("db.migrations")?.autoapply === true) {
+    app.plugin("server", plugin_migrations(app));
+  }
   app.plugin("server", plugin_native_addons(app));
   app.plugin("server", plugin_requires(app));
   app.plugin("server", plugin_config(app));
@@ -72,4 +76,3 @@ export default async function build_server(app: BuildApp) {
     await esbuild.build(options);
   }
 }
-
