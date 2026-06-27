@@ -11,12 +11,15 @@ export default function plugin_server_node_imports(_app: BuildApp): Plugin {
     setup(build) {
       build.onResolve({ filter: /^#/ }, async args => {
         // only touch imports coming from @primate/core sources
-        if (!args.importer || !args.importer.startsWith(root + "/")) {
+        if (
+          !args.importer ||
+          !args.importer.startsWith(root + "/") ||
+          args.importer.startsWith(root + "/node_modules/")
+        ) {
           return null;
         }
 
         try {
-          // anchor resolution at core_root we use our package.json "imports"
           const module_path = requirer.resolve(args.path, {
             paths: [root],
           });
@@ -26,7 +29,7 @@ export default function plugin_server_node_imports(_app: BuildApp): Plugin {
             namespace: "file",
           };
         } catch { }
-        // next
+
         return null;
       });
     },
