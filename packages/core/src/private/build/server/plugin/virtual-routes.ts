@@ -44,8 +44,8 @@ function plugin_server_virtual_routes(app: BuildApp): Plugin {
           ${route_files.map((file, i) => {
           const path = app.basename(file, app.path.routes);
           return is_hook_file(path)
-            ? `router.addHook("${path}", route${i});
-               routes.push(["${path}", route${i}]);
+            ? `router.setHook("${path}", route${i});
+                routes.push(["${path}", route${i}]);
             `
             : `for (const [method, { handler, options }] of Object.entries(route${i})) {
                    router.add("${path}", method, handler, options);

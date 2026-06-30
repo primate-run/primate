@@ -43,12 +43,12 @@ class Router {
     this.#routes[path][method] = { handler, options: options ?? {} };
   }
 
-  addHook(path: string, fn: RequestHook) {
+  setHook(path: string, fn: RequestHook) {
     assert.string(path);
     assert.function(fn);
 
     if (!is_hook_file(path)) throw E.hook_not_allowed(path);
-    (this.#hooks[path] ??= []).push(fn);
+    this.#hooks[path] = [fn];
   }
 
   getHooks(path: string) {
