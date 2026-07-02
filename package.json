@@ -17,8 +17,7 @@
     "test:backend": "pnpm -r --filter='./apps/**' test:backend",
     "test:frontend": "pnpm -r --filter='./apps/**' test:frontend",
     "test:packages": "pnpm -r --filter='./packages/**' test",
-    "sweep": "rm -rf node_modules pnpm-lock.yaml {app,package}s/*/node_modules apps/*/build",
-    "knip": "knip"
+    "sweep": "rm -rf node_modules pnpm-lock.yaml {app,package}s/*/node_modules apps/*/build"
   },
   "devDependencies": {
     "@rcompat/test": "^0.17.0",
@@ -26,7 +25,6 @@
     "@typescript/native-preview": "7.0.0-dev.20260527.2",
     "apekit": "0.0.58",
     "eslint": "^10.4.1",
-    "knip": "^6.14.2",
     "proby": "^0.19.1",
     "typescript": "^6.0.3"
   }
