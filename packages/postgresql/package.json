@@ -28,7 +28,7 @@
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.14.0",
     "@rcompat/is": "^0.12.0",
-    "pema": "workspace:",
+    "pema": "workspace:^",
     "postgres": "^3.4.9"
   },
   "devDependencies": {
