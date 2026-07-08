@@ -35,7 +35,7 @@
     "@rcompat/assert": "^0.13.0",
     "@rcompat/is": "^0.11.0",
     "mysql2": "^3.22.4",
-    "pema": "workspace:"
+    "pema": "workspace:^"
   },
   "peerDependencies": {
     "primate": "workspace:^"

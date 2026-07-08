@@ -30,7 +30,7 @@
     "@rcompat/dict": "^0.10.0",
     "@rcompat/is": "^0.11.0",
     "mongodb": "^7.2.0",
-    "pema": "workspace:"
+    "pema": "workspace:^"
   },
   "devDependencies": {
     "@rcompat/type": "^0.17.0"

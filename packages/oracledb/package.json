@@ -33,7 +33,7 @@
     "@rcompat/assert": "^0.13.0",
     "@rcompat/is": "^0.11.0",
     "oracledb": "^6.10.0",
-    "pema": "workspace:"
+    "pema": "workspace:^"
   },
   "peerDependencies": {
     "primate": "workspace:^"
