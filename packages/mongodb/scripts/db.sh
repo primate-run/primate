@@ -211,7 +211,7 @@ main() {
   verify_app_user
 
   log 'MongoDB is ready for tests'
-  log "connection string: mongodb://${APP_USER}:${APP_PASSWORD}@localhost:${HOST_PORT}/${APP_DB}?authSource=${APP_DB}"
+  log "connection string: mongodb://${APP_USER}:${APP_PASSWORD}@127.0.0.1:${HOST_PORT}/${APP_DB}?authSource=${APP_DB}"
 }
 
 main "$@"
