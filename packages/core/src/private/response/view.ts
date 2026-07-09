@@ -27,23 +27,23 @@ function view(
   component: abstract new (...args: any[]) => any,
   props?: Dict,
   options?: ViewOptions,
-): ResponseFunction;
+): ResponseFunction<Dict>;
 function view<Props>(
-  component: (props: Props) => any,
+  component: unknown,
   props: Props,
   options?: ViewOptions,
-): ResponseFunction;
+): ResponseFunction<Props>;
 function view(
-  component: () => any,
+  component: unknown,
   props?: Dict,
   options?: ViewOptions,
-): ResponseFunction;
-function view(
+): ResponseFunction<Dict>;
+function view<Props extends Dict>(
   name: string,
-  props?: Dict,
+  props?: Props,
   options?: ViewOptions,
-): ResponseFunction;
-function view(name: any, props?: Dict, options?: ViewOptions): ResponseFunction {
+): ResponseFunction<Props>;
+function view(name: any, props?: Dict, options?: ViewOptions): ResponseFunction<Dict> {
   const view_name: string = name;
   return async (app, transfer, request) => {
     const found_view = extensions

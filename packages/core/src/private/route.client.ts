@@ -1,10 +1,12 @@
 import type ResponseLike from "#response/ResponseLike";
+import type ResponseFunction from "#response/ResponseFunction";
 import type ContentTypeMap from "#route/ContentTypeMap";
 import type RouteHandler from "#route/Handler";
 import hook from "#route/hook";
+import type NarrowedRequest from "#route/NarrowedRequest";
 import type RouteOptions from "#route/Options";
 import is from "@rcompat/is";
-import type { Dict, Unpack } from "@rcompat/type";
+import type { Dict, MaybePromise, UndefinedToOptional, Unpack } from "@rcompat/type";
 import type { Parsed } from "pema";
 
 type Body<O extends RouteOptions> =
@@ -32,8 +34,18 @@ type RequestMeta = {
   headers?: HeadersInit;
 };
 
+type RouteOptionsWithoutResponses = Omit<RouteOptions, "responses"> & {
+  responses?: never;
+};
+
+type View<O extends RouteOptions> =
+  O extends { responses: { view: infer S extends Parsed<unknown> } }
+  ? UndefinedToOptional<Unpack<S["infer"]>>
+  : never;
+
 type ClientMethod<O extends RouteOptions, R = unknown> = MethodMeta & {
   _result?: R;
+  View: View<O>;
 } & (
     Body<O> extends never
     ? Path<O> extends never
@@ -132,12 +144,22 @@ function route<R extends RouteHandlers>(handlers: R): ClientRoute<R> {
   return r as never;
 }
 
-route.with = function <O extends RouteOptions, R extends ResponseLike>(
+function with_route<O extends RouteOptions & { responses: { view: Parsed<unknown> } }>(
+  options: O,
+  handler: (request: NarrowedRequest<O>) => MaybePromise<ResponseFunction<View<O>>>,
+): WithResult<O>;
+function with_route<O extends RouteOptionsWithoutResponses, R extends ResponseLike>(
   options: O,
   handler: RouteHandler<O, R>,
-): WithResult<O, R> {
+): WithResult<O, R>;
+function with_route<O extends RouteOptions>(
+  options: O,
+  handler: RouteHandler<O> | ((request: NarrowedRequest<O>) => unknown),
+) {
   return { handler, options };
-};
+}
+
+route.with = with_route;
 
 route.hook = hook;
 

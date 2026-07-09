@@ -11,7 +11,7 @@ type ResponseLike =
   | ReadableStream
   | Streamable
   | Response
-  | ResponseFunction
+  | ResponseFunction<any>
   | null
   ;
 
