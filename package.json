@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@rcompat/test": "^0.20.0",
-    "@types/node": "^26.0.1",
+    "@types/node": "^26.1.1",
     "@typescript/native": "npm:typescript@^7.0.2",
     "apekit": "0.0.58",
     "eslint": "^10.6.0",
