@@ -16,11 +16,11 @@
     "test:bun": "bunx --bun proby"
   },
   "dependencies": {
-    "@angular/common": "^22.0.1",
-    "@angular/compiler": "^22.0.1",
-    "@angular/core": "^22.0.1",
-    "@angular/forms": "^22.0.1",
-    "@angular/platform-browser": "^22.0.1",
+    "@angular/common": "^22.0.6",
+    "@angular/compiler": "^22.0.6",
+    "@angular/core": "^22.0.6",
+    "@angular/forms": "^22.0.6",
+    "@angular/platform-browser": "^22.0.6",
     "@primate/angular": "workspace:^",
     "@primate/sqlite": "workspace:^",
     "@rcompat/assert": "^0.14.0",
