@@ -12,7 +12,7 @@
     "upgrade": "pnpm -r update -i -L",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "pnpm --workspace-concurrency=1 -r test",
+    "test": "pnpm -r test",
     "test:apps": "pnpm -r --filter='./apps/**' test",
     "test:backend": "pnpm -r --filter='./apps/**' test:backend",
     "test:frontend": "pnpm -r --filter='./apps/**' test:frontend",
