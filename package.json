@@ -23,10 +23,10 @@
   "devDependencies": {
     "@rcompat/test": "^0.20.0",
     "@types/node": "^26.0.1",
-    "@typescript/native-preview": "7.0.0-dev.20260627.2",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "apekit": "0.0.58",
     "eslint": "^10.6.0",
     "proby": "^0.22.1",
-    "typescript": "^6.0.3"
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
   }
 }

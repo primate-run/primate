@@ -17,7 +17,7 @@
     "!/**/*.spec.*"
   ],
   "scripts": {
-    "build": "npm run clean && tsgo",
+    "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
     "prepublishOnly": "npm run build"
