@@ -45,6 +45,7 @@
   "exports": {
     ".": {
       "@primate/source": "./src/public/default.ts",
+      "browser": "./lib/public/runtime.js",
       "runtime": "./lib/public/runtime.js",
       "default": "./lib/public/default.js"
     },
