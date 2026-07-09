@@ -22,7 +22,7 @@ const VALID_IDENTIFIER = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
 function quote(name: string) {
   if (!VALID_IDENTIFIER.test(name)) throw E.identifier_invalid(name);
-  return `"${name}"`;
+  return `"${name.toUpperCase()}"`;
 }
 
 function get_column(key: DataKey) {
@@ -517,7 +517,7 @@ export default class OracleDB implements SQLDB<oracledb.Connection> {
         FROM USER_TABLES
         WHERE TABLE_NAME = :1
         `,
-          [table],
+          [table.toUpperCase()],
         );
 
         if (Number(exists[0]?.n ?? 0) === 0) return null;
@@ -535,14 +535,14 @@ export default class OracleDB implements SQLDB<oracledb.Connection> {
         WHERE TABLE_NAME = :1
         ORDER BY COLUMN_ID
         `,
-          [table],
+          [table.toUpperCase()],
         );
 
         const result: Dict<DataKey[]> = {};
         for (const row of rows) {
           const candidates = columns_to_types(row);
           if (candidates.length > 0) {
-            result[row.column_name] = candidates;
+            result[row.column_name.toLowerCase()] = candidates;
           }
         }
         return result;
@@ -720,15 +720,17 @@ export default class OracleDB implements SQLDB<oracledb.Connection> {
 
       const params: unknown[] = [];
       const name_to_index = new Map<string, number>();
-      const query = options.query.replace(/:(\w+)/g, (_, name) => {
+      for (const [, name] of options.query.matchAll(/:(\w+)/g)) {
         if (!name_to_index.has(name)) {
           name_to_index.set(name, params.length + 1);
           const types = Object.fromEntries(
             Object.entries(options.input!.properties)
               .map(([k, v]) => [k, (v as Storable).datatype]),
           );
-          params.push(bind_value(types[name], (input as Dict)[name]));
+          params.push(await bind_value(types[name], (input as Dict)[name]));
         }
+      }
+      const query = options.query.replace(/:(\w+)/g, (_, name) => {
         return `:${name_to_index.get(name)}`;
       });
 
