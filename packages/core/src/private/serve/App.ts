@@ -144,7 +144,7 @@ export default class ServeApp extends App {
     static: PartialDict<{ mime: string; data: string }>;
   };
 
-  #pages: Dict<string>;
+  #templates: Dict<string>;
   #frontends: Map<string, ViewResponse> = new Map();
   #router: FileRouter;
   #entrypoints: Dict<string> = {};
@@ -171,7 +171,7 @@ export default class ServeApp extends App {
       },
     );
     this.#serve_assets = init.assets;
-    this.#pages = init.pages;
+    this.#templates = init.templates;
 
     const http_config = this.#init.facade[s_config].http;
 
@@ -257,7 +257,7 @@ export default class ServeApp extends App {
   };
 
   render(content: Omit<FullViewOptions, keyof ResponseInit>) {
-    const { body, head, page, partial, placeholders = {} } = content;
+    const { body, head, template, partial, placeholders = {} } = content;
     ["body", "head"].forEach(key => assert.undefined(placeholders[key]));
 
     const all_placeholders = {
@@ -269,7 +269,7 @@ export default class ServeApp extends App {
     return partial === true ? body : Object.entries(all_placeholders)
       // replace given placeholders, defaulting to ""
       .reduce((rendered, [key, value]) => rendered
-        .replaceAll(`%${key}%`, value?.toString() ?? ""), this.page(page))
+        .replaceAll(`%${key}%`, value?.toString() ?? ""), this.template(template))
       // replace non-given placeholders, aside from %body% / %head%
       .replaceAll(/(?<keep>%(?:head|body)%)|%.*?%/gus, "$1")
       // replace body and head
@@ -336,9 +336,9 @@ export default class ServeApp extends App {
     this.#frontends.set(extension, view_response);
   };
 
-  page(name?: string) {
-    const page_name = name ?? location.app_html;
-    return this.#pages[page_name];
+  template(name?: string) {
+    const template_name = name ?? location.app_html;
+    return this.#templates[template_name];
   }
 
   async #try_serve(ref: FileRef) {

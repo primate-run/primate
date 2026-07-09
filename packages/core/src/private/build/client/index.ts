@@ -19,7 +19,7 @@ const write_bootstrap = async (app: BuildApp) => {
     import serve from "primate/serve";
     import views from "app:views";
     import routes from "app:routes";
-    import pages from "app:pages";
+    import templates from "app:templates";
     import assets from "app:assets";
     ${migrate_auto ? `import migrations from "app:migrations";` : ""}
     ${migrate_auto ? `import autoapply from "app:migrations/autoapply";` : ""}
@@ -39,7 +39,7 @@ const write_bootstrap = async (app: BuildApp) => {
       facade,
       routes,
       views,
-      pages,
+      templates,
       session: session_config,
       mode: "${app.mode}",
       target: "${app.target.name}",

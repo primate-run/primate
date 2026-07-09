@@ -5,7 +5,7 @@ import http from "@rcompat/http";
 
 type Options = {
   body?: string;
-  page?: string;
+  template?: string;
   status?: ValidStatus;
 };
 
@@ -18,14 +18,14 @@ const sse_reload = `<script>
  *
  * @param options.body HTML `%body%` replacement (default: `"Not Found"`).
  * @param options.status Request status (default: `404 Not Found`).
- * @param options.page HTML page to use (default: `error.html`).
+ * @param options.template HTML template to use (default: `error.html`).
  * @return Response function.
  */
 export default function error(options?: Options): ResponseFunction {
   return app => app.view({
     body: options?.body ?? "Not Found",
     head: app.mode === "development" ? sse_reload : undefined,
-    page: options?.page ?? location.error_html,
+    template: options?.template ?? location.error_html,
     status: options?.status ?? http.Status.NOT_FOUND,
   });
 }

@@ -173,6 +173,27 @@ import User from "@/stores/User";
 This replaces app-level imports like `#app`, `#db`, `#lib/*`, `#view/*`,
 `#route/*`, and `#store/*`.
 
+### HTML templates move to `templates`
+
+Primate's HTML shell files now live in `templates` instead of `pages`. This
+frees up the term "page" for route-collocated page views while making the
+existing concept clearer: these files are document templates, not route pages.
+
+```txt
+templates/app.html
+templates/error.html
+```
+
+The render option has been renamed in the same spirit:
+
+```ts
+return response.view(View, props, { template: "admin.html" });
+return response.error({ template: "error.html" });
+```
+
+New apps generated with `npx primate init` use `templates/app.html`, and the
+old `pages` directory is no longer part of the app structure.
+
 ### Autoapplying migrations
 
 Primate 0.39, and now 0.40, supports autoapplying migrations in production. To

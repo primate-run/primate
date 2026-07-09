@@ -6,41 +6,41 @@ import type { Plugin } from "esbuild";
 
 const core = await runtime.projectRoot(import.meta.dirname);
 
-export default function plugin_server_virtual_pages(app: BuildApp): Plugin {
+export default function plugin_server_virtual_templates(app: BuildApp): Plugin {
   return {
-    name: "primate/server/virtual/pages",
+    name: "primate/server/virtual/templates",
     setup(build) {
-      build.onResolve({ filter: /^app:pages$/ }, () => {
-        return { path: "pages-virtual", namespace: "primate-pages" };
+      build.onResolve({ filter: /^app:templates$/ }, () => {
+        return { path: "templates-virtual", namespace: "primate-templates" };
       });
 
-      build.onLoad({ filter: /.*/, namespace: "primate-pages" }, async () => {
+      build.onLoad({ filter: /.*/, namespace: "primate-templates" }, async () => {
         const filter = /^.*\.html$/ui;
         const defaults = core.join("lib", "private", "defaults");
-        const pages: Dict<FileRef> = {};
+        const templates: Dict<FileRef> = {};
 
         for (const file of await defaults.files({ filter })) {
-          pages[file.name] = file;
+          templates[file.name] = file;
         }
 
-        if (await app.path.pages.exists()) {
-          for (const file of await app.path.pages.files({ filter })) {
-            pages[file.name] = file;
+        if (await app.path.templates.exists()) {
+          for (const file of await app.path.templates.files({ filter })) {
+            templates[file.name] = file;
           }
         }
 
         const entries = await Promise.all(
-          Object.entries(pages).map(async ([name, file]) => {
+          Object.entries(templates).map(async ([name, file]) => {
             const text = await file.text();
             return `"${name}": ${JSON.stringify(text)}`;
           }),
         );
 
         const contents = `
-          const pages = {
+          const templates = {
             ${entries.join(",\n")}
           };
-          export default pages;
+          export default templates;
         `;
 
         return {

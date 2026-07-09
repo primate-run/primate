@@ -48,12 +48,12 @@ export default route({
 });
 ```
 
-`response.view` will use the `pages/app.html` to render a full HTML page,
-replacing `%body%` with the view's contents. If `pages/app.html` doesn't
+`response.view` will use the `templates/app.html` to render a full HTML template,
+replacing `%body%` with the view's contents. If `templates/app.html` doesn't
 exist, Primate will use its default fallback file.
 
 ```html
-<!-- pages/app.html -->
+<!-- templates/app.html -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -68,7 +68,7 @@ exist, Primate will use its default fallback file.
 ```
 
 The combination of the route's output and the page will result in the following
-HTML page served to a client requesting `GET /hello`.
+HTML template served to a client requesting `GET /hello`.
 
 ```html
 <html>

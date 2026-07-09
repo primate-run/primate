@@ -6,7 +6,7 @@ export default interface ViewOptions extends ResponseInit {
     style_src?: string[];
   };
   head?: string;
-  page?: string;
+  template?: string;
   partial?: boolean;
   placeholders?: Omit<Dict, "body" | "head">;
 };

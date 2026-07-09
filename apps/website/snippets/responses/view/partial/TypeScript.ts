@@ -1,7 +1,7 @@
 import response from "primate/response";
 import route from "primate/route";
 
-// will render Counter without embedding it into pages/app.html
+// will render Counter without embedding it into templates/app.html
 
 export default route({
   get() {

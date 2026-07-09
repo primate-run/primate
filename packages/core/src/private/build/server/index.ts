@@ -12,7 +12,7 @@ import plugin_route from "#build/server/plugin/route";
 import plugin_route_client from "#build/server/plugin/route-client";
 import plugin_view from "#build/server/plugin/view";
 import plugin_views from "#build/server/plugin/views";
-import plugin_virtual_pages from "#build/server/plugin/virtual-pages";
+import plugin_virtual_templates from "#build/server/plugin/virtual-templates";
 import plugin_virtual_routes from "#build/server/plugin/virtual-routes";
 import plugin_wasm from "#build/server/plugin/wasm";
 import plugin_app_request from "#build/shared/plugin/app-request";
@@ -23,7 +23,7 @@ export default async function build_server(app: BuildApp) {
   app.plugin("server", plugin_frontend(app));
   app.plugin("server", plugin_view(app));
   if (app.mode === "development") app.plugin("server", plugin_live_reload(app));
-  app.plugin("server", plugin_virtual_pages(app));
+  app.plugin("server", plugin_virtual_templates(app));
   app.plugin("server", plugin_virtual_routes(app));
   app.plugin("server", plugin_route_client(app));
   app.plugin("server", plugin_route(app));

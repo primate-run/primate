@@ -9,18 +9,18 @@ and files used in a Primate app.
 
 ## Directories
 
-| Directory                     | Purpose                                              |
-| ----------------------------- | ---------------------------------------------------- |
-| `build`                       | build artefacts — add to `.gitignore`                |
-| `client`                      | client entrypoints — CSS, JS, fonts                  |
-| [config](/docs/configuration) | configuration files                                  |
-| [locales](/docs/i18n#locales) | I18N locales                                         |
-| `node_modules`                | install artefacts — add to `.gitignore`              |
-| `pages`                       | app and error HTML template pages                    |
-| [routes](/docs/routing)       | filesystem-based routes                              |
-| `static`                      | static assets served as-is — images, downloads       |
-| [stores](/docs/stores)        | data stores                                          |
-| [views](/docs/views)          | frontend views                                       |
+| Directory                     | Purpose                                        |
+| ----------------------------- | ---------------------------------------------- |
+| `build`                       | build artefacts — add to `.gitignore`          |
+| `client`                      | client entrypoints — CSS, JS, fonts            |
+| [config](/docs/configuration) | configuration files                            |
+| [locales](/docs/i18n#locales) | I18N locales                                   |
+| `node_modules`                | install artefacts — add to `.gitignore`        |
+| `templates`                   | app and error HTML templates                   |
+| [routes](/docs/routing)       | filesystem-based routes                        |
+| `static`                      | static assets served as-is — images, downloads |
+| [stores](/docs/stores)        | data stores                                    |
+| [views](/docs/views)          | frontend views                                 |
 
 ## Files
 
@@ -95,7 +95,7 @@ must be uniquely handled by one frontend.
 ## Client files
 
 Files inside the `client` directory are bundled by Primate and made available
-as named placeholders in `pages/app.html` via the
+as named placeholders in `templates/app.html` via the
 [`entrypoints`](/docs/configuration#entrypoints) config option.
 
 Any file type supported by your active frontend modules works here — if you

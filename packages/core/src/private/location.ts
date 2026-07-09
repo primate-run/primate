@@ -7,8 +7,8 @@ export default {
   config: "config",
   // error rendering template
   error_html: "error.html",
-  // HTML pages
-  pages: "pages",
+  // HTML templates
+  templates: "templates",
   // hierarchical routes
   routes: "routes",
   // static assets

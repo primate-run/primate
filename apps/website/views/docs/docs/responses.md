@@ -76,20 +76,20 @@ Populate the component with initial props.
 [s=responses/view/props]
 
 ### Page
-Components are embedded into your app's main HTML page at `pages/app.html`,
-with the component code replacing the `%body%` placeholder. If the app page
+Components are embedded into your app's main HTML template at `templates/app.html`,
+with the component code replacing the `%body%` placeholder. If the app template
 doesn't exist, Primate falls back to its standard one.
 
-[s=responses/view/page]
+[s=responses/view/template]
 
-Pass a different `page` option to use another HTML page.
+Pass a different `template` option to use another HTML template.
 
-[s=responses/view/other-page]
+[s=responses/view/other-template]
 
 ### Placeholders
-You can use placeholders in your HTML pages.
+You can use placeholders in your HTML templates.
 
-[s=responses/view/placeholders/page]
+[s=responses/view/placeholders/template]
 
 Populate them in your routes.
 
@@ -97,28 +97,28 @@ Populate them in your routes.
 
 ### Partial
 Pass a `partial: true` option to render the component without the enclosing
-HTML page.
+HTML template.
 
 [s=responses/view/partial]
 
-This is useful for replacing parts of the page whilst retaining the HTML page.
+This is useful for replacing parts of the page whilst retaining the HTML template.
 
 ## Error
 Serve a `404 Not Found` error page as `text/html`.
 [s=responses/error/simple]
 
-This handler uses the HTML file at `pages/error.html` or falls back to a
+This handler uses the HTML file at `templates/error.html` or falls back to a
 standard one provided by Primate.
 
-[s=responses/error/page]
+[s=responses/error/template]
 
 You can pass a custom status to this handler.
 
 [s=responses/error/custom]
 
-As with `view`, you can pass a different `page` option to use another HTML page.
+As with `view`, you can pass a different `template` option to use another HTML template.
 
-[s=responses/error/other-page]
+[s=responses/error/other-template]
 
 ## WebSocket
 

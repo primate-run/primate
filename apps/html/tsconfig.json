@@ -17,6 +17,7 @@
     "${configDir}/views",
     "${configDir}/stores",
     "${configDir}/test",
+    "${configDir}/templates",
     "${configDir}/static"
   ],
   "exclude": [

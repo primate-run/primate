@@ -63,7 +63,7 @@ See the [Stores] page for the migration workflow.
 ### `entrypoints`
 
 Named client entrypoints bundled from the `client` directory and injected into
-`pages/app.html` as placeholders.
+`templates/app.html` as placeholders.
 
 ```ts
 import config from "primate/config";
@@ -76,7 +76,7 @@ export default config({
 });
 ```
 
-Each key becomes a placeholder in your HTML page. For a key `css`, add
+Each key becomes a placeholder in your HTML template. For a key `css`, add
 `%css%` wherever you want the asset injected:
 
 ```html

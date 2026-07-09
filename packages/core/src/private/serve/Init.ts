@@ -19,7 +19,7 @@ type ServeInit = {
   mode: Mode;
   target: string;
   log: typeof LogSchema.infer;
-  pages: Dict<string>;
+  templates: Dict<string>;
   session?: SessionConfig;
 };
 

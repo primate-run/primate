@@ -440,6 +440,7 @@ async function tsconfig_json(root: FileRef, opts: { frontends: Frontend[] }) {
       "routes",
       "stores",
       "locales",
+      "templates",
       "static",
     ],
     exclude: ["node_modules"],
