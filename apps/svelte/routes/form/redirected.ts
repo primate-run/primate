@@ -1,4 +1,4 @@
-import RedirectedFromForm from "#view/RedirectedFromForm";
+import RedirectedFromForm from "@/views/RedirectedFromForm";
 import response from "primate/response";
 import route from "primate/route";
 

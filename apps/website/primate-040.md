@@ -20,7 +20,7 @@ the schema.
 
 ```ts
 // stores/Account.ts
-import db from "#db";
+import db from "@/config/db";
 import p from "pema";
 import store from "primate/store";
 
@@ -46,7 +46,7 @@ export default store({
 Then anywhere else in your app:
 
 ```ts
-import Account from "#store/Account";
+import Account from "@/stores/Account";
 
 const account = await Account.insert({
   email: "john@example.com",
@@ -107,7 +107,7 @@ them without duplicating the type.
 
 ```ts
 // routes/post.ts
-import View from "#view/Post";
+import View from "@/views/Post";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
@@ -128,7 +128,7 @@ export default route({
 
 ```tsx
 // views/Post.tsx
-import type route from "#route/post";
+import type route from "@/routes/post";
 
 export default function Post(props: typeof route.get.View) {
   return <h1>{props.title}</h1>;
@@ -142,6 +142,37 @@ schema like `p.string.optional()` allows the prop to be omitted entirely.
 This works across the tier-one frontends: React, Svelte, Vue, Solid, Angular
 and Marko.
 
+### App imports move to `@/`
+
+New Primate apps now use a single `@/*` TypeScript path alias for application
+imports instead of the previous family of `#` aliases. This avoids collisions
+with package-internal import maps and makes app imports read like regular
+project-root imports.
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": "${configDir}",
+    "paths": {
+      "@/*": ["*"]
+    }
+  }
+}
+```
+
+Existing imports map directly to their project folders:
+
+```ts
+import app from "@/config/app";
+import db from "@/config/db";
+import View from "@/views/Post";
+import route from "@/routes/post";
+import User from "@/stores/User";
+```
+
+This replaces app-level imports like `#app`, `#db`, `#lib/*`, `#view/*`,
+`#route/*`, and `#store/*`.
+
 ### Autoapplying migrations
 
 Primate 0.39, and now 0.40, supports autoapplying migrations in production. To
@@ -149,7 +180,7 @@ activate this, add `autoapply: true` to your configuration:
 
 ```ts
 import config from "primate/config";
-import db from "#db";
+import db from "@/config/db";
 
 export default config({
   db: {

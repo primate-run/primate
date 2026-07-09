@@ -1,4 +1,4 @@
-import Index from "#view/Index";
+import Index from "@/views/Index";
 import response from "primate/response";
 import route from "primate/route";
 

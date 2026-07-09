@@ -1,5 +1,5 @@
-import View from "#view/RouteClient/Form";
-import TopLevel from "#view/RouteClient/TopLevel/Form";
+import View from "@/views/RouteClient/Form";
+import TopLevel from "@/views/RouteClient/TopLevel/Form";
 import response from "primate/response";
 import route from "primate/route";
 

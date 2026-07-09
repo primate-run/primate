@@ -27,16 +27,16 @@ import app from "../config/app.ts";
 or, if you have configured a path alias in `tsconfig.json`, via the alias:
 
 ```ts
-import app from "#app";
+import app from "@/config/app";
 ```
 
 A typical route might look like this:
 
 ```ts
-import app from "#app";
+import app from "@/config/app";
 import response from "primate/response";
 import route from "primate/route";
-import Page from "#view/Page";
+import Page from "@/views/Page";
 
 export default route({
   get() {
@@ -48,9 +48,9 @@ export default route({
 ```
 
 !!!
-`#app` and `#view/*` are path aliases, not built-in language features. They
+`@/config/app` and `@/views/*` are path aliases, not built-in language features. They
 only work if you configure them in `tsconfig.json`, for example by mapping
-`#app` to `config/app.ts` and `#view/*` to `views/*`.
+`@/config/app` to `config/app.ts` and `@/views/*` to `views/*`.
 !!!
 
 ## `app.config(path)`
@@ -130,10 +130,10 @@ Use `app.view(...)` only when you need to load a view manually and work with
 its result before returning a response.
 
 ```ts
-import app from "#app";
+import app from "@/config/app";
 import response from "primate/response";
 import route from "primate/route";
-import Page from "#view/Page";
+import Page from "@/views/Page";
 
 export default route({
   get() {

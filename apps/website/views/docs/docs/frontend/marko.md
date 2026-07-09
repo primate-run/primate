@@ -191,7 +191,7 @@ Add corresponding backend validation in the route:
 
 ```ts
 // routes/counter.ts
-import Counter from "#store/Counter";
+import Counter from "@/stores/Counter";
 import route from "primate/route";
 import response from "primate/response";
 import p from "pema";
@@ -361,7 +361,7 @@ reactivity model:
 
 ```ts
 // lib/i18n.ts
-import app from "#app";
+import app from "@/config/app";
 import i18n from "@primate/marko/i18n";
 
 export default i18n(app.i18n);
@@ -371,7 +371,7 @@ Import and use the bridged translator directly in views:
 
 ```marko
 // views/i18n/Index.marko
-import t from "#lib/i18n";
+import t from "@/lib/i18n";
 
 <span>${t.locale.get()}</span>
 <span>${t("title")}</span>

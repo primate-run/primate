@@ -1,5 +1,5 @@
-import type Post from "#component/Post";
-import t from "#lib/i18n";
+import type Post from "@/components/Post";
+import t from "@/lib/i18n";
 
 export default ({ post }: { post: Post }) => <>
   <h1>{t("title")}: {post.title}</h1>

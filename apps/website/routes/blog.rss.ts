@@ -1,4 +1,4 @@
-import app from "#app";
+import app from "@/config/app";
 import http from "@rcompat/http";
 import response from "primate/response";
 import route from "primate/route";

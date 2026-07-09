@@ -1,4 +1,4 @@
-import route from "#route/route-client/path-action/[name]";
+import route from "@/routes/route-client/path-action/[name]";
 import type { OnInit } from "@angular/core";
 import { Component, input } from "@angular/core";
 import client from "@primate/angular/client";

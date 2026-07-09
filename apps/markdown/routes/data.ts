@@ -1,4 +1,4 @@
-import app from "#app";
+import app from "@/config/app";
 import type { Component } from "@primate/markdown";
 import route from "primate/route";
 

@@ -73,7 +73,7 @@ Serve the component from a route.
 
 ```ts
 // routes/posts.ts
-import PostIndex from "#view/PostIndex";
+import PostIndex from "@/views/PostIndex";
 import response from "primate/response";
 import route from "primate/route";
 
@@ -97,7 +97,7 @@ components.
 Pass props from a route:
 
 ```ts
-import UserView from "#view/User";
+import UserView from "@/views/User";
 import response from "primate/response";
 import route from "primate/route";
 
@@ -228,8 +228,8 @@ Add corresponding backend validation in the route:
 
 ```ts
 // routes/counter.ts
-import CounterView from "#view/Counter";
-import Counter from "#store/Counter";
+import CounterView from "@/views/Counter";
+import Counter from "@/stores/Counter";
 import route from "primate/route";
 import response from "primate/response";
 import p from "pema";
@@ -267,7 +267,7 @@ automatic field-level validation and error display.
 // views/LoginForm.component.ts
 import { Component, OnInit } from "@angular/core";
 import client from "@primate/angular/client";
-import route from "#route/login";
+import route from "@/routes/login";
 
 @Component({
   template: `
@@ -309,7 +309,7 @@ Add the corresponding route:
 
 ```ts
 // routes/login.ts
-import LoginForm from "#view/LoginForm";
+import LoginForm from "@/views/LoginForm";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
@@ -393,7 +393,7 @@ Next, register the layout using a `+layout.ts` file:
 
 ```ts
 // routes/+layout.ts
-import Layout from "#view/Layout";
+import Layout from "@/views/Layout";
 import response from "primate/response";
 import route from "primate/route";
 
@@ -435,7 +435,7 @@ export default class Layout {
 
 ```ts
 // routes/+layout.ts
-import Layout from "#view/Layout";
+import Layout from "@/views/Layout";
 import response from "primate/response";
 import route from "primate/route";
 
@@ -453,7 +453,7 @@ Angular's reactivity model:
 
 ```ts
 // lib/i18n.ts
-import app from "#app";
+import app from "@/config/app";
 import i18n from "@primate/angular/i18n";
 
 export default i18n(app.i18n);
@@ -463,7 +463,7 @@ Import and use the bridged translator directly in views:
 
 ```ts
 import { Component } from "@angular/core";
-import t from "#lib/i18n";
+import t from "@/lib/i18n";
 
 @Component({
   template: `

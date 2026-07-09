@@ -1,5 +1,5 @@
 import response from "primate/response";
-import Index from "#view/Index";
+import Index from "@/views/Index";
 import route from "primate/route";
 
 export default route({

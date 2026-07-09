@@ -1,4 +1,4 @@
-import route from "#route/route-client/multipart";
+import route from "@/routes/route-client/multipart";
 import { createSignal } from "solid-js";
 
 export default function ClientRouteMultipart() {

@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import route from "#route/route-client/text";
+import route from "@/routes/route-client/text";
 
 const result = ref(null);
 

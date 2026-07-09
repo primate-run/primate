@@ -1,5 +1,5 @@
 <script>
-  import route from "#route/route-client/blob";
+  import route from "@/routes/route-client/blob";
   let result = $state(null);
   async function send() {
     const body = new Blob(["hello"], { type: "application/octet-stream" });

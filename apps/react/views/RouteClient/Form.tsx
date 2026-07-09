@@ -1,4 +1,4 @@
-import route from "#route/route-client/form";
+import route from "@/routes/route-client/form";
 import { useState } from "react";
 
 export default function ClientRouteForm() {

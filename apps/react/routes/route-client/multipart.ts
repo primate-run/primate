@@ -1,5 +1,5 @@
-import View from "#view/RouteClient/Multipart";
-import TopLevel from "#view/RouteClient/TopLevel/Multipart";
+import View from "@/views/RouteClient/Multipart";
+import TopLevel from "@/views/RouteClient/TopLevel/Multipart";
 import response from "primate/response";
 import route from "primate/route";
 

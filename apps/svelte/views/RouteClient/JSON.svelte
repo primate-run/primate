@@ -1,5 +1,5 @@
 <script>
-  import route from "#route/route-client/json";
+  import route from "@/routes/route-client/json";
 
   let result = $state(null);
 

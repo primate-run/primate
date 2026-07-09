@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Button from "#lib/Button";
+  import Button from "@/lib/Button";
   import { Accordion } from "bits-ui";
-  import type Post from "#component/Post";
+  import type Post from "@/components/Post";
 
   const { post }: { post: Post } = $props();
 </script>

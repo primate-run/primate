@@ -1,4 +1,4 @@
-import LoginForm from "#view/LoginForm";
+import LoginForm from "@/views/LoginForm";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";

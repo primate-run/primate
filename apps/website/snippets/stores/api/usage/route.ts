@@ -1,4 +1,4 @@
-import APIStore from "#store/APIStore";
+import APIStore from "@/stores/APIStore";
 import route from "primate/route";
 
 export default route({

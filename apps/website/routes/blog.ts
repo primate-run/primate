@@ -1,5 +1,5 @@
-import app from "#app";
-import Blog from "#view/Blog";
+import app from "@/config/app";
+import Blog from "@/views/Blog";
 import type { Component } from "@primate/markdown";
 import response from "primate/response";
 import route from "primate/route";

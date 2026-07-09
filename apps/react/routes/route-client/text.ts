@@ -1,5 +1,5 @@
-import View from "#view/RouteClient/Text";
-import TopLevel from "#view/RouteClient/TopLevel/Text";
+import View from "@/views/RouteClient/Text";
+import TopLevel from "@/views/RouteClient/TopLevel/Text";
 import response from "primate/response";
 import route from "primate/route";
 

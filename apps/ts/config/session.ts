@@ -1,4 +1,4 @@
-import Session from "#store/Session";
+import Session from "@/stores/Session";
 import session from "primate/session";
 
 export default session({

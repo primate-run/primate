@@ -1,4 +1,4 @@
-import route from "#route/route-client/action";
+import route from "@/routes/route-client/action";
 import client from "@primate/react/client";
 
 export default function ClientRouteAction() {

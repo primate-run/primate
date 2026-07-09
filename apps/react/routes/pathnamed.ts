@@ -1,4 +1,4 @@
-import Pathnamed from "#view/Pathnamed";
+import Pathnamed from "@/views/Pathnamed";
 import response from "primate/response";
 import route from "primate/route";
 

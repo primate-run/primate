@@ -107,7 +107,7 @@ export default route({
 ```ts
 // routes/user.ts
 import route from "primate/route";
-import UserProfile from "#view/UserProfile";
+import UserProfile from "@/views/UserProfile";
 
 export default route({
   get(request) {
@@ -143,7 +143,7 @@ export default function UserProfile({ name, age }: {
 Now in your route:
 
 ```ts
-import UserProfile from "#view/UserProfile";
+import UserProfile from "@/views/UserProfile";
 
 export default route({
   get() {
@@ -254,9 +254,9 @@ recommend extending `primate/tsconfig` for sensible defaults:
   "compilerOptions": {
     "baseUrl": "${configDir}",
     "paths": {
-      "#view/*": ["views/*"],
-      "#store/*": ["stores/*"],
-      "#config/*": ["config/*"]
+      "@/views/*": ["views/*"],
+      "@/stores/*": ["stores/*"],
+      "@/config/*": ["config/*"]
     }
   },
   "include": [
@@ -292,7 +292,7 @@ export default store({
 
 ```ts
 // config/session.ts
-import Session from "#store/Session";
+import Session from "@/stores/Session";
 import session from "primate/session/config";
 
 export default session({
@@ -304,7 +304,7 @@ export default session({
 **Use in routes:**
 
 ```ts
-import session from "#session";
+import session from "@/config/session";
 import route from "primate/route";
 
 export default route({

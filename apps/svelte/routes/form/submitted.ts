@@ -1,4 +1,4 @@
-import SubmitForm from "#view/SubmitForm";
+import SubmitForm from "@/views/SubmitForm";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";

@@ -1,5 +1,5 @@
-import View from "#view/RouteClient/Schema";
-import TopLevel from "#view/RouteClient/TopLevel/Schema";
+import View from "@/views/RouteClient/Schema";
+import TopLevel from "@/views/RouteClient/TopLevel/Schema";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";

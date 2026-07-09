@@ -1,5 +1,5 @@
-import app from "#app";
-import Guide from "#view/Guide";
+import app from "@/config/app";
+import Guide from "@/views/Guide";
 import type { Component } from "@primate/markdown";
 import response from "primate/response";
 import route from "primate/route";

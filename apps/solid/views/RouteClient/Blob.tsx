@@ -1,4 +1,4 @@
-import route from "#route/route-client/blob";
+import route from "@/routes/route-client/blob";
 import { createSignal } from "solid-js";
 
 export default function ClientRouteBlob() {

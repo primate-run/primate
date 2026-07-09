@@ -1,4 +1,4 @@
-import About from "#view/About";
+import About from "@/views/About";
 import response from "primate/response";
 import route from "primate/route";
 

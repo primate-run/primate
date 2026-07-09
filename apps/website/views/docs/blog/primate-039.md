@@ -66,7 +66,7 @@ When a route declares a `path` schema, TypeScript enforces it at every call
 site. Calling the method directly requires passing `path`:
 
 ```ts
-import route from "#route/[namespace]/project/new";
+import route from "@/routes/[namespace]/project/new";
 
 const response = await route.post({
   path: { namespace },
@@ -270,7 +270,7 @@ a bridge file.
 
 ```ts
 // lib/i18n.ts
-import app from "#app";
+import app from "@/config/app";
 import i18n from "@primate/marko/i18n";
 
 export default i18n(app.i18n);
@@ -280,7 +280,7 @@ Import it in any view:
 
 ```marko
 // views/Welcome.marko
-import t from "#lib/i18n";
+import t from "@/lib/i18n";
 
 <span>${t.locale.get()}</span>
 <span>${t("title")}</span>
@@ -329,7 +329,7 @@ by filename string:
 return response.view("Counter.component.ts", counter);
 
 // after
-import CounterView from "#view/Counter";
+import CounterView from "@/views/Counter";
 return response.view(CounterView, counter);
 ```
 
@@ -468,7 +468,7 @@ views wherever you need translations:
 
 ```ts
 // lib/i18n.ts (Svelte example)
-import app from "#app";
+import app from "@/config/app";
 import i18n from "@primate/svelte/i18n";
 
 export default i18n(app.i18n);

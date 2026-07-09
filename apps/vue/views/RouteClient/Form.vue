@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import route from "#route/route-client/form";
+import route from "@/routes/route-client/form";
 
 const result = ref(null);
 

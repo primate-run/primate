@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import route from "#route/route-client/json";
+import route from "@/routes/route-client/json";
 
 const result = ref(null);
 

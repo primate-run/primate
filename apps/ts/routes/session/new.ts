@@ -1,4 +1,4 @@
-import session from "#session";
+import session from "@/config/session";
 import route from "primate/route";
 
 export default route({

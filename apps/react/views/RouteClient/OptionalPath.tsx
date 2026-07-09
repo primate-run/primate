@@ -1,4 +1,4 @@
-import route from "#route/route-client/optional-path/[[name]]";
+import route from "@/routes/route-client/optional-path/[[name]]";
 import { useState } from "react";
 
 export default function Path(props: { name: string }) {

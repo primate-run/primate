@@ -1,4 +1,4 @@
-import route from "#route/route-client/schema";
+import route from "@/routes/route-client/schema";
 import { createSignal } from "solid-js";
 
 export default function ClientRouteSchema() {

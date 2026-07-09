@@ -1,5 +1,5 @@
 import session from "primate/session";
-import Session from "#store/Session";
+import Session from "@/stores/Session";
 
 export default session({
   store: Session,

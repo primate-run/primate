@@ -1,4 +1,4 @@
-import Base from "#store/User";
+import Base from "@/stores/User";
 
 export default Base.extend(User => {
   return {

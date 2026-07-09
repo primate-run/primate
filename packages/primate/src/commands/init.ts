@@ -429,16 +429,7 @@ async function tsconfig_json(root: FileRef, opts: { frontends: Frontend[] }) {
     compilerOptions: {
       baseUrl: "${configDir}",
       paths: {
-        "#app": ["config/app"],
-        "#session": ["config/session"],
-        "#db": ["config/db"],
-        "#config/*": ["config/*"],
-        "#view/*": ["views/*"],
-        "#component/*": ["components/*"],
-        "#route/*": ["routes/*"],
-        "#store/*": ["stores/*"],
-        "#locale/*": ["locales/*"],
-        "#static/*": ["static/*"],
+        "@/*": ["*"],
       },
     },
     include: [

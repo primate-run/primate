@@ -1,4 +1,4 @@
-import app from "#app";
+import app from "@/config/app";
 import route from "primate/route";
 export default route({
   get() {

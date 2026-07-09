@@ -1,4 +1,4 @@
-import route from "#route/route-client/json";
+import route from "@/routes/route-client/json";
 import { createSignal } from "solid-js";
 
 export default function RouteClientJSON() {

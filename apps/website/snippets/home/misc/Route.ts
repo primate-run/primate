@@ -1,4 +1,4 @@
-import Post from "#store/Post";
+import Post from "@/stores/Post";
 import response from "primate/response";
 import route from "primate/route";
 

@@ -1,4 +1,4 @@
-import route from "#route/route-client/blob";
+import route from "@/routes/route-client/blob";
 import { Component } from "@angular/core";
 
 const response = await route.post({

@@ -22,8 +22,5 @@
   },
   "devDependencies": {
     "@primate/test": "workspace:^"
-  },
-  "imports": {
-    "#db": "./config/db.ts"
   }
 }

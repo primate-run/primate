@@ -1,4 +1,4 @@
-import Redirect from "#view/Redirect";
+import Redirect from "@/views/Redirect";
 import response from "primate/response";
 import route from "primate/route";
 

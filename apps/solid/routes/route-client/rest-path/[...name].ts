@@ -1,4 +1,4 @@
-import View from "#view/RouteClient/RestPath";
+import View from "@/views/RouteClient/RestPath";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";

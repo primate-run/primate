@@ -1,5 +1,5 @@
-import app from "#app";
-import Static from "#view/Static";
+import app from "@/config/app";
+import Static from "@/views/Static";
 import type { Component } from "@primate/markdown";
 import response from "primate/response";
 import route from "primate/route";

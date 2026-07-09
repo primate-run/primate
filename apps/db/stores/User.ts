@@ -1,4 +1,4 @@
-import db from "#db";
+import db from "@/config/db";
 import p from "pema";
 import store from "primate/store";
 

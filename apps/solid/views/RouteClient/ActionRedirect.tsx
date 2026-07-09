@@ -1,4 +1,4 @@
-import route from "#route/route-client/action-redirect";
+import route from "@/routes/route-client/action-redirect";
 import client from "@primate/solid/client";
 
 export default function ClientRouteActionRedirect() {

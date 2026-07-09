@@ -1,4 +1,4 @@
-import Hello from "#view/Hello.svelte";
+import Hello from "@/views/Hello.svelte";
 import response from "primate/response";
 import route from "primate/route";
 

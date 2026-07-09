@@ -1,5 +1,5 @@
 <script setup>
-import route from "#route/route-client/json";
+import route from "@/routes/route-client/json";
 
 const response = await route.post({ body: { foo: "bar" } });
 const result = await response.json();

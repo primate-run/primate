@@ -1,4 +1,4 @@
-import Head from "#view/Head";
+import Head from "@/views/Head";
 import response from "primate/response";
 import route from "primate/route";
 

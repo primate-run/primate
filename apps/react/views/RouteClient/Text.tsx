@@ -1,4 +1,4 @@
-import route from "#route/route-client/text";
+import route from "@/routes/route-client/text";
 import { useState } from "react";
 
 export default function ClientRouteText() {

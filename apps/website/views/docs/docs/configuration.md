@@ -22,7 +22,7 @@ value at runtime — including `app.config()`, `app.env()`, `app.view()`, and
 
 |Option|Default|Description|
 |-|-|-|
-|[db.migrations](#db-migrations)|`undefined`|database migration configuration|
+|[db.migrations](@/config/db-migrations)|`undefined`|database migration configuration|
 |[entrypoints](#entrypoints)|`{}`|named client entrypoints|
 |[http.csp](#http-csp)|`{}`|content security policy|
 |[http.headers](#http-headers)|`{}`|default HTTP response headers|
@@ -45,7 +45,7 @@ Configuration for Primate's opt-in migration system.
 
 ```ts
 import config from "primate/config";
-import db from "#db";
+import db from "@/config/db";
 
 export default config({
   db: {

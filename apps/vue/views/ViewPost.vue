@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import t from "#lib/i18n";
+import t from "@/lib/i18n";
 
 interface Post { id: number; title: string }
 const { post } = defineProps<{ post: Post }>();

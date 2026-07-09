@@ -1,4 +1,4 @@
-import route from "#route/route-client/form-level";
+import route from "@/routes/route-client/form-level";
 import type { OnInit } from "@angular/core";
 import { Component } from "@angular/core";
 import client from "@primate/angular/client";

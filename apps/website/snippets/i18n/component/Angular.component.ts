@@ -1,4 +1,4 @@
-import t from "#lib/i18n";
+import t from "@/lib/i18n";
 import { Component, Input } from "@angular/core";
 
 @Component({

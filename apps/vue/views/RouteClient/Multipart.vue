@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import route from "#route/route-client/multipart";
+import route from "@/routes/route-client/multipart";
 
 const result = ref(null);
 

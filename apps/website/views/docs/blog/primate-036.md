@@ -383,12 +383,12 @@ The same formatting specifiers work on the backend: `{count:n}` for numbers,
 
 ## App facade
 
-Routes can now import an app facade directly via `#app`, giving access to
+Routes can now import an app facade directly via `@/config/app`, giving access to
 app-level utilities without needing to return a function from route handlers.
 
 ```ts
 // routes/index.ts
-import app from "#app"; // via tsconfig, or relative import to config/app.ts
+import app from "@/config/app"; // via tsconfig, or relative import to config/app.ts
 import response from "primate/response";
 import route from "primate/route";
 

@@ -55,13 +55,13 @@ export default postgresql({
 {
   "compilerOptions": {
     "paths": {
-      "#db": ["config/db"]
+      "@/config/db": ["config/db"]
     }
   }
 }
 ```
 
-The `#db` alias is conventional but not required — `@db`, `@/db`, or any other
+The `@/config/db` alias is conventional but not required — `@db`, `@/db`, or any other
 alias you prefer works equally well.
 
 If you plan to use your database or stores outside of Primate, make sure to add
@@ -70,7 +70,7 @@ a `package.json` import as well.
 // package.json
 {
   "imports": {
-    "#db": "./config/db.ts"
+    "@/config/db": "./config/db.ts"
   }
 }
 ```
@@ -80,7 +80,7 @@ a `package.json` import as well.
 Import your database and pass it explicitly to the store:
 
 ```ts
-import db from "#db";
+import db from "@/config/db";
 import store from "primate/store";
 import p from "pema";
 
@@ -103,7 +103,7 @@ database-specific functions, or raw DDL — all four SQL drivers (SQLite, MySQL,
 PostgreSQL, and OracleDB) expose `db.sql`:
 
 ```ts
-import db from "#db";
+import db from "@/config/db";
 import p from "pema";
 
 const findByAge = db.sql({
@@ -158,8 +158,8 @@ await createIndex();
 existing type definitions without duplication:
 
 ```ts
-import db from "#db";
-import User from "#store/User";
+import db from "@/config/db";
+import User from "@/stores/User";
 
 const findByAge = db.sql({
   input: User.schema,
@@ -183,5 +183,5 @@ positional parameters. You always write `:name` and the driver does the rest.
 config/
   db.ts               # database configuration
 stores/
-  Post.ts             # store using #db
+  Post.ts             # store using @/config/db
 ```

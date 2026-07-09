@@ -37,7 +37,7 @@ generation.
 // stores/Post.ts
 import p from "pema";
 import store from "primate/store";
-import db from "#db";
+import db from "@/config/db";
 
 export default store({
   table: "post",
@@ -127,7 +127,7 @@ A user has many articles:
 // stores/User.ts
 import p from "pema";
 import store from "primate/store";
-import db from "#db";
+import db from "@/config/db";
 
 export default store({
   table: "user",
@@ -147,7 +147,7 @@ A user has one profile:
 // stores/User.ts
 import p from "pema";
 import store from "primate/store";
-import db from "#db";
+import db from "@/config/db";
 
 export default store({
   table: "user",
@@ -167,7 +167,7 @@ Query from the *many* side back to the *one* side using `reverse: true`:
 // stores/Article.ts
 import p from "pema";
 import store from "primate/store";
-import db from "#db";
+import db from "@/config/db";
 
 export default store({
   table: "article",
@@ -185,7 +185,7 @@ export default store({
 
 Use the `with` option to load related records. Pass the store directly:
 ```ts
-import Article from "#store/Article";
+import Article from "@/stores/Article";
 
 const users = await User.find({
   with: { articles: Article },
@@ -194,7 +194,7 @@ const users = await User.find({
 
 Pass a query object with `store` plus any sub-query options:
 ```ts
-import Article from "#store/Article";
+import Article from "@/stores/Article";
 
 const users = await User.find({
   where: { active: true },
@@ -327,7 +327,7 @@ database file.
 [s=stores/db/config]
 
 Name the file freely. For the main driver, use `index.ts` or `default.ts`.
-Import it into your stores as `db` from `#db`.
+Import it into your stores as `db` from `@/config/db`.
 
 ## Migrations
 
@@ -339,7 +339,7 @@ applied migrations and which table to use:
 
 ```ts
 import config from "primate/config";
-import db from "#db";
+import db from "@/config/db";
 
 export default config({
   db: {
@@ -380,7 +380,7 @@ captured at build time and errors on startup if the database is behind.
 
 Create tables or collections at app startup, e.g. in a route file.
 ```ts
-import Post from "#store/Post";
+import Post from "@/stores/Post";
 
 await Post.create();
 
@@ -397,7 +397,7 @@ ahead of time.
 A typical route that reads (or creates) a record, then renders a view:
 ```ts
 // routes/posts/index.ts
-import Post from "#store/Post";
+import Post from "@/stores/Post";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";
@@ -434,7 +434,7 @@ inline or in separate files for modularity.
 // stores/User.ts
 import p from "pema";
 import store from "primate/store";
-import db from "#db";
+import db from "@/config/db";
 
 export default store({
   table: "user",
@@ -466,7 +466,7 @@ Create a base store:
 // stores/User.ts
 import p from "pema";
 import store from "primate/store";
-import db from "#db";
+import db from "@/config/db";
 
 export default store({
   table: "user",
@@ -482,7 +482,7 @@ export default store({
 
 Create an extended version:
 ```ts
-import Base from "#store/User";
+import Base from "@/stores/User";
 
 export default Base.extend(User => {
   const Schema = User.Schema;
@@ -511,8 +511,8 @@ Store schemas can be passed directly to `db.sql` for typed raw SQL queries,
 letting you reuse your existing type definitions without duplication:
 
 ```ts
-import db from "#db";
-import User from "#store/User";
+import db from "@/config/db";
+import User from "@/stores/User";
 
 const findByAge = db.sql({
   input: User.schema,

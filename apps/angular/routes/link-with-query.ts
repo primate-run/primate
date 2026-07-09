@@ -1,4 +1,4 @@
-import LinkWithQuery from "#view/LinkWithQuery";
+import LinkWithQuery from "@/views/LinkWithQuery";
 import response from "primate/response";
 import route from "primate/route";
 

@@ -1,5 +1,5 @@
 <script setup>
-import route from "#route/route-client/blob";
+import route from "@/routes/route-client/blob";
 
 const response = await route.post({
   body: new Blob(["hello"], {

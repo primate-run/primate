@@ -1,5 +1,5 @@
-import View from "#view/RouteClient/JSON";
-import TopLevel from "#view/RouteClient/TopLevel/JSON";
+import View from "@/views/RouteClient/JSON";
+import TopLevel from "@/views/RouteClient/TopLevel/JSON";
 import response from "primate/response";
 import route from "primate/route";
 

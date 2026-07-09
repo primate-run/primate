@@ -1,4 +1,4 @@
-import route from "#route/route-client/form";
+import route from "@/routes/route-client/form";
 import { Component } from "@angular/core";
 
 const response = await route.post({

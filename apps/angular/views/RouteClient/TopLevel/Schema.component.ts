@@ -1,4 +1,4 @@
-import route from "#route/route-client/schema";
+import route from "@/routes/route-client/schema";
 import { Component } from "@angular/core";
 
 const response = await route.post({ body: { foo: "bar" } });

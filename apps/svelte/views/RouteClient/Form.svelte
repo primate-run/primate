@@ -1,5 +1,5 @@
 <script>
-  import route from "#route/route-client/form";
+  import route from "@/routes/route-client/form";
   let result = $state(null);
   async function send() {
     const response = await route.post({

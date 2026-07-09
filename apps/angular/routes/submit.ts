@@ -1,4 +1,4 @@
-import Submit from "#view/Submit";
+import Submit from "@/views/Submit";
 import response from "primate/response";
 import route from "primate/route";
 

@@ -120,7 +120,7 @@ No code generation. No schema files. No separate client definitions. The
 route file is the source, and TypeScript sees it:
 
 ```ts
-import route from "#route/user/register";
+import route from "@/routes/user/register";
 
 const response = await route.post({ body: { foo: "bar" } });
 const data = await response.json();
@@ -142,7 +142,7 @@ errors all come from the route declaration:
 
 ```tsx
 import { client } from "@primate/react";
-import route from "#route/user/register";
+import route from "@/routes/user/register";
 
 export default function Register() {
   const form = client.form(route.post);
@@ -310,7 +310,7 @@ the single source of truth for both data fields and relationships.
 ```ts
 // before
 import store from "primate/store";
-import Article from "#store/Article";
+import Article from "@/stores/Article";
 
 export default store({
   table: "author",
@@ -350,7 +350,7 @@ const authors = await Author.find({
 });
 
 // after
-import Article from "#store/Article";
+import Article from "@/stores/Article";
 
 const authors = await Author.find({
   with: { articles: Article },
@@ -521,7 +521,7 @@ Placeholder translation is handled automatically per driver. You always write
 existing type definitions without duplication:
 
 ```ts
-import User from "#store/User";
+import User from "@/stores/User";
 
 const findByAge = db.sql({
   input: User.schema,

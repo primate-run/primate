@@ -1,4 +1,4 @@
-import FormLevel from "#view/RouteClient/FormLevel";
+import FormLevel from "@/views/RouteClient/FormLevel";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";

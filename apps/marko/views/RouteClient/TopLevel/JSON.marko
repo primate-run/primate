@@ -1,4 +1,4 @@
-import route from "#route/route-client/json";
+import route from "@/routes/route-client/json";
 
 static async function send() {
   const response = await route.post({ body: { foo: "bar" } });

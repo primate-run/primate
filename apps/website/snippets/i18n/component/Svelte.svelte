@@ -1,5 +1,5 @@
 <script>
-  import t from "#lib/i18n";
+  import t from "@/lib/i18n";
 
   const { count }: { count: number } = $props();
 </script>

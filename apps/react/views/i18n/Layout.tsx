@@ -1,4 +1,4 @@
-import t from "#lib/i18n";
+import t from "@/lib/i18n";
 
 export default function I18NLayout(props: any) {
   return <>

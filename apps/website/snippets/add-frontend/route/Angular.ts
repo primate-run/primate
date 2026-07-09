@@ -1,4 +1,4 @@
-import Counter from "#view/Counter";
+import Counter from "@/views/Counter";
 import response from "primate/response";
 import route from "primate/route";
 

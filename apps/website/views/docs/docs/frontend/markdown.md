@@ -142,7 +142,7 @@ Access the `toc` data and frontmatter `meta` in your route to build navigation:
 import type Component from "@primate/markdown/Component";
 import respone from "primate/response";
 import route from "primate/route";
-import app from "#app";
+import app from "@/config/app";
 
 export default route({
   get(request) {

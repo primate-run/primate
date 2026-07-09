@@ -1,4 +1,4 @@
-import Form from "#view/Form";
+import Form from "@/views/Form";
 import response from "primate/response";
 import route from "primate/route";
 

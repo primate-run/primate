@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import route from "#route/route-client/blob";
+import route from "@/routes/route-client/blob";
 
 const result = ref(null);
 

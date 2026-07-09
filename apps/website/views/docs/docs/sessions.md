@@ -60,7 +60,7 @@ associate each stored record with the session cookie.
 First create the store inside `stores`.
 
 ```ts
-import db from "#db";
+import db from "@/config/db";
 import p from "pema";
 import store from "primate/store";
 
@@ -81,7 +81,7 @@ Then refer to it in your configuration file.
 
 ```ts
 import session from "primate/session";
-import Session from "#store/Session";
+import Session from "@/stores/Session";
 
 export default session({
   store: Session,
@@ -106,11 +106,11 @@ to create, read, update, and destroy sessions.
 
 ### Usage in routes
 
-Import the session facade via `#session`. It is bound to the session store you
+Import the session facade via `@/config/session`. It is bound to the session store you
 used in `config/session.ts`.
 
 ```ts
-import session from "#session";
+import session from "@/config/session";
 import route from "primate/route";
 
 export default route({
@@ -149,7 +149,7 @@ Primate validates data passed to `create` and `set` using the provided session
 store.
 
 ```ts
-import db from "#db";
+import db from "@/config/db";
 import p from "pema";
 import store from "primate/store";
 
@@ -165,7 +165,7 @@ export default store({
 ```
 
 ```ts
-import session from "#session";
+import session from "@/config/session";
 import route from "primate/route";
 
 export default route({

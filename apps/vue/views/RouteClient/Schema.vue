@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import route from "#route/route-client/schema";
+import route from "@/routes/route-client/schema";
 
 const result = ref(null);
 const error = ref(null);

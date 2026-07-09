@@ -1,4 +1,4 @@
-import ViewPost from "#view/ViewPost";
+import ViewPost from "@/views/ViewPost";
 import assert from "@rcompat/assert";
 import p from "pema";
 import response from "primate/response";

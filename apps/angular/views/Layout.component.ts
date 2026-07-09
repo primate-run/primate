@@ -1,4 +1,4 @@
-import t from "#lib/i18n";
+import t from "@/lib/i18n";
 import { CommonModule } from "@angular/common";
 import type { TemplateRef } from "@angular/core";
 import { Component, Input, input } from "@angular/core";

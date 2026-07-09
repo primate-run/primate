@@ -1,4 +1,4 @@
-import route from "#route/route-client/blob";
+import route from "@/routes/route-client/blob";
 import { ChangeDetectorRef, Component, inject } from "@angular/core";
 
 @Component({

@@ -1,4 +1,4 @@
-import route from "#route/route-client/action-redirect";
+import route from "@/routes/route-client/action-redirect";
 import type { OnInit } from "@angular/core";
 import { Component } from "@angular/core";
 import client from "@primate/angular/client";

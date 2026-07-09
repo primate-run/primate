@@ -1,5 +1,5 @@
 <script setup>
-import route from "#route/route-client/multipart";
+import route from "@/routes/route-client/multipart";
 
 const body = new FormData();
 body.append("foo", "bar");

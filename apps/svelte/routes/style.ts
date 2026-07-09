@@ -1,4 +1,4 @@
-import Style from "#view/Style";
+import Style from "@/views/Style";
 import response from "primate/response";
 import route from "primate/route";
 

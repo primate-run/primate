@@ -1,5 +1,5 @@
 <script>
-  import route from "#route/route-client/multipart";
+  import route from "@/routes/route-client/multipart";
   let result = $state(null);
   async function send() {
     const body = new FormData();

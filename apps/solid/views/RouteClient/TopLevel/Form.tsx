@@ -1,4 +1,4 @@
-import route from "#route/route-client/form";
+import route from "@/routes/route-client/form";
 
 const response = await route.post({
   body: new URLSearchParams({ foo: "bar" }),

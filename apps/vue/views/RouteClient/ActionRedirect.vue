@@ -1,5 +1,5 @@
 <script setup>
-import route from "#route/route-client/action-redirect";
+import route from "@/routes/route-client/action-redirect";
 import client from "@primate/vue/client";
 
 const form = client.form(route.post);

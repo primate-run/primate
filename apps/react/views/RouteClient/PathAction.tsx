@@ -1,4 +1,4 @@
-import route from "#route/route-client/path-action/[name]";
+import route from "@/routes/route-client/path-action/[name]";
 import client from "@primate/react/client";
 
 export default function PathAction({ name }: { name: string }) {

@@ -1,5 +1,5 @@
-import app from "#app";
-import Guides from "#view/Guides";
+import app from "@/config/app";
+import Guides from "@/views/Guides";
 import response from "primate/response";
 import route from "primate/route";
 

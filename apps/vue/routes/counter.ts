@@ -1,4 +1,4 @@
-import Counter from "#store/Counter";
+import Counter from "@/stores/Counter";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";

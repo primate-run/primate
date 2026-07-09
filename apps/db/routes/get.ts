@@ -1,4 +1,4 @@
-import User from "#store/User";
+import User from "@/stores/User";
 import route from "primate/route";
 
 export default route({

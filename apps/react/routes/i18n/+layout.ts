@@ -1,4 +1,4 @@
-import I18NLayout from "#view/i18n/Layout";
+import I18NLayout from "@/views/i18n/Layout";
 import response from "primate/response";
 import route from "primate/route";
 

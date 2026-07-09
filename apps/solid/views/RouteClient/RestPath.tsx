@@ -1,4 +1,4 @@
-import route from "#route/route-client/rest-path/[...name]";
+import route from "@/routes/route-client/rest-path/[...name]";
 import { createSignal } from "solid-js";
 
 export default function Path(props: { name: string }) {

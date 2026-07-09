@@ -1,5 +1,5 @@
 <script lang="ts">
-  import route from "#route/route-client/rest-path/[...name]";
+  import route from "@/routes/route-client/rest-path/[...name]";
   let result = $state(null);
   const { name } = $props();
 

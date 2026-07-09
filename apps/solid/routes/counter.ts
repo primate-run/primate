@@ -1,5 +1,5 @@
-import Counter from "#store/Counter";
-import CounterView from "#view/Counter";
+import Counter from "@/stores/Counter";
+import CounterView from "@/views/Counter";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";

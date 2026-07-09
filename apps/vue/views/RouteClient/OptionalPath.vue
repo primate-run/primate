@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import route from "#route/route-client/optional-path/[[name]]";
+import route from "@/routes/route-client/optional-path/[[name]]";
 import { ref } from "vue";
 
 const result = ref(null);

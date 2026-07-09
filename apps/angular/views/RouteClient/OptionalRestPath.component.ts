@@ -1,4 +1,4 @@
-import route from "#route/route-client/optional-rest-path/[[...name]]";
+import route from "@/routes/route-client/optional-rest-path/[[...name]]";
 import { Component, input, signal } from "@angular/core";
 
 @Component({

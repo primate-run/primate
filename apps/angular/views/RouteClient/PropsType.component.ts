@@ -1,4 +1,4 @@
-import type route from "#route/route-client/props-type";
+import type route from "@/routes/route-client/props-type";
 import { Component, input } from "@angular/core";
 
 type Props = typeof route.get.View;

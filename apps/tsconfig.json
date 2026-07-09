@@ -17,35 +17,8 @@
       "@primate/source"
     ],
     "paths": {
-      "#view/*": [
-        "views/*"
-      ],
-      "#route/*": [
-        "routes/*"
-      ],
-      "#lib/*": [
-        "lib/*"
-      ],
-      "#component/*": [
-        "components/*"
-      ],
-      "#store/*": [
-        "stores/*"
-      ],
-      "#locale/*": [
-        "locales/*"
-      ],
-      "#config/*": [
-        "config/*"
-      ],
-      "#static/*": [
-        "static/*"
-      ],
-      "#app": [
-        "config/app"
-      ],
-      "#session": [
-        "config/session"
+      "@/*": [
+        "*"
       ]
     }
   },

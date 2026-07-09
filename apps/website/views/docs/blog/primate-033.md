@@ -76,7 +76,7 @@ export default session({
 Now in your routes, session access is type-safe:
 
 ```ts
-import session from "#session";
+import session from "@/config/session";
 import route from "primate/route";
 
 export default route({
@@ -118,7 +118,7 @@ Configure i18n.
 ```ts
 // config/i18n.ts
 import i18n from "primate/config/i18n";
-import en from "#locale/en-US";
+import en from "@/locales/en-US";
 
 export default i18n({
   defaultLocale: "en-US",
@@ -189,7 +189,7 @@ Using the store in routes provides type safety:
 
 ```ts
 // routes/users.ts
-import User from "#store/User";
+import User from "@/stores/User";
 import route from "primate/route";
 import pema from "pema";
 import string from "pema/string";

@@ -1,4 +1,4 @@
-import Action from "#view/RouteClient/Action";
+import Action from "@/views/RouteClient/Action";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";

@@ -1,4 +1,4 @@
-import RedirectForm from "#view/RedirectForm";
+import RedirectForm from "@/views/RedirectForm";
 import p from "pema";
 import response from "primate/response";
 import route from "primate/route";

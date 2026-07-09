@@ -1,4 +1,4 @@
-import Props from "#view/Props";
+import Props from "@/views/Props";
 import response from "primate/response";
 import route from "primate/route";
 

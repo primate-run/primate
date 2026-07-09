@@ -1,5 +1,5 @@
-import app from "#app";
-import Index from "#view/Index";
+import app from "@/config/app";
+import Index from "@/views/Index";
 import type { Component } from "@primate/markdown";
 import response from "primate/response";
 import route from "primate/route";

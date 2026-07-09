@@ -1,5 +1,5 @@
 <script>
-  import route from "#route/route-client/schema";
+  import route from "@/routes/route-client/schema";
   let result = $state(null);
   let error = $state(null);
   async function send() {

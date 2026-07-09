@@ -40,9 +40,9 @@ Reside inside `config`. May be authored in Javascript or TypeScript.
 
 | File                                              | Purpose                   |
 | ------------------------------------------------- | ------------------------- |
-| [app.ts](/docs/configuration#app-ts)              | app options               |
-| [session.ts](/docs/configuration#session-ts)      | session shape and options |
-| [db/\*.ts](/docs/configuration#db-ts)             | database options          |
+| [app.ts](/docs/configuration@/config/app-ts)              | app options               |
+| [session.ts](/docs/configuration@/config/session-ts)      | session shape and options |
+| [db/\*.ts](/docs/configuration@/config/db-ts)             | database options          |
 
 ## Route files
 
@@ -109,8 +109,8 @@ May be authored in JavaScript or TypeScript.
 
 | File      | Purpose                                                    |
 | --------- | ---------------------------------------------------------- |
-| `User.ts` | ORM for `user` table (import with `#store/User` in routes) |
-| `Post.ts` | ORM for `post` table (import with `#store/Post` in routes) |
+| `User.ts` | ORM for `user` table (import with `@/stores/User` in routes) |
+| `Post.ts` | ORM for `post` table (import with `@/stores/Post` in routes) |
 
 ## Locale files
 
