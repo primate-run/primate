@@ -18,6 +18,7 @@ const write_bootstrap = async (app: BuildApp) => {
   const build_start_script = `
     import serve from "primate/serve";
     import views from "app:views";
+    import pages from "app:pages";
     import routes from "app:routes";
     import templates from "app:templates";
     import assets from "app:assets";
@@ -39,6 +40,7 @@ const write_bootstrap = async (app: BuildApp) => {
       facade,
       routes,
       views,
+      pages,
       templates,
       session: session_config,
       mode: "${app.mode}",
@@ -90,7 +92,7 @@ export default async function build_client(app: BuildApp) {
       ...user_entrypoints(app),
     },
     conditions: ["style", "browser", "default", "module", ...conditions],
-    resolveExtensions: [".ts", ".js", ...app.frontendExtensions],
+    resolveExtensions: [".ts", ".js", ...app.extensions("frontend", { client: true })],
     ...await tsconfig.exists() ? { tsconfig: tsconfig.path } : {},
     bundle: true,
     format: "esm",

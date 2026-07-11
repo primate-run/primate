@@ -1,3 +1,22 @@
 import eslint from "apekit/lint";
 
-export default eslint(import.meta.dirname);
+const route_pages = [
+  "apps/*/routes/*.tsx",
+  "apps/*/routes/*/*.tsx",
+  "apps/*/routes/*/*/*.tsx",
+  "apps/*/routes/*/*/*/*.tsx",
+];
+
+export default [
+  ...eslint(import.meta.dirname),
+  {
+    files: ["apps/*/routes/**/*.tsx"],
+    languageOptions: {
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: route_pages,
+        },
+      },
+    },
+  },
+];

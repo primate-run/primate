@@ -1,7 +1,7 @@
 import type route from "@/routes/route-client/props-type";
 import { Component, input } from "@angular/core";
 
-type Props = typeof route.get.View;
+type Props = typeof route.get.Page;
 
 @Component({
   template: `<span id="result">{{ message() }}</span>`,

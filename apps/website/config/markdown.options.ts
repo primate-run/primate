@@ -14,6 +14,7 @@ const sorting = [
   "Vue",
   "Svelte",
   "Solid",
+  "Marko",
   "TypeScript",
   "JavaScript",
   "Go",
@@ -145,7 +146,7 @@ export default {
     }
 
     let replaced = text;
-    let replacement = "";
+    let replacement: string;
 
     for (const { folder, fullMatch } of replacements) {
       const files = await (await runtime.projectRoot())

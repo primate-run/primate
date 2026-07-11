@@ -11,9 +11,10 @@ export default function plugin_client_frontend(app: BuildApp): Plugin {
       });
 
       build.onLoad({ filter: /app:frontends/ }, async () => {
-        const contents = [...app.frontends.keys()].map(name =>
+        const contents = [...app.frontends({ client: true }).entries()]
+          .map(([name]) =>
           `export { app as ${name} } from "@primate/${name}";`,
-        ).join("\n");
+          ).join("\n");
 
         return { contents, resolveDir: app.root.path };
       });

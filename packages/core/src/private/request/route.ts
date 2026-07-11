@@ -58,7 +58,7 @@ async function run(hooks: InternalHook[], request: RequestFacade): Promise<Route
 }
 
 export default async function(app: ServeApp, partial_request: RequestFacade) {
-  let errorRoute: RouteHandler | undefined;
+  let errorRoute: { handler: RouteHandler; path: string } | undefined;
 
   try {
     const route = await app.route(partial_request);
@@ -68,7 +68,7 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
       return response_error()(app, {}, partial_request) as Response;
     }
 
-    const { errors, hooks = [], layouts, handler, is_head } = route;
+    const { errors, hooks = [], layouts, handler, is_head, path } = route;
 
     errorRoute = errors[0];
 
@@ -82,7 +82,13 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
       route.request);
 
     const full = await respond(response)(app, {
-      layouts: await Promise.all(layouts.map(layout => layout(request))),
+      route: path,
+      layouts: await Promise.all(layouts.map(({ handler, path }) =>
+        Promise.resolve(handler(request)).then(response =>
+          typeof response === "function"
+            ? (app, transfer, request) => response(app, { ...transfer, route: path }, request)
+            : response,
+        ))),
     }, request) as Response;
 
     return is_head
@@ -103,7 +109,11 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
     app.log.error(error);
     // the +error.js page itself could fail
     try {
-      return respond(await errorRoute!(request))(app, {}, request) as Response;
+      return respond(await errorRoute!.handler(request))(
+        app,
+        { route: errorRoute!.path },
+        request,
+      ) as Response;
     } catch {
       return response_error()(app, {}, request) as Response;
     }

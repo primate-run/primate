@@ -57,7 +57,7 @@ export default async function build_server(app: BuildApp) {
       const require = __createRequire(import.meta.url);`,
     },
     nodePaths: [app.root.join("node_modules").path],
-    resolveExtensions: app.extensions,
+    resolveExtensions: app.extensions("bundler"),
     absWorkingDir: app.root.path,
     ...await tsconfig_json.exists() ? { tsconfig: tsconfig_json.path } : {},
     conditions: [

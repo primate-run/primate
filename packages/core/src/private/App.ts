@@ -42,7 +42,7 @@ export default class App {
     }
     this.#root = root;
     this.#config = config;
-    for (const module of config.modules) this.register(create(module));
+    for (const module of config.modules) this.module(create(module));
     this.#path = dict.map({
       ...location,
       build: "build",
@@ -70,7 +70,7 @@ export default class App {
     return this;
   }
 
-  register(created: Created) {
+  module(created: Created) {
     if (this.#module_names.has(created.name)) {
       throw E.app_duplicate_module(created.name);
     }

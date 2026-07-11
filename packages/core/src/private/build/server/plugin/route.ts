@@ -18,7 +18,7 @@ export default function plugin_server_route(app: BuildApp): Plugin {
       build.onLoad({ filter: /.*/, namespace: "primate-route" }, async args => {
         const relative = args.path;
         const base = path_routes.join(relative);
-        const extensions = app.extensions;
+        const extensions = app.extensions("bundler");
         let file: FileRef | undefined;
         let extension: string | undefined;
         for (const e of extensions) {
@@ -34,11 +34,10 @@ export default function plugin_server_route(app: BuildApp): Plugin {
         }
         const resolveDir = file.directory.path;
         const watchFiles = [file.path];
-        const binder = app.binder(file);
-        if (!binder) return { contents: empty, loader: "js", resolveDir, watchFiles };
-        const compiled = await binder(file, {
+        const loader = app.load(file);
+        if (!loader) return { contents: empty, loader: "js", resolveDir, watchFiles };
+        const compiled = await loader.onLoad(file, {
           build: { id: app.id },
-          context: "routes",
         });
         return {
           contents: compiled,

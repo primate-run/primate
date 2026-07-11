@@ -14,6 +14,7 @@ type ServeInit = {
     static: Dict<{ mime: string; data: string }>;
   };
   views?: [string, Import][];
+  pages?: [string, string][];
   facade: AppFacade;
   routes: [string, { default: any }][];
   mode: Mode;

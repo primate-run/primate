@@ -26,9 +26,24 @@ class TestApp extends BuildApp {
       outdir: "build",
       log: "warn",
     });
-    this.bind(".component.ts", () => "");
-    this.bind(".vue", () => "");
-    this.bind(".svelte", () => "");
+    this.register("angular", {
+      type: "frontend",
+      extensions: [".component.ts"],
+      client: true,
+      onLoad: () => "",
+    });
+    this.register("vue", {
+      type: "frontend",
+      extensions: [".vue"],
+      client: true,
+      onLoad: () => "",
+    });
+    this.register("svelte", {
+      type: "frontend",
+      extensions: [".svelte"],
+      client: true,
+      onLoad: () => "",
+    });
   }
 }
 

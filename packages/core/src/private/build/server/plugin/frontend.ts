@@ -3,21 +3,21 @@ import fs from "@rcompat/fs";
 import type { Plugin } from "esbuild";
 
 export default function plugin_server_frontend(app: BuildApp): Plugin {
+  const frontend_extensions = app.extensions("frontend");
   const filter = new RegExp(
-    `(${app.frontendExtensions.map(e => e.replace(".", "\\.")).join("|")})$`,
+    `(${frontend_extensions.map(e => e.replace(".", "\\.")).join("|")})$`,
   );
   return {
     name: "primate/server/frontend",
     setup(build) {
-      if (app.frontendExtensions.length === 0) return;
+      if (frontend_extensions.length === 0) return;
       build.onLoad({ filter, namespace: "file" }, async args => {
         const file = fs.ref(args.path);
-        const binder = app.binder(file);
-        if (!binder) return null;
+        const loader = app.load(file);
+        if (!loader) return null;
 
-        const contents = await binder(file, {
+        const contents = await loader.onLoad(file, {
           build: { id: app.id },
-          context: "views",
         });
 
         return { contents, loader: "js", resolveDir: file.directory.path };

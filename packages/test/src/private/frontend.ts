@@ -153,6 +153,23 @@ function frontend(dirname: string) {
     }
   });
 
+  test.case("response.page renders collocated route page", async assert => {
+    const frontend_name = dirname.split("/").at(-2);
+    await using tab = await browser.open();
+    await tab.goto("/route-client/props-type");
+    csr && await tab.waitfor(() => tab.get("#result").exists());
+    assert(tab.get("#result").text()).equals(frontend_name);
+  });
+
+  test.case("response.page renders collocated layout page", async assert => {
+    const frontend_name = dirname.split("/").at(-2);
+    await using tab = await browser.open();
+    await tab.goto("/route-client/page-layout");
+    csr && await tab.waitfor(() => tab.get("#result").exists());
+    assert(tab.get("#layout-page").text()).equals(frontend_name);
+    assert(tab.get("#result").text()).equals(frontend_name);
+  });
+
   if (csr) {
     test.case("route client action form succeeds", async assert => {
       await using tab = await browser.open();

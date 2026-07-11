@@ -1,5 +1,4 @@
 import app from "@/config/app";
-import Static from "@/views/Static";
 import type { Component } from "@primate/markdown";
 import response from "primate/response";
 import route from "primate/route";
@@ -14,12 +13,10 @@ export default route({
 
     if (markdown) return response.text(md);
 
-    const props = {
+    return response.page({
       content: html,
       path: "/" + request.url.pathname.slice("/docs/".length),
       toc,
-    };
-
-    return response.view(Static, props);
+    });
   },
 });

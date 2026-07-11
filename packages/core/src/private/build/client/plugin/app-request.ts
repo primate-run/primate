@@ -6,8 +6,9 @@ export default function plugin_client_request(app: BuildApp): Plugin {
     name: "primate/client/app/request",
     setup(build) {
       build.onResolve({ filter: /^app:request$/ }, ({ importer }) => {
-        const frontend = [...app.frontends.entries()]
-          .find(([, exts]) => exts.some(ext => importer.endsWith(ext)));
+        const frontend = [...app.frontends().entries()]
+          .find(([, { extensions }]) =>
+            extensions.some(ext => importer.endsWith(ext)));
         return frontend !== undefined
           ? { namespace: "request", path: frontend[0] }
           : undefined;

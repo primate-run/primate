@@ -13,12 +13,12 @@ export default function plugin_client_route_module(app: BuildApp): Plugin {
 
       build.onLoad({ filter: /.*/, namespace: "primate-route" }, async args => {
         const base = app.path.routes.join(args.path);
-        for (const ext of app.extensions) {
+        for (const ext of app.extensions("bundler")) {
           const candidate = fs.ref(base.path + ext);
           if (await candidate.exists()) {
-            const binder = app.binder(candidate);
-            const contents = binder
-              ? await binder(candidate, { build: { id: app.id }, context: "routes" })
+            const loader = app.load(candidate);
+            const contents = loader
+              ? await loader.onLoad(candidate, { build: { id: app.id } })
               : await candidate.text();
             return {
               contents,

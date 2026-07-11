@@ -8,9 +8,6 @@ type RouteOptions = {
   contentType?: MIMEValue;
   body?: Parsed<unknown>;
   path?: ObjectType;
-  responses?: {
-    view?: Parsed<unknown>;
-  };
 };
 
 export type { RouteOptions as default };

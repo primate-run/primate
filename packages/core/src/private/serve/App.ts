@@ -137,6 +137,7 @@ export default class ServeApp extends App {
   #init: ServeInit;
   #server?: Server;
   #views: Bag;
+  #pages: Dict<string> = {};
   #csp: CSP = {};
   #assets: Asset[] = [];
   #serve_assets: {
@@ -170,6 +171,7 @@ export default class ServeApp extends App {
         return is.undefined(extension) ? name : f.slice(0, -extension.length);
       },
     );
+    this.#pages = Object.fromEntries(init.pages ?? []);
     this.#serve_assets = init.assets;
     this.#templates = init.templates;
 
@@ -193,19 +195,19 @@ export default class ServeApp extends App {
       },
     }, init.routes.map(s => s[0]));
 
-    if (init.mode === "development") this.register(dev_module());
+    if (init.mode === "development") this.module(dev_module());
 
     const assets = this.serve_assets.bind(this);
     const bound_route = (request: RequestFacade) => route(this, request);
 
     if (init.session !== undefined) {
-      this.register(session_module(init.session));
+      this.module(session_module(init.session));
     }
 
     const i18n_config = init.facade[s_config].i18n;
-    if (i18n_config !== undefined) this.register(i18n_module(i18n_config));
+    if (i18n_config !== undefined) this.module(i18n_module(i18n_config));
 
-    this.register(create({
+    this.module(create({
       name: "builtin/handle",
       setup({ onHandle }) {
         onHandle(async request => {
@@ -339,6 +341,12 @@ export default class ServeApp extends App {
   template(name?: string) {
     const template_name = name ?? location.app_html;
     return this.#templates[template_name];
+  }
+
+  page(route: string) {
+    const key = this.#pages[route];
+    if (is.undefined(key)) throw E.response_page_missing(route);
+    return key;
   }
 
   async #try_serve(ref: FileRef) {
@@ -481,13 +489,13 @@ export default class ServeApp extends App {
     const method = request.method.toLowerCase() as Method;
     const specials = matched.specials;
     const errors = (specials.error ?? [])
-      .map(v => router.get(v)[method]?.handler)
-      .filter(Boolean)
-      .toReversed() as RouteHandler[];
+      .map(v => ({ handler: router.get(v)[method]?.handler, path: v }))
+      .filter(({ handler }) => Boolean(handler))
+      .toReversed() as { handler: RouteHandler; path: string }[];
     const layouts = (specials.layout ?? [])
-      .map(v => router.get(v)[method]?.handler)
-      .filter(Boolean)
-      .toReversed() as RouteHandler[];
+      .map(v => ({ handler: router.get(v)[method]?.handler, path: v }))
+      .filter(({ handler }) => Boolean(handler))
+      .toReversed() as { handler: RouteHandler; path: string }[];
     const hooks = (specials.hook ?? [])
       .toReversed()
       .flatMap(v => router.getHooks(v));
@@ -528,6 +536,6 @@ export default class ServeApp extends App {
         : {}),
     });
 
-    return { errors, hooks, layouts, handler, request: refined, is_head };
+    return { errors, hooks, layouts, handler, request: refined, is_head, path: matched.path };
   }
 }

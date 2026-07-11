@@ -1,0 +1,7 @@
+import type route from "./[id]";
+
+export interface Input {
+  id: typeof route.get.Page["id"];
+}
+
+<h1>Post ${input.id}</h1>

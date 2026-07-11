@@ -6,8 +6,6 @@ import hook from "#route/hook";
 import type RouteOptions from "#route/Options";
 import type { Method } from "@rcompat/http";
 import is from "@rcompat/is";
-import type { MaybePromise, UndefinedToOptional, Unpack } from "@rcompat/type";
-import type { Parsed } from "pema";
 
 const BRAND = Symbol("route.with");
 
@@ -17,29 +15,30 @@ type WithResult<O extends RouteOptions> = {
   options: O;
 };
 
+type Page<R> = Awaited<R> extends ResponseFunction<infer Props> ? Props : never;
+
 type AnyHandler = RouteHandler | WithResult<RouteOptions>;
 type RouteHandlers = {
   [key in Method]?: AnyHandler;
 };
 
-type RouteOptionsWithoutResponses = Omit<RouteOptions, "responses"> & {
-  responses?: never;
-};
-
-type View<O extends RouteOptions> =
-  O extends { responses: { view: infer S extends Parsed<unknown> } }
-  ? UndefinedToOptional<Unpack<S["infer"]>>
-  : never;
-
 type RouteMethod<O extends RouteOptions> = {
   handler: (request: NarrowedRequest<O>) => unknown;
   options: O;
-  View: View<O>;
+  Page: never;
+};
+
+type RouteMethodWithResult<O extends RouteOptions, R> = Omit<RouteMethod<O>, "Page"> & {
+  Page: Page<R>;
 };
 
 type Routes<R extends RouteHandlers> = {
   [K in keyof R]: R[K] extends WithResult<infer O extends RouteOptions>
-  ? RouteMethod<O>
+  ? R[K] extends { handler: (...args: any[]) => infer Result }
+  ? RouteMethodWithResult<O, Result>
+  : RouteMethod<O>
+  : R[K] extends (...args: any[]) => infer Result
+  ? RouteMethodWithResult<{}, Result>
   : RouteMethod<{}>;
 };
 
@@ -58,25 +57,15 @@ function route<R extends RouteHandlers>(handlers: R): Routes<R> {
   ) as Routes<R>;
 }
 
-function with_route<O extends RouteOptions & { responses: { view: Parsed<unknown> } }>(
-  options: O,
-  handler: (request: NarrowedRequest<O>) => MaybePromise<ResponseFunction<View<O>>>,
-): WithResult<O>;
-function with_route<O extends RouteOptionsWithoutResponses>(
+route.with = function <O extends RouteOptions>(
   options: O,
   handler: RouteHandler<O>,
-): WithResult<O>;
-function with_route<O extends RouteOptions>(
-  options: O,
-  handler: RouteHandler<O> | ((request: NarrowedRequest<O>) => unknown),
 ): WithResult<O> {
   if (options.body !== undefined && options.contentType === undefined) {
     throw E.build_body_requires_content_type();
   }
   return { [BRAND]: true, handler, options };
-}
-
-route.with = with_route;
+};
 
 route.hook = hook;
 

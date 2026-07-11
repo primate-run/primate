@@ -1,6 +1,7 @@
 import binary from "#response/binary";
 import error from "#response/error";
 import json from "#response/json";
+import page from "#response/page";
 import redirect from "#response/redirect";
 import sse from "#response/sse";
 import text from "#response/text";
@@ -12,6 +13,7 @@ const response = {
   binary,
   error,
   json,
+  page,
   redirect,
   sse,
   text,

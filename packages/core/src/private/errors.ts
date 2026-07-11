@@ -59,6 +59,9 @@ function build_reserved_entrypoints(
   conflicts: string[]) {
   return t`entrypoint name(s) reserved: ${conflicts.map(n => `"${n}"`).join(", ")}`;
 }
+function build_duplicate_route_page(route: string) {
+  return t`multiple pages found for route ${route}`;
+}
 
 const BUILD = error.coded({
   build_missing_binary_addon,
@@ -70,6 +73,7 @@ const BUILD = error.coded({
   build_unrecognized_loader,
   build_path_schema_mismatch,
   build_reserved_entrypoints,
+  build_duplicate_route_page,
 });
 
 function config_file_missing() {
@@ -137,9 +141,17 @@ const REQUEST = error.coded({
 function response_invalid_body(body: string) {
   return t`invalid body ${body} returned from route`;
 }
+function response_page_context_missing() {
+  return t`${"response.page"} requires a route context`;
+}
+function response_page_missing(route: string) {
+  return t`no page found for route ${route}`;
+}
 
 const RESPONSE = error.coded({
   response_invalid_body,
+  response_page_context_missing,
+  response_page_missing,
 });
 
 function hook_route_functions_not_allowed(file: string) {

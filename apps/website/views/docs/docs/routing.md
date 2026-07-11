@@ -202,6 +202,11 @@ depending on your frontend.
 
 [s=routing/layouts/frontend]
 
+Layouts may also render a collocated frontend component with `response.page`.
+For example, `routes/+layout.ts` can render `routes/+layout.tsx`,
+`routes/+layout.svelte`, `routes/+layout.vue`, or any other configured frontend
+extension.
+
 !!!
 **Composition order**: the innermost layout (closest to the route) renders
 first; each parent layout wraps it.

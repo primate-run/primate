@@ -1,7 +1,8 @@
 ---
-title: Primate 0.40: Store enums, YYY and ZZZ
+title: Primate 0.40: Collocated route pages, store enums and ZZZ
 epoch: 1782915308000
 author: terrablue
+published: false
 ---
 
 Today we're announcing the availability of the Primate 0.40 preview release.
@@ -10,6 +11,50 @@ Today we're announcing the availability of the Primate 0.40 preview release.
 If you're new to Primate, we recommend reading the [quickstart] page to get
 started.
 !!!
+
+## Collocated route pages
+
+Primate 0.40 adds collocated route pages. Instead of importing a component from
+`views` and passing it to `response.view`, a route can render the frontend file
+next to it with `response.page`.
+
+[s=blog/0.40/route-page/route]
+
+The frontend file has the same basename as the route, only a different
+extension.
+
+[s=blog/0.40/route-page/component]
+
+The route stays responsible for data loading, validation, redirects and status
+codes; the page stays responsible for rendering.
+
+### Typed props without declarations
+
+The component examples above use `typeof route.get.Page` for their props. That
+type comes from `response.page(...)`, so the route response is the source of
+truth and there's no separate interface to keep in sync.
+
+### Layout pages
+
+Layouts can be collocated too.
+
+```ts
+// routes/admin/+layout.ts
+export default route({
+  get() {
+    return response.page({ section: "Admin" });
+  },
+});
+```
+
+As with normal routes, add a component alongside the layout with the same
+basename.
+
+[s=blog/0.40/layout-page/component]
+
+The matching layout page receives those props plus its children. This keeps
+route-specific UI close to the route while preserving the existing `views`
+directory for shared components and explicitly named views.
 
 ## Store enums
 
@@ -88,59 +133,11 @@ request-validation types. The same declaration that validates your API input now
 also defines how the value lives in your table — one source of truth, end to
 end.
 
-## YYY
-
-TODO.
-
 ## ZZZ
 
 TODO.
 
 ## Minor improvements
-
-### Typed view responses
-
-Routes can now declare the props shape they pass to `response.view` using
-`responses.view`. The declared schema is exposed on route clients as
-`route.method.View`, so views can derive their props from the route that renders
-them without duplicating the type.
-
-```ts
-// routes/post.ts
-import View from "@/views/Post";
-import p from "pema";
-import response from "primate/response";
-import route from "primate/route";
-
-export default route({
-  get: route.with({
-    responses: {
-      view: p({
-        title: p.string,
-        excerpt: p.string.optional(),
-      }),
-    },
-  }, () => {
-    return response.view(View, { title: "Hello Primate" });
-  }),
-});
-```
-
-```tsx
-// views/Post.tsx
-import type route from "@/routes/post";
-
-export default function Post(props: typeof route.get.View) {
-  return <h1>{props.title}</h1>;
-}
-```
-
-The schema is also used to check the props passed to `response.view` in the
-route handler. Optional Pema fields become optional TypeScript props, so a
-schema like `p.string.optional()` allows the prop to be omitted entirely.
-
-This works across the tier-one frontends: React, Svelte, Vue, Solid, Angular
-and Marko.
 
 ### App imports move to `@/`
 
@@ -176,8 +173,8 @@ This replaces app-level imports like `#app`, `#db`, `#lib/*`, `#view/*`,
 ### HTML templates move to `templates`
 
 Primate's HTML shell files now live in `templates` instead of `pages`. This
-frees up the term "page" for route-collocated page views while making the
-existing concept clearer: these files are document templates, not route pages.
+frees up the term "page" for collocated route pages while making the existing
+concept clearer: these files are document templates, not route pages.
 
 ```txt
 templates/app.html

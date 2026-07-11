@@ -10,6 +10,11 @@ export default function plugin_client_view(app: BuildApp): Plugin {
         const name = args.path.slice("view:".length);
         return { path: app.root.join(location.views, name).path };
       });
+
+      build.onResolve({ filter: /^page:/ }, args => {
+        const name = args.path.slice("page:".length);
+        return { path: app.root.join(location.routes, name).path };
+      });
     },
   };
 }

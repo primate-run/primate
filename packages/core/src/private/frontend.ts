@@ -245,17 +245,19 @@ export default function frontend_module<
           const compile_server = init.compile?.server;
           const compile_client = init.compile?.client;
 
-          // prebuild
-          extensions.forEach(e => {
-            app.bind(e, async (file, { context }) => {
-              if (context === "views" && !build_ssr) return "";
+          app.register(module_name, {
+            type: "frontend",
+            extensions: [...extensions],
+            client: init.client,
+            async onLoad(file) {
+              if (!build_ssr) return "";
               // production: just compile to JS, don't bundle yet
               if (compile_server !== undefined) {
                 return await compile_server(await file.text(), file);
               }
 
               return await file.text();
-            });
+            },
           });
 
           // build
@@ -268,7 +270,6 @@ export default function frontend_module<
           // publish
           if (compile_client !== undefined) {
             if (init.client) {
-              app.frontends.set(module_name, [...extensions]);
               conditions.forEach(c => app.conditions.add(c));
             }
 
@@ -309,12 +310,17 @@ export default function frontend_module<
 
                 const views_filter = new RegExp(`^${module_name}:views`);
                 const views_base = app.root.join(location.views);
+                const pages_base = app.root.join(location.routes);
 
                 build.onResolve({ filter: views_filter }, ({ path }) => {
                   return { namespace: `${module_name}`, path };
                 });
                 build.onLoad({ filter: views_filter }, async () => {
                   const views = await views_base.files({
+                    recursive: true,
+                    filter: c => extensions.includes(c.fullExtension),
+                  });
+                  const pages = await pages_base.files({
                     recursive: true,
                     filter: c => extensions.includes(c.fullExtension),
                   });
@@ -325,11 +331,17 @@ export default function frontend_module<
                     contents += `export { default as ${await normalize(path)} }
                       from "view:${path}";\n`;
                   }
+                  for (const page of pages) {
+                    const { path } = page.debase(pages_base, "/");
+
+                    contents += `export { default as ${await normalize(`$page/${path}`)} }
+                      from "page:${path}";\n`;
+                  }
                   return {
                     contents,
                     resolveDir: app.root.path,
-                    watchDirs: [views_base.path],
-                    watchFiles: views.map(view => view.path),
+                    watchDirs: [views_base.path, pages_base.path],
+                    watchFiles: views.map(view => view.path).concat(pages.map(page => page.path)),
                   };
                 });
 
@@ -370,4 +382,3 @@ export default function frontend_module<
     };
   };
 }
-

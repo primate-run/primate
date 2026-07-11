@@ -8,14 +8,17 @@ function is_hook_file(p: string) {
 }
 
 function plugin_server_virtual_routes(app: BuildApp): Plugin {
+  const route_extensions = app.extensions("backend");
+  const frontend_extensions = app.extensions("frontend");
   const extension_pattern = new RegExp(
-    `(${app.extensions.map(e => e.replace(".", "\\.")).join("|")})$`,
+    `(${route_extensions.map(e => e.replace(".", "\\.")).join("|")})$`,
   );
 
   function is_route_file(f: FileInfo) {
     return !f.name.endsWith("~") &&
       !f.name.startsWith(".") &&
       !f.name.startsWith("-") &&
+      !frontend_extensions.some(ext => f.path.endsWith(ext)) &&
       extension_pattern.test(f.path);
   }
 

@@ -3,7 +3,6 @@ import type { Input } from "#module";
 import module from "#module";
 import type { BuildApp, Module } from "@primate/core";
 import server from "@primate/core/server";
-import assert from "@rcompat/assert";
 import env from "@rcompat/env";
 import { CodeError } from "@rcompat/error";
 import type { FileRef } from "@rcompat/fs";
@@ -83,31 +82,32 @@ export default function default_module(input: Input = {}): Module {
     setup({ onBuild }) {
       onBuild(async app => {
         await check_version(app);
+        app.register(module.name, {
+          type: "backend",
+          extensions: [extension],
+          async onLoad(route) {
+            const relative = route.debase(app.path.routes);
+            const route_id = relative.path.slice(1, -relative.extension.length);
 
-        app.bind(extension, async (route, { context }) => {
-          assert.true(context === "routes", E.only_route_files());
+            const build_file = app.runpath("wasm", `${route_id}.go`);
+            await build_file.directory.create();
+            await build_file.write(postlude(app, await route.text(), route_id));
 
-          const relative = route.debase(app.path.routes);
-          const route_id = relative.path.slice(1, -relative.extension.length);
+            const wasm = app.runpath("wasm", `${route_id}.wasm`);
+            try {
+              app.log.info`compiling ${(route.debase(app.root))} to WebAssembly`;
+              await io.run(run(wasm, build_file), {
+                cwd: build_file.directory.path,
+                env: ENV,
+              });
+            } catch (error) {
+              throw E.backend_error(route, error as Error);
+            }
 
-          const build_file = app.runpath("wasm", `${route_id}.go`);
-          await build_file.directory.create();
-          await build_file.write(postlude(app, await route.text(), route_id));
+            await build_file.remove();
 
-          const wasm = app.runpath("wasm", `${route_id}.wasm`);
-          try {
-            app.log.info`compiling ${(route.debase(app.root))} to WebAssembly`;
-            await io.run(run(wasm, build_file), {
-              cwd: build_file.directory.path,
-              env: ENV,
-            });
-          } catch (error) {
-            throw E.backend_error(route, error as Error);
-          }
-
-          await build_file.remove();
-
-          return wrap(route_id);
+            return wrap(route_id);
+          },
         });
       });
     },

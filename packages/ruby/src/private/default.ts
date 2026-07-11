@@ -3,7 +3,6 @@ import type { Input } from "#module";
 import module from "#module";
 import type { BuildApp, Module } from "@primate/core";
 import server from "@primate/core/server";
-import assert from "@rcompat/assert";
 import type { FileRef } from "@rcompat/fs";
 import http from "@rcompat/http";
 import io from "@rcompat/io";
@@ -64,19 +63,21 @@ export default function default_module(input: Input = {}): Module {
       onBuild(async app => {
         await check_version(app);
 
-        app.bind(extension, async (file, { context }) => {
-          assert.true(context === "routes", E.only_route_files());
+        app.register(module.name, {
+          type: "backend",
+          extensions: [extension],
+          async onLoad(file) {
+            const source = await file.text();
+            const routes = detect_routes(source);
+            if (routes.length === 0) throw E.no_routes_detected(file);
+            app.log.info`found routes in ${file}: ${routes.join(", ")}`;
 
-          const source = await file.text();
-          const routes = detect_routes(source);
-          if (routes.length === 0) throw E.no_routes_detected(file);
-          app.log.info`found routes in ${file}: ${routes.join(", ")}`;
+            const id = file.debase(app.path.routes).path
+              .replace(/^\//, "")
+              .replace(/\.rb$/, "");
 
-          const id = file.debase(app.path.routes).path
-            .replace(/^\//, "")
-            .replace(/\.rb$/, "");
-
-          return wrap(source, id, app.root);
+            return wrap(source, id, app.root);
+          },
         });
       });
     },

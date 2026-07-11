@@ -25,7 +25,11 @@ async function pre(app: BuildApp) {
   await app.runpath(location.client).create();
   const stamp = app.runpath("client", "server-stamp.js");
   await stamp.write("export default 0;\n");
-  const router = await $router(app.path.routes, app.extensions);
+  const router = await $router(
+    app.path.routes,
+    app.extensions("backend"),
+    app.extensions("frontend"),
+  );
   app.set(s_layout_depth, router.depth("layout"));
   const session_ts = app.path.config.join("session.ts");
   const session_js = app.path.config.join("session.js");

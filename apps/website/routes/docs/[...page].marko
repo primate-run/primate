@@ -1,0 +1,13 @@
+import Static from "@/components/Static";
+
+export interface Input {
+  content: string;
+  toc: Array<{
+    depth: number;
+    slug: string;
+    text: string;
+  }>;
+  path: string;
+}
+
+<Static ...input/>

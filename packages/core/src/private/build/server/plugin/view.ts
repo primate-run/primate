@@ -48,23 +48,31 @@ export default function plugin_server_view(app: BuildApp): Plugin {
       build.onResolve({ filter: /^view:/ }, async args => {
         const name = args.path.slice("view:".length);
 
-        for (const ext of app.extensions) {
+        for (const ext of app.extensions("bundler")) {
           const file = app.path.views.join(`${name}${ext}`);
           if (await file.exists()) {
-            return { path: file.path, namespace: "primate-view-original" };
+            return { path: file.path, namespace: "primate-component-source" };
           }
         }
 
         return null;
       });
 
-      build.onLoad({ filter: /.*/, namespace: "primate-view-original" }, async args => {
+      build.onResolve({ filter: /^page:/ }, async args => {
+        const name = args.path.slice("page:".length);
+        const file = app.path.routes.join(name);
+        if (await file.exists()) {
+          return { path: file.path, namespace: "primate-component-source" };
+        }
+        return null;
+      });
+
+      build.onLoad({ filter: /.*/, namespace: "primate-component-source" }, async args => {
         const file = fs.ref(args.path);
-        const binder = app.binder(file);
-        if (binder === undefined) return null;
-        const contents = await binder(file, {
+        const loader = app.load(file);
+        if (loader === undefined) return null;
+        const contents = await loader.onLoad(file, {
           build: { id: app.id },
-          context: "views",
         });
 
         return { contents, loader: "js", resolveDir: file.directory.path };

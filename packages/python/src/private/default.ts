@@ -3,7 +3,6 @@ import type { Input } from "#module";
 import module from "#module";
 import type { BuildApp, Module } from "@primate/core";
 import server from "@primate/core/server";
-import assert from "@rcompat/assert";
 import fs from "@rcompat/fs";
 import io from "@rcompat/io";
 
@@ -80,13 +79,15 @@ export default function default_module(input: Input = {}): Module {
         }
         const packages_str = JSON.stringify(packages);
 
-        app.bind(extension, async (file, { context }) => {
-          assert.true(context === "routes", E.only_route_files());
+        app.register(module.name, {
+          type: "backend",
+          extensions: [extension],
+          async onLoad(file) {
+            const relative = file.debase(app.path.routes).path.replace(/^\//, "");
+            const source = await file.text();
 
-          const relative = file.debase(app.path.routes).path.replace(/^\//, "");
-          const source = await file.text();
-
-          return wrap(source, relative, packages_str, `${PACKAGE}~=${server.TAG}.0`);
+            return wrap(source, relative, packages_str, `${PACKAGE}~=${server.TAG}.0`);
+          },
         });
       });
     },

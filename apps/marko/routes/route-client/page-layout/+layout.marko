@@ -1,0 +1,11 @@
+import type route from "./+layout";
+
+export interface Input {
+  content: Marko.Body;
+  layout: typeof route.get.Page["layout"];
+}
+
+<section>
+  <span id="layout-page">${input.layout}</span>
+  <${input.content}/>
+</section>

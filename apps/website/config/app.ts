@@ -22,7 +22,7 @@ export default config({
   modules: [
     html(),
     marko(),
-    website(),
+    website,
     markdown(markdown_options),
   ],
 });

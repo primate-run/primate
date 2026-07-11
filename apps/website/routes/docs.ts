@@ -7,12 +7,10 @@ export default route({
   get(request) {
     const { html, toc } = app.views.get<Component>("docs/docs/index.md");
 
-    const props = {
+    return response.page({
       content: html,
       path: "/" + request.url.pathname.slice("/docs/".length),
       toc,
-    };
-
-    return response.view("Static.marko", props);
+    });
   },
 });

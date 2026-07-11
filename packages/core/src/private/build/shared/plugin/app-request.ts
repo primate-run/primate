@@ -7,8 +7,8 @@ export default function plugin_shared_app_request(app: BuildApp): Plugin {
     setup(build) {
       build.onResolve({ filter: /^app:/ }, ({ path, importer }) => {
         const framework = path.slice(4);
-        const exts = app.frontends.get(framework);
-        return exts?.some(ext => importer.endsWith(ext))
+        const frontend = app.frontends().get(framework);
+        return frontend?.extensions.some(ext => importer.endsWith(ext))
           ? { namespace: "app-frontend", path: framework }
           : undefined;
       });

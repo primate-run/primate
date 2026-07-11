@@ -10,7 +10,10 @@ const blog_base = "https://primate.run/blog";
 export default route({
   async get() {
     const blog_posts = app.views.entries()
-      .filter(([a]) => a.startsWith(base))
+      .filter(([a, b]) => {
+        const { meta } = b as { meta: { published?: boolean } };
+        return a.startsWith(base) && meta.published !== false;
+      })
       .map(([a, b]) => {
         const { meta } = b as { meta: { title: string } };
         return {
@@ -21,12 +24,11 @@ export default route({
       });
     ;
 
-    const props = { description, entries: blog_posts };
-    const options = {
+    return response.page({
+      description, entries: blog_posts,
+    }, {
       headers: { "Content-Type": http.MIME.APPLICATION_XML },
       partial: true,
-    };
-
-    return response.view("blog.rss.html", props, options);
+    });
   },
 });

@@ -1,5 +1,4 @@
 import app from "@/config/app";
-import Blog from "@/views/Blog";
 import type { Component } from "@primate/markdown";
 import response from "primate/response";
 import route from "primate/route";
@@ -10,6 +9,7 @@ type Post = {
   meta: {
     epoch: number;
     href: string;
+    published?: boolean;
   };
 } & Component;
 
@@ -30,6 +30,7 @@ export default route({
         href: postPath.slice(base.length + 1),
         ...app.views.get<Post>(`${postPath}.md`),
       };
+      if (post.meta.published === false) return acc;
       acc.push({
         href: post.href,
         meta: post.meta,
@@ -38,6 +39,6 @@ export default route({
       return acc;
     }, []).toSorted((a, b) => (a.meta.epoch < b.meta.epoch ? 1 : -1));
 
-    return response.view(Blog, { posts });
+    return response.page({ posts });
   },
 });

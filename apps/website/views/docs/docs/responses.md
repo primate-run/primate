@@ -15,6 +15,7 @@ aspects of the response.
 |`Blob`·`File`·`FileRef`|[binary](#binary)|`200 application/octet-stream`|Stream contents|
 |`URL`|[redirect](#redirect)|`302`|Redirect to URL|
 |—|[view](#view)|`200 text/html`|Serve frontend component|
+|—|[page](#page)|`200 text/html`|Serve collocated route page|
 |—|[error](#error)|`404 text/html`|Show error page|
 |—|[ws](#websocket)|`101`|WebSocket upgrade|
 |—|[sse](#server-sent-events)|`200 text/event-stream`|Server‑sent events|
@@ -102,6 +103,24 @@ HTML template.
 [s=responses/view/partial]
 
 This is useful for replacing parts of the page whilst retaining the HTML template.
+
+## Page
+Render a frontend component collocated with the current route using
+`response.page`. This keeps the route handler and its page component next to each
+other.
+
+[s=responses/page/simple]
+
+The matching component uses the same basename as the route and a frontend
+extension.
+
+[s=responses/page/component]
+
+`response.page` accepts the same props and view options as `response.view`.
+
+Layouts can use `response.page` too. A `+layout.ts` route looks for a collocated
+`+layout` component, such as `+layout.tsx`, `+layout.svelte`, or
+`+layout.vue`.
 
 ## Error
 Serve a `404 Not Found` error page as `text/html`.
