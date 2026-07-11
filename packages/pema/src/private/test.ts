@@ -1,5 +1,6 @@
 import type IssueType from "#IssueType";
 import ParseError from "#ParseError";
+import is from "@rcompat/is";
 import test from "@rcompat/test";
 import type { JSONPointer } from "@rcompat/type";
 
@@ -36,7 +37,7 @@ export default test.extend((assert, subject: Parseable) => {
         if (ParseError.is(e)) {
           const issue = e.issues[0];
           assert(issue.type).equals(type);
-          if (path !== undefined) assert(issue.path).equals(path);
+          if (is.defined(path)) assert(issue.path).equals(path);
         } else {
           throw e;
         }
@@ -62,10 +63,10 @@ export default test.extend((assert, subject: Parseable) => {
           assert(e.issues.length).equals(matchers.length);
           for (let i = 0; i < matchers.length; i++) {
             assert(e.issues[i].type).equals(matchers[i].type);
-            if (matchers[i].path !== undefined) {
+            if (is.defined(matchers[i].path)) {
               assert(e.issues[i].path).equals(matchers[i].path);
             }
-            if (matchers[i].message !== undefined) {
+            if (is.defined(matchers[i].message)) {
               assert(e.issues[i].message).equals(matchers[i].message);
             }
           }

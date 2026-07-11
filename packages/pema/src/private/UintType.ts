@@ -22,7 +22,7 @@ export default class UintType<
   * Value is a non-privileged port number (1000 - 65535).
   */
   port() {
-    return this.derive({ validators: [port] });
+    return this.with({ validators: [port] });
   }
 
   parse(u: unknown, options: ParseOptions<number> = {}) {

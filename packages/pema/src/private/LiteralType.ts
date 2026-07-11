@@ -2,11 +2,11 @@ import DefaultType from "#DefaultType";
 import GenericType from "#GenericType";
 import type Infer from "#Infer";
 import Loose from "#Loose";
+import type Mode from "#Mode";
 import OptionalType from "#OptionalType";
 import type ParseOptions from "#ParseOptions";
 import E from "#errors";
 import resolve from "#resolve";
-import type Mode from "#Mode";
 
 type Literal = string | boolean | number;
 

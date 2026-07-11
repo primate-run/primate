@@ -47,7 +47,7 @@ export default class TupleType<
 
     if (!is.array(x)) throw E.invalid_type(x, "array", options);
 
-    const $options = this[Loose] !== undefined
+    const $options = is.defined(this[Loose])
       ? { ...options, [Loose]: this[Loose] }
       : options;
 

@@ -9,18 +9,16 @@ const INT = /^[+-]?\d+$/;
 
 function epoch(n: number, digits?: number): Date | undefined {
   // for strings we use digit-count to choose s vs ms.
-  // for numbers we ALWAYS treat as ms (no digits provided)
-  const ms = digits !== undefined
-    ? (digits >= 13 ? n : n * 1000)
-    : n;
-
+  // for numbers we always treat as ms (no digits provided)
+  const ms = is.defined(digits) ? (digits >= 13 ? n : n * 1000) : n;
   const date = new Date(ms);
+
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
 function fromNumber(n: number) {
   const date = epoch(n);
-  return date !== undefined ? date : n;
+  return is.defined(date) ? date : n;
 }
 
 function fromString(raw: string) {

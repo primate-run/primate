@@ -63,7 +63,7 @@ export default class ArrayType<
     return new DefaultType(this, value);
   }
 
-  derive(_next: Next<Array<Infer<T>>>): this {
+  with(_next: Next<Array<Infer<T>>>): this {
     const Constructor = this.constructor as Newable<this>;
     return new Constructor(
       this.#item,
@@ -84,30 +84,30 @@ export default class ArrayType<
     if (!isPrimitive(this.#item)) {
       throw S.unique_subtype_not_primitive(this.#item.name);
     }
-    return this.derive({ validators: [unique] });
+    return this.with({ validators: [unique] });
   }
 
   uniqueBy<K>(select: (value: Infer<T>) => K) {
-    return this.derive({ validators: [uniqueBy(select)] });
+    return this.with({ validators: [uniqueBy(select)] });
   }
 
   min(limit: number) {
     if (limit < 0) throw S.min_negative(limit);
-    return this.derive({ validators: [min(limit)] });
+    return this.with({ validators: [min(limit)] });
   }
 
   max(limit: number) {
     if (limit < 0) throw S.max_negative(limit);
-    return this.derive({ validators: [max(limit)] });
+    return this.with({ validators: [max(limit)] });
   }
 
   length(from: number, to: number) {
-    return this.derive({ validators: [length(from, to)] });
+    return this.with({ validators: [length(from, to)] });
   }
 
   parse(u: unknown, options: ParseOptions = {}): Infer<this> {
     const x = resolve(u);
-    const $options = this[Loose] !== undefined
+    const $options = is.defined(this[Loose])
       ? { ...options, [Loose]: this[Loose] }
       : options;
 

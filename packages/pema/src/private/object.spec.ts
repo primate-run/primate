@@ -35,6 +35,17 @@ test.case("object", assert => {
   assert(s1.parse(o1)).equals(o1).type<O1>();
 });
 
+test.case("derive", assert => {
+  const full_name = p.object({
+    first: p.string,
+    last: p.string,
+  }).derive(value => `${value.first} ${value.last}`);
+
+  assert(full_name.parse({ first: "John", last: "Adams" }))
+    .equals("John Adams")
+    .type<string>();
+});
+
 test.case("loose", assert => {
   const s = p.loose.object({
     name: p.string,

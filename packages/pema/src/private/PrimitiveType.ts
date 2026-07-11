@@ -8,6 +8,7 @@ import type ParseOptions from "#ParseOptions";
 import resolve from "#resolve";
 import Type from "#Type";
 import type Validator from "#Validator";
+import is from "@rcompat/is";
 import type { JSONPointer, Newable } from "@rcompat/type";
 
 type Next<T> = {
@@ -37,7 +38,7 @@ export default abstract class PrimitiveType<StaticType, Name extends string>
     return this.#validators;
   }
 
-  derive(next: Next<StaticType>): this {
+  with(next: Next<StaticType>): this {
     const Constructor = this.constructor as Newable<this>;
     return new Constructor(
       [...this.#validators, ...next.validators ?? []],
@@ -49,7 +50,7 @@ export default abstract class PrimitiveType<StaticType, Name extends string>
     const x = resolve(u);
 
     // hotpath: avoid object spread when possible
-    const has_instance_options = this.#options[ParsedKey] !== undefined;
+    const has_instance_options = is.defined(this.#options[ParsedKey]);
     const $options = has_instance_options
       ? { ...this.#options, ...options }
       : options;

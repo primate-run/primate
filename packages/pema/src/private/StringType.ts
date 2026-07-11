@@ -23,37 +23,37 @@ export default class StringType
   }
 
   isotime() {
-    return this.derive({ validators: [isotime] });
+    return this.with({ validators: [isotime] });
   }
 
   regex(pattern: RegExp) {
-    return this.derive({ validators: [regex(pattern)] });
+    return this.with({ validators: [regex(pattern)] });
   }
 
   email() {
-    return this.derive({ validators: [email] });
+    return this.with({ validators: [email] });
   }
 
   startsWith(prefix: string) {
-    return this.derive({ validators: [starts_with(prefix)] });
+    return this.with({ validators: [starts_with(prefix)] });
   }
 
   endsWith(suffix: string) {
-    return this.derive({ validators: [ends_with(suffix)] });
+    return this.with({ validators: [ends_with(suffix)] });
   }
 
   min(limit: number) {
     if (limit < 0) throw E.min_negative(limit);
-    return this.derive({ validators: [min(limit)] });
+    return this.with({ validators: [min(limit)] });
   }
 
   max(limit: number) {
     if (limit < 0) throw E.max_negative(limit);
-    return this.derive({ validators: [max(limit)] });
+    return this.with({ validators: [max(limit)] });
   }
 
   length(from: number, to: number) {
-    return this.derive({ validators: [length(from, to)] });
+    return this.with({ validators: [length(from, to)] });
   }
 
   toJSON() {

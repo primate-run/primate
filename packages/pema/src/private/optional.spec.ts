@@ -6,6 +6,7 @@ import optional from "#optional";
 import type OptionalType from "#OptionalType";
 import type StringType from "#StringType";
 import test from "#test";
+import is from "@rcompat/is";
 
 const b = optional(p.boolean);
 
@@ -14,6 +15,13 @@ test.case("empty", assert => {
 
   const e = b.parse(undefined);
   assert<typeof e>(e).equals(undefined).type<boolean | undefined>();
+});
+
+test.case("derive", assert => {
+  const present = p.string.optional().derive(is.defined);
+
+  assert(present.parse(undefined)).equals(false).type<boolean>();
+  assert(present.parse("hello")).equals(true);
 });
 
 test.case("object", assert => {

@@ -66,6 +66,12 @@ test.case("flat", assert => {
   assert(string).invalid_type([[...as, ...an]], "/1");
 });
 
+test.case("derive", assert => {
+  const count = p.array(p.string).derive(value => value.length);
+
+  assert(count.parse(["a", "b", "c"])).equals(3).type<number>();
+});
+
 test.case("loose", assert => {
   const loose_boolean = p.loose.array(p.boolean);
   const loose_bigint = p.loose.array(p.bigint);

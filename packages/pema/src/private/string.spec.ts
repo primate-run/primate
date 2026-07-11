@@ -14,6 +14,20 @@ test.case("pass", assert => {
   assert(p.string.parse("test")).equals("test").type<string>();
 });
 
+test.case("derive", assert => {
+  const length = p.string.derive(value => value.length);
+
+  assert(length.parse("hello")).equals(5).type<number>();
+});
+
+test.case("derive: async function returns unresolved promise", async assert => {
+  const schema = p.string.derive(async value => value.length);
+  const result = schema.parse("hello");
+
+  assert(result instanceof Promise).true();
+  assert(await result).equals(5).type<number>();
+});
+
 test.case("loose", assert => {
   assert(p.loose.string.parse("foo")).equals("foo").type<string>();
 });
@@ -26,6 +40,9 @@ test.case("default", assert => {
     assert(d.parse("bar")).equals("bar").type<string>();
     assert(d).invalid_type([1]);
   });
+
+  const length = p.string.default("foo").derive(value => value.length);
+  assert(length.parse(undefined)).equals(3).type<number>();
 });
 
 test.case("optional", assert => {
@@ -77,6 +94,9 @@ test.case("validator: min", assert => {
   assert(min.parse("hello")).equals("hello").type<string>();
   assert(min.parse("universe")).equals("universe").type<string>();
   assert(min).too_small(["hi"]);
+
+  const trimmed = min.derive(value => value.trim());
+  assert(trimmed.parse(" hello ")).equals("hello").type<string>();
 });
 test.case("validator: max", assert => {
   assert(() => p.string.max(-10)).throws(Code.max_negative);

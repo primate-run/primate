@@ -14,8 +14,8 @@ import type { Dict } from "@rcompat/type";
 
 export default function normalize<const T extends Schema>(x: T): NormalizeSchema<T> {
   if (is_parsed(x)) return x as never;
-  if (x === null) return new NullType() as never;
-  if (x === undefined) return new UndefinedType() as never;
+  if (is.null(x)) return new NullType() as never;
+  if (is.undefined(x)) return new UndefinedType() as never;
 
   if (is.string(x) || is.number(x) || is.boolean(x))
     return new LiteralType(x) as never;

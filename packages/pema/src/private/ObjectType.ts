@@ -87,7 +87,7 @@ export default class ObjectType<
 
   parse(u: unknown, options: ParseOptions = {}): Infer<this> {
     const x = resolve(u);
-    const $options = this[Loose] !== undefined
+    const $options = is.defined(this[Loose])
       ? { ...this.#options, ...options, [Loose]: this[Loose] }
       : { ...this.#options, ...options };
 
@@ -97,7 +97,7 @@ export default class ObjectType<
     const out: Dict = {};
     for (const k in this.#properties) {
       const parsed = this.#properties[k].parse(input[k], next(k, $options));
-      if (parsed !== undefined) out[k] = parsed;
+      if (is.defined(parsed)) out[k] = parsed;
     }
     return out as never;
   }

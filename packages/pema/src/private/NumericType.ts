@@ -37,7 +37,7 @@ export default abstract class NumericType<
     this[Loose] = mode as M;
   }
 
-  derive(next: Next<T>): this {
+  with(next: Next<T>): this {
     const Constructor = this.constructor as Newable<this>;
     return new Constructor(
       this.#datatype,
@@ -48,19 +48,19 @@ export default abstract class NumericType<
   }
 
   values(anyof: Dict<T>) {
-    return this.derive({ validators: [values(anyof)] });
+    return this.with({ validators: [values(anyof)] });
   }
 
   range(from: T, to: T) {
-    return this.derive({ validators: [range(from, to)] });
+    return this.with({ validators: [range(from, to)] });
   }
 
   min(from: T) {
-    return this.derive({ validators: [min(from)] });
+    return this.with({ validators: [min(from)] });
   }
 
   max(to: T) {
-    return this.derive({ validators: [max(to)] });
+    return this.with({ validators: [max(to)] });
   }
 
   get datatype() {

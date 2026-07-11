@@ -57,11 +57,11 @@ export default class PartialType<
 
     for (const key of Object.keys(this.#spec)) {
       // skip missing/undefined keys (partial semantics)
-      if (!(key in input) || input[key] === undefined) continue;
+      if (!(key in input) || is.undefined(input[key])) continue;
 
       try {
         const parsed = this.#spec[key].parse(input[key], next(key, options));
-        if (parsed !== undefined) out[key] = parsed;
+        if (is.defined(parsed)) out[key] = parsed;
       } catch (e) {
         if (ParseError.is(e)) {
           // child already rebased to /<key> via nextOptions -> just collect

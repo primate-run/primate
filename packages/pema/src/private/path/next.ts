@@ -1,10 +1,13 @@
 import ParsedKey from "#ParsedKey";
 import type ParseOptions from "#ParseOptions";
 import join from "#path/join";
+import is from "@rcompat/is";
 
-export default function next(s: number | string, options?: ParseOptions): ParseOptions {
+function next(s: number | string, options?: ParseOptions): ParseOptions {
   const base = options?.[ParsedKey] ?? "";
-  return options === undefined
+  return is.undefined(options)
     ? { [ParsedKey]: join("", String(s)) }
     : { ...options, [ParsedKey]: join(base, String(s)) };
 }
+
+export default next;

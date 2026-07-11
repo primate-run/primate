@@ -49,12 +49,10 @@ export default class OmitType<
 
     for (const k in props) {
       const field = props[k];
-      const r = field.parse((x as any)[k], {
+      const parsed = field.parse(x[k], {
         ...options, [ParsedKey]: join(options[ParsedKey] ?? "", String(k)),
       });
-      if (r !== undefined) {
-        out[k] = r;
-      }
+      if (is.defined(parsed)) out[k] = parsed;
     }
     return out as never;
   }

@@ -46,10 +46,8 @@ export default class JSONType<S extends JSONInput = undefined>
   parse(u: unknown, options: ParseOptions = {}): Infer<this> {
     const x = resolve(u);
 
-    if (this.#inner !== undefined) {
-      // delegate to inner schema for typed validation
-      return this.#inner.parse(x, options) as never;
-    }
+    // delegate to inner schema for typed validation
+    if (is.defined(this.#inner)) return this.#inner.parse(x, options) as never;
 
     if (!is.json(x)) throw E.invalid_type(x, "json", options);
 
@@ -60,7 +58,7 @@ export default class JSONType<S extends JSONInput = undefined>
     return {
       type: "json" as const,
       datatype: "json" as const,
-      ...(this.#inner !== undefined && { of: this.#inner.toJSON() }),
+      ...is.defined(this.#inner) && { of: this.#inner.toJSON() },
     } as { type: "json"; datatype: "json"; of?: Serialized };
   }
 }

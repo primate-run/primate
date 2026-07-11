@@ -30,7 +30,7 @@ export default class StoreType<S extends StoreSchema> extends ObjectType<S> {
     for (const k in this.properties) {
       if (k === this.#pk && !(k in input)) continue;
       const parsed = this.properties[k].parse(input[k], next(k, $options));
-      if (parsed !== undefined) out[k] = parsed;
+      if (is.defined(parsed)) out[k] = parsed;
     }
     return out as never;
   }
