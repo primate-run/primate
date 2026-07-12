@@ -10,7 +10,7 @@ const json_response = response<unknown>(http.MIME.APPLICATION_JSON, JSON.stringi
  * @param options response options
  * @return Response rendering function
  */
-export default function json<const T>(
+export default function json<T>(
   body: T,
   init?: ResponseInit,
 ): ResponseFunction<never, T> {
