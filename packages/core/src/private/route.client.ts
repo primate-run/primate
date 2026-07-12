@@ -7,14 +7,14 @@ import type RouteOptions from "#route/Options";
 import is from "@rcompat/is";
 import type { Dict, Unpack } from "@rcompat/type";
 
-type InferSchema<S> = S extends { infer: infer I } ? Awaited<I> : never;
+type InputSchema<S> = S extends { input: infer I } ? I : never;
 
 type Body<O extends RouteOptions> =
   O extends {
     contentType: infer _CT extends keyof ContentTypeMap;
     body: infer S;
   }
-  ? Unpack<InferSchema<S>>
+  ? Unpack<InputSchema<S>>
   : O extends {
     contentType: infer CT extends keyof ContentTypeMap;
   }
@@ -23,7 +23,7 @@ type Body<O extends RouteOptions> =
 
 type Path<O extends RouteOptions> =
   O extends { path: infer S }
-  ? Unpack<InferSchema<S>>
+  ? Unpack<InputSchema<S>>
   : never;
 
 type MethodMeta = {
