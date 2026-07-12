@@ -103,17 +103,105 @@ function schema<const S extends Schema>(s: S): NormalizeSchema<S> {
   return normalize(s);
 }
 
-function loose<const S extends Schema>(s: S): NormalizeSchema<S> {
+const loose = Object.assign(function loose<const S extends Schema>(s: S): NormalizeSchema<S> {
   const i = normalize(s);
   i[Loose] = true;
   return i;
-}
+}, {
+  array: array.loose,
+  bigint: bigint.loose,
+  biguint: biguint.loose,
+  blob: blob.loose,
+  boolean: boolean.loose,
+  constructor: constructor.loose,
+  date: date.loose,
+  dict: dict.loose,
+  enum: enum$.loose,
+  f32: f32.loose,
+  f64: f64.loose,
+  file: file.loose,
+  function: function$.loose,
+  i128: i128.loose,
+  i16: i16.loose,
+  i32: i32.loose,
+  i64: i64.loose,
+  i8: i8.loose,
+  int: int.loose,
+  is: is.loose,
+  json: json.loose,
+  literal: literal.loose,
+  null: null$.loose,
+  number: number.loose,
+  object: object.loose,
+  omit: omit.loose,
+  record: record.loose,
+  partial: partial.loose,
+  pure: pure.loose,
+  string: string.loose,
+  symbol: symbol.loose,
+  tuple: tuple.loose,
+  u128: u128.loose,
+  u16: u16.loose,
+  u32: u32.loose,
+  u64: u64.loose,
+  u8: u8.loose,
+  uint: uint.loose,
+  undefined: undefined$.loose,
+  union: union.loose,
+  unknown: unknown.loose,
+  url: url.loose,
+  uuid: uuid.loose,
+});
 
-function strict<const S extends Schema>(s: S): NormalizeSchema<S> {
+const strict = Object.assign(function strict<const S extends Schema>(s: S): NormalizeSchema<S> {
   const i = normalize(s);
   i[Loose] = false;
   return i;
-}
+}, {
+  array: array.strict,
+  bigint: bigint.strict,
+  biguint: biguint.strict,
+  blob: blob.strict,
+  boolean: boolean.strict,
+  constructor: constructor.strict,
+  date: date.strict,
+  dict: dict.strict,
+  enum: enum$.strict,
+  f32: f32.strict,
+  f64: f64.strict,
+  file: file.strict,
+  function: function$.strict,
+  i128: i128.strict,
+  i16: i16.strict,
+  i32: i32.strict,
+  i64: i64.strict,
+  i8: i8.strict,
+  int: int.strict,
+  is: is.strict,
+  json: json.strict,
+  literal: literal.strict,
+  null: null$.strict,
+  number: number.strict,
+  object: object.strict,
+  omit: omit.strict,
+  record: record.strict,
+  partial: partial.strict,
+  pure: pure.strict,
+  string: string.strict,
+  symbol: symbol.strict,
+  tuple: tuple.strict,
+  u128: u128.strict,
+  u16: u16.strict,
+  u32: u32.strict,
+  u64: u64.strict,
+  u8: u8.strict,
+  uint: uint.strict,
+  undefined: undefined$.strict,
+  union: union.strict,
+  unknown: unknown.strict,
+  url: url.strict,
+  uuid: uuid.strict,
+});
 
 schema.array = array.vanilla;
 schema.async = async_schema;
@@ -160,94 +248,6 @@ schema.unknown = unknown.vanilla;
 schema.url = url.vanilla;
 schema.uuid = uuid.vanilla;
 schema.error = E.field;
-
-loose.array = array.loose;
-loose.bigint = bigint.loose;
-loose.biguint = biguint.loose;
-loose.blob = blob.loose;
-loose.boolean = boolean.loose;
-loose.constructor = constructor.loose;
-loose.date = date.loose;
-loose.dict = dict.loose;
-loose.enum = enum$.loose;
-loose.f32 = f32.loose;
-loose.f64 = f64.loose;
-loose.file = file.loose;
-loose.function = function$.loose;
-loose.i128 = i128.loose;
-loose.i16 = i16.loose;
-loose.i32 = i32.loose;
-loose.i64 = i64.loose;
-loose.i8 = i8.loose;
-loose.int = int.loose;
-loose.is = is.loose;
-loose.json = json.loose;
-loose.literal = literal.loose;
-loose.null = null$.loose;
-loose.number = number.loose;
-loose.object = object.loose;
-loose.omit = omit.loose;
-loose.record = record.loose;
-loose.partial = partial.loose;
-loose.pure = pure.loose;
-loose.string = string.loose;
-loose.symbol = symbol.loose;
-loose.tuple = tuple.loose;
-loose.u128 = u128.loose;
-loose.u16 = u16.loose;
-loose.u32 = u32.loose;
-loose.u64 = u64.loose;
-loose.u8 = u8.loose;
-loose.uint = uint.loose;
-loose.undefined = undefined$.loose;
-loose.union = union.loose;
-loose.unknown = unknown.loose;
-loose.url = url.loose;
-loose.uuid = uuid.loose;
-
-strict.array = array.strict;
-strict.bigint = bigint.strict;
-strict.biguint = biguint.strict;
-strict.blob = blob.strict;
-strict.boolean = boolean.strict;
-strict.constructor = constructor.strict;
-strict.date = date.strict;
-strict.dict = dict.strict;
-strict.enum = enum$.strict;
-strict.f32 = f32.strict;
-strict.f64 = f64.strict;
-strict.file = file.strict;
-strict.function = function$.strict;
-strict.i128 = i128.strict;
-strict.i16 = i16.strict;
-strict.i32 = i32.strict;
-strict.i64 = i64.strict;
-strict.i8 = i8.strict;
-strict.int = int.strict;
-strict.is = is.strict;
-strict.json = json.strict;
-strict.literal = literal.strict;
-strict.null = null$.strict;
-strict.number = number.strict;
-strict.object = object.strict;
-strict.omit = omit.strict;
-strict.record = record.strict;
-strict.partial = partial.strict;
-strict.pure = pure.strict;
-strict.string = string.strict;
-strict.symbol = symbol.strict;
-strict.tuple = tuple.strict;
-strict.u128 = u128.strict;
-strict.u16 = u16.strict;
-strict.u32 = u32.strict;
-strict.u64 = u64.strict;
-strict.u8 = u8.strict;
-strict.uint = uint.strict;
-strict.undefined = undefined$.strict;
-strict.union = union.strict;
-strict.unknown = unknown.strict;
-strict.url = url.strict;
-strict.uuid = uuid.strict;
 
 schema.loose = loose;
 schema.strict = strict;

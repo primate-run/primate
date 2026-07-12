@@ -9,6 +9,7 @@ import type PartialType from "#PartialType";
 import type StringType from "#StringType";
 import test from "#test";
 import type TupleType from "#TupleType";
+import type UintType from "#UintType";
 import type UndefinedType from "#UndefinedType";
 import type { EmptyDict } from "@rcompat/type";
 
@@ -229,6 +230,10 @@ test.case("loose", assert => {
     assert(type).type<ExpectSchema>();
     assert(type).invalid_type([invalid], "/scores/0");
   }
+
+  assert(p.loose.u8).type<UintType<"u8", true>>();
+  assert(p.loose.u8.parse("7")).equals(7).type<number>();
+  assert(p.strict.u8).type<UintType<"u8", false>>();
 });
 
 test.case("deep shorthand loose", assert => {
