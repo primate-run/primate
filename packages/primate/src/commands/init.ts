@@ -359,10 +359,6 @@ function compute_packages(args: {
     for (const extra of extras) deps.add(extra);
   }
 
-  if (args.frontends.includes("svelte")) {
-    dev_deps.add("@plsp/svelte");
-  }
-
   // backends → @primate/<token>
   for (const b of args.backends) deps.add(`@primate/${b}`);
 
@@ -423,7 +419,6 @@ function build_install_command(runtime: Runtime, packages: {
 
 async function tsconfig_json(root: FileRef, opts: { frontends: Frontend[] }) {
   const is_react = opts.frontends.includes("react");
-  const is_svelte = opts.frontends.includes("svelte");
   const ts_config: any = {
     extends: "primate/tsconfig",
     compilerOptions: {
@@ -446,7 +441,6 @@ async function tsconfig_json(root: FileRef, opts: { frontends: Frontend[] }) {
     exclude: ["node_modules"],
   };
   if (is_react) ts_config.compilerOptions.jsx = "react-jsx";
-  if (is_svelte) ts_config.compilerOptions.plugins = [{ name: "@plsp/svelte" }];
 
   await root.join("tsconfig.json").writeJSON(ts_config);
 }

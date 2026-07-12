@@ -30,7 +30,7 @@
     "autoprefixer": "^10.5.1",
     "esbuild": "^0.28.1",
     "pema": "workspace:^",
-    "postcss": "^8.5.15"
+    "postcss": "^8.5.17"
   },
   "peerDependencies": {
     "primate": "workspace:^",

@@ -9,11 +9,6 @@
     },
     "types": [
       "primate"
-    ],
-    "plugins": [
-      {
-        "name": "@plsp/svelte"
-      }
     ]
   },
   "include": [
