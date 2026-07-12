@@ -11,15 +11,16 @@ import is from "@rcompat/is";
 import type { UnknownFunction } from "@rcompat/type";
 
 type ReadonlyFunctions = ReadonlyArray<UnknownFunction>;
+type UnknownResponseFunction = ResponseFunction<unknown, unknown>;
 
 type MatchResult<T extends ReadonlyFunctions> = {
   [K in keyof T]:
   readonly [
     T[K],
     T[K] extends (arg: unknown) => arg is infer R ?
-    (arg: R) => ResponseFunction :
+    (arg: R) => UnknownResponseFunction :
     T[K] extends (arg: unknown) => boolean ?
-    (arg: unknown) => ResponseFunction :
+    (arg: unknown) => UnknownResponseFunction :
     (...args: unknown[]) => unknown,
   ]
 };
@@ -38,11 +39,11 @@ const guesses = match([
   [is.string, text],
 ]);
 
-function guess(value: unknown): ResponseFunction | void {
+function guess(value: unknown): UnknownResponseFunction | void {
   const found = guesses.find(([_if]) => _if(value))?.[1](value as never);
   if (found === undefined) throw E.response_invalid_body(`${value}`);
   return found;
 };
 
-export default (result: ResponseLike): ResponseFunction =>
-  typeof result === "function" ? result : guess(result) as ResponseFunction;
+export default (result: ResponseLike): UnknownResponseFunction =>
+  typeof result === "function" ? result : guess(result) as UnknownResponseFunction;

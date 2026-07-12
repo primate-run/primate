@@ -35,11 +35,11 @@ type RequestMeta = {
 };
 
 type Page<R> = Awaited<R> extends infer Result
-  ? Result extends ResponseFunction<infer Props> ? Props : never
+  ? Result extends ResponseFunction<infer Props, unknown> ? Props : never
   : never;
 
 type ClientResult<R> = Awaited<R> extends infer Result
-  ? Result extends ResponseFunction ? never : Result
+  ? Result extends ResponseFunction<unknown, infer Payload> ? Payload : Result
   : never;
 
 type ClientMethod<O extends RouteOptions, R = unknown> = MethodMeta & {
