@@ -1,8 +1,8 @@
 ---
-title: Primate 0.40: Collocated route pages, store enums and async schemas
+title: Primate 0.40: Route pages, store enums, async schemas and events
 epoch: 1782915308000
 author: terrablue
-published: false
+published: true
 ---
 
 Today we're announcing the availability of the Primate 0.40 preview release.
@@ -344,10 +344,6 @@ production. You can copy the contents of `build` to your deployment server and
 run your app with Node, Deno or Bun. If you're crossbuilding, consider also
 setting `--target=node`, `--target=deno` or `--target=bun`; see
 [Crossbuilding][crossbuilding] in the Primate 0.39 release notes.
-
-## Breaking changes
-
-TODO.
 
 ## Fin
 
