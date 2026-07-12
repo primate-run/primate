@@ -152,6 +152,23 @@ Push out events to the client as `text/event-stream`.
 
 [s=responses/sse]
 
+`response.sse` receives a setup function. Return a cleanup function to stop
+timers, unsubscribe from event channels, or release any other resources when the
+client disconnects.
+
+```ts
+return response.sse(source => {
+  const timer = setInterval(() => {
+    source.send("tick", Date.now());
+  }, 1000);
+
+  return () => clearInterval(timer);
+});
+```
+
+For app-level pub/sub, use [`primate/events`](/docs/events) and return the
+unsubscribe function from the SSE setup.
+
 ## Response
 
 Return a custom `Response`.

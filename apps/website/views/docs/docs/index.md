@@ -56,6 +56,7 @@ ships with official packages under the `@primate` namespace. These extend the
 core with common capabilities:
 
 * [Databases and ORMs](/docs/stores)
+* [Events](/docs/events)
 * [Session management](/docs/sessions)
 * [Internationalization (i18n)](/docs/i18n)
 * [Native app builds (desktop)](/docs/target/native)

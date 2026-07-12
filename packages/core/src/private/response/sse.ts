@@ -1,19 +1,21 @@
 import response from "#response";
 import http from "@rcompat/http";
 
-type Body = {
-  close?(): undefined;
-  open(events: { send(name: string, data: unknown): undefined }): undefined;
-};
+type Source = { send(name: string, data: unknown): void };
+type Cleanup = void | (() => void);
+type Body = (source: Source) => Cleanup;
 
 const encode = (input: string) => new TextEncoder().encode(input);
 
-const handle = (body: Body) => new ReadableStream({
+const handle = (body: Body) => {
+  let cleanup: Cleanup;
+
+  return new ReadableStream({
   cancel() {
-    body.close?.();
+    cleanup?.();
   },
   start(controller) {
-    body.open({
+    cleanup = body({
       send(name, data) {
         const event = data === undefined ? "" : `event: ${name}\n`;
         const _data = JSON.stringify(data === undefined ? name : data);
@@ -21,7 +23,8 @@ const handle = (body: Body) => new ReadableStream({
       },
     });
   },
-});
+  });
+};
 
 /**
  * Open a server-sent event stream

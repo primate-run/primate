@@ -34,3 +34,9 @@ You can serve this page from **any** route. We'll use `/` for brevity.
 Expose `/sse` and periodically send events.
 
 [s=guides/responses/stream-events-with-sse/sse]
+
+The function passed to `response.sse` runs when the stream starts. Return a
+cleanup function to clear timers or unsubscribe from event channels when the
+client disconnects.
+
+For keyed in-memory pub/sub, see [`primate/events`](/docs/events).

@@ -128,11 +128,6 @@ by hand.
 `Account.Status.nameOf(account.status)` gets you `"CONFIRMED"` back when you
 need the name, not just the number.
 
-This is what we mean when we say Pema types should be database-aware, not just
-request-validation types. The same declaration that validates your API input now
-also defines how the value lives in your table — one source of truth, end to
-end.
-
 ## Derived and async schemas
 
 Pema schemas can now derive a parsed value into a different value. Use
@@ -212,6 +207,59 @@ export default route({
 Use regular `.derive(...)` for synchronous transformations. Reach for
 `p.async(...)` when the schema has to await I/O, lookup data, or perform another
 async normalization step before the handler sees the value.
+
+## Events and simpler SSE cleanup
+
+`response.sse` now uses a single setup function instead of separate `open` and
+`close` callbacks. Return a cleanup function to stop timers or unsubscribe when
+the browser disconnects.
+
+```ts
+import response from "primate/response";
+import route from "primate/route";
+
+export default route({
+  get() {
+    return response.sse(source => {
+      const timer = setInterval(() => {
+        source.send("tick", Date.now());
+      }, 1000);
+
+      return () => clearInterval(timer);
+    });
+  },
+});
+```
+
+Primate 0.40 also adds `primate/events`, a tiny in-memory channel helper for the
+common `Map<Key, Set<Listener>>` pattern.
+
+```ts
+// services/DeploymentEvents.ts
+import events from "primate/events";
+
+type DeploymentEvent = {
+  type: "step";
+  key: number;
+  status: "running" | "done" | "error";
+};
+
+export default events.channel<number, DeploymentEvent>();
+```
+
+Emit with a key, subscribe with the same key, and return the unsubscribe function
+from `response.sse`.
+
+```ts
+return response.sse(source => {
+  return DeploymentEvents.subscribe(deployment.id, event => {
+    source.send(event.type, event);
+  });
+});
+```
+
+Channels are intentionally local to one server process. They do not persist
+events or broadcast across multiple running instances.
 
 ## Minor improvements
 
