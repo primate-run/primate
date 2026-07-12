@@ -1,6 +1,6 @@
 {
   "name": "@primate/postgresql",
-  "version": "0.9.0-pre",
+  "version": "0.9.0",
   "description": "PostgreSQL for Primate",
   "homepage": "https://primate.run/docs/database/postgresql",
   "bugs": "https://github.com/primate-run/primate/issues",
