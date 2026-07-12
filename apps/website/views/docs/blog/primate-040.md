@@ -1,5 +1,5 @@
 ---
-title: Primate 0.40: Collocated route pages, store enums and ZZZ
+title: Primate 0.40: Collocated route pages, store enums and async schemas
 epoch: 1782915308000
 author: terrablue
 published: false
@@ -133,9 +133,85 @@ request-validation types. The same declaration that validates your API input now
 also defines how the value lives in your table — one source of truth, end to
 end.
 
-## ZZZ
+## Derived and async schemas
 
-TODO.
+Pema schemas can now derive a parsed value into a different value. Use
+`.derive(...)` when validation and transformation belong together.
+
+```ts
+import p from "pema";
+
+const FullName = p({
+  first: p.string,
+  last: p.string,
+}).derive(({ first, last }) => `${first} ${last}`);
+
+const name = FullName.parse({ first: "John", last: "Adams" });
+// name is "John Adams"
+```
+
+This works anywhere a Pema schema is accepted. For request bodies, the derived
+type flows into the route handler.
+
+```ts
+import p from "pema";
+import route from "primate/route";
+
+const Body = p({
+  name: p.string,
+}).derive(({ name }) => name.toUpperCase());
+
+export default route({
+  post: route.with(
+    { body: Body, contentType: "application/json" },
+    async request => {
+      const name = await request.body.json();
+      // name is string
+      return name;
+    },
+  ),
+});
+```
+
+Primate 0.40 also adds `p.async(...)` for object schemas that need async
+post-processing. Its `parse(...)` method always returns a promise, and async
+derives compose just like sync derives.
+
+```ts
+import p from "pema";
+
+const User = p.async({
+  id: p.string,
+}).derive(async ({ id }) => {
+  return await loadUser(id);
+});
+```
+
+Async schemas are supported in `route.with(...)` for bodies and path parameters.
+For path schemas, `p.async(...)` keeps the object shape visible so Primate can
+still check that route parameters and schema properties match at build time.
+
+```ts
+// routes/user/[id].ts
+import p from "pema";
+import route from "primate/route";
+
+const Path = p.async({
+  id: p.string,
+}).derive(async ({ id }) => ({
+  id: await resolveUserId(id),
+}));
+
+export default route({
+  get: route.with({ path: Path }, request => {
+    return request.path.get("id");
+  }),
+});
+```
+
+Use regular `.derive(...)` for synchronous transformations. Reach for
+`p.async(...)` when the schema has to await I/O, lookup data, or perform another
+async normalization step before the handler sees the value.
 
 ## Minor improvements
 

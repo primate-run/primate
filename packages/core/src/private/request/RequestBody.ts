@@ -3,7 +3,7 @@ import assert from "@rcompat/assert";
 import http from "@rcompat/http";
 import is from "@rcompat/is";
 import type { Dict, JSONValue } from "@rcompat/type";
-import type { Parsed } from "pema";
+import type { AsyncType, Parsed } from "pema";
 
 type Form = Dict<string>;
 type Files = Dict<File>;
@@ -12,7 +12,7 @@ type MIME = MIMES[keyof MIMES];
 
 type BodyOptions = {
   contentType: MIME;
-  schema: Parsed<unknown>;
+  schema: Parsed<unknown> | AsyncType;
 };
 
 const patched = Symbol("RequestBody.patch");
@@ -43,7 +43,7 @@ export default class RequestBody {
     this.#parse(http.MIME.APPLICATION_JSON);
     const raw = await this.#request.json();
     return this.#options?.contentType === http.MIME.APPLICATION_JSON
-      ? this.#options.schema.parse(raw) as JSONValue
+      ? await this.#options.schema.parse(raw) as JSONValue
       : raw;
   }
 
@@ -55,7 +55,7 @@ export default class RequestBody {
     }
     const raw = form;
     return this.#options?.contentType === http.MIME.APPLICATION_X_WWW_FORM_URLENCODED
-      ? this.#options.schema.parse(raw) as Form
+      ? await this.#options.schema.parse(raw) as Form
       : raw;
   }
 
@@ -72,7 +72,7 @@ export default class RequestBody {
     }
     const raw = { form, files };
     return this.#options?.contentType === http.MIME.MULTIPART_FORM_DATA
-      ? this.#options.schema.parse(raw) as { form: Form; files: Files }
+      ? await this.#options.schema.parse(raw) as { form: Form; files: Files }
       : raw;
   }
 
@@ -80,7 +80,7 @@ export default class RequestBody {
     this.#parse(http.MIME.TEXT_PLAIN);
     const raw = await this.#request.text();
     return this.#options?.contentType === http.MIME.TEXT_PLAIN
-      ? this.#options.schema.parse(raw) as string
+      ? await this.#options.schema.parse(raw) as string
       : raw;
   }
 
@@ -88,7 +88,7 @@ export default class RequestBody {
     this.#parse(http.MIME.APPLICATION_OCTET_STREAM);
     const raw = await this.#request.blob();
     return this.#options?.contentType === http.MIME.APPLICATION_OCTET_STREAM
-      ? this.#options.schema.parse(raw) as Blob
+      ? await this.#options.schema.parse(raw) as Blob
       : raw;
   }
 }

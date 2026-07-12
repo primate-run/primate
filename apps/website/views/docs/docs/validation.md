@@ -100,6 +100,126 @@ export default route({
 });
 ```
 
+You can also attach a body schema directly to the route. Primate validates the
+body before returning it from `request.body.json()`.
+
+```ts
+import p from "pema";
+import route from "primate/route";
+
+const CreateUser = p({
+  name: p.string,
+  age: p.uint.min(13),
+});
+
+export default route({
+  post: route.with(
+    { body: CreateUser, contentType: "application/json" },
+    async request => {
+      const user = await request.body.json();
+      return { id: 42, ...user };
+    },
+  ),
+});
+```
+
+## Derived values
+
+Use `.derive(...)` to transform a parsed value while keeping validation and
+normalization in one schema.
+
+```ts
+import p from "pema";
+
+const Name = p({
+  first: p.string,
+  last: p.string,
+}).derive(({ first, last }) => `${first} ${last}`);
+
+const name = Name.parse({ first: "John", last: "Adams" });
+// name is "John Adams"
+```
+
+Derived schemas work with route body schemas too.
+
+```ts
+import p from "pema";
+import route from "primate/route";
+
+const Body = p({
+  name: p.string,
+}).derive(({ name }) => name.toUpperCase());
+
+export default route({
+  post: route.with(
+    { body: Body, contentType: "application/json" },
+    async request => {
+      const name = await request.body.json();
+      return name;
+    },
+  ),
+});
+```
+
+## Async object schemas
+
+Use `p.async(...)` when an object schema needs async normalization. The schema
+parses the object first, then awaits any derived value.
+
+```ts
+import p from "pema";
+
+const User = p.async({
+  id: p.string,
+}).derive(async ({ id }) => {
+  return await loadUser(id);
+});
+
+const user = await User.parse({ id: "john" });
+```
+
+Async schemas can validate request bodies.
+
+```ts
+import p from "pema";
+import route from "primate/route";
+
+const Body = p.async({
+  name: p.string,
+}).derive(async ({ name }) => name.toUpperCase());
+
+export default route({
+  post: route.with(
+    { body: Body, contentType: "application/json" },
+    async request => {
+      const name = await request.body.json();
+      return name;
+    },
+  ),
+});
+```
+
+They can also validate path parameters while preserving the object properties
+Primate needs to match schema keys to route segments.
+
+```ts
+// routes/user/[id].ts
+import p from "pema";
+import route from "primate/route";
+
+const Path = p.async({
+  id: p.string,
+}).derive(async ({ id }) => ({
+  id: await resolveUserId(id),
+}));
+
+export default route({
+  get: route.with({ path: Path }, request => {
+    return request.path.get("id");
+  }),
+});
+```
+
 ## Binary uploads
 Raw uploads (e.g. images) are available through `request.body.blob` as a `Blob`.
 

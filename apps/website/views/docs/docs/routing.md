@@ -37,6 +37,51 @@ Path parameters are URL-decoded. Greedy segments (`[...name]`) match across `/`
 and must be the **final** segment of a route path.
 !!!
 
+### Path schemas
+
+Use `route.with({ path })` to validate and type all path parameters before the
+handler runs.
+
+```ts
+// routes/user/[id].ts
+import p from "pema";
+import route from "primate/route";
+
+const Path = p({
+  id: p.string,
+});
+
+export default route({
+  get: route.with({ path: Path }, request => {
+    return request.path.get("id");
+  }),
+});
+```
+
+Primate checks that the schema properties match the dynamic route segments. A
+route at `routes/user/[id].ts` must declare an `id` property, and must not
+declare unrelated path keys.
+
+For async normalization, use `p.async(...)` with `.derive(...)`.
+
+```ts
+// routes/user/[id].ts
+import p from "pema";
+import route from "primate/route";
+
+const Path = p.async({
+  id: p.string,
+}).derive(async ({ id }) => ({
+  id: await resolveUserId(id),
+}));
+
+export default route({
+  get: route.with({ path: Path }, request => {
+    return request.path.get("id");
+  }),
+});
+```
+
 ## Path normalization
 Primate cleans up URLs before matching to make them consistent (e.g.,
 collapsing slashes, ignoring trailing ones).

@@ -6,14 +6,15 @@ import hook from "#route/hook";
 import type RouteOptions from "#route/Options";
 import is from "@rcompat/is";
 import type { Dict, Unpack } from "@rcompat/type";
-import type { Parsed } from "pema";
+
+type InferSchema<S> = S extends { infer: infer I } ? Awaited<I> : never;
 
 type Body<O extends RouteOptions> =
   O extends {
     contentType: infer _CT extends keyof ContentTypeMap;
-    body: infer S extends Parsed<unknown>;
+    body: infer S;
   }
-  ? Unpack<S["infer"]>
+  ? Unpack<InferSchema<S>>
   : O extends {
     contentType: infer CT extends keyof ContentTypeMap;
   }
@@ -21,8 +22,8 @@ type Body<O extends RouteOptions> =
   : never;
 
 type Path<O extends RouteOptions> =
-  O extends { path: infer S extends Parsed<unknown> }
-  ? Unpack<S["infer"]>
+  O extends { path: infer S }
+  ? Unpack<InferSchema<S>>
   : never;
 
 type MethodMeta = {

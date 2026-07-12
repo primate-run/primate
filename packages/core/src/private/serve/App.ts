@@ -521,10 +521,12 @@ export default class ServeApp extends App {
       }
     }
 
+    const params = is.defined(path)
+      ? await path.parse(matched.params) as PartialDict<string>
+      : matched.params as PartialDict<string>;
+
     const refined = Object.assign(Object.create(request), {
-      path: new RequestBag(is.defined(path)
-        ? path.parse(matched.params) as PartialDict<string>
-        : matched.params as PartialDict<string>,
+      path: new RequestBag(params,
         "path",
         {
           normalize: k => k.toLowerCase(),

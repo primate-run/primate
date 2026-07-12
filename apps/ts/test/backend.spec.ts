@@ -3,6 +3,8 @@ import http from "@rcompat/http";
 
 const browser = test.backend(import.meta.dirname);
 
+test.backend.async(browser);
+
 test.case("/no-head", async assert => {
   await using tab = await browser.open();
   const get = await tab.fetch("/no-head");

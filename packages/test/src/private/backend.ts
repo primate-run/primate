@@ -1,3 +1,4 @@
+import async_schema from "#backend/async";
 import setup from "#setup";
 import fn from "@rcompat/fn";
 import http from "@rcompat/http";
@@ -261,5 +262,7 @@ function backend(dirname: string) {
 
   return browser;
 }
+
+backend.async = async_schema;
 
 export default backend;
