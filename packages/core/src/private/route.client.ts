@@ -38,8 +38,12 @@ type Page<R> = Awaited<R> extends infer Result
   ? Result extends ResponseFunction<infer Props> ? Props : never
   : never;
 
+type ClientResult<R> = Awaited<R> extends infer Result
+  ? Result extends ResponseFunction ? never : Result
+  : never;
+
 type ClientMethod<O extends RouteOptions, R = unknown> = MethodMeta & {
-  _result?: R;
+  _result?: ClientResult<R>;
   Page: Page<R>;
 } & (
     Body<O> extends never
