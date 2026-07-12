@@ -34,7 +34,9 @@ type RequestMeta = {
   headers?: HeadersInit;
 };
 
-type Page<R> = Awaited<R> extends ResponseFunction<infer Props> ? Props : never;
+type Page<R> = Awaited<R> extends infer Result
+  ? Result extends ResponseFunction<infer Props> ? Props : never
+  : never;
 
 type ClientMethod<O extends RouteOptions, R = unknown> = MethodMeta & {
   _result?: R;

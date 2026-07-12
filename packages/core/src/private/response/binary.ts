@@ -1,4 +1,4 @@
-import type ServeApp from "#serve/App";
+import type ResponseFunction from "#response/ResponseFunction";
 import type { Streamable } from "@rcompat/fs";
 import fs from "@rcompat/fs";
 import http from "@rcompat/http";
@@ -38,8 +38,11 @@ function toContentDisposition(filename: string) {
  * @param options response options
  * @return Response rendering function
  */
-export default function binary(source: Streamable, init?: ResponseInit) {
-  return (app: ServeApp) => {
+export default function binary(
+  source: Streamable,
+  init?: ResponseInit,
+): ResponseFunction<never> {
+  return app => {
     const {
       headers,
       ...rest

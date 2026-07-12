@@ -21,7 +21,7 @@ const sse_reload = `<script>
  * @param options.template HTML template to use (default: `error.html`).
  * @return Response function.
  */
-export default function error(options?: Options): ResponseFunction {
+export default function error(options?: Options): ResponseFunction<never> {
   return app => app.view({
     body: options?.body ?? "Not Found",
     head: app.mode === "development" ? sse_reload : undefined,

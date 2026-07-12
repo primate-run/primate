@@ -16,7 +16,9 @@ type WithResult<O extends RouteOptions, R extends ResponseLike> = {
   options: O;
 };
 
-type Page<R> = Awaited<R> extends ResponseFunction<infer Props> ? Props : never;
+type Page<R> = Awaited<R> extends infer Result
+  ? Result extends ResponseFunction<infer Props> ? Props : never
+  : never;
 
 type AnyHandler = RouteHandler | WithResult<RouteOptions, ResponseLike>;
 type RouteHandlers = {

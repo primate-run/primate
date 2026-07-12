@@ -97,7 +97,7 @@ function toNormalized(relative: string, base?: string | URL): string {
 * @param status redirection 3xx code
 * @return Response rendering function
 */
-export default (location: string, status?: Redirection): ResponseFunction =>
+export default (location: string, status?: Redirection): ResponseFunction<never> =>
   // no body
   app => app.respond(null, {
     headers: {

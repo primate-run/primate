@@ -98,13 +98,13 @@ export default async function(app: ServeApp, partial_request: RequestFacade) {
     const request = partial_request;
     if (ParseError.is(error)) {
       return response_json(error.toJSON(),
-        { status: http.Status.BAD_REQUEST })(app) as Response;
+        { status: http.Status.BAD_REQUEST })(app, {}, request) as Response;
     }
     if (CodeError.matches(error, Code.request_content_type_mismatch)) {
       return response_json(
         { error: error.message },
         { status: http.Status.UNSUPPORTED_MEDIA_TYPE },
-      )(app) as Response;
+      )(app, {}, request) as Response;
     }
     app.log.error(error);
     // the +error.js page itself could fail
