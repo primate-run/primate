@@ -1,6 +1,7 @@
 import E from "#errors";
 
 export type { default as ArrayType } from "#ArrayType";
+export type { default as AsyncType } from "#AsyncType";
 export type { default as BlobType } from "#BlobType";
 export type { default as BooleanType } from "#BooleanType";
 export type { default as ConstructorType } from "#ConstructorType";
@@ -47,6 +48,7 @@ export type { default as UUIDV4Type } from "#UUIDV4Type";
 export type { default as UUIDV7Type } from "#UUIDV7Type";
 
 import array from "#array";
+import async_schema from "#async";
 import bigint from "#bigint";
 import biguint from "#biguint";
 import blob from "#blob";
@@ -114,6 +116,7 @@ function strict<const S extends Schema>(s: S): NormalizeSchema<S> {
 }
 
 schema.array = array.vanilla;
+schema.async = async_schema;
 schema.bigint = bigint.vanilla;
 schema.biguint = biguint.vanilla;
 schema.blob = blob.vanilla;
