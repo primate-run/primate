@@ -31,7 +31,7 @@
     "@angular/platform-server": "^22.0.6",
     "@angular/ssr": "^22.0.4",
     "@primate/core": "workspace:^",
-    "typescript": "^7.0.2"
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
   },
   "devDependencies": {
     "@rcompat/type": "^0.18.0"
