@@ -14,9 +14,9 @@ started.
 
 ## Collocated route pages
 
-Primate 0.40 adds collocated route pages. Instead of importing a component from
-`views` and passing it to `response.view`, a route can render the frontend file
-next to it with `response.page`.
+Primate 0.40 supports collocated route pages. Instead of importing a component
+from `views` and passing it to `response.view`, a route can render the frontend
+file next to it with `response.page`.
 
 [s=blog/0.40/route-page/route]
 
@@ -25,8 +25,8 @@ extension.
 
 [s=blog/0.40/route-page/component]
 
-The route stays responsible for data loading, validation, redirects and status
-codes; the page stays responsible for rendering.
+The route handles data loading, validation, redirects and status codes; the page
+handles rendering.
 
 ### Typed props without declarations
 
@@ -38,14 +38,7 @@ truth and there's no separate interface to keep in sync.
 
 Layouts can be collocated too.
 
-```ts
-// routes/admin/+layout.ts
-export default route({
-  get() {
-    return response.page({ section: "Admin" });
-  },
-});
-```
+[s=blog/0.40/layout-page/route]
 
 As with normal routes, add a component alongside the layout with the same
 basename.
@@ -103,27 +96,27 @@ if (account.status === Account.Status.CONFIRMED) {
 }
 ```
 
-This is worth getting excited about for a few reasons.
+This removes a few common sources of drift.
 
-### Storage-portable
+### Plain storage
 
 `p.enum` is backed by `p.u8` under the hood, so it stores as a plain integer
 from 0 to 255. There are no dialect-specific enum types and no `CHECK`
 constraints to babysit across SQLite, Postgres and MySQL — it rides on `u8`'s
 existing column mapping.
 
-### Rejects what `p.u8` can't
+### Membership validation
 
 `p.u8` alone happily accepts `7` for a two-value enum. `p.enum` validates
 membership too: only declared values pass.
 
-### No drift between code and schema
+### One declared value
 
 The enum is the field, not a sibling constant you remember to update.
 `Account.Status.CONFIRMED` is generated straight from the schema, not duplicated
 by hand.
 
-### Reverse lookup for free
+### Reverse lookup
 
 `Account.Status.nameOf(account.status)` gets you `"CONFIRMED"` back when you
 need the name, not just the number.
@@ -131,7 +124,7 @@ need the name, not just the number.
 ## Derived and async schemas
 
 Pema schemas can now derive a parsed value into a different value. Use
-`.derive(...)` when validation and transformation belong together.
+`.derive(...)` when parsed input should be normalized before the handler sees it.
 
 ```ts
 import p from "pema";
@@ -168,7 +161,7 @@ export default route({
 });
 ```
 
-Primate 0.40 also adds `p.async(...)` for object schemas that need async
+Primate 0.40 also supports `p.async(...)` for object schemas that need async
 post-processing. Its `parse(...)` method always returns a promise, and async
 derives compose just like sync derives.
 
@@ -231,8 +224,8 @@ export default route({
 });
 ```
 
-Primate 0.40 also adds `primate/events`, a tiny in-memory channel helper for the
-common `Map<Key, Set<Listener>>` pattern.
+Primate 0.40 also includes `primate/events`, an in-memory channel helper for
+keyed subscriptions.
 
 ```ts
 // services/DeploymentEvents.ts
@@ -317,8 +310,8 @@ old `pages` directory is no longer part of the app structure.
 
 ### Autoapplying migrations
 
-Primate 0.39, and now 0.40, supports autoapplying migrations in production. To
-activate this, add `autoapply: true` to your configuration:
+Primate can now autoapply migrations in production. To activate this, add
+`autoapply: true` to your configuration:
 
 ```ts
 import config from "primate/config";
