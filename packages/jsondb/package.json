@@ -29,11 +29,11 @@
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.14.0",
     "@rcompat/fs": "^0.35.1",
-    "@rcompat/is": "^0.12.0"
+    "@rcompat/is": "^0.12.0",
+    "pema": "workspace:^"
   },
   "devDependencies": {
-    "@rcompat/type": "^0.18.0",
-    "pema": "workspace:^"
+    "@rcompat/type": "^0.18.0"
   },
   "peerDependencies": {
     "primate": "workspace:^"

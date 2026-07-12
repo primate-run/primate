@@ -6,6 +6,9 @@ import markdown_options from "./markdown.options.ts";
 import website from "./Website.ts";
 
 export default config({
+  http: {
+    host: "0.0.0.0",
+  },
   loaders: {
     ".woff2": "file",
   },
