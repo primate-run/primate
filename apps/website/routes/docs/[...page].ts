@@ -5,7 +5,8 @@ import route from "primate/route";
 
 export default route({
   async get(request) {
-    const page = request.path.get("page");
+    const raw_page = request.path.get("page");
+    const page = Array.isArray(raw_page) ? raw_page.join("/") : raw_page;
     const markdown = page.endsWith(".md");
     const id = markdown ? page.slice(0, -".md".length) : page;
 
@@ -13,7 +14,7 @@ export default route({
 
     if (markdown) return response.text(md);
 
-    return response.page({
+    return response.view("Static.marko", {
       content: html,
       path: "/" + request.url.pathname.slice("/docs/".length),
       toc,

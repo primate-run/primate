@@ -1,0 +1,125 @@
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import Icon from "@/components/Icon";
+
+export interface Input {
+  html: string;
+  meta: {
+    title: string;
+  };
+  category: string;
+}
+
+static function parseSection(html: string) {
+  const lower = html.toLowerCase();
+  const start = lower.indexOf("<p");
+  const end = lower.lastIndexOf("</p>");
+
+  if (start === -1 || end === -1 || end < start) {
+    return { prose: html, code: "", hasCode: false };
+  }
+
+  const proseEnd = end + "</p>".length;
+  const prose = html.slice(0, proseEnd).trim();
+  const code = html.slice(proseEnd).trim();
+
+  return {
+    prose,
+    code,
+    hasCode: code.length > 0,
+  };
+}
+
+<const/html=input.html>
+<const/meta=input.meta>
+<const/category=input.category>
+<const/sections=html
+  .split(/<hr\s*\/?>/i)
+  .map((section) => section.trim())
+  .filter(Boolean)
+>
+<const/parts=sections.map(parseSection)>
+<const/title=`${meta.title} | guide`>
+
+<Header title=title/>
+
+<main class="guide">
+  <article>
+    <span class="breadcrumbs">
+      <a href="/guides">Guides</a>
+      <Icon name="chevron-right"/>
+      ${`${category.charAt(0).toUpperCase()}${category.slice(1)}`}
+    </span>
+
+    <h1 class="guide-title">
+      $!{meta.title.replace(/`([^`]+)`/g, "<code>$1</code>")}
+    </h1>
+
+    <div class="guide-grid">
+      <for|part| of=parts>
+        <section class="guide-row">
+          <div class="col prose">
+            <div class="guide-prose">
+              $!{part.prose}
+            </div>
+          </div>
+
+          <if=part.hasCode>
+            <div class="col code">
+              <div class="guide-code">
+                $!{part.code}
+              </div>
+            </div>
+          </if>
+        </section>
+      </for>
+    </div>
+  </article>
+</main>
+
+<Footer/>
+
+<style>
+  .breadcrumbs {
+    font-size: 14px;
+  }
+
+  .guide .breadcrumbs a {
+    text-decoration: none;
+  }
+
+  .guide .breadcrumbs a:hover {
+    color: var(--primary);
+  }
+
+  .guide h1 {
+    margin-bottom: 10px;
+    font-size: 30px;
+  }
+
+  .guide-grid {
+    display: grid;
+    gap: 35px;
+  }
+
+  .guide-row {
+    display: grid;
+    gap: 35px;
+    grid-template-columns: 2fr 3fr;
+    align-items: start;
+  }
+
+  .guide-row > :only-child {
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: 960px) {
+    .guide-row {
+      grid-template-columns: 1fr;
+    }
+
+    .guide-row > :only-child {
+      grid-column: auto;
+    }
+  }
+</style>
