@@ -852,6 +852,29 @@ export default class Store<
     return result as never;
   }
 
+  /**
+   * Find the first matching record.
+   */
+  async first<
+    const S extends Select<Schema<T>> | undefined = undefined,
+    const W extends WithInput<ExtractRelations<T>> | undefined = undefined,
+  >(
+    options?: {
+      where?: Where<T>;
+      select?: S;
+      sort?: Sort<Schema<T>>;
+      offset?: number;
+      with?: W;
+      limit?: never;
+    },
+  ): Promise<WithRelations<Projected<Schema<T>, S>, ExtractRelations<T>, W> | undefined> {
+    guard_options(options, ["where", "select", "sort", "offset", "with", "limit"]);
+    if (is.defined(options?.limit)) throw E.first_limit_invalid();
+
+    const [first] = await this.find({ ...options, limit: 1 });
+    return first as never;
+  }
+
   toJSON() {
     return this.#schema.toJSON();
   }

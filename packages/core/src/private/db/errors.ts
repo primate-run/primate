@@ -172,6 +172,9 @@ function select_invalid() {
 function limit_invalid() {
   return t`invalid limit`;
 }
+function first_limit_invalid() {
+  return t`${"first"} does not accept ${"limit"}`;
+}
 function select_invalid_value(index: number, x: unknown) {
   return t`select[${index}]: must be string, received ${kind_of(x)}`;
 }
@@ -206,6 +209,7 @@ const QUERY = error.coded({
   where_invalid_value,
   set_empty,
   limit_invalid,
+  first_limit_invalid,
   offset_invalid,
   offset_requires_limit,
 });

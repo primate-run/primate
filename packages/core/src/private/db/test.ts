@@ -1905,6 +1905,30 @@ export default <D extends DB>(db: D) => {
     assert(yes[0].name).equals("MiXeDCase");
   });
 
+  $user("first: returns first matching record", async assert => {
+    await User.insert({ name: "FirstLow", age: 1 });
+    await User.insert({ name: "FirstHigh", age: 2 });
+
+    const user = await User.first({
+      where: { name: { $like: "First%" } },
+      sort: { age: "desc" },
+    });
+
+    assert(user?.name).equals("FirstHigh");
+  });
+
+  $user("first: returns undefined when no record matches", async assert => {
+    const user = await User.first({ where: { name: "MissingFirst" } });
+
+    assert(user).undefined();
+  });
+
+  $user$("first: rejects limit", async assert => {
+    await throws(assert, Code.first_limit_invalid, () => {
+      return User.first({ limit: 10 } as any);
+    });
+  });
+
   $user("find: $ilike is case-insensitive", async assert => {
     await User.insert({ name: "MiXeDCase2" });
 
