@@ -13,7 +13,7 @@ export default route({
       ? await Counter.insert({ value: 10 })
       : counters[0];
 
-    return response.view("Counter.jsx", counter);
+    return response.page(counter);
   },
   async post(request) {
     // validate that an id was provided

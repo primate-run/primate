@@ -8,6 +8,6 @@ export default route({
     const guide = request.path.get("guide");
     const { html, meta } = app.views.get<Component>(`docs/guides/${guide}.md`);
 
-    return response.view("Guide.marko", { category: guide.split("/")[0], html, meta });
+    return response.page({ category: guide.split("/")[0], html, meta });
   },
 });

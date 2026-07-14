@@ -394,7 +394,7 @@ ahead of time.
 
 ## Usage in routes
 
-A typical route that reads (or creates) a record, then renders a view:
+A typical route that reads (or creates) a record, then renders a route page:
 ```ts
 // routes/posts/index.ts
 import Post from "@/stores/Post";
@@ -411,7 +411,7 @@ export default route({
         limit: 20,
       });
 
-      return response.view("posts.jsx", { posts });
+      return response.page({ posts });
   },
   async post(request) {
       const body = p({
@@ -421,7 +421,7 @@ export default route({
 
       const created = await Post.insert(body);
 
-      return response.view("posts/created.jsx", { post: created });
+      return response.page({ post: created });
   },
 });
 ```

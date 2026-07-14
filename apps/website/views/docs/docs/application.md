@@ -36,21 +36,20 @@ A typical route might look like this:
 import app from "@/config/app";
 import response from "primate/response";
 import route from "primate/route";
-import Page from "@/views/Page";
 
 export default route({
   get() {
     const title = app.config("name");
 
-    return response.view(Page, { title });
+    return response.page({ title });
   },
 });
 ```
 
 !!!
-`@/config/app` and `@/views/*` are path aliases, not built-in language features. They
-only work if you configure them in `tsconfig.json`, for example by mapping
-`@/config/app` to `config/app.ts` and `@/views/*` to `views/*`.
+`@/config/app` is a path alias, not a built-in language feature. It only works
+if you configure it in `tsconfig.json`, for example by mapping `@/config/app` to
+`config/app.ts`.
 !!!
 
 ## `app.config(path)`
@@ -125,7 +124,7 @@ const page = app.view("docs/home/index.md");
 This is mainly useful in advanced cases where you need the rendered or parsed
 view result before passing it somewhere else.
 
-For ordinary page rendering, prefer returning `response.view(...)` directly.
+For ordinary page rendering, prefer returning `response.page(...)` directly.
 Use `app.view(...)` only when you need to load a view manually and work with
 its result before returning a response.
 
@@ -133,12 +132,11 @@ its result before returning a response.
 import app from "@/config/app";
 import response from "primate/response";
 import route from "primate/route";
-import Page from "@/views/Page";
 
 export default route({
   get() {
       const { html } = app.view("docs/home/index.md");
-      return response.view(Page, { content: html });
+      return response.page({ content: html });
   },
 });
 ```

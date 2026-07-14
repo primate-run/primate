@@ -14,7 +14,7 @@ export default route({
 
     if (markdown) return response.text(md);
 
-    return response.view("Static.marko", {
+    return response.page({
       content: html,
       path: "/" + request.url.pathname.slice("/docs/".length),
       toc,

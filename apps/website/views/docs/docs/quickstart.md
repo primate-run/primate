@@ -40,7 +40,7 @@ Add the frontend to your config:
 
 [s=add-frontend/config]
 
-Then create a `views` directory and a view — here is a simple counter:
+Then create a route page next to your route — here is a simple counter:
 
 [s=add-frontend/views]
 
@@ -49,7 +49,7 @@ Primate supports [many frontends](/docs/frontend); the quickstart only shows a
 few.
 !!!
 
-Serve the view from a route with the `view` handler:
+Serve the route page with `response.page`:
 
 [s=add-frontend/route]
 

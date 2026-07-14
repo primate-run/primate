@@ -93,16 +93,16 @@ export default config({
 });
 ```
 
-Create a component:
+Create a route page next to your route:
 
 ```tsx
-// views/Welcome.tsx
+// routes/index.tsx
 export default function Welcome({ name }: { name: string }) {
   return <h1>Hello, {name}!</h1>;
 }
 ```
 
-Render it in a route:
+Render it from the route:
 
 ```ts
 // routes/index.ts
@@ -111,7 +111,7 @@ import route from "primate/route";
 
 export default route({
   get() {
-    return response.view("Welcome.tsx", { name: "World" });
+    return response.page({ name: "World" });
   },
 });
 ```

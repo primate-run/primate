@@ -3,6 +3,6 @@ import route from "primate/route";
 
 export default route({
   get() {
-    return response.view("Counter.vue", { start: 10 });
+    return response.page({ start: 10 });
   },
 });

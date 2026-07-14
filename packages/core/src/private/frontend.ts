@@ -88,8 +88,9 @@ export default function frontend_module<
   const schema = base_schema.extend(init.schema ?? {} as E);
 
   async function normalize(path: string) {
-    const file = fs.ref(path);
-    const basename = path.slice(0, -file.fullExtension.length);
+    const extension = init.extensions.find(extension => path.endsWith(extension))
+      ?? fs.ref(path).fullExtension;
+    const basename = path.slice(0, -extension.length);
     return `p_${await hash(`${basename}.${module_name}`)}`;
   }
 
@@ -318,11 +319,11 @@ export default function frontend_module<
                 build.onLoad({ filter: views_filter }, async () => {
                   const views = await views_base.files({
                     recursive: true,
-                    filter: c => extensions.includes(c.fullExtension),
+                    filter: c => extensions.some(ext => c.path.endsWith(ext)),
                   });
                   const pages = await pages_base.files({
                     recursive: true,
-                    filter: c => extensions.includes(c.fullExtension),
+                    filter: c => extensions.some(ext => c.path.endsWith(ext)),
                   });
                   let contents = "";
                   for (const view of views) {

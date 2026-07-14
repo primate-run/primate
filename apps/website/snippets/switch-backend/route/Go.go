@@ -7,5 +7,5 @@ import (
 )
 
 var _ = route.Get(func(request route.Request) any {
-	return response.View("Counter.jsx", core.Dict{"start": 10})
+	return response.Page(core.Dict{"start": 10})
 })
