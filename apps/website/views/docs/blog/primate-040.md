@@ -1,8 +1,7 @@
 ---
 title: Primate 0.40: Route pages, store enums, async schemas and events
-epoch: 1782915308000
+epoch: 1783861841000
 author: terrablue
-published: true
 ---
 
 Today we're announcing the availability of the Primate 0.40 preview release.
