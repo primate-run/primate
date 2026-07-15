@@ -10,7 +10,14 @@ type Options = {
 };
 
 const sse_reload = `<script>
-  new EventSource("/esbuild").addEventListener("change", () => location.reload());
+  const live_reload = new EventSource("/esbuild");
+  const close_live_reload = () => live_reload.close();
+  addEventListener("pagehide", close_live_reload);
+  addEventListener("beforeunload", close_live_reload);
+  live_reload.addEventListener("change", () => {
+    close_live_reload();
+    location.reload();
+  });
 </script>`;
 
 /**

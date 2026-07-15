@@ -105,8 +105,15 @@ export default async function build_client(app: BuildApp) {
 
     app.entrypoint(`
     const NO_HR = ${JSON.stringify(NO_HR)};
-    new EventSource("/esbuild").addEventListener("change", () => {
-      if (!NO_HR.includes(location.pathname)) location.reload();
+    const live_reload = new EventSource("/esbuild");
+    const close_live_reload = () => live_reload.close();
+    addEventListener("pagehide", close_live_reload);
+    addEventListener("beforeunload", close_live_reload);
+    live_reload.addEventListener("change", () => {
+      if (!NO_HR.includes(location.pathname)) {
+        close_live_reload();
+        location.reload();
+      }
     });
   `);
   }
