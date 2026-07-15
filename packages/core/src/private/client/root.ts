@@ -5,10 +5,15 @@ export type Updater<T extends Dict> = (json: ClientData<T>, after?: () => void)
   => void;
 
 let current: Updater<any>;
+let frontend: string;
 
 const root = {
-  set(updater: Updater<any>) {
+  set(updater: Updater<any>, name: string) {
     current = updater;
+    frontend = name;
+  },
+  same(data: ClientData) {
+    return data.frontend === frontend;
   },
   update(data: any, after?: () => void) {
     current(data, after);

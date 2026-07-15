@@ -24,7 +24,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@marko/compiler": "^5.40.2",
+    "@marko/compiler": "^5.41.2",
     "@primate/core": "workspace:^",
     "@rcompat/fs": "^0.35.1",
     "marko": "^6.3.3"

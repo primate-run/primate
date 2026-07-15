@@ -1,0 +1,45 @@
+{
+  "name": "@app/frontend",
+  "description": "Primate mixed frontend test app",
+  "type": "module",
+  "scripts": {
+    "start": "primate",
+    "prebuild": "pnpm --dir ../.. -r --filter-prod @app/frontend^... build",
+    "build": "primate build",
+    "serve": "primate serve",
+    "test:csr": "SSR=0 CSR=1 proby test/test.spec.ts",
+    "test:ssr": "SSR=1 CSR=0 proby test/test.spec.ts",
+    "test:hydrate": "SSR=1 CSR=1 proby test/test.spec.ts",
+    "test": "npm run test:ssr && npm run test:csr && npm run test:hydrate",
+    "test:frontend": "npm run test"
+  },
+  "dependencies": {
+    "@angular/common": "^22.0.6",
+    "@angular/compiler": "^22.0.6",
+    "@angular/core": "^22.0.6",
+    "@angular/platform-browser": "^22.0.6",
+    "@babel/core": "^7.29.0",
+    "@primate/angular": "workspace:^",
+    "@primate/marko": "workspace:^",
+    "@primate/react": "workspace:^",
+    "@primate/solid": "workspace:^",
+    "@primate/svelte": "workspace:^",
+    "@primate/vue": "workspace:^",
+    "@rcompat/assert": "^0.14.0",
+    "@rcompat/env": "^0.23.0",
+    "babel-preset-solid": "^1.9.10",
+    "marko": "^6.3.3",
+    "pema": "workspace:^",
+    "primate": "workspace:^",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "solid-js": "^1.9.13",
+    "svelte": "^5.56.4",
+    "typescript": "^7.0.2",
+    "vue": "^3.5.39"
+  },
+  "devDependencies": {
+    "@primate/test": "workspace:^",
+    "@types/react": "^19.2.17"
+  }
+}

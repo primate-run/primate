@@ -142,7 +142,7 @@ export default function frontend_module<
       if (app_asset === undefined) throw E.frontend_missing_app_js();
 
       const app_script = `<script type="module" src="${app_asset.src}"></script>`;
-      const props = JSON.stringify({ frontend: init.name, ...client });
+      const props = JSON.stringify(client);
       const hydrated = await inline(props, http.MIME.APPLICATION_JSON, "hydration");
       const script_src = [hydrated.integrity];
 
@@ -170,6 +170,7 @@ export default function frontend_module<
           }
           : { props, request: $request };
         const client: ClientData = {
+          frontend: init.name,
           view: init.layouts ? "root" : await normalize(view),
           csr,
           ssr: ssr(),

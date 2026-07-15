@@ -50,7 +50,7 @@ export default class MarkoApp {
 
     if (data.csr) {
       const start = () =>
-        client.boot<Payload>((next, update) => {
+        client.boot<Payload>("marko", (next, update) => {
           if (initial && key(next) === key(current)) {
             initial = false;
             current = next;

@@ -51,7 +51,7 @@ export default class AngularApp {
 
       if (data.csr) {
         const start = () =>
-          client.boot<Payload>((next, update) => {
+          client.boot<Payload>("angular", (next, update) => {
             this.#root.instance.p = root.toProps(next, update);
             this.#app.tick();
             update?.();

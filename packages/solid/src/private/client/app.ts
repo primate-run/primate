@@ -32,7 +32,7 @@ export default class SolidApp {
 
     if (data.csr) {
       const start = () =>
-        client.boot<Payload>((_data, update) => {
+        client.boot<Payload>("solid", (_data, update) => {
           dispose();
           dispose = root.csr(() => Root(root.toProps(_data, update)), body);
           update?.();

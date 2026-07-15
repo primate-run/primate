@@ -63,6 +63,20 @@ export default function setup(dirname: string) {
       const { server, browser } = await ready;
       const page = browser.newPage();
 
+      async function polyfill() {
+        await page.evaluate(`
+          if (typeof MessageChannel === "undefined") {
+            globalThis.MessageChannel = class {
+              constructor() {
+                let h;
+                this.port1 = { set onmessage(fn) { h = fn; } };
+                this.port2 = { postMessage() { Promise.resolve().then(() => h?.({data:0})); } };
+              }
+            };
+          }
+        `);
+      }
+
       function basefetch(url: string, options?: RequestInit) {
         return globalThis.fetch(`${server.url}${url}`, options ?? {});
       }
@@ -71,17 +85,7 @@ export default function setup(dirname: string) {
         async goto(url: string) {
           await page.goto(`${server.url}${url}`);
           await page.waitUntilComplete();
-          await page.evaluate(`
-            if (typeof MessageChannel === "undefined") {
-              globalThis.MessageChannel = class {
-                constructor() {
-                  let h;
-                  this.port1 = { set onmessage(fn) { h = fn; } };
-                  this.port2 = { postMessage() { Promise.resolve().then(() => h?.({data:0})); } };
-                }
-              };
-            }
-          `);
+          await polyfill();
         },
         get(selector: string) {
           return Selector(page.mainFrame.document.querySelector(selector));
@@ -112,14 +116,17 @@ export default function setup(dirname: string) {
         async click(selector: string) {
           (page.mainFrame.document.querySelector(selector) as any)?.click();
           await page.mainFrame.waitUntilComplete();
+          await polyfill();
         },
         async back() {
           page.mainFrame.window.history.back();
           await page.mainFrame.waitUntilComplete();
+          await polyfill();
         },
         async forward() {
           page.mainFrame.window.history.forward();
           await page.mainFrame.waitUntilComplete();
+          await polyfill();
         },
         async waitfor(fn: () => boolean, timeout = 1000) {
           const start = Date.now();

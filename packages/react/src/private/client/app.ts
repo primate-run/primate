@@ -22,7 +22,7 @@ export default class ReactApp {
 
     if (data.csr) {
       const start = () =>
-        client.boot<Payload>((_data, update) => {
+        client.boot<Payload>("react", (_data, update) => {
           Root.render(createElement(RootView, root.toProps(_data)));
           update?.();
         });

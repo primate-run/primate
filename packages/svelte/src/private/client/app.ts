@@ -22,7 +22,7 @@ export default class SvelteApp {
 
     if (data.csr) {
       const start = () =>
-        client.boot<Payload>((_data, update) => {
+        client.boot<Payload>("svelte", (_data, update) => {
           Root.p = { ...root.toProps(_data), update };
         });
 

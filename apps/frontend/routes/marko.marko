@@ -1,0 +1,10 @@
+import { frontendLinks } from "../lib/frontends.ts";
+
+<main>
+  <h1 id="current">${input.current}</h1>
+  <nav>
+    <for|frontend| of=frontendLinks()>
+      <a id=("to-" + frontend.name) href=("/" + frontend.name)>${frontend.name}</a>
+    </for>
+  </nav>
+</main>

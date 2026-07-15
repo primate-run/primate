@@ -14,7 +14,7 @@ export default class VueApp {
 
     if (data.csr) {
       const start = () =>
-        client.boot<Payload>((next, update) => {
+        client.boot<Payload>("vue", (next, update) => {
           app.unmount();
           app = root.csr(root.toProps(next, update));
           app.mount("#app");

@@ -6,8 +6,8 @@ import submit from "#client/submit";
 import http from "@rcompat/http";
 import type { Dict } from "@rcompat/type";
 
-export default <T extends Dict>(u: Updater<T>) => {
-  root.set(u);
+export default <T extends Dict>(frontend: string, u: Updater<T>) => {
+  root.set(u, frontend);
 
   const { location, history } = globalThis;
 

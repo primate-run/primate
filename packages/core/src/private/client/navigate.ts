@@ -32,7 +32,14 @@ async function goto(target: Location, state = false, after?: () => void) {
     const { requested, response } = await transport.refetch(path, { headers });
 
     if (transport.is_json(response)) {
-      if (response.ok) root.update(await response.json());
+      if (response.ok) {
+        const data = await response.json();
+        if (!root.same(data)) {
+          location.assign(requested.toString() + target.hash);
+          return;
+        }
+        root.update(data);
+      }
       if (state) {
         storage.new({ hash: location.hash, pathname: location.pathname, scrollTop });
         history.pushState({}, "", `${path}${target.hash}`);
