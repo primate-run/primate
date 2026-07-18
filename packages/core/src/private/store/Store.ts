@@ -264,6 +264,7 @@ export default class Store<
   #migrate: boolean;
   #id: symbol;
 
+  declare readonly Insert: Insertable<T>;
   declare readonly Schema: Schema<T>;
 
   static is(x: unknown): x is Store<any, any> {
