@@ -7,7 +7,7 @@ import type StoreInput from "#store/StoreInput";
 function store<
   T extends StoreInput,
   const N extends string = string,
->(init: Init<T, N>) {
+>(init: Omit<Init<T, N>, "schema"> & { schema: T }) {
   return new Store(init);
 }
 

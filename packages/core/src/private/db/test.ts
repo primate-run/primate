@@ -180,6 +180,37 @@ export default <D extends DB>(db: D) => {
     },
   });
 
+  test.case("insert type accepts explicit undefined for write-optional fields",
+            assert => {
+    const insert: {
+      age?: number | undefined;
+      id?: string | undefined;
+      name?: string | undefined;
+      lastname?: string | undefined;
+    } = {
+      age: undefined,
+      id: undefined,
+      name: undefined,
+      lastname: undefined,
+    };
+    assert(insert).type<typeof User.Insert>();
+    User.insert({
+      age: undefined,
+      id: undefined,
+      name: undefined,
+      lastname: undefined,
+    });
+  });
+
+  test.case("insert type survives omit", assert => {
+    const insert: Omit<typeof User.Insert, "name"> = {
+      age: undefined,
+      id: undefined,
+      lastname: undefined,
+    };
+    assert(insert).type<Omit<typeof User.Insert, "name">>();
+  });
+
   const UserN = store({
     table: "user_n",
     db,

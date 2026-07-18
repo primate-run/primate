@@ -17,7 +17,7 @@ import type StoreInput from "#store/StoreInput";
 import assert from "@rcompat/assert";
 import dict from "@rcompat/dict";
 import is from "@rcompat/is";
-import type { Dict, Serializable } from "@rcompat/type";
+import type { Dict, Serializable, Unpack } from "@rcompat/type";
 import type { DefaultType, InferStore, Storable } from "pema";
 import StoreType from "pema/StoreType";
 
@@ -28,18 +28,6 @@ type X<T> = { [K in keyof T]: T[K] } & {};
 type OrNull<T> = {
   [P in keyof T]?: null | T[P] | undefined;
 };
-
-type Optional<T> = {
-  [P in keyof T]?: T[P] | undefined;
-};
-
-type OptionalKeys<T> = {
-  [K in keyof T]-?: object extends Pick<T, K> ? K : never
-}[keyof T];
-
-type UndefinedOptional<T> = X<Omit<T, OptionalKeys<T>> & {
-  [K in OptionalKeys<T>]?: T[K] | undefined;
-}>;
 
 type Query = {
   where?: unknown;
@@ -112,8 +100,8 @@ type DefaultFields<T extends StoreInput> = {
 }[keyof InferRecord<T>];
 
 type Insertable<T extends StoreInput> =
-  UndefinedOptional<Omit<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>> &
-    Optional<Pick<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>>>>;
+  Omit<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>> &
+  Partial<Pick<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>>>;
 
 type PrimaryKeyField<T extends StoreInput> = {
   [K in keyof T]: T[K] extends PrimaryKey<any> ? K : never
@@ -281,7 +269,7 @@ export default class Store<
   #migrate: boolean;
   #id: symbol;
 
-  declare readonly Insert: Insertable<T>;
+  declare readonly Insert: Unpack<Insertable<T>>;
   declare readonly Schema: Schema<T>;
 
   static is(x: unknown): x is Store<any, any> {
