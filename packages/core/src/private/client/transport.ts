@@ -6,7 +6,12 @@ const sameorigin = (url: URL) => url.origin === globalThis.location.origin;
 const get_location = (response: Response, base: string) => {
   if (response.type === "opaqueredirect") return null;
   const location = response.headers.get("Location");
-  return location !== null ? new URL(location, base) : null;
+  if (location === null) return null;
+  try {
+    return new URL(location, base);
+  } catch {
+    throw new TypeError("Invalid redirect Location");
+  }
 };
 
 async function refetch(
@@ -20,8 +25,12 @@ async function refetch(
   let hops = 0;
 
   if (method !== "GET") {
+    // Fetch may replay a body for 307/308, so prevent automatic redirect
+    // following from ever leaving the browser's current origin.
     const response = await fetch(url.pathname + url.search, {
-      ...init, redirect: "follow",
+      ...init,
+      mode: "same-origin",
+      redirect: "follow",
     });
     return { requested: new URL(response.url), response };
   }
@@ -33,12 +42,14 @@ async function refetch(
 
     if (response.type === "opaqueredirect") return { requested: url, response };
 
-    const location = get_location(response, url.toString());
-    if (location !== null && isRedirectStatus(response.status)) {
-      if (!sameorigin(location)) return { requested: url, response };
-      url = location;
-      hops++;
-      continue;
+    if (isRedirectStatus(response.status)) {
+      const location = get_location(response, url.toString());
+      if (location !== null) {
+        if (!sameorigin(location)) return { requested: url, response };
+        url = location;
+        hops++;
+        continue;
+      }
     }
 
     return { requested: url, response };

@@ -70,20 +70,57 @@ test.case("client refuses cross-origin manual redirect hops", async assert => {
   });
 });
 
-test.case("client rejects malformed Location values predictably", async assert => {
+test.case("client parses Location only for redirect statuses", async assert => {
+  await withBrowser(
+    async () => new Response("ok", {
+      headers: { Location: "http://[" },
+      status: 200,
+    }),
+    async () => {
+      const result = await transport.refetch("/start");
+      assert(await result.response.text()).equals("ok");
+    },
+  );
+
   await withBrowser(
     async () => redirectResponse(302, "http://["),
     async () => {
-      let rejected = false;
+      let message = "";
       try {
         await transport.refetch("/start");
       } catch (error) {
-        rejected = error instanceof TypeError;
+        if (error instanceof TypeError) message = error.message;
       }
-      assert(rejected).true();
+      assert(message).equals("Invalid redirect Location");
     },
   );
 });
+
+test.case(
+  "client constrains non-GET redirect following to same origin",
+  async assert => {
+    let seen: RequestInit | undefined;
+    await withBrowser(async (_input, init) => {
+      seen = init;
+      const response = new Response("ok");
+      Object.defineProperty(response, "url", {
+        value: "https://app.example/done",
+      });
+      return response;
+    }, async () => {
+      const result = await transport.refetch("/start", {
+        body: "secret=form-value",
+        method: "POST",
+        mode: "cors",
+      });
+      assert(seen?.method).equals("POST");
+      assert(seen?.body).equals("secret=form-value");
+      assert(seen?.mode).equals("same-origin");
+      assert(seen?.redirect).equals("follow");
+      assert(result.requested.pathname).equals("/done");
+    });
+  },
+);
 
 test.case("client enforces redirect hop limits", async assert => {
   let calls = 0;
