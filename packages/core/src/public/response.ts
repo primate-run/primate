@@ -9,6 +9,14 @@ import view from "#response/view";
 import ws from "#response/ws";
 import $null from "#response/null";
 
+export type {
+  ExternalRedirectInit,
+  LocalRedirectTarget,
+  RedirectInit,
+  RedirectQueryValue,
+  RedirectStatus,
+} from "#response/redirect";
+
 const response = {
   binary,
   error,

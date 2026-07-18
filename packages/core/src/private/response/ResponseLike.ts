@@ -8,7 +8,6 @@ type ResponseLike =
   | string
   | Dict
   | Dict[]
-  | URL
   | Blob
   | ReadableStream
   | Streamable

@@ -141,6 +141,9 @@ const REQUEST = error.coded({
 function response_invalid_body(body: string) {
   return t`invalid body ${body} returned from route`;
 }
+function response_implicit_url() {
+  return t`implicit URL redirects are disabled; use response.redirect.external`;
+}
 function response_page_context_missing() {
   return t`${"response.page"} requires a route context`;
 }
@@ -150,6 +153,7 @@ function response_page_missing(route: string) {
 
 const RESPONSE = error.coded({
   response_invalid_body,
+  response_implicit_url,
   response_page_context_missing,
   response_page_missing,
 });

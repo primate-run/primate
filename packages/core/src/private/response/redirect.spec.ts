@@ -21,6 +21,14 @@ function rejects(assert: any, create: () => unknown) {
   assert(create).throws(Error);
 }
 
+function hasForbiddenControl(value: string) {
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    if (code <= 0x1f || code === 0x7f) return true;
+  }
+  return false;
+}
+
 test.case("redirect.local accepts origin-relative targets", assert => {
   const cases = [
     ["/", "/"],
@@ -204,7 +212,7 @@ test.case("accepted local redirects preserve origin invariants", assert => {
           assert(emitted.startsWith("/")).true();
           assert(emitted.startsWith("//")).false();
           assert(emitted.includes("\\")).false();
-          assert(/[\u0000-\u001f\u007f]/u.test(emitted)).false();
+          assert(hasForbiddenControl(emitted)).false();
           assert(new TextEncoder().encode(emitted).byteLength <= 2048).true();
         } catch {
           // Rejection is valid; the property applies to every accepted target.

@@ -2,7 +2,6 @@ import E from "#errors";
 import binary from "#response/binary";
 import json from "#response/json";
 import $null from "#response/null";
-import redirect from "#response/redirect";
 import type ResponseFunction from "#response/ResponseFunction";
 import type ResponseLike from "#response/ResponseLike";
 import text from "#response/text";
@@ -31,7 +30,7 @@ function match<T extends ReadonlyFunctions>(m: MatchResult<T>): MatchResult<T> {
 // [if, then]
 const guesses = match([
   [is.null, $null],
-  [is.url, value => redirect(value.toString())],
+  [is.url, () => { throw E.response_implicit_url(); }],
   [fs.isStream, value => binary(value)],
   [is.response, value => _ => value],
   [is.dict, json],
