@@ -66,13 +66,18 @@ The callable `response.redirect(...)` form remains an alias for
 Pass an object to serialize query values with `URLSearchParams` rather than
 building a nested query string manually. `false`, `0` and empty strings are
 preserved; `null` and `undefined` are omitted; arrays produce repeated keys.
-Explicit local fragments are preserved.
+Local paths use WHATWG URL serialization: Unicode is percent-encoded, valid
+existing escapes are preserved, dot segments are normalized, and a normalized
+pathname beginning with `//` is rejected. Explicit local fragments are
+preserved.
 
 Use `response.redirect.external` only when an external destination is intended.
 It requires an exact origin allowlist and accepts HTTPS destinations by default.
 Origin checks do not use substring or suffix matching. HTTP requires the
 explicit `allowHttp` development option, and URL credentials and non-HTTP
-schemes are rejected.
+schemes are rejected. If the external destination has no fragment, Primate
+emits an explicit empty fragment so the user agent cannot inherit one from the
+source URL.
 
 Only `301`, `302`, `303`, `307` and `308` are accepted. Prefer `303 See Other`
 after a form submission. `307` and `308` preserve the request method and body;
