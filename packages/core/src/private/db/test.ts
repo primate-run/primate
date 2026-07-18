@@ -10,7 +10,6 @@ import test from "@rcompat/test";
 import any from "@rcompat/test/any";
 import type { Dict, MaybePromise } from "@rcompat/type";
 import p from "pema";
-import ParseError from "pema/ParseError";
 
 type Body = (assert: Asserter) => Promise<void>;
 
@@ -401,7 +400,9 @@ export default <D extends DB>(db: D) => {
       label,
       mk,
       base => User.find({ where: base }),
-      w => Author.find({ with: { articles: { store: Article, where: w as any } } }),
+      w => Author.find({
+        with: { articles: { store: Article, where: w as any } },
+      }),
       expected,
     );
   }
@@ -484,12 +485,13 @@ export default <D extends DB>(db: D) => {
     });
   });
 
-  $store("insert: generate=false accepts provided PK", ManualUser, async assert => {
-    const id = "4d0996db-bda9-4f95-ad7c-7075b10d4ba6";
-    const user = await ManualUser.insert({ id, name: "Test" });
-    assert(user.id).equals(id);
-    assert(await ManualUser.has(id)).true();
-  });
+  $store("insert: generate=false accepts provided PK", ManualUser,
+    async assert => {
+      const id = "4d0996db-bda9-4f95-ad7c-7075b10d4ba6";
+      const user = await ManualUser.insert({ id, name: "Test" });
+      assert(user.id).equals(id);
+      assert(await ManualUser.has(id)).true();
+    });
 
   $store("insert: defaults apply", User, async assert => {
     const u = await User.insert({} as any);
@@ -503,12 +505,13 @@ export default <D extends DB>(db: D) => {
     });
   });
 
-  $store("insert: explicit undefined on optional field is allowed", User, async assert => {
-    const u = await User.insert({ name: "Test", lastname: undefined });
-    assert(await User.has(u.id)).true();
-    const [got] = await User.find({ where: { id: u.id } });
-    assert(got.lastname).undefined();
-  });
+  $store("insert: explicit undefined on optional field is allowed", User,
+    async assert => {
+      const u = await User.insert({ name: "Test", lastname: undefined });
+      assert(await User.has(u.id)).true();
+      const [got] = await User.find({ where: { id: u.id } });
+      assert(got.lastname).undefined();
+    });
 
   $user("find: empty object equals no options", async assert => {
     const a = await User.find();
@@ -1413,7 +1416,9 @@ export default <D extends DB>(db: D) => {
 
     await throws(assert, Code.record_not_found, () =>
       Article.get(missing, { with: { author: Author } }));
-    assert(await Article.try(missing, { with: { author: Author } })).undefined();
+    assert(await Article.try(missing, {
+      with: { author: Author },
+    })).undefined();
   });
 
   $rel("get/try: missing id (+ parent)", async assert => {
@@ -1665,7 +1670,8 @@ export default <D extends DB>(db: D) => {
     assert(rows[0].id).equals(u.id);
   });
 
-  /*$store("json column: inferred type on insert", AuthorWithJSON, async assert => {
+  /*$store("json column: inferred type on insert", AuthorWithJSON,
+   async assert => {
     const author = await AuthorWithJSON.insert({
       name: "John",
       articles: [{ title: "First", published: new Date() }],
@@ -1700,7 +1706,9 @@ export default <D extends DB>(db: D) => {
     });
     const author = await AuthorWithJSON.get(a.id);
 
-    assert(author.articles).type<{ title: string; published: Date }[] | undefined>();
+    assert(author.articles).type<{
+      title: string; published: Date
+    }[] | undefined>();
     assert(author.meta).type<{ views: number; tags: string[] } | undefined>();
     assert(author.notes).type<JSONValue | undefined>();
 
@@ -1709,7 +1717,8 @@ export default <D extends DB>(db: D) => {
     assert(author.articles?.[0].published).type<Date | undefined>();
   });
 
-  $store("json column: roundtrip preserves types", AuthorWithJSON, async assert => {
+  $store("json column: roundtrip preserves types", AuthorWithJSON,
+    async assert => {
     const now = new Date();
     const a = await AuthorWithJSON.insert({
       name: "John",
@@ -1732,7 +1741,9 @@ export default <D extends DB>(db: D) => {
     await AuthorWithJSON.find({ where: { meta: { tags: { $like: "%ts%" } } } });
 
     // $contains always available, untyped
-    await AuthorWithJSON.find({ where: { articles: { $contains: { title: "First" } } } });
+    await AuthorWithJSON.find({ where: {
+      articles: { $contains: { title: "First" } } },
+    });
   });*/
 
   $user("where: null matches unset via update", async assert => {
@@ -1840,16 +1851,17 @@ export default <D extends DB>(db: D) => {
     });
   });
 
-  test.case("with: missing store in query object is a type error", async assert => {
-    await throws(assert, Code.relation_store_required, () => {
-      return Author.find({
-        with: {
-          // @ts-expect-error — store is required in WithQuery
-          articles: { where: { title: "foo" } },
-        },
+  test.case("with: missing store in query object is a type error",
+    async assert => {
+      await throws(assert, Code.relation_store_required, () => {
+        return Author.find({
+          with: {
+            // @ts-expect-error — store is required in WithQuery
+            articles: { where: { title: "foo" } },
+          },
+        });
       });
     });
-  });
 
   test.case("with: missing store throws at runtime", async assert => {
     await throws(assert, Code.relation_store_required, () => {
@@ -1998,7 +2010,7 @@ export default <D extends DB>(db: D) => {
       select: ["name"],
       with: {
         articles: {
-          store: Article, select: ["title"], sort: { title: "asc" }
+          store: Article, select: ["title"], sort: { title: "asc" },
         },
       },
       sort: { name: "asc" },
@@ -2041,73 +2053,77 @@ export default <D extends DB>(db: D) => {
       assert(got.author).not.null();
     });
 
-  $rel("with: joined relations decode URL fields (base + rel)", async assert => {
-    const Parent = store({
-      table: "j_parent",
-      db,
-      schema: {
-        id: key.primary(p.uuid),
-        name: p.string,
-        url: p.url.optional(),
-        children: relation.many({ table: "j_child", by: "parent_id" }),
-      },
+  $rel("with: joined relations decode URL fields (base + rel)",
+    async assert => {
+      const Parent = store({
+        table: "j_parent",
+        db,
+        schema: {
+          id: key.primary(p.uuid),
+          name: p.string,
+          url: p.url.optional(),
+          children: relation.many({ table: "j_child", by: "parent_id" }),
+        },
+      });
+
+      const Child = store({
+        db,
+        table: "j_child",
+        schema: {
+          id: key.primary(p.uuid),
+          parent_id: key.foreign(p.uuid),
+          url: p.url.optional(),
+          parent: relation.one({
+            table: "j_parent", by: "parent_id", reverse: true,
+          }),
+        },
+      });
+
+      await Parent.create();
+      await Child.create();
+
+      try {
+        const p0 = await Parent.insert({
+          name: "P0",
+          url: new URL("https://example.com/parent"),
+        });
+
+        await Child.insert({
+          parent_id: p0.id,
+          url: new URL("https://example.com/joined"),
+        });
+
+        // force joined path + projection that omits pk, but still must join
+        const [got] = await Parent.find({
+          where: { id: p0.id },
+          select: ["url"],
+          with: { children: Child },
+        });
+
+        assert(got).defined();
+
+        // pk must not leak
+        assert("id" in got).false();
+
+        // base assertion (should fail if joined base isn't unbound/decoded)
+        assert(got.url).type<URL>();
+        assert(got.url instanceof URL).true();
+        assert(got.url!.href).equals("https://example.com/parent");
+
+        // relation assertion (should fail if joined relation isn't
+        // unbound/decoded)
+        assert(Array.isArray(got.children)).true();
+        assert(got.children.length).equals(1);
+
+        const c0 = got.children[0];
+        assert(c0.url).type<URL>();
+        assert(c0.url instanceof URL).true();
+        assert(c0.url!.href).equals("https://example.com/joined");
+      } finally {
+        await Child.drop();
+        await Parent.drop();
+      }
     });
-
-    const Child = store({
-      db,
-      table: "j_child",
-      schema: {
-        id: key.primary(p.uuid),
-        parent_id: key.foreign(p.uuid),
-        url: p.url.optional(),
-        parent: relation.one({ table: "j_parent", by: "parent_id", reverse: true }),
-      },
-    });
-
-    await Parent.create();
-    await Child.create();
-
-    try {
-      const p0 = await Parent.insert({
-        name: "P0",
-        url: new URL("https://example.com/parent"),
-      });
-
-      await Child.insert({
-        parent_id: p0.id,
-        url: new URL("https://example.com/joined"),
-      });
-
-      // IMPORTANT: force joined path + projection that omits pk, but still must join.
-      const [got] = await Parent.find({
-        where: { id: p0.id },
-        select: ["url"],
-        with: { children: Child },
-      });
-
-      assert(got).defined();
-
-      // pk must not leak
-      assert("id" in got).false();
-
-      // ---- base assertion (should fail if joined base isn't unbound/decoded)
-      assert(got.url).type<URL>();
-      assert(got.url instanceof URL).true();
-      assert(got.url!.href).equals("https://example.com/parent");
-
-      // ---- relation assertion (should fail if joined relation isn't unbound/decoded)
-      assert(Array.isArray(got.children)).true();
-      assert(got.children.length).equals(1);
-
-      const c0 = got.children[0];
-      assert(c0.url).type<URL>();
-      assert(c0.url instanceof URL).true();
-      assert(c0.url!.href).equals("https://example.com/joined");
-    } finally {
-      await Child.drop();
-      await Parent.drop();
-    }
-  });
 
   $rel("find: limit applies to parent rows, not joined rows", async assert => {
     const authors = await Author.find({
@@ -2160,15 +2176,15 @@ export default <D extends DB>(db: D) => {
 
   // UUID pk (User): valid JS type but malformed UUID
   $store("pk: get rejects malformed uuid", User, async assert => {
-    await throws(assert, Code.pk_invalid, () => User.get("not-a-uuid" as any));
+    await throws(assert, Code.pk_invalid, () => User.get("not-a-uuid"));
   });
 
   $store("pk: has rejects malformed uuid", User, async assert => {
-    await throws(assert, Code.pk_invalid, () => User.has("not-a-uuid" as any));
+    await throws(assert, Code.pk_invalid, () => User.has("not-a-uuid"));
   });
 
   $store("pk: delete rejects malformed uuid", User, async assert => {
-    await throws(assert, Code.pk_invalid, () => User.delete("not-a-uuid" as any));
+    await throws(assert, Code.pk_invalid, () => User.delete("not-a-uuid"));
   });
 
   $store("pk: update rejects malformed uuid", User, async assert => {
@@ -2204,9 +2220,10 @@ export default <D extends DB>(db: D) => {
     await throws(assert, Code.pk_invalid, () => UserB.get("abc" as any));
   });
 
-  $store("pk: get rejects negative for unsigned bigint pk", UserB, async assert => {
-    await throws(assert, Code.pk_invalid, () => UserB.get(-1n as any));
-  });
+  $store("pk: get rejects negative for unsigned bigint pk", UserB,
+    async assert => {
+      await throws(assert, Code.pk_invalid, () => UserB.get(-1n));
+    });
 
   // introspect: returns correct types after create
   $store("schema: introspect after create", User, async assert => {
@@ -2406,7 +2423,7 @@ export default <D extends DB>(db: D) => {
   $user("find: offset skips records", async assert => {
     const all = await User.find({ sort: { name: "asc" } });
     const offset = await User.find({
-      sort: { name: "asc" }, offset: 2, limit: all.length - 2
+      sort: { name: "asc" }, offset: 2, limit: all.length - 2,
     });
     assert(offset.length).equals(all.length - 2);
     assert(offset[0].name).equals(all[2].name);
@@ -2415,7 +2432,7 @@ export default <D extends DB>(db: D) => {
   $user("find: offset 0 is same as no offset", async assert => {
     const without = await User.find({ sort: { name: "asc" } });
     const with_zero = await User.find({
-      sort: { name: "asc" }, offset: 0, limit: without.length
+      sort: { name: "asc" }, offset: 0, limit: without.length,
     });
     assert(with_zero.length).equals(without.length);
     assert(with_zero.map(r => r.name)).equals(without.map(r => r.name));

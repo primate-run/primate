@@ -33,6 +33,14 @@ type Optional<T> = {
   [P in keyof T]?: T[P] | undefined;
 };
 
+type OptionalKeys<T> = {
+  [K in keyof T]-?: object extends Pick<T, K> ? K : never
+}[keyof T];
+
+type UndefinedOptional<T> = X<Omit<T, OptionalKeys<T>> & {
+  [K in OptionalKeys<T>]?: T[K] | undefined;
+}>;
+
 type Query = {
   where?: unknown;
   select?: unknown;
@@ -104,7 +112,7 @@ type DefaultFields<T extends StoreInput> = {
 }[keyof InferRecord<T>];
 
 type Insertable<T extends StoreInput> =
-  X<Omit<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>> &
+  UndefinedOptional<Omit<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>> &
     Optional<Pick<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>>>>;
 
 type PrimaryKeyField<T extends StoreInput> = {
