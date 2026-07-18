@@ -1,3 +1,5 @@
+import type serverRedirect from "#response/redirect";
+
 function server_only(name: string): never {
   throw new Error(`response.${name}() is server-only`);
 }
@@ -8,7 +10,7 @@ const redirect = Object.assign(
     external: () => server_only("redirect.external"),
     local: () => server_only("redirect.local"),
   },
-);
+) as typeof serverRedirect;
 
 export default {
   binary: () => server_only("binary"),
