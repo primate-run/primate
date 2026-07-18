@@ -26,7 +26,11 @@ const brand = Symbol.for("@primate/core/Store/v0");
 type X<T> = { [K in keyof T]: T[K] } & {};
 
 type OrNull<T> = {
-  [P in keyof T]?: null | T[P];
+  [P in keyof T]?: null | T[P] | undefined;
+};
+
+type Optional<T> = {
+  [P in keyof T]?: T[P] | undefined;
 };
 
 type Query = {
@@ -100,8 +104,8 @@ type DefaultFields<T extends StoreInput> = {
 }[keyof InferRecord<T>];
 
 type Insertable<T extends StoreInput> =
-  Omit<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>> &
-  Partial<Pick<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>>>;
+  X<Omit<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>> &
+    Optional<Pick<InferRecord<T>, PrimaryKeyField<T> | DefaultFields<T>>>>;
 
 type PrimaryKeyField<T extends StoreInput> = {
   [K in keyof T]: T[K] extends PrimaryKey<any> ? K : never
@@ -199,6 +203,11 @@ function guard_options<
   for (const k of Object.keys(options)) {
     if (!allowed_set.has(k)) throw E.option_unknown(k);
   }
+}
+
+function strip_undefined(record: Dict) {
+  return Object.fromEntries(Object.entries(record)
+    .filter(([, value]) => value !== undefined));
 }
 
 const INT_LIMITS = {
@@ -725,7 +734,7 @@ export default class Store<
   async insert(record: Insertable<T>): Promise<Schema<T>> {
     assert.dict(record);
 
-    const prepared = this.#prepare_insert(record);
+    const prepared = this.#prepare_insert(strip_undefined(record));
 
     return this.db.create(this.#as, this.#schema.parse(prepared));
   }
@@ -745,11 +754,15 @@ export default class Store<
     options?: { set: $Set<T> },
   ) {
     const by_pk = options !== undefined;
-    const set: $Set<T> = by_pk
+    const input_set: $Set<T> = by_pk
       ? options.set
       : (arg0 as { where?: Where<T>; set: $Set<T> }).set;
 
-    if (!is.dict(set) || is.empty(set)) throw E.set_empty();
+    if (!is.dict(input_set)) throw E.set_empty();
+
+    const set = strip_undefined(input_set) as $Set<T>;
+
+    if (is.empty(set)) throw E.set_empty();
 
     const pk = this.#pk;
     if (pk !== null && pk in set) throw E.pk_immutable(pk);
