@@ -204,19 +204,25 @@ test.case("accepted local redirects preserve origin invariants", assert => {
   for (const prefix of prefixes) {
     for (const first of parts) {
       for (const second of parts.slice(0, 8)) {
+        let emitted: string;
         try {
-          const response = render((redirect as any).local(prefix + first + second));
-          const emitted = response.headers.get("Location")!;
-          accepted++;
-          assert(new URL(emitted, requestURL).origin).equals(new URL(requestURL).origin);
-          assert(emitted.startsWith("/")).true();
-          assert(emitted.startsWith("//")).false();
-          assert(emitted.includes("\\")).false();
-          assert(hasForbiddenControl(emitted)).false();
-          assert(new TextEncoder().encode(emitted).byteLength <= 2048).true();
+          const response = render((redirect as any).local(
+            prefix + first + second,
+          ));
+          emitted = response.headers.get("Location")!;
         } catch {
           // Rejection is valid; the property applies to every accepted target.
+          continue;
         }
+
+        accepted++;
+        assert(new URL(emitted, requestURL).origin)
+          .equals(new URL(requestURL).origin);
+        assert(emitted.startsWith("/")).true();
+        assert(emitted.startsWith("//")).false();
+        assert(emitted.includes("\\")).false();
+        assert(hasForbiddenControl(emitted)).false();
+        assert(new TextEncoder().encode(emitted).byteLength <= 2048).true();
       }
     }
   }
