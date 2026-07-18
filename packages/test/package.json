@@ -1,6 +1,6 @@
 {
   "name": "@primate/test",
-  "version": "0.3.0",
+  "version": "0.4.0-pre",
   "private": true,
   "type": "module",
   "license": "MIT",
