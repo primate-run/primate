@@ -21,6 +21,14 @@ function rejects(assert: any, create: () => unknown) {
   assert(create).throws(Error);
 }
 
+function errorCode(create: () => unknown) {
+  try {
+    create();
+  } catch (error) {
+    return (error as { code?: string }).code;
+  }
+}
+
 function hasForbiddenControl(value: string) {
   for (const character of value) {
     const code = character.charCodeAt(0);
@@ -35,7 +43,9 @@ test.case("redirect.local accepts origin-relative targets", assert => {
     ["/account", "/account"],
     ["/account/profile", "/account/profile"],
     ["/account?tab=security", "/account?tab=security"],
+    ["/account?", "/account?"],
     ["/account#sessions", "/account#sessions"],
+    ["/account#", "/account#"],
     ["/a%20b", "/a%20b"],
     ["/café?term=✓", "/caf%C3%A9?term=%E2%9C%93"],
   ];
@@ -80,6 +90,26 @@ test.case("redirect.local rejects malformed and ambiguous targets", assert => {
   }
 });
 
+test.case("redirect.local rejects non-plain structured targets", assert => {
+  class Target {
+    pathname = "/safe";
+  }
+
+  assert(location((redirect as any).local({
+    pathname: "/safe",
+    metadata: "ignored",
+  }))).equals("/safe");
+
+  for (const target of [
+    new Target(),
+    new URL("https://evil.example/safe"),
+    { pathname: "/safe", href: "https://evil.example/safe" },
+    { pathname: "/safe", query: new URLSearchParams("next=/account") },
+  ]) {
+    rejects(assert, () => (redirect as any).local(target));
+  }
+});
+
 test.case("redirect.local serializes structured query values", assert => {
   const emitted = location((redirect as any).local({
     pathname: "/検索",
@@ -104,13 +134,19 @@ test.case("redirect.local serializes structured query values", assert => {
   assert(emitted).equals(
     "/%E6%A4%9C%E7%B4%A2?amp=%26&equals=%3D&question=%3F&hash=%23&percent=%25&space=a+b&unicode=%E2%9C%93&false=false&zero=0&empty=&repeated=one&repeated=two%26&repeated=0&repeated=false#%E7%B5%90%E6%9E%9C",
   );
+  assert(location((redirect as any).local({
+    pathname: "/account",
+    hash: "",
+  }))).equals("/account#");
 });
 
 test.case("redirect.local validates status codes at runtime", assert => {
   for (const status of [301, 302, 303, 307, 308]) {
     assert(render((redirect as any).local("/ok", { status })).status).equals(status);
   }
-  for (const status of [300, 304, 305, 306, 309, 399, 200]) {
+  for (const status of [
+    null, "302", NaN, 200, 300, 304, 305, 306, 309, 399,
+  ]) {
     rejects(assert, () => (redirect as any).local("/no", { status }));
   }
 });
@@ -137,6 +173,17 @@ test.case("redirect headers cannot override validated Location", assert => {
   assert(response.headers.get("Cache-Control")).equals("private");
   assert(response.headers.get("X-Test")).equals("present");
 
+  const cookies = render((redirect as any).local("/safe", {
+    headers: [
+      ["Set-Cookie", "first=1; Path=/"],
+      ["Set-Cookie", "second=2; Path=/"],
+    ],
+  })).headers.getSetCookie();
+  assert(cookies).equals([
+    "first=1; Path=/",
+    "second=2; Path=/",
+  ]);
+
   const defaults = render((redirect as any).local("/safe"));
   assert(defaults.headers.get("Cache-Control")).equals("no-cache");
 });
@@ -152,46 +199,78 @@ test.case("redirect.external requires exact authorized HTTP origins", assert => 
     allowedOrigins,
   }))).equals("https://trusted.example/path#");
 
+  assert(errorCode(() => external(
+    "https://user:secret@trusted.example/path",
+    { allowedOrigins },
+  ))).equals("credentials_not_allowed");
+
   for (const target of [
     "https://sub.trusted.example/path",
     "https://trusted.example.evil/path",
     "https://eviltrusted.example/path",
     "https://user:secret@trusted.example/path",
     "https://user@trusted.example/path",
+    "https://@trusted.example/path",
+    "https://:@trusted.example/path",
     "http://trusted.example/path",
+    "https:///trusted.example/path",
+    "https:////trusted.example/path",
     "javascript:alert(1)",
     "data:text/html,test",
     "file:///tmp/test",
     "blob:https://trusted.example/id",
     "ftp://trusted.example/file",
     "mailto:user@trusted.example",
+    "https://trusted.example/%",
+    "https://trusted.example/?next=%",
     "https://unlisted.example/path",
   ]) {
     rejects(assert, () => external(target, { allowedOrigins }));
   }
-});
 
-test.case("redirect.external makes HTTP and method preservation explicit", assert => {
-  const external = (redirect as any).external;
+  const sparse: string[] = [];
+  sparse.length = 1;
+  rejects(assert, () => external("https://trusted.example/path", {
+    allowedOrigins: sparse,
+  }));
 
-  assert(location(external("http://localhost:3000/dev", {
-    allowedOrigins: ["http://localhost:3000"],
-    allowHttp: true,
-  }))).equals("http://localhost:3000/dev#");
-
-  for (const status of [307, 308]) {
-    rejects(assert, () => render(external("https://trusted.example/post", {
-      allowedOrigins: ["https://trusted.example"],
-      status,
-    })));
-
-    assert(render(external("https://trusted.example/post", {
-      allowedOrigins: ["https://trusted.example"],
-      preserveMethod: true,
-      status,
-    })).status).equals(status);
+  for (const origin of [
+    "https://trusted.example/path",
+    "https://trusted.example?",
+    "https://trusted.example#",
+    "https://@trusted.example",
+    "https://trusted%.example",
+  ]) {
+    rejects(assert, () => external("https://trusted.example/path", {
+      allowedOrigins: [origin],
+    }));
   }
 });
+
+test.case(
+  "redirect.external makes HTTP and method preservation explicit",
+  assert => {
+    const external = (redirect as any).external;
+
+    assert(location(external("http://localhost:3000/dev", {
+      allowedOrigins: ["http://localhost:3000"],
+      allowHttp: true,
+    }))).equals("http://localhost:3000/dev#");
+
+    for (const status of [307, 308]) {
+      rejects(assert, () => render(external("https://trusted.example/post", {
+        allowedOrigins: ["https://trusted.example"],
+        status,
+      })));
+
+      assert(render(external("https://trusted.example/post", {
+        allowedOrigins: ["https://trusted.example"],
+        preserveMethod: true,
+        status,
+      })).status).equals(status);
+    }
+  },
+);
 
 test.case("accepted local redirects preserve origin invariants", assert => {
   const parts = [

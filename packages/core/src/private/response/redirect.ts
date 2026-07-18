@@ -7,9 +7,14 @@ import {
 const DEFAULT_MAX_LOCATION_BYTES = 2048;
 const LOCAL_BASE = new URL("https://primate.invalid/");
 const METHOD_PRESERVING_STATUSES = new Set<RedirectStatus>([307, 308]);
+const URL_LIKE_TARGET_KEYS = new Set([
+  "host", "hostname", "href", "origin", "password", "port", "protocol",
+  "username",
+]);
 const INVALID_PERCENT_ESCAPE = /%(?![\da-f]{2})/iu;
 const ENCODED_PATH_CONTROL = /%(?:0[\da-f]|1[\da-f]|7f)/iu;
 const ENCODED_BACKSLASH = /%5c/iu;
+const ABSOLUTE_URL_FORM = /^[a-z][a-z\d+.-]*:\/\/[^/?#]+(?:[/?#]|$)/iu;
 const ORIGIN_FORM = /^[a-z][a-z\d+.-]*:\/\/[^/?#]+\/?$/iu;
 
 type RedirectQueryValue = boolean | null | number | string | undefined;
@@ -96,6 +101,16 @@ function locationBytes(location: string) {
   return new TextEncoder().encode(location).byteLength;
 }
 
+function hasUserInfo(value: string) {
+  const authorityStart = value.indexOf("://") + 3;
+  if (authorityStart < 3) return false;
+  const authorityEnd = ["/", "?", "#"]
+    .map(separator => value.indexOf(separator, authorityStart))
+    .filter(index => index !== -1)
+    .reduce((first, index) => Math.min(first, index), value.length);
+  return value.slice(authorityStart, authorityEnd).includes("@");
+}
+
 function maxLocationBytes(value: unknown): number {
   const maximum = value === undefined ? DEFAULT_MAX_LOCATION_BYTES : value;
   if (
@@ -109,7 +124,7 @@ function maxLocationBytes(value: unknown): number {
 }
 
 function status(value: unknown): RedirectStatus {
-  const redirectStatus = value ?? 302;
+  const redirectStatus = value === undefined ? 302 : value;
   if (!isRedirectStatus(redirectStatus as number)) {
     fail("invalid_redirect_status");
   }
@@ -123,6 +138,14 @@ function normalizeInit(value: unknown): RedirectInit {
     fail("invalid_redirect_status");
   }
   return value as RedirectInit;
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }
 
 function checkRawLocalTarget(target: string) {
@@ -176,9 +199,7 @@ function checkSerializedLocal(
 
 function appendQuery(url: URL, query: unknown) {
   if (query === undefined) return;
-  if (query === null || typeof query !== "object" || Array.isArray(query)) {
-    fail("invalid_local_target");
-  }
+  if (!isPlainRecord(query)) fail("invalid_local_target");
 
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
@@ -208,13 +229,11 @@ function serializeLocal(target: unknown, maximum: number) {
     }
   } else {
     if (
-      target === null
-      || target instanceof URL
-      || typeof target !== "object"
-      || !("pathname" in target)
+      !isPlainRecord(target)
       || typeof target.pathname !== "string"
       || target.pathname.includes("?")
       || target.pathname.includes("#")
+      || Object.keys(target).some(key => URL_LIKE_TARGET_KEYS.has(key))
     ) {
       fail("invalid_local_target");
     }
@@ -243,7 +262,7 @@ function serializeLocal(target: unknown, maximum: number) {
     }
   }
 
-  const location = url.pathname + url.search + url.hash;
+  const location = url.href.slice(url.origin.length);
   checkSerializedLocal(location, LOCAL_BASE, maximum);
   return location;
 }
@@ -259,10 +278,20 @@ function response(
     headers.set("Content-Length", "0");
     if (!headers.has("Cache-Control")) headers.set("Cache-Control", "no-cache");
 
-    return app.respond(null, {
+    const setCookies = headers.getSetCookie();
+    const result = app.respond(null, {
       headers: Object.fromEntries(headers),
       status: redirectStatus,
     });
+
+    // Object.fromEntries cannot represent repeated Set-Cookie fields.
+    if (setCookies.length > 0) {
+      result.headers.delete("Set-Cookie");
+      for (const cookie of setCookies) {
+        result.headers.append("Set-Cookie", cookie);
+      }
+    }
+    return result;
   };
 }
 
@@ -288,6 +317,7 @@ function parseExternalOrigin(origin: unknown, allowHttp: boolean) {
     || origin.trim() !== origin
     || hasForbiddenControl(origin)
     || origin.includes("\\")
+    || INVALID_PERCENT_ESCAPE.test(origin)
     || !ORIGIN_FORM.test(origin)
   ) {
     fail("invalid_external_target");
@@ -303,7 +333,9 @@ function parseExternalOrigin(origin: unknown, allowHttp: boolean) {
   const allowedProtocol = url.protocol === "https:"
     || allowHttp && url.protocol === "http:";
   if (!allowedProtocol) fail("external_scheme_not_allowed");
-  if (url.username !== "" || url.password !== "") fail("credentials_not_allowed");
+  if (hasUserInfo(origin) || url.username !== "" || url.password !== "") {
+    fail("credentials_not_allowed");
+  }
   if (url.pathname !== "/" || url.search !== "" || url.hash !== "") {
     fail("invalid_external_target");
   }
@@ -317,6 +349,8 @@ function serializeExternal(target: unknown, options: ExternalRedirectInit) {
     || raw.trim() !== raw
     || hasForbiddenControl(raw)
     || raw.includes("\\")
+    || INVALID_PERCENT_ESCAPE.test(raw)
+    || !ABSOLUTE_URL_FORM.test(raw)
   ) {
     fail("invalid_external_target");
   }
@@ -332,13 +366,20 @@ function serializeExternal(target: unknown, options: ExternalRedirectInit) {
   const allowedProtocol = url.protocol === "https:"
     || allowHttp && url.protocol === "http:";
   if (!allowedProtocol) fail("external_scheme_not_allowed");
-  if (url.username !== "" || url.password !== "") fail("credentials_not_allowed");
-  if (!Array.isArray(options.allowedOrigins) || options.allowedOrigins.length === 0) {
+  if (hasUserInfo(raw) || url.username !== "" || url.password !== "") {
+    fail("credentials_not_allowed");
+  }
+  if (
+    !Array.isArray(options.allowedOrigins)
+    || options.allowedOrigins.length === 0
+  ) {
     fail("external_origin_not_allowed");
   }
 
-  const origins = new Set(options.allowedOrigins
-    .map(origin => parseExternalOrigin(origin, allowHttp)));
+  const origins = new Set<string>();
+  for (const origin of options.allowedOrigins) {
+    origins.add(parseExternalOrigin(origin, allowHttp));
+  }
   if (!origins.has(url.origin)) fail("external_origin_not_allowed");
 
   // An explicit empty fragment prevents user agents from inheriting a source
@@ -353,7 +394,11 @@ function serializeExternal(target: unknown, options: ExternalRedirectInit) {
 }
 
 const external = ((target: unknown, options: unknown) => {
-  if (options === null || typeof options !== "object" || Array.isArray(options)) {
+  if (
+    options === null
+    || typeof options !== "object"
+    || Array.isArray(options)
+  ) {
     fail("external_origin_not_allowed");
   }
   const normalized = options as ExternalRedirectInit;
