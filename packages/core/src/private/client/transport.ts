@@ -1,3 +1,4 @@
+import { isRedirectStatus } from "#response/redirect-status";
 import http from "@rcompat/http";
 
 const sameorigin = (url: URL) => url.origin === globalThis.location.origin;
@@ -33,7 +34,7 @@ async function refetch(
     if (response.type === "opaqueredirect") return { requested: url, response };
 
     const location = get_location(response, url.toString());
-    if (location !== null && response.status >= 300 && response.status < 400) {
+    if (location !== null && isRedirectStatus(response.status)) {
       if (!sameorigin(location)) return { requested: url, response };
       url = location;
       hops++;
