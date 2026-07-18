@@ -6,9 +6,9 @@ import (
 )
 
 var _ = route.Get(func(_ route.Request) any {
-	return response.Redirect("https://primate.run", 303)
+	return response.Redirect("/account")
 })
 
 var _ = route.Post(func(_ route.Request) any {
-	return response.Redirect("/login")
+	return response.Redirect("/login", 303)
 })

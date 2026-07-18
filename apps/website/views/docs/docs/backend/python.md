@@ -304,6 +304,10 @@ def get(request):
     return Response.redirect("/redirected", status=301)  # moved permanently
 ```
 
+Binding redirects are local and origin-relative. The core validates the target
+at runtime and accepts only status codes `301`, `302`, `303`, `307` and `308`.
+Use `303` after handling a form submission.
+
 ### Error Responses
 
 Return error responses:

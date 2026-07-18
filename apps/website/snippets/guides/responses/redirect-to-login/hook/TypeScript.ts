@@ -8,5 +8,8 @@ export default route.hook((request, next) => {
     return next(request);
   }
 
-  return response.redirect(`/login?next=${request.target}`);
+  return response.redirect.local({
+    pathname: "/login",
+    query: { next: request.target },
+  });
 });

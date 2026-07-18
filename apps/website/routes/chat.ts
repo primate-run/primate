@@ -1,7 +1,10 @@
+import response from "primate/response";
 import route from "primate/route";
 
 export default route({
   get() {
-    return new URL("https://discord.gg/RSg4NNwM4f");
+    return response.redirect.external("https://discord.gg/RSg4NNwM4f", {
+      allowedOrigins: ["https://discord.gg"],
+    });
   },
 });

@@ -4,9 +4,15 @@ import route from "primate/route";
 
 export default route({
   get() {
-    return response.redirect("https://primate.run", Status.SEE_OTHER);
+    return response.redirect.external("https://primate.run", {
+      allowedOrigins: ["https://primate.run"],
+      status: Status.SEE_OTHER,
+    });
   },
   post(request) {
-    return response.redirect(`/login?next=${request.target}`);
+    return response.redirect.local({
+      pathname: "/login",
+      query: { next: request.target },
+    }, { status: Status.SEE_OTHER });
   },
 });

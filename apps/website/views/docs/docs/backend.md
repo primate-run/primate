@@ -159,6 +159,9 @@ Redirect to other routes:
 return response.Redirect("/other-route")
 ```
 
+Binding redirects are local and origin-relative. Redirect targets and the exact
+allowed status codes are validated by the core runtime.
+
 ## Database Operations
 
 Built-in store operations:

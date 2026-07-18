@@ -13,7 +13,7 @@ aspects of the response.
 |`string`|[text](#text)|`200 text/plain`|Serve plain text|
 |`object`|[json](#json)|`200 application/json`|Serve JSON|
 |`Blob`·`File`·`FileRef`|[binary](#binary)|`200 application/octet-stream`|Stream contents|
-|`URL`|[redirect](#redirect)|`302`|Redirect to URL|
+|—|[redirect](#redirect)|`302`|Redirect safely|
 |—|[view](#view)|`200 text/html`|Serve frontend component|
 |—|[page](#page)|`200 text/html`|Serve collocated route page|
 |—|[error](#error)|`404 text/html`|Show error page|
@@ -57,11 +57,33 @@ Use rcompat's `FileRef` to conveniently load a file from disk and stream it out.
 [s=responses/binary/file-ref]
 
 ## Redirect
-Return a `URL` to redirect to another address.
+Use `response.redirect.local` for origin-relative redirects. Local redirects are
+safe by default: malformed paths, protocol-relative targets, backslashes,
+control characters and targets that resolve to another origin are rejected.
+The callable `response.redirect(...)` form remains an alias for
+`response.redirect.local(...)`.
 
-[s=responses/redirect/implicit]
+Pass an object to serialize query values with `URLSearchParams` rather than
+building a nested query string manually. `false`, `0` and empty strings are
+preserved; `null` and `undefined` are omitted; arrays produce repeated keys.
+Explicit local fragments are preserved.
 
-Use the explicit `redirect` handler to vary the status or for local redirects.
+Use `response.redirect.external` only when an external destination is intended.
+It requires an exact origin allowlist and accepts HTTPS destinations by default.
+Origin checks do not use substring or suffix matching. HTTP requires the
+explicit `allowHttp` development option, and URL credentials and non-HTTP
+schemes are rejected.
+
+Only `301`, `302`, `303`, `307` and `308` are accepted. Prefer `303 See Other`
+after a form submission. `307` and `308` preserve the request method and body;
+external redirects using either status also require `preserveMethod: true`.
+Both local and external redirects enforce a 2048-byte `Location` limit by
+default, configurable with `maxLocationBytes`.
+
+Returning a `URL` no longer creates an implicit redirect. Migrate those routes
+to `response.redirect.external` with an explicit `allowedOrigins` policy.
+Never pass untrusted request or query input to an unrestricted external
+redirect.
 
 [s=responses/redirect/explicit]
 
