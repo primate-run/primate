@@ -1,16 +1,15 @@
-import type Validator from "#Validator";
 import E from "#errors";
-
-type ErrorFunction = (x: string) => string;
+import type Validator from "#Validator";
+import message from "#validator/message";
+import type MessageOptions from "#validator/MessageOptions";
 
 export default function regex(
-  format: RegExp,
-  error?: ErrorFunction): Validator<string> {
+  re: RegExp,
+  options?: MessageOptions<string>,
+): Validator<string> {
+  const format = message(options, y => `"${y}" is not a valid ${String(re)}`);
+
   return (x: string) => {
-    if (!format.test(x)) {
-      const message = (error ?? ((y: string) =>
-        `"${y}" is not a valid ${String(format)}`))(x);
-      throw E.invalid_format(x, message);
-    }
+    if (!re.test(x)) throw E.invalid_format(x, format(x));
   };
 };

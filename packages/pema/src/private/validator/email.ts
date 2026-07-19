@@ -1,5 +1,8 @@
+import type MessageOptions from "#validator/MessageOptions";
 import regex from "#validator/regex";
 
-const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
+const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 
-export default regex(email, x => `"${x}" is not a valid email`);
+export default function email(options?: MessageOptions<string>) {
+  return regex(re, options ?? (x => `"${x}" is not a valid email`));
+}

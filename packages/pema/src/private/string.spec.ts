@@ -53,6 +53,64 @@ test.case("optional", assert => {
   assert(o).invalid_type([1]);
 });
 
+test.case("transform: trim", assert => {
+  const schema = p.string.trim();
+
+  assert(schema).type<StringType>();
+  assert(schema.parse(" foo ")).equals("foo").type<string>();
+  assert(schema.parse("\tfoo\n")).equals("foo").type<string>();
+});
+
+test.case("transform: lowercase", assert => {
+  const schema = p.string.lowercase();
+
+  assert(schema).type<StringType>();
+  assert(schema.parse("FoO")).equals("foo").type<string>();
+});
+
+test.case("transform: uppercase", assert => {
+  const schema = p.string.uppercase();
+
+  assert(schema).type<StringType>();
+  assert(schema.parse("FoO")).equals("FOO").type<string>();
+});
+
+test.case("transform: before validators", assert => {
+  const schema = p.string.trim().lowercase().regex(/^foo$/);
+
+  assert(schema.parse(" FOO ")).equals("foo").type<string>();
+  assert(schema).invalid_format([" BAR "]);
+});
+
+test.case("check", assert => {
+  const schema = p.string.check(
+    value => /^[a-z][a-z0-9]{2,31}$/.test(value),
+    "Use 3-32 lowercase letters or numbers, starting with a letter",
+  );
+
+  assert(schema).type<StringType>();
+  assert(schema.parse("abc123")).equals("abc123").type<string>();
+  try {
+    schema.parse("ab");
+    assert(false).true();
+  } catch (error) {
+    assert((error as Error).message)
+      .equals("Use 3-32 lowercase letters or numbers, starting with a letter");
+  }
+});
+
+test.case("check: after transforms", assert => {
+  const schema = p.string
+    .trim()
+    .lowercase()
+    .check(
+      value => /^[a-z][a-z0-9]{2,31}$/.test(value),
+      "Use 3-32 lowercase letters or numbers, starting with a letter",
+    );
+
+  assert(schema.parse(" ABC123 ")).equals("abc123").type<string>();
+});
+
 test.case("validator: startsWith", assert => {
   const sw = p.string.startsWith("/");
 
@@ -60,6 +118,17 @@ test.case("validator: startsWith", assert => {
   assert(sw.parse("/")).equals("/").type<string>();
   assert(sw.parse("/foo")).equals("/foo").type<string>();
   assert(sw).invalid_format(["foo"]);
+});
+
+test.case("validator: startsWith custom message", assert => {
+  const sw = p.string.startsWith("/", "Must start with a slash");
+
+  try {
+    sw.parse("foo");
+    assert(false).true();
+  } catch (error) {
+    assert((error as Error).message).equals("Must start with a slash");
+  }
 });
 
 test.case("validator: endsWith", assert => {
@@ -86,6 +155,17 @@ test.case("validator: email", assert => {
   });
 });
 
+test.case("validator: email custom message", assert => {
+  const email = p.string.email({ message: "Enter a valid email" });
+
+  try {
+    email.parse("nope");
+    assert(false).true();
+  } catch (error) {
+    assert((error as Error).message).equals("Enter a valid email");
+  }
+});
+
 test.case("validator: min", assert => {
   assert(() => p.string.min(-10)).throws(Code.min_negative);
   assert(() => p.string.min(Infinity)).throws(Code.min_limit_not_finite);
@@ -98,6 +178,18 @@ test.case("validator: min", assert => {
   const trimmed = min.derive(value => value.trim());
   assert(trimmed.parse(" hello ")).equals("hello").type<string>();
 });
+
+test.case("validator: min custom message", assert => {
+  const min = p.string.min(5, "Too short");
+
+  try {
+    min.parse("hi");
+    assert(false).true();
+  } catch (error) {
+    assert((error as Error).message).equals("Too short");
+  }
+});
+
 test.case("validator: max", assert => {
   assert(() => p.string.max(-10)).throws(Code.max_negative);
   assert(() => p.string.max(Infinity)).throws(Code.max_limit_not_finite);
@@ -107,6 +199,18 @@ test.case("validator: max", assert => {
   assert(max.parse("hi")).equals("hi").type<string>();
   assert(max).too_large(["universe"]);
 });
+
+test.case("validator: max custom message", assert => {
+  const max = p.string.max(5, { message: value => `${value} is too long` });
+
+  try {
+    max.parse("universe");
+    assert(false).true();
+  } catch (error) {
+    assert((error as Error).message).equals("universe is too long");
+  }
+});
+
 test.case("validator: length", assert => {
   assert(() => p.string.length(Infinity, 10)).throws(Code.length_not_finite);
   assert(() => p.string.length(-10, 10)).throws(Code.length_not_positive);
@@ -117,6 +221,30 @@ test.case("validator: length", assert => {
   assert(length.parse("hi")).equals("hi").type<string>();
   assert(length.parse("")).equals("").type<string>();
   assert(length).out_of_range(["universe"]);
+});
+
+test.case("validator: length custom message", assert => {
+  const length = p.string.length(3, 5, "Use 3-5 characters");
+
+  try {
+    length.parse("hi");
+    assert(false).true();
+  } catch (error) {
+    assert((error as Error).message).equals("Use 3-5 characters");
+  }
+});
+
+test.case("validator: regex custom message", assert => {
+  const regex = p.string.regex(/^[a-z]+$/, {
+    message: "Use lowercase letters",
+  });
+
+  try {
+    regex.parse("ABC");
+    assert(false).true();
+  } catch (error) {
+    assert((error as Error).message).equals("Use lowercase letters");
+  }
 });
 
 test.case("combined validators", assert => {

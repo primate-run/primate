@@ -46,6 +46,14 @@ export default abstract class PrimitiveType<StaticType, Name extends string>
     );
   }
 
+  check(predicate: (value: StaticType) => boolean, message: string) {
+    return this.with({
+      validators: [value => {
+        if (!predicate(value)) throw E.invalid_format(value, message);
+      }],
+    });
+  }
+
   parse(u: unknown, options: ParseOptions<StaticType> = {}): Infer<this> {
     const x = resolve(u);
 

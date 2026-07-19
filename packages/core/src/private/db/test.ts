@@ -321,6 +321,21 @@ export default <D extends DB>(db: D) => {
     },
   });
 
+  const CodeProject = store({
+    table: "code_project",
+    db,
+    schema: {
+      id: key.primary(p.uuid),
+      code: p.string
+        .trim()
+        .lowercase()
+        .check(
+          value => /^[a-z][a-z0-9]{2,31}$/.test(value),
+          "Use 3-32 lowercase letters or numbers, starting with a letter",
+        ),
+    },
+  });
+
   function $store<S extends Store<any>>(label: string, s: S, body: Body) {
     test.case(label, async assert => {
       await s.create();
@@ -544,6 +559,29 @@ export default <D extends DB>(db: D) => {
       assert(got.lastname).undefined();
     });
 
+  $store("insert: parses and normalizes values", CodeProject, async assert => {
+    const project = await CodeProject.insert({ code: " MyApp123 " });
+
+    assert(project.code).equals("myapp123");
+    const [got] = await CodeProject.find({ where: { id: project.id } });
+    assert(got.code).equals("myapp123");
+  });
+
+  $store("insert: check errors are field errors", CodeProject, async assert => {
+    try {
+      await CodeProject.insert({ code: " 12 " });
+      assert(false).true();
+    } catch (error) {
+      assert((error as any).toJSON()).equals({
+        "/code": {
+          type: "invalid_format",
+          message: "Use 3-32 lowercase letters or numbers, starting with a letter",
+          messages: ["Use 3-32 lowercase letters or numbers, starting with a letter"],
+        },
+      });
+    }
+  });
+
   $user("find: empty object equals no options", async assert => {
     const a = await User.find();
     const b = await User.find({});
@@ -708,6 +746,32 @@ export default <D extends DB>(db: D) => {
     const [updated] = (await User.find({ where: { name: "Donald" } }));
     assert(updated.age).equals(35);
     assert(updated).equals({ ...USERS.donald, age: 35, id: donald.id });
+  });
+
+  $store("update: parses and normalizes values", CodeProject, async assert => {
+    const project = await CodeProject.insert({ code: "abc" });
+
+    await CodeProject.update(project.id, { set: { code: " MyApp123 " } });
+
+    const updated = await CodeProject.get(project.id);
+    assert(updated.code).equals("myapp123");
+  });
+
+  $store("update: check errors are field errors", CodeProject, async assert => {
+    const project = await CodeProject.insert({ code: "abc" });
+
+    try {
+      await CodeProject.update(project.id, { set: { code: " 12 " } });
+      assert(false).true();
+    } catch (error) {
+      assert((error as any).toJSON()).equals({
+        "/code": {
+          type: "invalid_format",
+          message: "Use 3-32 lowercase letters or numbers, starting with a letter",
+          messages: ["Use 3-32 lowercase letters or numbers, starting with a letter"],
+        },
+      });
+    }
   });
 
   $user("update: unset fields", async assert => {
