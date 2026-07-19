@@ -31,7 +31,7 @@
   "dependencies": {
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.14.0",
-    "@rcompat/is": "^0.12.0",
+    "@rcompat/is": "^0.12.1",
     "oracledb": "^7.0.0",
     "pema": "workspace:^"
   },

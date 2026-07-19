@@ -29,7 +29,7 @@
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.14.0",
     "@rcompat/fs": "^0.35.1",
-    "@rcompat/is": "^0.12.0",
+    "@rcompat/is": "^0.12.1",
     "pema": "workspace:^"
   },
   "devDependencies": {

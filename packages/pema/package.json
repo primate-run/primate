@@ -28,7 +28,7 @@
     "@rcompat/assert": "^0.14.0",
     "@rcompat/cli": "^0.25.0",
     "@rcompat/error": "^0.9.0",
-    "@rcompat/is": "^0.12.0",
+    "@rcompat/is": "^0.12.1",
     "@rcompat/symbol": "^0.3.0"
   },
   "devDependencies": {

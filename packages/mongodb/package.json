@@ -28,7 +28,7 @@
     "@primate/core": "workspace:^",
     "@rcompat/assert": "^0.14.0",
     "@rcompat/dict": "^0.11.0",
-    "@rcompat/is": "^0.12.0",
+    "@rcompat/is": "^0.12.1",
     "mongodb": "^7.3.0",
     "pema": "workspace:^"
   },
