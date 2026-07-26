@@ -54,6 +54,8 @@ export default async function build_server(app: BuildApp) {
     },
     banner: {
       js: `import { createRequire as __createRequire } from "node:module";
+      const __filename = import.meta.filename;
+      const __dirname = import.meta.dirname;
       const require = __createRequire(import.meta.url);`,
     },
     nodePaths: [app.root.join("node_modules").path],
