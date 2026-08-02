@@ -17,11 +17,11 @@
     "!/**/*.spec.*"
   ],
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "pnpm run clean && tsc",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build",
-    "test": "npm run db && npx proby",
+    "prepublishOnly": "pnpm run build",
+    "test": "pnpm run db && npx proby",
     "db": "scripts/db.sh"
   },
   "dependencies": {
