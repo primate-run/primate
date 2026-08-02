@@ -17,15 +17,15 @@
     "!/**/*.spec.*"
   ],
   "scripts": {
-    "build": "npm run clean && tsc",
+    "build": "pnpm run clean && tsc",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "pnpm run build",
     "mysql": "scripts/mysql.sh",
     "mariadb": "scripts/mariadb.sh",
-    "test:mysql": "npm run mysql && npx proby",
-    "test:mariadb": "npm run mariadb && npx proby",
-    "test": "npm run test:mysql"
+    "test:mysql": "pnpm run mysql && npx proby",
+    "test:mariadb": "pnpm run mariadb && npx proby",
+    "test": "pnpm run test:mysql"
   },
   "devDependencies": {
     "@rcompat/type": "^0.18.0"

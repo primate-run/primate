@@ -18,10 +18,10 @@
     "!/**/*.spec.*"
   ],
   "scripts": {
-    "build": "npm run clean && tsc && cp -a src/private/defaults lib/private",
+    "build": "pnpm run clean && tsc && cp -a src/private/defaults lib/private",
     "clean": "rm -rf ./lib",
     "lint": "eslint .",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "pnpm run build",
     "test": "npx proby"
   },
   "dependencies": {
