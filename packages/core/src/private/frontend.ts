@@ -7,6 +7,7 @@ import type ServerView from "#client/ServerView";
 import type View from "#client/View";
 import type ViewOptions from "#client/ViewOptions";
 import E from "#errors";
+import html_safe_json from "#html-safe-json";
 import inline from "#inline";
 import location from "#location";
 import type Mode from "#Mode";
@@ -142,7 +143,7 @@ export default function frontend_module<
       if (app_asset === undefined) throw E.frontend_missing_app_js();
 
       const app_script = `<script type="module" src="${app_asset.src}"></script>`;
-      const props = JSON.stringify(client);
+      const props = html_safe_json(client);
       const hydrated = await inline(props, http.MIME.APPLICATION_JSON, "hydration");
       const script_src = [hydrated.integrity];
 
