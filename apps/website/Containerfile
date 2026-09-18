@@ -1,0 +1,40 @@
+FROM docker.io/oven/bun:1-alpine AS builder
+
+USER root
+RUN apk add --update ca-certificates jq npm
+RUN npm install -g typescript
+USER bun
+WORKDIR /app/primate
+
+COPY --chown=bun:bun . .
+
+RUN mkdir -p node_modules/apekit && wget -qO- $(wget -qO- https://registry.npmjs.org/apekit/latest \
+    | jq -r '.dist.tarball') | tar -xz -C node_modules/apekit --strip-components=1
+
+RUN bun install
+RUN bun add @rcompat/assert @rcompat/cli @rcompat/crypto @rcompat/dict @rcompat/env @rcompat/error @rcompat/fn @rcompat/fs @rcompat/html @rcompat/http @rcompat/io @rcompat/is @rcompat/kv @rcompat/runtime @rcompat/string @rcompat/symbol @rcompat/type @marko/compiler marko marked shiki esbuild
+RUN cd packages/pema && rm -rf lib && /usr/local/bin/tsc --noCheck
+RUN cd packages/core && rm -rf lib && /usr/local/bin/tsc --noCheck && cp -a src/private/defaults lib/private
+RUN cd packages/html && rm -rf lib && /usr/local/bin/tsc --noCheck
+RUN cd packages/marko && rm -rf lib && /usr/local/bin/tsc --noCheck
+RUN cd packages/markdown && rm -rf lib && /usr/local/bin/tsc --noCheck
+RUN cd packages/primate && rm -rf lib && /usr/local/bin/tsc --noCheck && cp src/app.tsconfig.json lib && cp src/types/app.d.ts lib && cp src/types/index.d.ts lib
+RUN mkdir -p node_modules/@primate && \
+    ln -s ../../packages/core node_modules/@primate/core && \
+    ln -s ../../packages/html node_modules/@primate/html && \
+    ln -s ../../packages/markdown node_modules/@primate/markdown && \
+    ln -s ../../packages/marko node_modules/@primate/marko && \
+    ln -s ../packages/pema node_modules/pema && \
+    ln -s ../packages/primate node_modules/primate
+
+WORKDIR /app/primate/apps/website
+RUN bun ../../packages/primate/lib/bin.js build --target=deno
+
+FROM docker.io/denoland/deno:alpine
+
+WORKDIR /app
+COPY --from=builder /app/primate/apps/website/build ./build
+RUN chown -R nobody:nobody /app
+USER nobody
+
+CMD ["deno", "--allow-env", "--allow-read=build,.env.local,.env", "--allow-net=0.0.0.0:6161", "build/server.js"]
